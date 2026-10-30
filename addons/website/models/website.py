@@ -376,7 +376,6 @@ class Website(models.CachedModel):
     @api.model
     def _handle_favicon(self, vals):
         if icon := vals.get('favicon'):
-            icon = self._fields['favicon'].convert_to_cache(icon, self)
             vals['favicon'] = BinaryBytes(image_process(icon, size=(256, 256), crop='center', output_format='ICO'))
 
     @api.model
@@ -701,8 +700,6 @@ class Website(models.CachedModel):
     @api.model
     def configurator_skip(self):
         website = self.get_current_website()
-        if website.configurator_done:
-            return website.button_go_website()
         theme = self.env["ir.module.module"].search([("name", "=", "theme_default")])
         website.configurator_done = True
         return theme.button_choose_theme()

@@ -75,6 +75,36 @@ class PeppolRegistration(models.TransientModel):
         )
 
 
+class AccountEdiCii(models.AbstractModel):
+    _inherit = "account.edi.cii"
+
+    def _cii_get_billing_specified_period_node(self, vals):
+        """Keep CII export compatible with the USL deferral data model.
+
+        Upstream uses optional line-level deferred dates.  USL keeps deferral
+        schedules in its own model, so those fields are not necessarily
+        installed on account.move.line.  In that case, retain the invoice-level
+        billing dates without inventing line-level deferral data.
+        """
+        invoice = vals["invoice"]
+        line_fields = invoice.invoice_line_ids._fields
+        if {
+            "deferred_start_date",
+            "deferred_end_date",
+        } <= line_fields.keys():
+            return super()._cii_get_billing_specified_period_node(vals)
+        return {
+            "ram:StartDateTime": self._cii_get_date_time_string_node(
+                vals,
+                invoice.invoice_date,
+            ) if invoice.invoice_date else None,
+            "ram:EndDateTime": self._cii_get_date_time_string_node(
+                vals,
+                invoice.invoice_date_due,
+            ) if invoice.invoice_date_due else None,
+        }
+
+
 class AccountEdiProxyClientUser(models.Model):
     _inherit = "account_edi_proxy_client.user"
 
@@ -468,28 +498,6 @@ class AccountEdiProxyClientUser(models.Model):
 
 class ResPartner(models.Model):
     _inherit = "res.partner"
-
-    @api.model
-    def _fetch_active_annuaire_lines(self, siren):
-        company = self.env.company
-        if (
-            company.account_fiscal_country_id.code == "FR"
-            and company._get_peppol_edi_mode() != "demo"
-            and not company._rebuild_einvoice_live_call_allowed()
-        ):
-            return {}
-        return super()._fetch_active_annuaire_lines(siren)
-
-    @api.model
-    def _peppol_lookup_participant_formats_accepted(self, edi_identification, formats):
-        company = self.env.company
-        if (
-            company.account_fiscal_country_id.code == "FR"
-            and company._get_peppol_edi_mode() != "demo"
-            and not company._rebuild_einvoice_live_call_allowed()
-        ):
-            return None
-        return super()._peppol_lookup_participant_formats_accepted(edi_identification, formats)
 
     @api.model
     def _pdp_annuaire_lookup_participant(self, edi_identification):

@@ -36,7 +36,7 @@ class VideoIframe extends Component {
 
 export class VideoSelector extends Component {
     static mediaSpecificClasses = ["media_iframe_video"];
-    static mediaSpecificStyles = ["width"];
+    static mediaSpecificStyles = [];
     static mediaExtraClasses = [];
     static tagNames = ["IFRAME", "DIV"];
     static template = "html_editor.VideoSelector";

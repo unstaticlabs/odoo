@@ -387,10 +387,10 @@ export class ToggleSocialMediaLinkAction extends BuilderAction {
                 })
             );
             const icon = newLinkElement.querySelector(".fa");
-            if (referenceIcon.style.backgroundColor) {
+            if (backgroundColor) {
                 icon.style.backgroundColor = backgroundColor;
             }
-            if (referenceIcon.style.color) {
+            if (color) {
                 icon.style.color = color;
             }
             icon.classList.remove("fa-stack");

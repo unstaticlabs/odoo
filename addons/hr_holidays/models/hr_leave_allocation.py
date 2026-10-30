@@ -33,8 +33,6 @@ class HrLeaveAllocation(models.Model):
     @api.model
     def default_get(self, fields):
         defaults = super().default_get(fields)
-        if 'work_entry_type_id' not in fields:
-            return defaults
         employee = defaults.get('employee_id')
         country = self.env['hr.employee'].browse(employee).company_id.country_id or self.env.company.country_id
         domain = [
@@ -1034,9 +1032,7 @@ class HrLeaveAllocation(models.Model):
     def _get_initialize_accrual_plan_values(self, date_from):
         return {
             'lastcall': date_from,
-            'actual_lastcall': False,
             'nextcall': False,
-            'last_executed_carryover_date': False,
             'number_of_days': 0.0,
             'number_of_days_display': 0.0,
             'number_of_hours_display': 0.0,

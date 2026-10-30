@@ -4,6 +4,7 @@ import { useService } from "@web/core/utils/hooks";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { AccountMoveFormController } from "@account/components/account_move_form/account_move_form";
 
+
 patch(AccountMoveFormController.prototype, {
     setup() {
         super.setup();

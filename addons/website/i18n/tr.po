@@ -42,7 +42,7 @@
 # Murat Durmuş <muratd@projetgrup.com>, 2023
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # DeepL <noreply-mt-deepl@weblate.org>, 2025.
 # Odoo Turkish Import <dyki+tr@odoo.com>, 2025.
 # "Malaz Siddig Elsayed Abuidris (msea)" <msea@odoo.com>, 2025.
@@ -52,9 +52,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 15:34+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-08-17 07:48+0000\n"
+"Last-Translator: Burkay Yıldızhan <seyil@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/tr/>\n"
 "Language: tr\n"
@@ -62,7 +62,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -359,20 +359,18 @@ msgid ""
 "'Alt tag' specifies an alternate text for an image, if the image cannot be "
 "displayed (slow connection, missing image, screen reader ...)."
 msgstr ""
-"'Alt etiketi' resim görüntülenemiyorsa, görüntü için alternatif bir metin "
-"belirtir (yavaş bağlantı, eksik görüntü, ekran okuyucu ...)."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
-msgstr "Resmi gezdirdiğinizde 'Başlık etiketi' araç ipucu olarak gösterilir."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "+ Alan"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -719,8 +717,6 @@ msgstr "50,000'den fazla şirket, Odoo'ya güveniyor."
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "50,000+ companies use our services <br/>to grow their businesses."
 msgstr ""
-"50.000'den fazla şirket, işlerini büyütmek için <br/>adresindeki "
-"hizmetlerimizi kullanıyor."
 
 #. module: website
 #. odoo-javascript
@@ -765,7 +761,7 @@ msgstr "8000 Marina Blvd, Suite 300 - Brisbane CA 94005 - Birleşik Devletler"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid ": Once loaded, follow the"
-msgstr ": Yüklendikten sonra,"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -1958,17 +1954,17 @@ msgstr "<span class=\"fa fa-check-circle-o\"/> Sınırsız özelleştirme"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "<span class=\"flex-grow-1\">By Bike</span>"
-msgstr "<span class=\"flex-grow-1\">Bisikletle</span>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "<span class=\"flex-grow-1\">By Car</span>"
-msgstr "<span class=\"flex-grow-1\">Araba ile</span>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "<span class=\"flex-grow-1\">By Train</span>"
-msgstr "<span class=\"flex-grow-1\">Trenle</span>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_accordion
@@ -3146,8 +3142,8 @@ msgstr "Akordeon Görseli"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Hesaplar birden fazla web sitenizin tümünde kullanılabilir"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -3253,13 +3249,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 msgid "Add Card"
-msgstr "Kart Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_floating_blocks/floating_blocks.edit.xml:0
 msgid "Add Cards"
-msgstr "Kartlar Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3272,7 +3268,7 @@ msgstr "Veri Kümesi Ekle"
 #: code:addons/website/static/src/builder/plugins/options/timeline_option.xml:0
 #: code:addons/website/static/src/builder/plugins/timeline_images_option.xml:0
 msgid "Add Date"
-msgstr "Tarih Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3290,37 +3286,37 @@ msgstr "Resim Ekle"
 #. odoo-javascript
 #: code:addons/website/static/src/interactions/image_gallery.edit.xml:0
 msgid "Add Images"
-msgstr "Görsel Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Medya Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Mega Menü Öğesi Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Menü Öğesi Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "Kilometre Taşı Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Add New"
-msgstr "Yeni Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3351,7 +3347,7 @@ msgstr "Satır Ekle"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Bölüm Ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3441,7 +3437,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Resim ekle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3869,8 +3865,6 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
 msgstr ""
-"Bu web sitesindeki çerezlerin bu tarayıcıda kullanılmasına izin veriyor "
-"musunuz?"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3901,7 +3895,7 @@ msgstr "Zaten yüklü"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt etiketi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -4277,7 +4271,7 @@ msgstr "Otomatik"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__publish_on
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__publish_on
 msgid "Auto publish on"
-msgstr "Otomatik yayınla"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4298,7 +4292,7 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_website_published_multi_mixin__publish_on
 #: model:ir.model.fields,help:website.field_website_snippet_filter__publish_on
 msgid "Automatically publish the page on the chosen date and time."
-msgstr "Sayfayı seçilen tarih ve saatte otomatik olarak yayınlayın."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4392,7 +4386,7 @@ msgstr "Arkaplan Rengi"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "Arkaplan Pozisyonu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4562,7 +4556,7 @@ msgstr "Büyük sayı"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Birth Date"
-msgstr "Doğum Tarihi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4856,7 +4850,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Broken Links"
-msgstr "Bozuk bağlantılar"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4958,7 +4952,7 @@ msgstr "Şimdi Alın"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Şimdi satın al"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -5391,7 +5385,7 @@ msgstr "Çekişi artırmak için ziyaretçilerle sohbet edin"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Kontrol Et"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5427,7 +5421,7 @@ msgstr "Onay Kutusu"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option_plugin.js:0
 msgid "Checkbox List"
-msgstr "Onay Kutusu Listesi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5542,7 +5536,7 @@ msgstr "Listeden seçin"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Favorinizi seçin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5611,7 +5605,7 @@ msgstr "Engelleme sekmesine geri dönmek için buraya tıklayın."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "Tıklayın"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5799,7 +5793,7 @@ msgstr "Sütunlar"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Come Visit Us"
-msgstr "Bizi Ziyaret Edin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_0_s_cover
@@ -6032,7 +6026,6 @@ msgstr "Bize Ulaşın"
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Contact us about anything related to our company or services."
 msgstr ""
-"Şirketimiz veya hizmetlerimizle ilgili her konuda bizimle iletişime geçin."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_contact
@@ -6238,7 +6231,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Could be used in many places, see here:"
-msgstr "Birçok yerde kullanılabilir, buraya bakın:"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6360,7 +6353,7 @@ msgstr "Müşteri oluştur"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "Bir Google projesi oluşturun ve bir Anahtar alın"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6511,7 +6504,7 @@ msgstr "Özel Metin"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Özel URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6799,7 +6792,7 @@ msgstr "Geciken"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Sil"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -7118,7 +7111,7 @@ msgstr "Keşfet"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "Daha Fazlasını Keşfedin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -7238,7 +7231,7 @@ msgstr "Keşif"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "Ayrık"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7488,7 +7481,7 @@ msgstr "Domino"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Tekrar gösterme"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7538,12 +7531,6 @@ msgstr "Tatlı çörek"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr "<b>%s</b> bloğunu sürükleyin ve sayfanın altına bırakın."
@@ -7552,7 +7539,7 @@ msgstr "<b>%s</b> bloğunu sürükleyin ve sayfanın altına bırakın."
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "Alt menü almak için sağa sürükleyin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7707,7 +7694,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Easy ways to reach us, no matter your favorite transport."
 msgstr ""
-"Tercih ettiğiniz ulaşım aracı ne olursa olsun, bize kolayca ulaşabilirsiniz."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_s_text_cover
@@ -7755,7 +7741,7 @@ msgstr "Düzenle %s"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Edit 404 page"
-msgstr "404 sayfasını düzenle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7794,7 +7780,7 @@ msgstr "Stilleri Düzenle"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "Kodu düzenle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7981,7 +7967,7 @@ msgstr "“%s” içinde boş alan adı"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "Google Projenizde faturalandırmayı etkinleştirin"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -7992,7 +7978,7 @@ msgstr "Bu model için form oluşturma özelliğini aktif et."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "Google hesabınızda doğru google harita API'lerini etkinleştirin"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8243,7 +8229,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Herşey"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -8407,7 +8393,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Explore on"
-msgstr "Keşfedin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_gallery_s_text_block_2nd
@@ -8465,7 +8451,7 @@ msgstr "Harici Kimlik"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Ekstra İçerik"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8692,7 +8678,7 @@ msgstr "Doldur"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Fill Color"
-msgstr "Dolgu Rengi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8841,21 +8827,21 @@ msgstr "Sabit"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Bayrak"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Code"
-msgstr "Bayrak ve Kod"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "Bayrak ve Metin"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9256,7 +9242,7 @@ msgstr "Genel"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Generate keywords"
-msgstr "Anahtar kelimeler oluşturun"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9278,7 +9264,7 @@ msgstr "Teslim Alın"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_intro_pill
 msgid "Get Started"
-msgstr "Başlayın"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_descriptive
@@ -9355,19 +9341,13 @@ msgstr "Tüm iç bloklar için global seçenekler."
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/portal_option.xml:0
 msgid "Global options for all inner cards."
-msgstr "Tüm iç kartlar için global seçenekler."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
 msgstr "Geri dön"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9458,15 +9438,6 @@ msgstr "Google Harita"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Google Haritalar API Keyi"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9922,8 +9893,6 @@ msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
 msgstr ""
-"İpucu: Google Harita'yı web sitenizde kullanma (Bize Ulaşın sayfası ve "
-"snippet olarak)"
 
 #. module: website
 #. odoo-javascript
@@ -10092,7 +10061,7 @@ msgstr "Bu konu hakkında eminim."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "İstiyorum"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -10292,8 +10261,6 @@ msgid ""
 "If you need to add analytics or marketing tags, inject code in your <head> "
 "or <body> instead."
 msgstr ""
-"Analitik veya pazarlama etiketleri eklemeniz gerekiyorsa, kodu <head>veya "
-"<body> yerleştirin."
 
 #. module: website
 #. odoo-javascript
@@ -10453,7 +10420,7 @@ msgstr "Görseller mozaiği"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Images Optimization"
-msgstr "Görüntü Optimizasyonu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10505,7 +10472,7 @@ msgstr "Menüde"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "Bu arada sizleri de ziyaret etmeye davet ediyoruz"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10554,7 +10521,7 @@ msgstr "İndekslenmiş"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Indicates the link is sponsored or paid content"
-msgstr "Bağlantının sponsorlu veya ücretli içerik olduğunu belirtir"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10919,7 +10886,7 @@ msgstr "Geçersiz URL"
 #. odoo-python
 #: code:addons/website/models/ir_ui_view.py:0
 msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "%(field_name)s için geçersiz alan değeri: %(value)s"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11218,7 +11185,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "It will be gone forever!"
-msgstr "Sonsuza dek yok olacak!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_text_block_2nd
@@ -11285,7 +11252,7 @@ msgstr "Kariyer"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "John Doe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -11802,7 +11769,7 @@ msgstr "Haydi yapalım şunu"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "Hadi gidelim!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -11983,7 +11950,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Daha Fazla Yükle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12077,7 +12044,7 @@ msgstr "Tıklanabilir hale getirin"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "Faturalandırmanın etkinleştirildiğinden emin olun"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12094,7 +12061,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "Ayarlarınızın doğru yapılandırıldığından emin olun:"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -12149,7 +12116,7 @@ msgstr "Kar Marjı"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Mark as decorative"
-msgstr "Dekoratif olarak işaretle"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_mosaic_template
@@ -12687,7 +12654,7 @@ msgstr "Monitörler"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Daha"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12804,7 +12771,7 @@ msgstr "Birden Çok Onay Kutusu"
 #. odoo-javascript
 #: code:addons/website/static/src/js/backend/view_hierarchy/view_hierarchy.xml:0
 msgid "Multiple tree exists for this view"
-msgstr "Bu görünüm için birden çok ağaç var"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
@@ -13141,7 +13108,7 @@ msgstr "Resimlerde uyarı yok"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Hayır, Kalsın"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14397,8 +14364,8 @@ msgstr "Yer tutucu"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+msgid "Places API"
+msgstr "Yerler API'si"
 
 #. module: website
 #. odoo-javascript
@@ -14477,7 +14444,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/image/image_popup_option.xml:0
 msgid "Pop-up on Click"
-msgstr "Tıklama'da açılır pencere"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14563,7 +14530,7 @@ msgstr "Sonraki için <Tab> tuşuna basın ["
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Prevents the new page from accessing the original window (security)"
-msgstr "Yeni sayfanın orijinal pencereye erişmesini engeller (güvenlik)"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14582,13 +14549,13 @@ msgstr "Önizleme görseli"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Bunun önizlemesi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "Bu URL’yi yeni sekmede önizleyin"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14881,7 +14848,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "Yayın Tarihi"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14892,7 +14859,7 @@ msgstr "Yayın Tarihi"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__published_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__published_date
 msgid "Published date"
-msgstr "Yayınlanma tarihi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15014,7 +14981,7 @@ msgstr "Radio"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option_plugin.js:0
 msgid "Radio Button List"
-msgstr "Radyo Düğmesi Listesi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15073,7 +15040,7 @@ msgstr "Dijital vizyonunuzu hayata geçirmeye hazır mısınız?"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "Yapılandırmaya hazır"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -15295,7 +15262,7 @@ msgstr "Önce bir anahtar sözcüğü kaldırın"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Hepsini kaldır"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15338,13 +15305,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Removes referrer information sent to the target site"
-msgstr "Hedef siteye gönderilen yönlendirici bilgilerini kaldırır"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "Tekrarlama deseni"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15364,7 +15331,7 @@ msgstr "Dosyayı değiştir"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Replace Icon"
-msgstr "Simgeyi değiştir"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15376,7 +15343,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Replace Image"
-msgstr "Görüntüyü Değiştir"
+msgstr ""
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_reporting
@@ -15453,7 +15420,7 @@ msgstr "Kaynaklar"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "Gizliliğinize saygı duymak önceliğimizdir."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15753,7 +15720,7 @@ msgstr "Kaydet ve Yeniden Yönlendir"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "Kaydet ve Yeniden Yükle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15793,7 +15760,7 @@ msgstr "Tartı"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Planlandı"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -15929,11 +15896,6 @@ msgstr "Web sitemizde arama yapın"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "İçeride ara"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Ara..."
 
 #. module: website
 #. odoo-javascript
@@ -16136,7 +16098,7 @@ msgstr "E-posta Gönder"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Send Message"
-msgstr "Mesaj Gönderin"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_cover
@@ -16191,7 +16153,7 @@ msgstr "Sıralama"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "Google sunucularından yazı tipi sunma"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -16264,7 +16226,7 @@ msgstr "Bu sayfadaki ayarlar bu web sitesi için geçerli olacak"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Gölge"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -16344,7 +16306,7 @@ msgstr "Masaları satın alın"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
 msgid "Shop Now"
-msgstr "Hemen Satın Al"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -16641,13 +16603,13 @@ msgstr "Slayt"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "Slayt Vurgusu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover + Shadow"
-msgstr "Slide Hover + Gölge"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel
@@ -16890,7 +16852,7 @@ msgstr "Bölünmüş Giriş"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "Yayıldı"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16940,7 +16902,7 @@ msgstr "Şimdi Başla"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner
 msgid "Start Now <span class=\"fa fa-angle-right ms-2\"/>"
-msgstr "Hemen Başlayın <span class=\"fa fa-angle-right ms-2\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -17223,7 +17185,7 @@ msgstr "İçindekiler"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Table of Contents"
-msgstr "İçindekiler Bölümü"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -17361,7 +17323,7 @@ msgstr "Televizyon"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Tells search engines not to follow this link"
-msgstr "Arama motorlarına bu bağlantıyı takip etmemelerini söyler"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17622,7 +17584,13 @@ msgstr "Aşağıdaki alan adı geçerli değil:"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Form başarılı şekilde gönderildi."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "Formun belirtilen modeli mevcut değil"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -17827,7 +17795,7 @@ msgstr "Tema Araçları"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.xml:0
 msgid "Then enable the \"Is a Template\" option."
-msgstr "Ardından “Şablon” seçeneğini etkinleştirin."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
@@ -17857,7 +17825,7 @@ msgstr "Yıllardan beri bize güveniyorlar"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "They will be gone forever!"
-msgstr "Sonsuza kadar kaybolacaklar!"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17983,13 +17951,6 @@ msgid ""
 msgstr ""
 "Bu yazı tipi zaten mevcut, yalnızca sunucu sürümünü değiştirmek için yerel "
 "bir yazı tipi olarak ekleyebilirsiniz."
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -18178,7 +18139,7 @@ msgstr "Son sayfa görüntülemesinden bu yana geçen süre. Ör .: 2 dakika ön
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "Time's up! You can now visit"
-msgstr "Zaman doldu! Şimdi ziyaret edebilirsiniz"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
@@ -18290,7 +18251,7 @@ msgstr "Başlık Pozisyonu"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "Başlık etiketi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -18310,8 +18271,6 @@ msgid ""
 "To add your page to this category, open the page properties: \"Site -> "
 "Properties\"."
 msgstr ""
-"Sayfanızı bu kategoriye eklemek için sayfa özelliklerini açın: \"Site -> "
-"Özellikler\"."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs
@@ -18344,7 +18303,6 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.cookies_warning.xml:0
 msgid "To see the interactive content, you need to accept optional cookies."
 msgstr ""
-"Etkileşimli içeriği görmek için isteğe bağlı çerezleri kabul etmeniz gerekir."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -18557,7 +18515,7 @@ msgstr "Çevir"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Translate 404 page"
-msgstr "404 sayfasını çevir"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18593,7 +18551,7 @@ msgstr "İçerik Çevrildi"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "Çevriliyor..."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18643,7 +18601,7 @@ msgstr "Vizyonu Gerçeğe Dönüştürmek"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "İki"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18829,7 +18787,7 @@ msgstr "Kaydedilmemiş"
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Unschedule"
-msgstr "Planlamayı iptal et"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -18870,7 +18828,7 @@ msgstr "Güncellemeler ve İyileştirmeler"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Yükle"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18895,7 +18853,7 @@ msgstr "Statik bayrak resminin URL'si"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "URL veya E-posta"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -19133,7 +19091,7 @@ msgstr "Sebze Salatası, Dana Burger ve Mango Dondurması"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Doğrulayın"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19759,9 +19717,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"Bu web sitesinde daha iyi bir deneyim sağlamak için çerezleri kullanıyoruz. "
-"Çerezlerimiz ve bunları nasıl kullandığımız hakkında daha fazla bilgiyi "
-"öğrenebilirsin"
 
 #. module: website
 #. odoo-javascript
@@ -19802,7 +19757,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "Biz ayarlayacağız siz çalışmaya başlayacaksınız"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -20186,7 +20141,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "Hoşgeldiniz"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -20337,7 +20292,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Wrap"
-msgstr "Şal"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20426,14 +20381,14 @@ msgstr "Metninizi yazın"
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Evet"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20545,12 +20500,6 @@ msgstr "Bu alanı kopyalayamazsınız."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "Geçerli bir Facebook bağlantısı vermediniz"
@@ -20560,7 +20509,6 @@ msgstr "Geçerli bir Facebook bağlantısı vermediniz"
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.xml:0
 msgid "You do not have the necessary permissions to create new content pages."
 msgstr ""
-"Yeni içerik sayfaları oluşturmak için gerekli izinlere sahip değilsiniz."
 
 #. module: website
 #. odoo-python
@@ -20572,7 +20520,7 @@ msgstr "Yayınlama / yayından kaldırma haklarına sahip değilsiniz"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "Bu kaydı düzenleme izniniz yok."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20616,7 +20564,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_floating_blocks/floating_blocks.edit.xml:0
 msgid "You need at least two cards to perform the effect"
-msgstr "Efekti gerçekleştirmek için en az iki karta ihtiyacınız var"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_searchbar
@@ -20836,7 +20784,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "a Color Palette"
-msgstr "bir Renk Paleti"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20878,13 +20826,13 @@ msgstr "bir etkinlik web sitesi"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "ve"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "otomatik"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20944,7 +20892,7 @@ msgstr "btn-ikincil"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "işletme"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21331,7 +21279,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "benim için"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21343,7 +21291,7 @@ msgstr "forum"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "bulunanlar"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21367,7 +21315,7 @@ msgstr "ücretsiz websitesi"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "Logo'dan"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -21711,7 +21659,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "tasarlamaya başlamak için sağ üst köşede."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -21877,7 +21825,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "sayfa"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21910,7 +21858,7 @@ msgstr "yer tutucu"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "pointer to discover features."
-msgstr "özellikleri keşfetmek için işaretçi."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -22193,7 +22141,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "text-danger"
-msgstr "text-tehlike"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -22240,13 +22188,13 @@ msgstr "website"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "ana hedefi olan"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "years"
-msgstr "yıl"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -22289,15 +22237,6 @@ msgstr "✽  Pizzalar"
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr "✽  Sunduklarımız"
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Hesaplar birden fazla web sitenizin tümünde kullanılabilir"
-
-#~ msgid "Places API"
-#~ msgstr "Yerler API'si"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Formun belirtilen modeli mevcut değil"
 
 #~ msgid "Translate the whole content with AI"
 #~ msgstr "Tüm içeriği yapay zeka ile çevirin"

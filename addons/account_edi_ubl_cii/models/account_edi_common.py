@@ -785,9 +785,10 @@ class AccountEdiCommon(models.AbstractModel):
             attachment_data = document.find('{*}Attachment/{*}EmbeddedDocumentBinaryObject')
             if attachment_name is not None and attachment_data is not None:
                 mimetype = attachment_data.attrib.get('mimeCode')
-                # Strip internal newlines/spaces to prevent 'raw' field validation failure on create
-                if not (extension := SUPPORTED_FILE_TYPES.get(mimetype)) or not (text := ''.join((attachment_data.text or '').split())):
+                if not (extension := SUPPORTED_FILE_TYPES.get(mimetype)):
                     continue
+                # Strip internal newlines/spaces to prevent 'raw' field validation failure on create
+                text = ''.join((attachment_data.text or '').split())
                 # Normalize the name of the file : some e-fff emitters put the full path of the file
                 # (Windows or Linux style) and/or the name of the xml instead of the pdf.
                 # Get only the filename with the right extension.
@@ -1032,10 +1033,10 @@ class AccountEdiCommon(models.AbstractModel):
             if start_date_node is not None and end_date_node is not None:  # there is a constraint forcing none or the two to be set
                 start_date = datetime.strptime(start_date_node.text.strip(), xpath_dict['date_format'])
                 end_date = datetime.strptime(end_date_node.text.strip(), xpath_dict['date_format'])
-                deferred_values = {
-                    'deferred_start_date': start_date,
-                    'deferred_end_date': end_date,
-                }
+        deferred_values = {
+            'deferred_start_date': start_date,
+            'deferred_end_date': end_date,
+        }
         line_vals = self._retrieve_line_vals(record, tree, document_type, qty_factor)
         if not line_vals.get('price_subtotal'):
             return None
@@ -1478,9 +1479,10 @@ class AccountEdiCommon(models.AbstractModel):
     def _import_retrieve_customer(self, collected_values):
         company = collected_values['company']
         customer_values = collected_values['customer_values']
-        customer_values['company'] = company
-        if collected_values['invoice'].move_type in ('out_refund', 'in_invoice'):
-            customer_values['account_numbers'] = collected_values.get('partner_bank_values', {}).get('account_numbers')
+        customer_values.update({
+            'account_numbers': collected_values.get('partner_bank_values', {}).get('account_numbers'),
+            'company': company,
+        })
         self.env['res.partner']._import_retrieve_customer(
             search_plan=self._import_retrieve_customer_search_plan(collected_values),
             company=company,

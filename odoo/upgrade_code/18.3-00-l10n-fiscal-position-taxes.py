@@ -1,4 +1,3 @@
-# test: skip; one-off migration
 import csv
 import logging
 

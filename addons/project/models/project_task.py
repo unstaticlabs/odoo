@@ -383,11 +383,6 @@ class ProjectTask(models.Model):
             elif task.display_in_project and task.project_id == task.parent_id.sudo().project_id:
                 task.display_in_project = False
 
-    @api.onchange('stage_id')
-    def _onchange_stage_id(self):
-        if self.state not in CLOSED_STATES and self.state != '04_waiting_normal' and self.stage_id != self._origin.stage_id:
-            self.state = '01_in_progress'
-
     @api.depends('stage_id', 'depend_on_ids.state')
     def _compute_state(self):
         for task in self:
@@ -1146,8 +1141,6 @@ class ProjectTask(models.Model):
         if is_portal_user:
             child_ids_list = []
         for vals, additional_vals in zip(vals_list, additional_vals_list):
-            if 'priority' in vals and not vals['priority']:
-                vals['priority'] = '0'
             project_id = vals.get('project_id') or default_project_id
 
             if vals.get('user_ids'):

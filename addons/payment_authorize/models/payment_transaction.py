@@ -3,7 +3,6 @@
 import pprint
 
 from odoo import _, api, models
-from odoo.exceptions import ValidationError
 
 from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.logging import get_payment_logger
@@ -244,12 +243,9 @@ class PaymentTransaction(models.Model):
         if self.provider_code != "authorize":
             return super()._extract_amount_data(payment_data)
 
-        try:
-            tx_details = AuthorizeAPI(self.provider_id).get_transaction_details(
-                payment_data.get("response", {}).get("x_trans_id")
-            )
-        except ValidationError:
-            return None  # Skip the validation
+        tx_details = AuthorizeAPI(self.provider_id).get_transaction_details(
+            payment_data.get("response", {}).get("x_trans_id")
+        )
         if "err_code" in tx_details:  # Transaction details are missing when an API error occurs.
             return None  # Skip the validation
 

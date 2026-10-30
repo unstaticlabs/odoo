@@ -11,9 +11,7 @@ class LinkTracker(http.Controller):
 
     @http.route('/r/<string:code>', type='http', auth='public', website=True)
     def full_url_redirect(self, code, **post):
-        # Link preview requests must not be counted as clicks.
-        is_link_preview = request.httprequest.headers.get('Odoo-Link-Preview')
-        if not is_link_preview and not request.env['ir.http'].is_a_bot():
+        if not request.env['ir.http'].is_a_bot():
             request.env['link.tracker.click'].sudo().add_click(
                 code,
                 ip=request.httprequest.remote_addr,

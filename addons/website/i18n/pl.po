@@ -38,14 +38,14 @@
 # "Dylan Kiss (dyki)" <dyki@odoo.com>, 2025.
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
 # "Marta (wacm)" <wacm@odoo.com>, 2025, 2026.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 15:35+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-07-02 01:23+0000\n"
+"Last-Translator: \"Marta (wacm)\" <wacm@odoo.com>\n"
 "Language-Team: Polish <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/pl/>\n"
 "Language: pl\n"
@@ -55,7 +55,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=(n==1 ? 0 : (n%10>=2 && n%10<=4) && "
 "(n%100<12 || n%100>14) ? 1 : n!=1 && (n%10>=0 && n%10<=1) || (n%10>=5 && "
 "n%10<=9) || (n%100>=12 && n%100<=14) ? 2 : 3);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -354,23 +354,18 @@ msgid ""
 "'Alt tag' specifies an alternate text for an image, if the image cannot be "
 "displayed (slow connection, missing image, screen reader ...)."
 msgstr ""
-"\"Alt tag\" określa tekst alternatywny dla obrazka, w przypadku gdy nie może "
-"być on wyświetlony (wolne połączenie internetowe, brakujący obraz, czytnik "
-"ekranu...)."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
 msgstr ""
-"\"Tag tytułu\" jest wyświetlany jako podpowiedź po najechaniu kursorem na "
-"obrazek."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "+ Pole"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -760,7 +755,7 @@ msgstr "8000 Marina Blvd, Suite 300 • Brisbane CA 94005 • Stany Zjednoczone"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid ": Once loaded, follow the"
-msgstr ": Po załadowaniu, przejdź do"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2854,7 +2849,7 @@ msgstr "<u>Wtorek</u><br/>8:00 - 18:00"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
 msgid "<u>Wednesday</u><br/>8.00am-12.00pm"
-msgstr "<u>Środa</u><br/>8:00 - 12:00"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_opening_hours
@@ -2865,7 +2860,7 @@ msgstr "<u>info@yourcompany.example.com</u>"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "A"
-msgstr "A"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -3061,7 +3056,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/website/models/website_controller_page.py:0
 msgid "A page must be set to display a concrete model."
-msgstr "Strona musi być skonfigurowana, aby wyświetlała konkretny model."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -3211,8 +3206,8 @@ msgstr "Obraz akordeon"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Konta mogą być używane na wielu stronach internetowych"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -3318,13 +3313,13 @@ msgstr "Dodaj awatar"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 msgid "Add Card"
-msgstr "Dodaj kartę"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_floating_blocks/floating_blocks.edit.xml:0
 msgid "Add Cards"
-msgstr "Dodaj karty"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3337,7 +3332,7 @@ msgstr "Dodaj dataset"
 #: code:addons/website/static/src/builder/plugins/options/timeline_option.xml:0
 #: code:addons/website/static/src/builder/plugins/timeline_images_option.xml:0
 msgid "Add Date"
-msgstr "Dodaj datę"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3355,37 +3350,37 @@ msgstr "Dodaj obraz"
 #. odoo-javascript
 #: code:addons/website/static/src/interactions/image_gallery.edit.xml:0
 msgid "Add Images"
-msgstr "Dodaj obrazy"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Dodaj media"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Dodaj element Mega Menu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Dodaj pozycję menu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "Dodaj Kamień Milowy"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Add New"
-msgstr "Dodaj nowe"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3416,7 +3411,7 @@ msgstr "Dodaj wiersz"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Dodaj sekcję"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3506,7 +3501,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Dodaj obraz"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3939,7 +3934,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
-msgstr "Czy pozwolić tej witrynie na używanie plików cookie w tej przeglądarce?"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3969,7 +3964,7 @@ msgstr "Już zainstalowane"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt tag"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -4399,7 +4394,7 @@ msgstr "Awatary"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "B"
-msgstr "B"
+msgstr ""
 
 #. module: website
 #: model:website.page,name:website.bs_debug_page
@@ -4459,7 +4454,7 @@ msgstr "Kolor tła"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "Pozycja tła"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4629,7 +4624,7 @@ msgstr "Duża liczba"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Birth Date"
-msgstr "Data urodzenia"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4731,7 +4726,7 @@ msgstr "Bluesky"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Blur"
-msgstr "Rozmycie"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4923,7 +4918,7 @@ msgstr "Widoczność nawigacji"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Broken Links"
-msgstr "Niedziałające linki"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5026,7 +5021,7 @@ msgstr "Kup teraz"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Kup Teraz"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -5046,7 +5041,7 @@ msgstr "Domeny następujących usług są domyślnie zablokowane:"
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -5458,7 +5453,7 @@ msgstr "Czatuj z gośćmi, aby poprawić efektywność"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Kontrola"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5609,7 +5604,7 @@ msgstr "Wybierz spośród listy"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Wybierz swój ulubiony"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5678,7 +5673,7 @@ msgstr "Kliknij tutaj, aby powrócić do zakładki bloku."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "Naciśnij na"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6306,7 +6301,7 @@ msgstr "Uszkodzona zawartość"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Could be used in many places, see here:"
-msgstr "Może być użyte w wielu miejscach, zobacz na przykład:"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6428,7 +6423,7 @@ msgstr "Utwórz klienta"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "Utwórz Projekt Google i pobierz klucz"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6580,7 +6575,7 @@ msgstr "Niestandardowy tekst"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Niestandardowy URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6657,7 +6652,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6866,7 +6861,7 @@ msgstr "Opóźnienie"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Usuń"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -7180,7 +7175,7 @@ msgstr "Odkryj"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "Odkryj więcej"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -7298,7 +7293,7 @@ msgstr "Odkrycie"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "Dyskretne"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7549,7 +7544,7 @@ msgstr "Domino"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Nie pokazuj więcej"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7599,12 +7594,6 @@ msgstr "Donut"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr "Przeciągnij blok <b>%s</b> i upuść go na dole strony."
@@ -7613,7 +7602,7 @@ msgstr "Przeciągnij blok <b>%s</b> i upuść go na dole strony."
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "Przeciągnij w prawo, aby uzyskać submenu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7815,7 +7804,7 @@ msgstr "Edytuj %s"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Edit 404 page"
-msgstr "Edytuj stronę 404"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8045,7 +8034,7 @@ msgstr "Pusta nazwa pola w “%s”"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "Uruchom rozliczenia na projekcie Google"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -8056,7 +8045,7 @@ msgstr "Włącz funkcję tworzenia formularzy dla tego modelu."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "Włącz odpowiednie interfejsy API map Google na swoim koncie Google."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8315,7 +8304,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Wszystko"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -8479,7 +8468,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Explore on"
-msgstr "Przeglądaj na"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_gallery_s_text_block_2nd
@@ -8913,21 +8902,21 @@ msgstr "Stała"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Oznacz"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Code"
-msgstr "Flaga i kod"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "Flaga i tekst"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9327,7 +9316,7 @@ msgstr "Ogólne"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Generate keywords"
-msgstr "Wygeneruj słowa kluczowe"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9349,7 +9338,7 @@ msgstr "Otrzymaj dostawę"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_intro_pill
 msgid "Get Started"
-msgstr "Zacznij"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_descriptive
@@ -9426,19 +9415,13 @@ msgstr "Opcje globalne dla wszystkich bloków wewnętrznych."
 #: code:addons/website/static/src/builder/plugins/floating_blocks/floating_blocks_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/portal_option.xml:0
 msgid "Global options for all inner cards."
-msgstr "Globalne opcje dla wszystkich kart wewnętrznych."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
 msgstr "Powrót"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9529,17 +9512,6 @@ msgstr "Mapy Google"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Klucz API Map Google"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
-"Konfiguracja Google Maps uległa zmianie. Aby zmiany zaczęły obowiązywać, "
-"należy odświeżyć stronę."
 
 #. module: website
 #. odoo-javascript
@@ -9995,8 +9967,6 @@ msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
 msgstr ""
-"Wskazówka: jak używać Google Map w twojej witrynie (strona Kontakt jako "
-"fragment)"
 
 #. module: website
 #. odoo-javascript
@@ -10165,7 +10135,7 @@ msgstr "Jestem pewien."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "Chcę"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -10364,8 +10334,6 @@ msgid ""
 "If you need to add analytics or marketing tags, inject code in your <head> "
 "or <body> instead."
 msgstr ""
-"Jeśli potrzebujesz dodać tagi analityczne lub marketingowe, wkrej kod w "
-"<head> lub <body> zamiast tego."
 
 #. module: website
 #. odoo-javascript
@@ -10525,7 +10493,7 @@ msgstr "Mozaika obrazów"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Images Optimization"
-msgstr "Optymalizacja obrazów"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10579,7 +10547,7 @@ msgstr "W menu"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "W międzyczasie zapraszamy Cię do odwiedzenia"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10590,10 +10558,6 @@ msgid ""
 "            Each modification on the master page is automatically applied to "
 "all translated versions."
 msgstr ""
-"W tym trybie można tłumaczyć tylko teksty. Aby zmienić strukturę strony, "
-"należy edytować stronę główną.\n"
-"Każda modyfikacja na stronie głównej jest automatycznie stosowana do "
-"wszystkich przetłumaczonych wersji."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10627,7 +10591,7 @@ msgstr "Indeksowano"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Indicates the link is sponsored or paid content"
-msgstr "Wskazuje, że link jest treścią sponsorowaną lub płatną"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11290,7 +11254,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "It will be gone forever!"
-msgstr "Zniknie na zawsze!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_text_block_2nd
@@ -11874,7 +11838,7 @@ msgstr "Zróbmy to"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "Do dzieła!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -12054,7 +12018,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Załaduj więcej"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12148,7 +12112,7 @@ msgstr "Ustaw jako klikalne"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "Upewnij się że billing jest włączony"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12157,15 +12121,12 @@ msgid ""
 "Make sure to wait if errors keep being shown: sometimes enabling an API "
 "allows to use it immediately but Google keeps triggering errors for a while"
 msgstr ""
-"Pamiętaj, aby poczekać, jeśli zaczynają wyświetlać się błędy: czasami "
-"włączenie interfejsu API pozwala na jego natychmiastowe użycie, ale Google "
-"chwilowo wyświetla błędy"
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "Upewnij się że ustawienia są właściwie skonfigurowane:"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -12220,7 +12181,7 @@ msgstr "Marginesy"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Mark as decorative"
-msgstr "Oznacz jako dekoracyjne"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_mosaic_template
@@ -12760,7 +12721,7 @@ msgstr "Monitory"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Więcej"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12880,7 +12841,7 @@ msgstr "Wiele pól wyboru"
 #. odoo-javascript
 #: code:addons/website/static/src/js/backend/view_hierarchy/view_hierarchy.xml:0
 msgid "Multiple tree exists for this view"
-msgstr "Dla tego widoku istnieje wiele drzew"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
@@ -13116,7 +13077,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Nie"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13220,7 +13181,7 @@ msgstr "Brak ostrzeżenia na obrazach"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Nie, zachowaj"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13247,7 +13208,7 @@ msgstr "Brak"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Zwykły"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -13512,7 +13473,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "One"
-msgstr "Jeden"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13718,7 +13679,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Inne"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -14485,8 +14446,8 @@ msgstr "Znak zastępczy"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr "Places API (NOWOŚĆ)"
+msgid "Places API"
+msgstr "API miejsc"
 
 #. module: website
 #. odoo-javascript
@@ -14652,7 +14613,7 @@ msgstr "Naciśnij <Tab>, aby przejść do następnego ["
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Prevents the new page from accessing the original window (security)"
-msgstr "Uniemożliwia nowej stronie dostęp do oryginalnego okna (zabezpieczenie)"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14671,13 +14632,13 @@ msgstr "Podgląd obrazu"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Podgląd"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "Podgląd tego adresu URL w nowej karcie"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15163,7 +15124,7 @@ msgstr "Gotowy, by urzeczywistnić swoją cyfrową wizję?"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "Gotowy do zbudowania"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -15385,7 +15346,7 @@ msgstr "Najpierw usuń słowo kluczowe"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Usuń wszystko"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15427,13 +15388,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Removes referrer information sent to the target site"
-msgstr "Usuwa informacje o stronie odsyłającej wysyłane do witryny docelowej"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "Powtórz wzór"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15453,7 +15414,7 @@ msgstr "Zastąp plik"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Replace Icon"
-msgstr "Wymień ikonę"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15465,7 +15426,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Replace Image"
-msgstr "Zastąp obraz"
+msgstr ""
 
 #. module: website
 #: model:ir.ui.menu,name:website.menu_reporting
@@ -15542,7 +15503,7 @@ msgstr "Zasoby"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "Naszym priorytetem jest poszanowanie Twojej prywatności."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15842,7 +15803,7 @@ msgstr "Zapisz i przekieruj"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "Zapisz i przeładuj"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16018,11 +15979,6 @@ msgstr "Wyszukaj w witrynie"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "Wyszukaj pośród"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Wyszukaj..."
 
 #. module: website
 #. odoo-javascript
@@ -16281,7 +16237,7 @@ msgstr "Sekwencja"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "Pobierz fonty z serwerów Google"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -16354,7 +16310,7 @@ msgstr "Ustawienia na tej stronie będą zastosowane do tej witryny."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Cień"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -16434,7 +16390,7 @@ msgstr "Kupuj biurka"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
 msgid "Shop Now"
-msgstr "Kupuj teraz"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -16732,13 +16688,13 @@ msgstr "Slajd"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "Najechanie na slajd"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover + Shadow"
-msgstr "Najechanie kursorem + cień"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel
@@ -16986,7 +16942,7 @@ msgstr "Podziel intro"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "Rozprzestrzenianie się"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -17036,7 +16992,7 @@ msgstr "Zacznij teraz"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner
 msgid "Start Now <span class=\"fa fa-angle-right ms-2\"/>"
-msgstr "Rozpocznij teraz <span class=\"fa fa-angle-right ms-2\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -17288,7 +17244,7 @@ msgstr "Strony systemu"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "T"
-msgstr "T"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -17458,7 +17414,7 @@ msgstr "Telewizory"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/website_link_plugin.js:0
 msgid "Tells search engines not to follow this link"
-msgstr "Informuje wyszukiwarki, aby nie śledziły tego linku"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17722,7 +17678,13 @@ msgstr "Następująca domena nie jest ważna:"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Formularz został wysłany."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "Określony model formularza nie istnieje"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -17929,7 +17891,7 @@ msgstr "Narzędzia motywu"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.xml:0
 msgid "Then enable the \"Is a Template\" option."
-msgstr "Następnie włącz opcję \"Jest szablonem\"/"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
@@ -17958,7 +17920,7 @@ msgstr "Ufają nam od lat"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "They will be gone forever!"
-msgstr "Znikną na zawsze!"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18085,13 +18047,6 @@ msgid ""
 msgstr ""
 "Ta czcionka już istnieje, można ją dodać tylko jako czcionkę lokalną, aby "
 "zastąpić wersję serwerową."
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -18284,7 +18239,7 @@ msgstr "Czas od ostatniego wyświetlenia strony. Na przykład: 2 minuty temu"
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "Time's up! You can now visit"
-msgstr "Czas minął! Możesz teraz odwiedzić"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
@@ -18397,7 +18352,7 @@ msgstr "Pozycja tytułu"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "Tag tytułu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -18417,8 +18372,6 @@ msgid ""
 "To add your page to this category, open the page properties: \"Site -> "
 "Properties\"."
 msgstr ""
-"Aby dodać Twoją stronę do tej kategorii, otwórz właściwości strony: "
-"\"Strona -> Właściwości\"/"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs
@@ -18450,8 +18403,6 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.cookies_warning.xml:0
 msgid "To see the interactive content, you need to accept optional cookies."
 msgstr ""
-"Aby zobaczyć interaktywną zawartość, musisz zaakceptować opcjonalne pliki "
-"cookie."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -18663,7 +18614,7 @@ msgstr "Tłumacz"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Translate 404 page"
-msgstr "Przetłumacz stronę 404"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18687,7 +18638,7 @@ msgstr "Przetłumacz na"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translate your content (yellow part) with AI"
-msgstr "Przetłumacz swoje treści (na żółto) z użyciem AI"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18699,7 +18650,7 @@ msgstr "Przetłumaczona zawartość"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "Tłumaczę..."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18749,7 +18700,7 @@ msgstr "Zmieniamy wizje w rzeczywistość"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "Dwa"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18975,7 +18926,7 @@ msgstr "Aktualizacje i ulepszenia"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Prześlij"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19000,7 +18951,7 @@ msgstr "Adres URL statycznego obrazu flagi"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "Adres URL lub e-mail"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -19239,7 +19190,7 @@ msgstr "Sałatka warzywna, burger wołowy i lody z mango"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Zweryfikuj"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19451,8 +19402,6 @@ msgid ""
 "Visit us: Our office is located in the northeast of Brussels. TEL (555) 432 "
 "2365"
 msgstr ""
-"Odwiedź nas: Nasze biuro znajduje się w północno-wschodniej części Brukseli. "
-"TEL (555) 432 2365"
 
 #. module: website
 #: model:ir.model,name:website.model_website_track
@@ -19561,8 +19510,6 @@ msgid ""
 "Warning: Your changes may be overwritten after updates.\n"
 "                    To understand why,"
 msgstr ""
-"Ostrzeżenie: Twoje zmiany mogą zostać nadpisane po aktualizacji. Aby "
-"zrozumieć dlaczego, "
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -19874,9 +19821,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"Używamy plików cookie, aby zapewnić lepszą obsługę tej witryny. Możesz "
-"dowiedzieć się więcej o naszych plikach cookie i sposobie ich używania w "
-"naszym dokumencie"
 
 #. module: website
 #. odoo-javascript
@@ -19916,7 +19860,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "Przygotujemy ją i uruchomimy w"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -20303,7 +20247,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "Witaj w Twoim"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -20455,7 +20399,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Wrap"
-msgstr "Zawijaj"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20543,14 +20487,14 @@ msgstr "Napisz swój tekst"
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Tak"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20657,12 +20601,6 @@ msgstr "Nie można powielić tego pola."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "Nie podałeś ważnego liku Facebook"
@@ -20671,7 +20609,7 @@ msgstr "Nie podałeś ważnego liku Facebook"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/new_content_systray_item.xml:0
 msgid "You do not have the necessary permissions to create new content pages."
-msgstr "Nie masz niezbędnych uprawnień do tworzenia nowych stron z treścią."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20683,7 +20621,7 @@ msgstr "Nie masz uprawnień do publikowania/cofania publikacji"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "Nie masz uprawnień do edycji tego zapisu."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20727,7 +20665,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_floating_blocks/floating_blocks.edit.xml:0
 msgid "You need at least two cards to perform the effect"
-msgstr "Potrzebujesz przynajmniej dwóch kart, aby korzystać z tego efektu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_searchbar
@@ -20950,7 +20888,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "a Color Palette"
-msgstr "paletę kolorów"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20992,13 +20930,13 @@ msgstr "stronę internetową poświęconą wydarzeniom"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "i"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "auto"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21058,7 +20996,7 @@ msgstr "btn-secondary"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "firmy"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21446,7 +21384,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "dla mojej"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21458,7 +21396,7 @@ msgstr "forum"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "znalezione(a)"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21482,7 +21420,7 @@ msgstr "darmowa witryna"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "z logo"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -21830,7 +21768,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "w prawym górnym rogu, aby rozpocząć projektowanie."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -21996,7 +21934,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "strona"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -22030,7 +21968,7 @@ msgstr "tekst zastępczy"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "pointer to discover features."
-msgstr "wskaźnik do odkrywania funkcji."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -22359,13 +22297,13 @@ msgstr "strona internetowa"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "której głównym celem jest"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "years"
-msgstr "lata"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -22408,15 +22346,6 @@ msgstr "✽  Pizze"
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr "✽  Co oferujemy"
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Konta mogą być używane na wielu stronach internetowych"
-
-#~ msgid "Places API"
-#~ msgstr "API miejsc"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Określony model formularza nie istnieje"
 
 #~ msgid "Translate the whole content with AI"
 #~ msgstr "Przetłumacz całą treść za pomocą AI"

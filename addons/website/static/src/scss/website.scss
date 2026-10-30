@@ -1588,13 +1588,10 @@ $-o-carousel-controllers-size: var(--CarouselControllers-size, #{map-get($spacer
                     margin-right: 0;
                 }
             }
-            .carousel-item-prev:not(.carousel-item-end) {
-                transform: translateX(calc(-100% - var(--o-carousel-gap)));
-            }
             .active.carousel-item-end + .carousel-item-prev.carousel-item-end,
             .carousel-item-prev.carousel-item-end ~ .carousel-item {
-                right: calc(var(--o-carousel-item-width-percentage) + var(--o-carousel-gap));
-                transform: translateX(calc(100% + var(--o-carousel-gap)));
+                right: var(--o-carousel-item-width-percentage);
+                transform: translateX(100%);
                 display: block;
                 margin-right: 0;
             }
@@ -1603,7 +1600,7 @@ $-o-carousel-controllers-size: var(--CarouselControllers-size, #{map-get($spacer
             .carousel-item-start.active,
             .carousel-item-start:not(.active),
             .carousel-item-start:not(.active) ~ .carousel-item {
-                transform: translateX(calc(-100% - var(--o-carousel-gap)));
+                transform: translateX(-100%);
             }
             .carousel-item.active:not(.carousel-item-start):not(.carousel-item-end),
             .carousel-item.active:not(.carousel-item-start):not(.carousel-item-end) ~ .carousel-item {

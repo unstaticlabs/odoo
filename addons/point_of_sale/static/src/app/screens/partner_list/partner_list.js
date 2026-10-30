@@ -181,6 +181,7 @@ export class PartnerList extends Component {
             "street",
             "zip",
             "email",
+            "phone_mobile_search",
             "barcode",
         ];
     }

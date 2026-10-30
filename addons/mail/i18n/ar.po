@@ -17,8 +17,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-12 11:08+0000\n"
+"POT-Creation-Date: 2026-07-31 17:36+0000\n"
+"PO-Revision-Date: 2026-08-18 09:37+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/mail/"
 "ar/>\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_ir_actions_server__followers_type
@@ -463,13 +463,13 @@ msgstr "&amp;nbsp;&amp;nbsp;"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "(Keep formatting)"
-msgstr "(الاحتفاظ بالتنسيق)"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "(Remove formatting)"
-msgstr "(إزالة التنسيق)"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -488,13 +488,13 @@ msgstr "(فشلت الترجمة: %(error)s)"
 #: code:addons/mail/static/src/core/common/message.xml:0
 #: code:addons/mail/static/src/core/common/message_in_reply.xml:0
 msgid "(edited)"
-msgstr "(تم التعديل)"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/message.xml:0
 msgid "(from"
-msgstr "(من"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.message_activity_done
@@ -1388,10 +1388,6 @@ msgid ""
 "If you were using a Tenor GIF API key (service shutdown on June 30, 2026), "
 "please replace it here with a Klipy GIF API key"
 msgstr ""
-"أضف مفتاح واجهة برمجة تطبيقات GIF من Klipy لتمكين دعم صور GIF. https://"
-"docs.klipy.com/getting-started\n"
-"إذا كنت تستخدم مفتاح واجهة برمجة تطبيقات GIF من Tenor (سيتم إيقاف الخدمة في "
-"30 يونيو 2026)، فيرجى استبداله هنا بمفتاح واجهة برمجة تطبيقات GIF من Klipy"
 
 #. module: mail
 #. odoo-javascript
@@ -1790,7 +1786,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/thread.xml:0
 msgid "An error occurred while fetching messages."
-msgstr "حدث خطأ عند إحضار الرسائل."
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -1802,7 +1798,7 @@ msgstr "حدث خطأ غير متوقع أثناء إنشاء الدردشة."
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/core/common/channel_member_list.xml:0
 msgid "And"
-msgstr "و"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -1821,7 +1817,7 @@ msgstr "ينطبق على"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/follower_subtype_dialog.xml:0
 msgid "Apply"
-msgstr "تطبيق"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -2049,7 +2045,7 @@ msgstr "المرفقات"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Audio player:"
-msgstr "مشغل الصوت:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields.selection,name:mail.selection__mail_alias__alias_contact__partners
@@ -2450,7 +2446,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/pip_banner.xml:0
 msgid "Bring back"
-msgstr "إرجاع"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -2462,7 +2458,7 @@ msgstr "إعادة الاتصال"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/pip_banner.xml:0
 msgid "Bring the call back here"
-msgstr "أعد المكالمة إلى هنا"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.account_security_alert
@@ -2473,7 +2469,7 @@ msgstr "المتصفح"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/device_select.js:0
 msgid "Browser Default"
-msgstr "الإعدادات الافتراضية للمتصفح"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_push_device__endpoint
@@ -3065,13 +3061,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 msgid "Clear Time"
-msgstr "مسح الوقت"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/thread.xml:0
 msgid "Click here to retry"
-msgstr "اضغط هنا لإعادة المحاولة"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -3089,7 +3085,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/message_in_reply.xml:0
 msgid "Click to see the attachments"
-msgstr "إغلاق"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -3353,13 +3349,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Connection type:"
-msgstr "نوع الاتصال:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Connection:"
-msgstr "الاتصال:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_fetchmail_server__is_ssl
@@ -3443,7 +3439,7 @@ msgstr "المحتويات"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "Continue with Full Composer?"
-msgstr "هل ترغب في المتابعة باستخدام أداة الإنشاء الكاملة؟"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.discuss_call_history_view_tree
@@ -3797,13 +3793,13 @@ msgstr "الإشعارات المخصصة"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "DTLS:"
-msgstr "DTLS:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Data channel:"
-msgstr "قناة البيانات:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_mail__date
@@ -3827,7 +3823,7 @@ msgstr "تاريخ آخر فشل. أعد تعيينه عند النجاح."
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/message_patch.xml:0
 msgid "Date:"
-msgstr "التاريخ:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_message_schedule__scheduled_datetime
@@ -4196,7 +4192,7 @@ msgstr "إهمال"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "Discard editing"
-msgstr "تجاهل التحرير"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -4459,7 +4455,7 @@ msgstr "منتهي"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity_markasdone_popover.xml:0
 msgid "Done & Schedule Next"
-msgstr "تم وقم بجدولة التالي"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_activity__date_done
@@ -4497,13 +4493,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Download:"
-msgstr "تنزيل:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/mail_attachment_dropzone.xml:0
 msgid "Drop Files here"
-msgstr "أسقط الملفات هنا"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_activity__date_deadline
@@ -4522,7 +4518,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "Due in"
-msgstr "مستحق في"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -4834,7 +4830,7 @@ msgstr "إرسال رسالة بريد إلكتروني إلى"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/fields/mail_server_configurator_selection/mail_server_configurator_selection.xml:0
 msgid "Emails sent via"
-msgstr "رسائل البريد الإلكتروني المرسلة عبر"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -5255,7 +5251,7 @@ msgstr "حجم الملف كبير جداً."
 #. odoo-javascript
 #: code:addons/mail/static/src/chatter/web/chatter.xml:0
 msgid "Files"
-msgstr "الملفات"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -5273,7 +5269,7 @@ msgstr "طي"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/follower_list.xml:0
 msgid "Follow"
-msgstr "متابعة"
+msgstr ""
 
 #. module: mail
 #: model:ir.actions.act_window,name:mail.action_view_followers
@@ -5482,7 +5478,7 @@ msgstr "البريد الإلكتروني المنسق"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "Formatting can only be restored in Full Composer."
-msgstr "لا يمكن استعادة التنسيق إلا في أداة الإنشاء الكاملة."
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -5515,13 +5511,13 @@ msgstr "الرسالة من"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "From peer:"
-msgstr "من النظير:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/message_patch.xml:0
 msgid "From:"
-msgstr "من:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields.selection,name:mail.selection__discuss_channel__default_display_mode__video_full_screen
@@ -5719,7 +5715,7 @@ msgstr "مسار HTTP"
 msgid ""
 "Hardware acceleration is disabled. Blur effect impacts performance "
 "significantly."
-msgstr "تم تعطيل تسريع الأجهزة. يؤثر تأثير التمويه بشكل كبير على الأداء."
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_ir_actions_server__has_activity_plans
@@ -5950,19 +5946,19 @@ msgstr "خوادم ICE"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "ICE connection:"
-msgstr "اتصال ICE:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "ICE gathering:"
-msgstr "تجمع ICE:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "ICE:"
-msgstr "ICE:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_base_module_uninstall__id
@@ -6973,7 +6969,7 @@ msgstr "مع تحيات"
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_res_config_settings__tenor_api_key
 msgid "Klipy API key"
-msgstr "مفتاح الواجهة البرمجية لـ Klipy"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -7153,7 +7149,7 @@ msgstr "آخر مرة تم استخدام canned_response فيها"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity_menu.xml:0
 msgid "Late"
-msgstr "متأخر"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.res_partner_view_search_inherit_mail
@@ -7357,7 +7353,7 @@ msgstr "ملاحظة"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Log step:"
-msgstr "خطوة التسجيل:"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.view_email_server_form
@@ -7489,7 +7485,7 @@ msgstr "إعادة تعيين قالب البريد الإلكتروني"
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "Mail Template: '%(name)s' (ID: %(record_id)s)"
-msgstr "قالب البريد الإلكتروني: '%(name)s' (المعرف: %(record_id)s)"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.model_search_view
@@ -7586,7 +7582,7 @@ msgstr "لغة الشريك الرئيسي"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/mail_composer_template_selector.xml:0
 msgid "Manage Templates"
-msgstr "إدارة القوالب"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_compose_message__reply_to_force_new
@@ -7660,7 +7656,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "Mass Mailing Template: '%(name)s' (ID: %(record_id)s)"
-msgstr "قالب المراسلات الجماعية: '%(name)s' (المُعرِّف: %(record_id)s)"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -7989,7 +7985,7 @@ msgstr "يمكن ربط الرسائل بقناة فرعية واحدة فقط"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/thread_patch.xml:0
 msgid "Messages marked as read will appear in the history."
-msgstr "ستظهر الرسائل التي تم تأشيرها كمقروءة في السجل."
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_message_subtype__internal
@@ -8235,7 +8231,7 @@ msgstr "اجتماع جديد"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/core/web/messaging_menu_patch.xml:0
 msgid "New Message"
-msgstr "رسالة جديدة"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_discuss_channel_member__new_message_separator
@@ -8299,7 +8295,7 @@ msgstr "نوع النشاط التالي"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 msgid "Next Monday Morning"
-msgstr "صباح الاثنين القادم"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -8333,7 +8329,7 @@ msgstr "لا يوجد خطأ"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/follower_list.xml:0
 msgid "No Followers"
-msgstr "لا يوجد متابعون"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.actions.act_window,help:mail.action_ice_servers
@@ -8393,7 +8389,7 @@ msgstr "لم يتم تحديد محادثة."
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/messaging_menu_patch.xml:0
 msgid "No conversation yet..."
-msgstr "لا توجد محادثات بعد..."
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -8411,7 +8407,7 @@ msgstr "لا سجل لرسائل سابقة"
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "No language detected in context"
-msgstr "تعذر التعرف على اللغة في السياق"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -8476,13 +8472,13 @@ msgstr "لم يتم العثور على أي دور. فلننشئ واحداً!"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/mail_composer_template_selector.xml:0
 msgid "No saved templates"
-msgstr "لا توجد قوالب محفوظة"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/messaging_menu_patch.xml:0
 msgid "No thread found."
-msgstr "لم يتم العثور على أي محادثة."
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_mail__reply_to_force_new
@@ -8872,7 +8868,7 @@ msgstr "غير متصل بالإنترنت منذ"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/message_patch.xml:0
 msgid "On"
-msgstr "في"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -9389,13 +9385,13 @@ msgstr "خوادم POP/IMAP"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Packets received:"
-msgstr "الحزم المستلمة:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Packets sent:"
-msgstr "الحزم المرسلة:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_message_subtype__parent_id
@@ -9556,7 +9552,7 @@ msgstr "مكالمة هاتفية"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 msgid "Pick a specific time"
-msgstr "اختر وقتاً محدداً"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -9704,7 +9700,7 @@ msgstr "المخطط له"
 #. odoo-javascript
 #: code:addons/mail/static/src/chatter/web/chatter.xml:0
 msgid "Planned Activities"
-msgstr "الأنشطة المخطط لها"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.mail_activity_type_view_tree
@@ -9815,12 +9811,6 @@ msgstr ""
 #: code:addons/mail/static/src/chatter/web/chatter.xml:0
 msgid "Pop out Attachments"
 msgstr "مرفقات تظهر على نوافذ منبثقة"
-
-#. module: mail
-#. odoo-javascript
-#: code:addons/mail/static/src/core/common/attachment_view.js:0
-msgid "Pop out is not supported on mobile."
-msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_fetchmail_server__port
@@ -10094,7 +10084,7 @@ msgstr "جلسة RTC"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "RTC Session ID:"
-msgstr "معرّف جلسة RTC:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_discuss_channel_member__rtc_session_ids
@@ -10145,13 +10135,13 @@ msgstr "تاريخ القراءة"
 #. odoo-javascript
 #: code:addons/mail/static/src/chatter/web/scheduled_message.xml:0
 msgid "Read Less"
-msgstr "إظهار أقل"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/chatter/web/scheduled_message.xml:0
 msgid "Read More"
-msgstr "قراءة المزيد"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -10503,7 +10493,7 @@ msgstr "الرد على"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "Replying to"
-msgstr "الرد على"
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -10745,7 +10735,7 @@ msgstr "حفظ القالب"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/mail_composer_template_selector.xml:0
 msgid "Save as Template"
-msgstr "الحفظ كقالب"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -10809,7 +10799,7 @@ msgstr "قم بجدولة الأنشطة لمساعدتك في إنجاز الع
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/activity/activity_renderer.xml:0
 msgid "Schedule activity"
-msgstr "جدولة النشاط"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -10913,7 +10903,7 @@ msgstr "البحث في خوادم البريد الوارد"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/gif_picker/common/gif_picker.xml:0
 msgid "Search Klipy"
-msgstr "البحث في Klipy"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -10997,12 +10987,6 @@ msgstr "بحث..."
 #: code:addons/mail/static/src/views/web/activity/activity_controller.js:0
 msgid "Search: %s"
 msgstr "بحث: %s"
-
-#. module: mail
-#. odoo-javascript
-#: code:addons/mail/static/src/core/common/search_message_input.xml:0
-msgid "Searching..."
-msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -11151,7 +11135,7 @@ msgstr "إرسال وإغلاق"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/view_dialog/avatar_user_form_view_dialog.xml:0
 msgid "Send & New Invitation"
-msgstr "إرسال وإنشاء دعوة جديدة"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.email_template_form
@@ -11196,7 +11180,7 @@ msgstr "الإرسال فوراً"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/view_dialog/avatar_user_form_view_dialog.xml:0
 msgid "Send Invitation"
-msgstr "إرسال دعوة"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -11299,7 +11283,7 @@ msgstr "البريد الإلكتروني الخاص بالمرسل"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_field.xml:0
 msgid "Sending"
-msgstr "جارِ الإرسال"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_scheduled_message__send_context
@@ -11868,7 +11852,7 @@ msgstr "الموضوع (يمكن استخدام العناصر النائبة ه
 #: code:addons/mail/static/src/core/common/message.xml:0
 #: code:addons/mail/static/src/core/web/message_patch.xml:0
 msgid "Subject:"
-msgstr "الموضوع:"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_ir_actions_server__mail_post_autofollow
@@ -12072,7 +12056,7 @@ msgstr "يتطلب إنشاء القالب من الملحن نموذجًا صا
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "Template name not identified"
-msgstr "لم يتم تحديد اسم القالب"
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -12119,7 +12103,7 @@ msgstr "اختبار وتأكيد"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/fields/mail_server_configurator_selection/mail_server_configurator_selection.xml:0
 msgid "Test Connection"
-msgstr "اختبار الاتصال"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_mail_mail__body_html
@@ -12807,7 +12791,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "To peer:"
-msgstr "إلى النظير:"
+msgstr ""
 
 #. module: mail
 #: model:mail.activity.type,name:mail.mail_activity_data_todo
@@ -12819,7 +12803,7 @@ msgstr "قائمة المهام"
 #. odoo-javascript
 #: code:addons/mail/static/src/chatter/web/composer_patch.xml:0
 msgid "To:"
-msgstr "إلى:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -12926,13 +12910,13 @@ msgstr "غدًا"
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 msgid "Tomorrow Afternoon"
-msgstr "غداً مساءً"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/views/web/fields/scheduled_date_field/scheduled_date_dialog.xml:0
 msgid "Tomorrow Morning"
-msgstr "غداً صباحاً"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -13285,13 +13269,13 @@ msgstr "%(record_model_name)s بلا اسم (%(record_id)s)"
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "Unnamed Mail Template"
-msgstr "قالب بريد إلكتروني بدون اسم"
+msgstr ""
 
 #. module: mail
 #. odoo-python
 #: code:addons/mail/models/mail_render_mixin.py:0
 msgid "Unnamed Mailing"
-msgstr "بريد غير مسمى"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -13393,7 +13377,7 @@ msgstr "رفع الملف"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Upload:"
-msgstr "رفع:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -13821,7 +13805,7 @@ msgstr "إعدادات الفيديو "
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "Video player:"
-msgstr "مشغل الفيديو:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -13880,7 +13864,7 @@ msgstr "نوع واجهة العرض"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity_menu.xml:0
 msgid "View all activities"
-msgstr "عرض كافة الأنشطة"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -14086,7 +14070,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/recipients_input_tags_list_popover.xml:0
 msgid "What's the email address of"
-msgstr "ما هو عنوان البريد الإلكتروني لـ"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,help:mail.field_mail_activity__user_tz
@@ -14362,7 +14346,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/mail/models/mail_alias_domain.py:0
 msgid "You cannot assign an empty domain name."
-msgstr "لا يمكنك تعيين اسم نطاق فارغ."
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -14437,14 +14421,6 @@ msgid ""
 msgstr ""
 "لا تمتلك صلاحيات الوصول لازالة عناوين البريد الإلكتروني من القائمة السوداء. "
 "يرجى التواصل مع المدير."
-
-#. module: mail
-#. odoo-python
-#: code:addons/mail/models/discuss/discuss_channel.py:0
-msgid ""
-"You do not have the rights to change the name, description or avatar as a "
-"regular member of these read-only channels: %(channels)s."
-msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -14583,7 +14559,7 @@ msgstr "لا يدعم متصفحك webRTC."
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/pip_banner.xml:0
 msgid "Your call is in another window."
-msgstr "مكالمتك في نافذة أخرى."
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -14649,7 +14625,7 @@ msgstr "مرفق (مرفقات) هذا البريد الإلكتروني."
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "available bitrate:"
-msgstr "معدل نقل البتات المتاح:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -14696,13 +14672,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "clock rate:"
-msgstr "clock rate:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "codec:"
-msgstr "codec:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -14715,6 +14691,12 @@ msgstr "المحادثات"
 #: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "created this channel."
 msgstr "قام بإنشاء هذه القناة."
+
+#. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/js/rotting_mixin/rotting_statusbar.xml:0
+msgid "d"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.account_security_alert
@@ -14731,13 +14713,13 @@ msgstr "أيام"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "days overdue:"
-msgstr "أيام التأخير:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "days:"
-msgstr "أيام:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -14767,13 +14749,13 @@ msgstr "تم"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "down DTLS:"
-msgstr "down DTLS:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "down ICE:"
-msgstr "down ICE:"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.mail_blacklist_remove_view_form
@@ -14939,7 +14921,7 @@ msgstr "رسائل البريد الإلكتروني إلى"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "for"
-msgstr "لـ"
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.message_origin_link
@@ -15097,7 +15079,7 @@ msgstr "في"
 #. odoo-javascript
 #: code:addons/mail/static/src/core/common/composer.xml:0
 msgid "on:"
-msgstr "في:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -15115,7 +15097,7 @@ msgstr "أو قم بالضغط على %(send_keybind)s"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/core/common/channel_member_list.xml:0
 msgid "other members."
-msgstr "الأعضاء الآخرون"
+msgstr ""
 
 #. module: mail
 #: model:ir.model.constraint,message:mail.constraint_ir_mail_server_unique_owner_user_id
@@ -15217,13 +15199,13 @@ msgstr "نموذج هدف غير معروف %s"
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "up DTLS:"
-msgstr "up DTLS:"
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/discuss/call/common/call_context_menu.xml:0
 msgid "up ICE:"
-msgstr "up ICE:"
+msgstr ""
 
 #. module: mail
 #. odoo-python
@@ -15277,9 +15259,6 @@ msgstr "“%s”"
 #: code:addons/mail/models/mail_canned_response.py:0
 msgid "🔒 Private"
 msgstr ""
-
-#~ msgid "d"
-#~ msgstr "d"
 
 #~ msgid "Search for a GIF"
 #~ msgstr "البحث عن GIF"

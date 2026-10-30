@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server saas~18.4+e\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-24 11:01+0000\n"
-"PO-Revision-Date: 2026-10-29 19:33+0000\n"
+"PO-Revision-Date: 2026-10-09 22:33+0000\n"
 "Last-Translator: \"Fernanda Alvarez (mfar)\" <mfar@odoo.com>\n"
 "Language-Team: Spanish (Latin America) <https://translate.odoo.com/projects/"
 "odoo-s19-3/base/es_419/>\n"
@@ -474,12 +474,13 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Este módulo agrega varias funciones específicas a Punto de venta para la "
-"gestión de un restaurante:\n"
-"- Impresión de cuenta: Permite imprimir un recibo antes de pagar la orden.\n"
-"- Dividir la cuenta: Permite dividir la orden en diferentes cuentas.\n"
-"- Impresión de comandas de cocina: Permite imprimir las actualizaciones de "
-"las comandas en las impresoras de la cocina o el bar.\n"
+"Este módulo agrega varias funciones específicas al Punto de venta para poder "
+"gestionar un restaurante:\n"
+"- Impresión de cuenta: es posible imprimir la cuenta antes de pagar la "
+"orden.\n"
+"- Dividir la cuenta: es posible dividir la cuenta en diferentes órdenes.\n"
+"- Impresión de comanda en la cocina: es posible imprimir las comandas y sus "
+"actualizaciones en las impresoras de la cocina o el bar.\n"
 "\n"
 
 #. module: base
@@ -493,8 +494,9 @@ msgid ""
 msgstr ""
 "\n"
 "\n"
-"Este módulo permite que el cajero aplique un descuento porcentual\n"
-"al cliente con rapidez.\n"
+"Este módulo permite que, de forma rápida, el cajero proporcione un descuento "
+"porcentual\n"
+"al cliente.\n"
 "\n"
 
 #. module: base
@@ -660,8 +662,8 @@ msgid ""
 "- Track timesheet for a task from a ticket\n"
 msgstr ""
 "\n"
-"- Permite asignar un proyecto al equipo de Soporte al cliente\n"
-"- Registra las horas de una tarea desde un ticket\n"
+"- Permite establecer un proyecto para el equipo de soporte al cliente\n"
+"- Seguimiento de la hoja de horas de una tarea a partir de un ticket\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_peppol
@@ -2702,13 +2704,13 @@ msgid ""
 "will automatically be sent to your customers.'\n"
 msgstr ""
 "\n"
-"Agrega plantillas de correo electrónico a los productos para enviarlas al "
+"Agregue plantillas de correo electrónico a los productos que se enviarán al "
 "confirmar la factura\n"
 "======================================================================\n"
-"Este módulo te permite vincular tus productos a plantillas para que puedas "
-"enviar información detallada o herramientas útiles a tus clientes.\n"
+"Este módulo le permite vincular sus productos a plantillas para que pueda "
+"enviarle información detallada o herramientas a sus clientes.\n"
 "Por ejemplo, al facturar una capacitación, la agenda de la capacitación y "
-"los materiales se enviarán en automático al cliente.\n"
+"los materiales se enviarán en automático a su cliente.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_helpdesk_planning_field_service
@@ -3015,16 +3017,17 @@ msgid ""
 "* Supported cards: Visa, MasterCard, Rupay, UPI\n"
 msgstr ""
 "\n"
-"Permite los pagos con Razorpay POS\n"
+"Permita pagos en el Punto de venta con Razorpay\n"
 "==============================\n"
 "\n"
 "Este módulo permite que los clientes paguen sus órdenes con tarjetas de "
 "crédito, tarjetas de débito\n"
-"y UPI. Razorpay POS procesa las transacciones. Es necesario tener una cuenta "
-"de comerciante de Razorpay. El módulo ofrece las siguientes funciones::\n"
+"y UPI. El PdV de Razorpay procesa las transacciones. Es necesario tener una "
+"cuenta de comerciante de Razorpay que le permitirá hacer lo siguiente:\n"
 "\n"
-"* Pago rápido al acercar o deslizar la tarjeta de débito o crédito. También "
-"es posible escanear un código QR desde la pantalla de pago\n"
+"* Pagar rápido, solo tendrá que escanear o deslizar la tarjeta de débito o "
+"crédito. También podrá escanear un código QR mientras está en la pantalla de "
+"pago\n"
 "* Tarjetas compatibles: Visa, Mastercard, Rupay, UPI\n"
 
 #. module: base
@@ -3333,9 +3336,9 @@ msgid ""
 "The system is able to add and compute the shipping line.\n"
 msgstr ""
 "\n"
-"Te permite agregar métodos de entrega a las órdenes de venta.\n"
+"Le permite agregar métodos de entrega en las órdenes de venta.\n"
 "==================================================\n"
-"Puedes definir tus propias tarifas de transporte.\n"
+"Puede definir su propio transportista para los precios.\n"
 "El sistema es capaz de agregar y calcular la línea de envío.\n"
 
 #. module: base
@@ -3392,7 +3395,7 @@ msgid ""
 "App to upload and manage your documents.\n"
 msgstr ""
 "\n"
-"Aplicación para subir y gestionar tus documentos.\n"
+"Aplicación para subir y gestionar sus documentos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_forum
@@ -4217,7 +4220,7 @@ msgid ""
 "Bill timesheets logged on helpdesk tickets.\n"
 msgstr ""
 "\n"
-"Factura las horas registradas en los tickets de soporte al cliente.\n"
+"Facture hojas de horas registradas en los tickets de soporte al cliente.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_bo
@@ -4965,7 +4968,7 @@ msgid ""
 "Allows to contact directly the employee in case of unjustified absence.\n"
 msgstr ""
 "\n"
-"Control de presencia de los empleados\n"
+"Controle la presencia de sus empleados\n"
 "==========================\n"
 "\n"
 "Según:\n"
@@ -4996,7 +4999,7 @@ msgid ""
 "Convert employee's extra hours to leave allocations.\n"
 msgstr ""
 "\n"
-"Convierte las horas extra de los empleados en asignaciones de permisos.\n"
+"Convierta las horas extra de sus empleados en asignaciones de permisos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_product_unspsc
@@ -5016,7 +5019,7 @@ msgid ""
 "Create Credit Notes from Helpdesk tickets\n"
 msgstr ""
 "\n"
-"Crea notas de crédito a partir de los tickets de soporte al cliente\n"
+"Cree notas de crédito a partir de tickets de soporte al cliente\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_slides
@@ -5098,7 +5101,7 @@ msgid ""
 "Create booths for your favorite event.\n"
 msgstr ""
 "\n"
-"Crea stands para tu evento favorito.\n"
+"Cree estands para su evento favorito.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_sale_loyalty
@@ -5319,7 +5322,7 @@ msgid ""
 "Design gorgeous mails\n"
 msgstr ""
 "\n"
-"Diseña correos increíbles\n"
+"Diseñe correos maravillosos\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_de
@@ -5556,7 +5559,7 @@ msgstr ""
 "eLearning y habilidades para RR. HH.\n"
 "============================\n"
 "\n"
-"Este módulo agrega los cursos completados al currículum de los empleados.\n"
+"Este módulo agrega los cursos completados al currículum de sus empleados.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_cl_edi
@@ -5863,7 +5866,7 @@ msgid ""
 "Easily access your documents from your employee profile.\n"
 msgstr ""
 "\n"
-"Accede con facilidad a tus documentos desde el perfil de empleado.\n"
+"Acceda con facilidad a sus documentos desde su perfil de empleado.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_eg
@@ -6079,11 +6082,11 @@ msgstr ""
 "Módulo de órdenes electrónicas\n"
 "===========================\n"
 "\n"
-"Permite importar archivos en formato UBL BIS 3.\n"
-"Al subir o pegar archivos en la vista de lista de las órdenes, si contienen "
-"datos relacionados con la orden en un archivo XML o PDF,\n"
-"el archivo con datos XML integrados permite al vendedor recuperar los datos "
-"de la orden.\n"
+"Permite importar formatos UBL Bis 3.\n"
+"Al subir o pegar archivos en la vista de lista de las órdenes con datos "
+"relacionados con la misma dentro del archivo XML o PDF \n"
+"con datos XML incrustados el vendedor podrá consultar los datos "
+"correspondientes con los archivos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_pe_reports_stock
@@ -6209,13 +6212,13 @@ msgid ""
 "complex logic.\n"
 msgstr ""
 "\n"
-"Aunque la cantidad de paquetes parezca ser un dato exclusivo de la "
-"aplicación Inventario, necesitamos un campo para este dato\n"
-"en la factura, porque esa información también podría depender de la "
+"Incluso cuando la cantidad de paquetes parece ser inherente solo a la manera "
+"en que se distribuyen las existencias, necesitamos un campo para esto \n"
+"en la factura. Es posible que esa información también dependa de la "
 "declaración DUS.\n"
-"También debemos tener en cuenta que puede haber usuarios que no tengan "
-"instalada la aplicación Inventario y mantienen una lógica menos\n"
-"compleja.\n"
+"También debemos considerar que puede haber usuarios que no tengan la "
+"aplicación Inventario instalada y mantienen una lógica \n"
+"menos compleja.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_hr_skills_event
@@ -7063,7 +7066,7 @@ msgid ""
 "Generate Coupons from Helpdesks tickets\n"
 msgstr ""
 "\n"
-"Genera cupones desde los tickets de soporte al cliente\n"
+"Genere cupones para tickets de soporte al cliente\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_iso20022
@@ -7085,12 +7088,12 @@ msgid ""
 "lead generation, related revenues (sales orders), recruitment, etc.\n"
 msgstr ""
 "\n"
-"Genera enlaces cortos con rastreadores de análisis (UTM) para compartir tus "
-"páginas en campañas de marketing.\n"
-"Puedes usar esos rastreadores en Google Analytics para registrar los clics y "
-"las visitas, o en los reportes de Odoo para analizar la eficacia de las "
-"campañas en términos de generación de leads, ingresos relacionados (órdenes "
-"de venta), reclutamiento y más.\n"
+"Genere enlaces cortos con rastreadores analíticos (UTM) para compartir sus "
+"páginas a través de campañas de marketing.\n"
+"Esos rastreadores se pueden usar en Google Analytics para rastrear clics y "
+"visitantes, también se pueden usar en reportes de Odoo para analizar la "
+"eficacia de esas campañas en términos de generación de leads, ingresos "
+"relacionados (órdenes de ventas), reclutamiento, etc.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_project
@@ -7402,7 +7405,7 @@ msgid ""
 "Helpdesk integration with time off\n"
 msgstr ""
 "\n"
-"Integración de Soporte al cliente con Vacaciones\n"
+"Integración de Soporte al cliente con Tiempo personal\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_hk_hr_payroll
@@ -8242,12 +8245,14 @@ msgstr ""
 "\n"
 "Soporte por chat en vivo\n"
 "==========================\n"
-"Permite agregar widgets de mensajería instantánea a cualquier página web "
-"para que se comuniquen \n"
-"con el servidor actual y distribuyan las solicitudes de los visitantes entre "
-"varios operadores \n"
-"del chat en vivo.\n"
-"Ayuda a tus clientes a través de este chat y analiza sus comentarios.\n"
+"\n"
+"Permita el uso de widgets de mensajería instantánea en cualquier página web "
+"que se\n"
+"comunique con el servidor actual y asigne las solicitudes de sus visitas "
+"entre varios\n"
+"operadores del chat en vivo.\n"
+"Ayude a sus clientes con este chat y analice sus opiniones.\n"
+"\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_loans
@@ -8439,7 +8444,7 @@ msgid ""
 "Manage Product returns from helpdesk tickets\n"
 msgstr ""
 "\n"
-"Gestiona las devoluciones de productos desde tickets de Soporte al cliente\n"
+"Gestione las devoluciones de productos desde tickets de soporte al cliente\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_stock_dropshipping
@@ -8459,7 +8464,7 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Gestiona las órdenes de triangulación\n"
+"Gestione las órdenes de triangulación\n"
 "===========================\n"
 "\n"
 "Este módulo agrega un tipo de operación preconfigurado para envíos "
@@ -8467,7 +8472,7 @@ msgstr ""
 "así como una ruta de aprovisionamiento que permite configurar productos\n"
 "y órdenes de triangulación.\n"
 "\n"
-"Al usar el dropshipping o la triangulación, los bienes se envían directo\n"
+"Cuando se utilice la triangulación, los bienes se trasladarán\n"
 "de los proveedores a los clientes (entrega directa) sin pasar por\n"
 "el almacén del distribuidor. En este caso no es necesario ningún documento "
 "de\n"
@@ -8606,15 +8611,15 @@ msgid ""
 "\n"
 msgstr ""
 "\n"
-"Gestiona cotizaciones y órdenes de ventas\n"
+"Gestione cotizaciones y órdenes de ventas\n"
 "==================================\n"
 "\n"
-"Este módulo vincula las aplicaciones de ventas y gestión de almacenes.\n"
+"Este módulo vincula las aplicaciones de gestión de ventas y almacenes.\n"
 "\n"
 "Preferencias\n"
 "-----------\n"
-"* Envío: Elige entre entrega completa o entrega parcial\n"
-"* Facturación: Elige cómo se pagarán las facturas\n"
+"* Envío: elija entre entrega completa o entrega parcial\n"
+"* Facturación: elija cómo se pagarán las facturas\n"
 "* Incoterms: Términos de comercio internacional\n"
 "\n"
 
@@ -8625,7 +8630,7 @@ msgid ""
 "Manage the after sale of the products from helpdesk tickets.\n"
 msgstr ""
 "\n"
-"Gestiona la posventa de los productos a partir de los tickets de soporte al "
+"Gestione la posventa de los productos a partir de tickets de soporte al "
 "cliente.\n"
 
 #. module: base
@@ -8942,7 +8947,8 @@ msgstr ""
 "=========================================================================\n"
 "Este módulo permite adaptar las integraciones del portal de empleo Monster "
 "con el reclutamiento \n"
-"en línea al permitir redirigir las ofertas de empleo de tu \n"
+"en línea al proporcionar la posibilidad de redirigir las ofertas de empleo "
+"en su \n"
 "sitio web desde una publicación de trabajo en Monster.\n"
 
 #. module: base
@@ -9008,12 +9014,12 @@ msgid ""
 "associated to every resource. It also manages the leaves of every resource.\n"
 msgstr ""
 "\n"
-"Módulo de gestión de recursos.\n"
+"Módulo para gestionar recursos.\n"
 "===============================\n"
 "\n"
-"Un recurso representa algo que se puede planificar (un desarrollador "
-"asignado a una tarea o \n"
-"un centro de trabajo en una orden de fabricación). Este módulo gestiona un "
+"Un recurso representa algo que se puede planificar (un desarrollador en una "
+"tarea o \n"
+"un centro de trabajo en una orden de manufactura). Este módulo gestiona un "
 "calendario \n"
 "asociado a cada recurso. También gestiona los permisos de cada recurso.\n"
 
@@ -9205,7 +9211,7 @@ msgid ""
 "Module linking the attendance module to the timesheet app.\n"
 msgstr ""
 "\n"
-"Módulo que vincula el módulo de asistencias con la aplicación Registro de "
+"Módulo que vincula el módulo de asistencias con la aplicación Hojas de "
 "horas.\n"
 
 #. module: base
@@ -9679,7 +9685,7 @@ msgid ""
 "Notify that a matching sale order exists in the reconciliation widget.\n"
 msgstr ""
 "\n"
-"Notifica que existe una orden de venta que coincide en el widget de "
+"Notifique que existe una orden de venta que coincide en el widget de "
 "conciliación.\n"
 
 #. module: base
@@ -9845,15 +9851,15 @@ msgstr ""
 "Organización y gestión de eventos\n"
 "======================================\n"
 "\n"
-"El módulo Eventos te permite organizar eventos y todas las tareas "
-"relacionadas de forma eficiente: planificación, seguimiento de registros,\n"
+"El módulo de eventos le permite organizar de manera eficiente un evento y "
+"todas sus tareas relacionadas: planificación, seguimiento de los registros,\n"
 "asistencia, etc.\n"
 "\n"
 "Funciones principales:\n"
 "------------\n"
-"* Gestiona tus eventos y registros\n"
-"* Usa correos electrónicos para confirmar y enviar acuses de recibo de "
-"manera automática al inscribirse en cualquier evento\n"
+"* Gestione los eventos y registros\n"
+"* Utilice correos electrónicos para confirmar y enviar acuses de recibo de "
+"manera automática al registrarse en cualquier evento.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_latam_check
@@ -10230,8 +10236,8 @@ msgid ""
 "base modules simple.\n"
 msgstr ""
 "\n"
-"Ofrece opciones avanzadas de enrutamiento que no están disponibles en web ni "
-"en los módulos base\n"
+"Propone opciones de enrutamiento avanzadas que no están disponibles en la "
+"web o en los módulos base\n"
 "para mantener simples los módulos base.\n"
 
 #. module: base
@@ -10261,14 +10267,14 @@ msgstr ""
 "\n"
 "Base de Calidad\n"
 "===============\n"
-"* Define los puntos de control de calidad que generarán controles de calidad "
-"en las recolecciones, \n"
-"  órdenes de manufactura o de trabajo (quality_mrp).\n"
-"* Las alertas de calidad se pueden crear de forma independiente o vincular a "
-"los controles de calidad.\n"
+"* Defina puntos de calidad que generarán controles de calidad en las "
+"recolecciones, \n"
+"órdenes de manufactura o de trabajo (quality_mrp).\n"
+"*  Las alertas de calidad se pueden crear de forma independiente o "
+"relacionada con los controles de calidad.\n"
 "* Posibilidad de agregar una medida al control de calidad con una tolerancia "
-"mínima y máxima.\n"
-"* Define las etapas de tus alertas de calidad.\n"
+"mínima o máxima.\n"
+"* Defina sus etapas para las alertas de calidad.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_quality_control
@@ -10286,14 +10292,14 @@ msgstr ""
 "\n"
 "Control de calidad\n"
 "===============\n"
-"* Define los puntos de control de calidad que generarán controles de calidad "
-"en las recolecciones, \n"
-"  órdenes de manufactura o de trabajo (quality_mrp).\n"
-"* Las alertas de calidad se pueden crear de forma independiente o vincular a "
-"los controles de calidad.\n"
+"* Defina puntos de calidad que generarán controles de calidad en las "
+"recolecciones,\n"
+" órdenes de manufactura u órdenes de trabajo (quality_mrp).\n"
+"* Las alertas de calidad se pueden crear de forma independiente o "
+"relacionadas con los controles de calidad.\n"
 "* Posibilidad de agregar una medida al control de calidad con una tolerancia "
 "mínima y máxima.\n"
-"* Define las etapas de tus alertas de calidad.\n"
+"* Defina sus etapas para las alertas de calidad.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_hr_payroll_expense
@@ -10308,7 +10314,7 @@ msgstr ""
 "Reembolso de gastos en los recibos de nómina.\n"
 "=====================================\n"
 "\n"
-"Esta aplicación permite reembolsar los gastos en los recibos de nómina.\n"
+"Esta aplicación le permite reembolsar gastos en los recibos de nómina.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sale_expense
@@ -10336,7 +10342,7 @@ msgid ""
 "Repair Products from helpdesk tickets\n"
 msgstr ""
 "\n"
-"Repara productos a partir de los tickets de soporte al cliente\n"
+"Repare productos desde tickets de soporte al cliente\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_bg_ledger
@@ -10595,8 +10601,8 @@ msgid ""
 "Sell your event booths and track payments on sale orders.\n"
 msgstr ""
 "\n"
-"Vende stands para tus eventos y lleva seguimiento de los pagos en las "
-"órdenes de venta.\n"
+"Venda estands para sus eventos y monitoree sus pagos en las órdenes de "
+"venta.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_digest
@@ -10623,15 +10629,15 @@ msgid ""
 "reduce handling time and improve customer experience.\n"
 msgstr ""
 "\n"
-"Realiza tus envíos con Envia y rastréalos en línea\n"
+"Haga sus envíos con Envia y rastréelos en línea\n"
 "=======================================================\n"
 "\n"
 "Envia es un proveedor de soluciones integradas de envío y rastreo para "
 "empresas de comercio electrónico en crecimiento.\n"
-"Gracias a su integración con una amplia variedad de transportistas y "
-"plataformas,\n"
-"puedes optimizar cada etapa de tu proceso de gestión de órdenes,\n"
-"reducir el tiempo de gestión y mejorar la experiencia del cliente.\n"
+"Este proveedor se integra\n"
+"con muchas empresas de paquetería, \n"
+"podrá optimizar cada paso del proceso de envío, reducir el tiempo de gestión "
+"y mejorar la experiencia del cliente.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_starshipit
@@ -10669,14 +10675,12 @@ msgid ""
 "See: https://www.bpost.be/portal/goHome\n"
 msgstr ""
 "\n"
-"Haz tus envíos a través de bpost y realiza su seguimiento en línea\n"
+"Haga sus envíos a través de bpost y sígalos por internet\n"
 "=======================================================\n"
+"Las empresas ubicadas en Bélgica pueden beneficiarse del envío con la\n"
+"oficina de correos local.\n"
 "\n"
-"Las empresas ubicadas en Bélgica pueden aprovechar los servicios de envío de "
-"la\n"
-"empresa postal local.\n"
-"\n"
-"Visita https://www.bpost.be/portal/goHome\n"
+"Visite: https://www.bpost.be/portal/goHome\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_link_tracker
@@ -10790,7 +10794,7 @@ msgstr ""
 "Habilidades y currículum para RR. HH.\n"
 "========================\n"
 "\n"
-"Este módulo incorpora la gestión de habilidades y currículums de los "
+"Con este módulo podrá gestionar las habilidades y el currículum de sus "
 "empleados.\n"
 
 #. module: base
@@ -10986,11 +10990,11 @@ msgid ""
 "Note: Only the admin user is allowed to make those customizations.\n"
 msgstr ""
 "\n"
-"Studio - Personaliza Odoo\n"
+"Studio - Personalice Odoo\n"
 "=======================\n"
 "\n"
-"Este módulo permite que el usuario personalice la mayoría de los elementos "
-"de la interfaz de\n"
+"Este complemento permite que el usuario personalice la mayoría de los "
+"elementos de la interfaz de\n"
 "usuario de manera sencilla y gráfica. Tiene dos funciones principales:\n"
 "\n"
 "* Crear una aplicación nueva (agregar un módulo, elementos de menú de nivel "
@@ -10998,7 +11002,7 @@ msgstr ""
 "* Personalizar una aplicación existente (editar menús, acciones, vistas, "
 "traducciones...)\n"
 "\n"
-"Nota: Solo el administrador puede hacer personalizaciones.\n"
+"Nota: solo el administrador puede hacer personalizaciones.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_studio
@@ -11608,9 +11612,9 @@ msgid ""
 "used by the website builder and mass mailing editor.\n"
 msgstr ""
 "\n"
-"Este complemento incluye una aplicación genérica para crear HTML. Está "
-"diseñada para \n"
-"su uso en el creador de sitios web y el editor de correos masivos.\n"
+"Este complemento contiene una aplicación de creador de html genérica. Está "
+"diseñada para\n"
+"usarla en el creador de sitios web y el editor de correos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_se_bban
@@ -12843,8 +12847,8 @@ msgid ""
 "employee, based on a survey to fill.\n"
 msgstr ""
 "\n"
-"Este módulo integra la aplicación Encuestas para solicitar comentarios a "
-"cualquier empleado a partir de una encuesta que debe completar.\n"
+"Este módulo agrega una integración con Encuesta para solicitar comentarios a "
+"cualquier empleado, en función de una encuesta para completar.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_edi_proxy_client
@@ -12920,17 +12924,18 @@ msgid ""
 "a dependency towards website editing and customization capabilities."
 msgstr ""
 "\n"
-"Este módulo agrega el código base necesario para un portal de clientes con "
-"integración completa.\n"
-"Incluye la clase base del controlador y las plantillas base. Los módulos de "
-"negocio \n"
-"agregarán sus propias plantillas y controladores para ampliar el portal de "
-"clientes.\n"
+"Este módulo agrega el código base necesario para un portal de cliente "
+"completamente integrado.\n"
+"Incluye la clase de controlador base y las plantillas base. \n"
+"Los complementos comerciales\n"
+"agregarán sus plantillas y controladores específicos para ampliar el portal\n"
+"del cliente.\n"
 "\n"
-"Este módulo contiene la mayor parte del código de website_portal de Odoo "
-"v10. Su objetivo \n"
-"es permitir la visualización de un portal de clientes sin depender \n"
-"de las funciones de edición y personalización del sitio web."
+"Este módulo incluye la mayor parte del código procedente de website_portal "
+"de Odoo v10. El propósito\n"
+"de este módulo es permitir la visualización de un portal del cliente sin "
+"que\n"
+"dependa de las capacidades de edición y personalización de sitios web."
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_qr_code_sepa
@@ -13063,9 +13068,11 @@ msgid ""
 msgstr ""
 "\n"
 "Este módulo permite que los empleados (y no los usuarios) inicien sesión en "
-"la aplicación Punto de venta mediante un código de barras, un NIP o ambos.\n"
-"La caja registradora sigue necesitando un usuario, pero un número ilimitado "
-"de empleados puede iniciar sesión en ella y procesar ventas.\n"
+"la aplicación Punto de venta mediante un código de barras, un número PIN o "
+"ambos.\n"
+"La caja registradora actual todavía requiere un usuario, pero un número "
+"ilimitado de empleados puede iniciar sesión en esa caja y procesar las "
+"ventas.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_rating
@@ -13133,10 +13140,10 @@ msgid ""
 msgstr ""
 "\n"
 "Este módulo permite adaptar las integraciones de portales de empleo con el "
-"reclutamiento en línea. \n"
-"Para ello, usa una IA que transforma las ofertas de trabajo del sitio web \n"
-"en descripciones llamativas que captan el interés de los posibles "
-"postulantes.\n"
+"reclutamiento en línea \n"
+"al proporcionar una IA que transforma las ofertas de trabajo de su sitio web "
+"\n"
+"en descripciones llamativas que atraerán a posibles postulantes.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_partner_commission
@@ -13518,15 +13525,15 @@ msgid ""
 "pricing.\n"
 msgstr ""
 "\n"
-"Este módulo te permite gestionar los contratos de compra.\n"
+"Este módulo le permite gestionar los acuerdos de venta.\n"
 "===========================================================\n"
 "\n"
-"Gestiona las licitaciones y las órdenes abiertas. Las licitaciones permiten "
-"obtener\n"
-"ofertas de distintos proveedores y compararlas para seleccionar las mejores. "
-"Las órdenes abiertas\n"
-"son contratos que se celebran con los proveedores que te permiten "
-"beneficiarte de un precio predeterminado.\n"
+"Gestione las licitaciones y las órdenes abiertas. Las licitaciones se "
+"utilizan para obtener\n"
+"ofertas competentes de varios proveedores y seleccionar las mejores. Las "
+"órdenes abiertas\n"
+"son contratos que se celebran con los proveedores para beneficiarse de un "
+"precio predeterminado.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_purchase_alternative
@@ -13581,17 +13588,17 @@ msgid ""
 "products.\n"
 msgstr ""
 "\n"
-"Este módulo te permite planificar tus órdenes de venta según la "
-"configuración de los productos.\n"
+"Este módulo le permite programar sus órdenes de venta de acuerdo con la "
+"configuración del producto.\n"
 "\n"
-"Para los productos que tienen habilitada la opción \"Planear servicios\", "
-"podrás pronosticar\n"
-"de forma automática los turnos de los empleados que puedan cubrirlos \n"
-"(es decir, los empleados que tengan la misma función que la configurada en "
-"el producto).\n"
-"\n"
-"Prevé los turnos y lleva control de las horas utilizadas en tus productos "
-"que se pueden planificar.\n"
+"En los productos que tengan activada la opción \"Planear servicios\", tendrá "
+"la oportunidad\n"
+"de pronosticar en automático los turnos de los empleados que puedan tomar el "
+"turno\n"
+"(por ejemplo, los empleados que desempeñan la misma función que el empleado "
+"configurado en el producto).\n"
+"Pronosticar turnos puede ayudarle a estar al pendiente de las horas "
+"utilizadas en sus productos planificables.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sale_planning
@@ -14019,16 +14026,16 @@ msgid ""
 msgstr ""
 "\n"
 "Este módulo extiende el modelo mail.message para permitir\n"
-"el rastreo técnico de los datos relacionados con las conversaciones.\n"
+"el rastreo técnico de los datos relacionados a la conversación.\n"
 "\n"
-"Captura y almacena los valores de seguimiento generados por\n"
-"los mensajes y operaciones de cambio del sistema.\n"
-"La información de seguimiento se puede usar con fines de auditorías,\n"
+"Captura y almacena valores generados por\n"
+"mensajes y operaciones de cambio en el sistema.\n"
+"La información monitoreada se puede usar para fines de auditorías,\n"
 "solución de errores y análisis.\n"
 "\n"
 "Esto es útil para:\n"
-"- Investigar problemas técnicos\n"
-"- Apoyar auditorías de contabilidad o procesos empresariales\n"
+"- Investigar los problemas técnicos\n"
+"- Ayudar a auditorías de contabilidad o procesos empresariales\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sms
@@ -14142,8 +14149,8 @@ msgid ""
 "public modules.\n"
 msgstr ""
 "\n"
-"Este módulo implementa reCaptchaV3 para que puedas evitar el spam de bots en "
-"tus módulos públicos.\n"
+"Este módulo implementa reCaptchaV3 para que pueda evitar el spam de bots en "
+"sus módulos públicos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_syscohada
@@ -14716,7 +14723,7 @@ msgid ""
 "process.\n"
 msgstr ""
 "\n"
-"Este módulo permite gestionar las habilidades de los empleados durante el "
+"Este módulo permite gestionar las habilidades de su empleado durante el "
 "proceso de evaluación.\n"
 
 #. module: base
@@ -14862,7 +14869,7 @@ msgid ""
 "This module provides management of your IoT Boxes inside Odoo.\n"
 msgstr ""
 "\n"
-"Este módulo te permite gestionar tus cajas IoT desde Odoo.\n"
+"Con este módulo puede gestionar sus cajas IoT dentro de Odoo.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_iap
@@ -15149,8 +15156,8 @@ msgid ""
 "Time off documents will be automatically integrated to the Document app.\n"
 msgstr ""
 "\n"
-"Los documentos de Vacaciones se integrarán en automático a la aplicación "
-"Documentos.\n"
+"Los documentos de Tiempo personal se integrarán en automático a la "
+"aplicación Documentos.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_product_expiry
@@ -15170,11 +15177,11 @@ msgid ""
 "used, for example, in food industries.\n"
 msgstr ""
 "\n"
-"Lleva seguimiento de diferentes fechas en los productos y lotes de "
+"Lleve el seguimiento de diferentes fechas en productos y lotes de "
 "producción.\n"
 "======================================================================\n"
 "\n"
-"Lleva seguimiento de las siguientes fechas:\n"
+"Se puede dar seguimiento a las siguientes fechas:\n"
 "------------------------------------------\n"
 "    - Fin del ciclo de vida\n"
 "    - Fecha de consumo preferente\n"
@@ -15424,9 +15431,9 @@ msgid ""
 "to allow you to define interviews for different jobs.\n"
 msgstr ""
 "\n"
-"Usa formularios de entrevista durante el proceso de reclutamiento.\n"
-"Este módulo está integrado con el módulo Encuestas \n"
-"para que puedas definir entrevistas para distintos puestos de trabajo.\n"
+"Use formularios de entrevista durante el proceso de reclutamiento.\n"
+"Este módulo está integrado con el módulo de encuestas para permitir definir "
+"entrevistas personalizadas para distintos puestos de trabajo.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_website_event_booth_sale
@@ -15457,7 +15464,7 @@ msgid ""
 "=======================================================================\n"
 msgstr ""
 "\n"
-"Con esta aplicación puedes gestionar a los equipos de ventas desde CRM o "
+"Al usar esta aplicación podrá gestionar a los equipos de ventas desde CRM o "
 "Ventas.\n"
 "======================================================================\n"
 
@@ -15669,13 +15676,14 @@ msgstr ""
 "\n"
 "Módulo de contabilidad del SGA\n"
 "==============================\n"
-"Este módulo vincula los módulos 'stock' y 'account' y te permite crear "
-"asientos contables para valuar los movimientos de existencias.\n"
+"Este módulo sirve como enlace entre los módulos 'stock' y 'account' y le "
+"permite crear asientos contables para valorar los movimientos de "
+"existencias.\n"
 "\n"
 "Funciones clave\n"
 "------------\n"
 "* Valuación de existencias (periódica o automática)\n"
-"* Facturación a partir de una recolección\n"
+"* Facturación desde recolección\n"
 "\n"
 "El tablero y los reportes para la gestión de almacén incluyen:\n"
 "-------------------------------------------------------------\n"
@@ -17069,8 +17077,7 @@ msgid ""
 "hosts."
 msgstr ""
 "Un sistema integral de gestión de recepción que permite a los visitantes "
-"registrarse al llegar y salir con facilidad, a la vez que garantiza que los "
-"anfitriones reciban notificaciones."
+"registrarse y salir sin problemas. Los anfitriones recibirán notificaciones."
 
 #. module: base
 #: model_terms:ir.actions.act_window,help:base.action_res_groups
@@ -17649,7 +17656,7 @@ msgstr "Token de acceso"
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_hr
 msgid "Access documents from the employee profile"
-msgstr "Accede a los documentos desde el perfil del empleado"
+msgstr "Acceda a los documentos desde el perfil del empleado"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_profile
@@ -18127,7 +18134,7 @@ msgstr "Agregar idiomas"
 #: model:ir.module.module,summary:base.module_data_merge_helpdesk
 msgid "Add Merge action in contextual menu of helpdesk ticket model."
 msgstr ""
-"Agrega la acción de fusión al menú contextual del modelo de ticket de "
+"Agregar acción de fusión en el menú contextual del modelo de ticket de "
 "soporte al cliente."
 
 #. module: base
@@ -18135,8 +18142,8 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_data_merge_project
 msgid "Add Merge action in contextual menu of project task and tag models."
 msgstr ""
-"Agrega la acción de fusión al menú contextual de los modelos de tareas y "
-"etiquetas de proyecto."
+"Agregar acción de fusión en el menú contextual de la tarea de proyecto y los "
+"modelos de etiqueta."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mail_bot
@@ -18222,7 +18229,7 @@ msgstr "Agrega funciones de certificación a tus cursos"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_survey
 msgid "Add certification to resume of your employees"
-msgstr "Agrega las certificaciones al currículum de tus empleados"
+msgstr "Agregue certificaciones a los currículums de sus empleados"
 
 #. module: base
 #: model:ir.module.module,description:base.module_pos_account_tax_python
@@ -18234,7 +18241,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_slides
 msgid "Add completed courses to resume of your employees"
-msgstr "Agrega los cursos completados al currículum de tus empleados"
+msgstr "Agregue los cursos completados a los currículums de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_social_crm
@@ -18360,7 +18367,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_event_enterprise
 msgid "Add views and tweaks on event"
-msgstr "Agrega vistas y ajustes a los eventos"
+msgstr "Agregue vistas y ajustes a un evento"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_groups_search
@@ -19182,7 +19189,7 @@ msgstr "Todos los usuarios"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_holidays
 msgid "Allocate time off and follow leave requests"
-msgstr "Asigna permisos y lleva seguimiento de sus respectivas solicitudes"
+msgstr "Asigne permisos y lleve seguimiento de sus respectivas solicitudes"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_pos_account_tax_python
@@ -19228,8 +19235,8 @@ msgstr "Permite actualizar las tablas de impuestos en los asientos existentes"
 #: model:ir.module.module,summary:base.module_hr_recruitment_integration_monster
 msgid "Allow user to share job positions on Monster Job board"
 msgstr ""
-"Permite que el usuario comparta puestos de trabajo en la bolsa de trabajo "
-"Monster"
+"Permitir que el usuario publique puestos de trabajo en la bolsa de trabajo "
+"Monster Jobs"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_planning_field_service_repair
@@ -20541,7 +20548,7 @@ msgstr "Evaluación - Habilidades"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_appraisal_survey
 msgid "Appraisal - Survey"
-msgstr "Evaluación - Encuestas"
+msgstr "Evaluación - Encuesta"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_human_resources_appraisals
@@ -22828,7 +22835,7 @@ msgstr "Enlace para ventas en sitio web para Brasil."
 #. module: base
 #: model:ir.module.module,description:base.module_fleet_maintenance
 msgid "Bridge between Fleet and Maintenance."
-msgstr "Modulo de enlace entre Flotilla y Mantenimiento."
+msgstr "Modulo puente entre Flotilla y Mantenimiento."
 
 #. module: base
 #: model:ir.module.module,description:base.module_iap_crm
@@ -23083,7 +23090,7 @@ msgstr "Cree campañas de correo automatizadas"
 #. module: base
 #: model:ir.module.module,description:base.module_sale_pdf_quote_builder
 msgid "Build nice quotations"
-msgstr "Crea cotizaciones increíbles"
+msgstr "Cree cotizaciones llamativas"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_board
@@ -23625,7 +23632,7 @@ msgstr "República Centro Africana - Reportes contables"
 #: model:ir.module.module,summary:base.module_hr
 #: model:ir.module.module,summary:base.module_hr_address_extended
 msgid "Centralize employee information"
-msgstr "Centraliza la información de tus empleados"
+msgstr "Centralice la información de los empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_contacts
@@ -23636,7 +23643,8 @@ msgstr "Centraliza tu libreta de direcciones"
 #: model:ir.module.module,description:base.module_knowledge
 #: model:ir.module.module,summary:base.module_knowledge
 msgid "Centralize, manage, share and grow your knowledge library"
-msgstr "Centraliza, gestiona, comparte y amplía tu biblioteca de información"
+msgstr ""
+"Centralice, gestione, comparta y haga crecer su biblioteca de información"
 
 #. module: base
 #: model:res.currency,currency_subunit_label:base.ANG
@@ -23768,7 +23776,7 @@ msgstr "Cambiar a formato de reloj de 12 horas."
 #: model:ir.module.module,summary:base.module_im_livechat
 #: model:ir.module.module,summary:base.module_website_livechat
 msgid "Chat with your website visitors"
-msgstr "Chatea con los visitantes de tu sitio web"
+msgstr "Chatee con los visitantes de su sitio web"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mail
@@ -24931,7 +24939,7 @@ msgstr "Convierte tickets en leads y viceversa"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_mail_plugin
 msgid "Convert emails to Helpdesk Tickets."
-msgstr "Convierte correos electrónicos en tickets de soporte al cliente."
+msgstr "Convierta correos electrónicos en tickets de soporte al cliente"
 
 #. module: base
 #: model:res.country,name:base.ck
@@ -25247,13 +25255,13 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_expense_stripe
 msgid "Create and manage company expense cards via Stripe"
-msgstr "Crea y gestiona las tarjetas de gastos de la empresa a través de Stripe"
+msgstr "Crear y gestionar las tarjetas de gastos de la empresa con Stripe"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_expense_stripe_demo
 msgid "Create and manage company expense cards via Stripe: Demo"
 msgstr ""
-"Crea y gestiona las tarjetas de gastos de la empresa a través de Stripe: "
+"Crear y gestionar las tarjetas de gastos de la empresa con Stripe: "
 "Demostración"
 
 #. module: base
@@ -25300,7 +25308,7 @@ msgstr "Cree un nuevo lead a partir de una conversación en chat en vivo"
 #. module: base
 #: model:ir.module.module,description:base.module_event_crm
 msgid "Create leads from event registrations."
-msgstr "Crea leads a partir de los registros a un evento."
+msgstr "Cree leads a partir de los registros a un evento"
 
 #. module: base
 #: model:ir.module.module,description:base.module_crm_livechat
@@ -26435,7 +26443,7 @@ msgstr "Descripción HTML"
 #. module: base
 #: model:ir.module.module,summary:base.module_mass_mailing_themes
 msgid "Design gorgeous mails"
-msgstr "Diseña correos increíbles"
+msgstr "Diseñe correos llamativos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_theme_avantgarde
@@ -26963,7 +26971,7 @@ msgstr "Documentos - Producto"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project_sale
 msgid "Documents - Project - Sale"
-msgstr "Documentos - Proyectos - Ventas"
+msgstr "Documentos - Proyecto - Venta"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project
@@ -26998,7 +27006,7 @@ msgstr "Documentos, RR. HH., Reclutamiento y Firma electrónica"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_documents_project_sign
 msgid "Documents Project Sign"
-msgstr "Documentos, Proyectos y Firma electrónica"
+msgstr "Documentos, Proyecto y Firma electrónica"
 
 #. module: base
 #: model:ir.module.module,description:base.module_documents_spreadsheet
@@ -27364,7 +27372,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_delivery_easypost
 msgid "Easypost Shipping"
-msgstr "Envíos por EasyPost"
+msgstr "Envíos con Easypost"
 
 #. module: base
 #: model:res.country,name:base.ec
@@ -28527,7 +28535,7 @@ msgstr "CRM del evento"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_event_crm_sale
 msgid "Event CRM Sale"
-msgstr "Eventos, CRM y Ventas"
+msgstr "Venta y CRM del evento"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_website_event_exhibitor
@@ -28587,7 +28595,7 @@ msgstr "Organización de eventos"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_event_enterprise
 msgid "Events Organization Add-on"
-msgstr "Complemento de organización de eventos"
+msgstr "Extensión de organización de eventos"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_event_product
@@ -28648,8 +28656,8 @@ msgid ""
 "Exclude the timeoff timesheet entries from the rank calculation in the "
 "Timesheets Leaderboard."
 msgstr ""
-"Excluye las entradas del registro de horas por permisos del cálculo de la "
-"clasificación en la tabla de clasificación de registro de horas."
+"Excluya las entradas de tiempo personal de las hojas de cálculo en la tabla "
+"de marcadores de la hoja de cálculo."
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_module_module_exclusion__exclusion_id
@@ -29053,8 +29061,8 @@ msgstr "Herramientas adicionales"
 #: model:ir.module.module,summary:base.module_hr_recruitment_extract
 msgid "Extract data from CV scans to fill applicant forms automatically"
 msgstr ""
-"Extrae datos del escaneo de currículums para completar los formularios de "
-"los postulantes de forma automática"
+"Extraiga la información del CV escaneado para completar los formularios de "
+"postulación de manera automática"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_account_bank_statement_extract
@@ -29067,8 +29075,8 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_hr_expense_extract
 msgid "Extract data from expense scans to fill them automatically"
 msgstr ""
-"Extrae información de los escaneos de gastos para completarlos de forma "
-"automática"
+"Extraiga información de los gastos escaneados para completarlos "
+"automáticamente"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_account_invoice_extract
@@ -29178,7 +29186,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_delivery_fedex_rest
 msgid "Fedex Shipping"
-msgstr "Envío por FedEx"
+msgstr "Envío por Fedex"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_delivery_fedex
@@ -30211,7 +30219,7 @@ msgstr "Vista de gantt para Asistencias"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_holidays_gantt
 msgid "Gantt view for Time Off Dashboard"
-msgstr "Vista de Gantt para el tablero de Vacaciones"
+msgstr "Vista de Gantt para el tablero de Tiempo personal"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_gardening
@@ -30398,7 +30406,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_fleet
 msgid "Get history of driven cars by employees"
-msgstr "Consulta el historial de los automóviles conducidos por tus empleados"
+msgstr "Obtenga el historial de los automóviles conducidos por sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_enterprise
@@ -31093,7 +31101,7 @@ msgstr "Soporte al cliente y reparaciones"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_sale_loyalty
 msgid "Helpdesk Sale Loyalty"
-msgstr "Soporte al cliente, Ventas y lealtad"
+msgstr "Soporte al cliente para el programa de lealtad de ventas"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_stock
@@ -31113,7 +31121,7 @@ msgstr "Soporte al cliente y Vacaciones"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_timesheet
 msgid "Helpdesk Timesheet"
-msgstr "Soporte al cliente y Registro de horas"
+msgstr "Soporte al cliente y hojas de horas"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_holidays
@@ -31295,12 +31303,12 @@ msgstr "Extracto de gastos de RR. HH."
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_expense_predict_product
 msgid "Hr Expense Predict product"
-msgstr "Predicción de productos para gastos de RR. HH."
+msgstr "Producto de predicción de gastos de RR. HH."
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_extract
 msgid "Hr Recruitment Extract"
-msgstr "Extracción para el reclutamiento de RR. HH."
+msgstr "Extracto de reclutamiento de RR. HH."
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_survey
@@ -32532,9 +32540,9 @@ msgid ""
 "                   Turn emails received in your mailbox into Tickets and log "
 "their content as internal notes."
 msgstr ""
-"Integra Soporte al cliente a tu buzón de correo.\n"
-"                   Convierte los correos que recibes en tickets y registra "
-"su contenido como notas internas."
+"Integre el soporte al cliente a su buzón de correo.\n"
+"Convierta correos que recibió en su buzón de correo en tickets y registre su "
+"contenido como notas internas."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_dpopay
@@ -32566,7 +32574,7 @@ msgstr "Integra tu PdV con una terminal de pago de Mollie"
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_razorpay
 msgid "Integrate your POS with a Razorpay payment terminal"
-msgstr "Integra tu PdV con una terminal de pago Razorpay"
+msgstr "Integre su PdV con una terminal de pago Razorpay"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_pos_iot_six
@@ -34232,8 +34240,7 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_hr_referral
 msgid "Let your employees share job positions and refer their friends"
 msgstr ""
-"Permite que tus empleados compartan puestos de trabajo y recomienden a sus "
-"amigos"
+"Deje que sus empleados compartan puestos de trabajo y refieran a sus amigos"
 
 #. module: base
 #: model:ir.module.module,description:base.module_whatsapp_hr_referral
@@ -34479,7 +34486,7 @@ msgstr "Modulo de enlace entre pos_sale y pos_loyalty"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills_event
 msgid "Link training events to resume of your employees"
-msgstr "Vincula los eventos de capacitación al currículum de tus empleados"
+msgstr "Vincular capacitaciones al CV de tus empleados"
 
 #. module: base
 #: model:res.currency,currency_subunit_label:base.HRK
@@ -35058,7 +35065,7 @@ msgstr "Gestiona Citas con Empleados"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_recruitment_integration_website
 msgid "Manage Job board integrations with website"
-msgstr "Gestiona las integraciones de los portales de empleo con Sitio web"
+msgstr "Gestione las integraciones de los portales de empleo con Sitio web"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_sale_mrp
@@ -35079,7 +35086,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_recruitment_integration_website_monster
 msgid "Manage Monster Job board integrations with website"
-msgstr "Gestiona las integraciones del portal de empleo Monster con Sitio web"
+msgstr "Gestione las integraciones del portal de empleo Monster con Sitio web"
 
 #. module: base
 #: model:ir.module.module,description:base.module_hr_recruitment
@@ -35248,12 +35255,12 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,summary:base.module_event_booth
 msgid "Manage event booths"
-msgstr "Gestiona los stands de tus eventos"
+msgstr "Gestione estands de eventos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_event_booth_sale
 msgid "Manage event booths sale"
-msgstr "Gestiona la venta de stands de eventos"
+msgstr "Gestione la venta de estands de eventos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_l10n_be_hr_payroll_attendance
@@ -35266,8 +35273,8 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_hr_payroll_attendance
 msgid "Manage extra hours for your hourly paid employees using attendance"
 msgstr ""
-"Gestiona las horas extra de tus empleados que cobran por hora con la "
-"aplicación Asistencias"
+"Gestione las horas extra de sus empleados que reciben un pago por hora con "
+"la aplicación Asistencias"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_accountant
@@ -35298,24 +35305,25 @@ msgstr "Gestione contratos de alquiler, entregas y devoluciones"
 #. module: base
 #: model:ir.module.module,summary:base.module_equity
 msgid "Manage securities, transactions, and cap tables."
-msgstr "Gestiona valores, transacciones y tablas de capitalización."
+msgstr ""
+"Gestionar seguridades, transacciones y tablas de capitalización (cap tables)."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_recruitment_skills
 msgid "Manage skills of your employees"
-msgstr "Gestiona las habilidades de tus empleados"
+msgstr "Gestione las habilidades de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_appraisal_skills
 msgid "Manage skills of your employees during an appraisal process"
 msgstr ""
-"Gestiona las habilidades de los empleados durante el proceso de evaluación"
+"Gestione las habilidades de sus empleados durante el proceso de evaluación"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_skills
 msgid "Manage skills, knowledge and resume of your employees"
 msgstr ""
-"Gestiona las habilidades, los conocimientos y el currículum de tus empleados"
+"Gestione las habilidades, el conocimiento y el currículum de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_project
@@ -35330,12 +35338,12 @@ msgstr "Gestione la lista de países que se pueden establecer en sus contactos."
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_recruitment_sign
 msgid "Manage the signatures to send to your applicants"
-msgstr "Gestiona las firmas que enviarás a tus candidatos"
+msgstr "Gestione las firmas que le envía a sus candidatos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_work_entry
 msgid "Manage work entries"
-msgstr "Gestiona las entradas de trabajo"
+msgstr "Gestione entradas de trabajo"
 
 #. module: base
 #: model:ir.module.module,description:base.module_social_facebook
@@ -35374,17 +35382,17 @@ msgstr "Gestione sus videos de YouTube y programe cuándo se publicarán"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_sign
 msgid "Manage your documents to sign in contracts"
-msgstr "Gestiona los documentos que se firmarán en los contratos"
+msgstr "Gestione sus documentos para firmar contratos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_payroll
 msgid "Manage your employee payroll"
-msgstr "Gestiona la nómina de tus empleados"
+msgstr "Gestione la nómina de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_planning
 msgid "Manage your employees' schedule"
-msgstr "Gestiona el horario de tus empleados"
+msgstr "Gestione el horario de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_fleet
@@ -41329,7 +41337,7 @@ msgstr "Pagar para reservar en el comercio electrónico"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_payroll_account_iso20022
 msgid "Pay your employees with SEPA payment."
-msgstr "Paga a tus empleados mediante transferencias SEPA."
+msgstr "Pague a sus empleados mediante pago SEPA"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_accounting_payment
@@ -42661,7 +42669,7 @@ msgstr ""
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_data_merge_project
 msgid "Project Merge action"
-msgstr "Acción de fusión para Proyectos"
+msgstr "Acción de fusión para Proyecto"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_project_hr_payroll_account
@@ -42759,13 +42767,13 @@ msgstr "Habilidades del proyecto"
 #: model:ir.module.module,summary:base.module_helpdesk_planning_field_service_sale_timesheet
 msgid "Project, Helpdesk, FSM, Timesheet and Sale Orders"
 msgstr ""
-"Proyectos, Soporte al cliente, Servicio externo, Registro de horas y órdenes "
-"de venta"
+"Proyecto, Soporte al cliente, Servicio externo, Hojas de horas y Órdenes de "
+"venta"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_sale_timesheet
 msgid "Project, Helpdesk, Timesheet and Sale Orders"
-msgstr "Proyectos, Soporte al cliente, Registro de horas y órdenes de venta"
+msgstr "Proyecto, soporte al cliente, hojas de horas y órdenes de venta"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_account
@@ -42795,7 +42803,7 @@ msgstr "Proyectos, tareas y existencias"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk_timesheet
 msgid "Project, Tasks, Timesheet"
-msgstr "Proyectos, tareas y registro de horas"
+msgstr "Proyectos, tareas y hojas de horas"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_properties_base_definition_mixin__properties
@@ -42908,7 +42916,7 @@ msgstr "Publique eventos, venda boletos"
 #. module: base
 #: model:ir.module.module,summary:base.module_event_social
 msgid "Publish on social account from Event"
-msgstr "Publica en una cuenta de redes sociales desde Eventos"
+msgstr "Publique en una red social desde Eventos"
 
 #. module: base
 #: model:ir.module.module,description:base.module_event_social
@@ -42917,10 +42925,10 @@ msgid ""
 "\n"
 "This module allows you to schedule social posts from the event communication."
 msgstr ""
-"Publica en una cuenta de redes sociales desde Eventos.\n"
+"Publique en una red social desde Eventos.\n"
 "\n"
-"Este módulo te permite programar publicaciones en redes sociales como parte "
-"de la comunicación del evento."
+"Este módulo le permite programar publicaciones para redes sociales desde la "
+"aplicación Eventos."
 
 #. module: base
 #: model:ir.module.module,summary:base.module_website_knowledge
@@ -43494,7 +43502,7 @@ msgstr "Base de integración para Reclutamiento"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_integration_website
 msgid "Recruitment Integration website"
-msgstr "Integración entre Sitio web y Reclutamiento"
+msgstr "Integración entre Sitio web y Monster"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_recruitment_reports
@@ -44914,7 +44922,7 @@ msgstr "Escanea y analiza códigos de barras"
 #. module: base
 #: model:ir.module.module,description:base.module_event_sms
 msgid "Schedule SMS in event management"
-msgstr "Programa SMS al gestionar eventos"
+msgstr "Programe SMS al gestionar eventos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_mrp_maintenance
@@ -45161,7 +45169,7 @@ msgstr "Vende cursos"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_helpdesk_sale_timesheet
 msgid "Sell Helpdesk Timesheet"
-msgstr "Ventas, Soporte al cliente y Registro de horas"
+msgstr "Venta de hojas de horas para soporte al cliente"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_sale_timesheet
@@ -45307,7 +45315,7 @@ msgstr "Envíe mensajes de texto cuando la etapa del proyecto o tarea cambie"
 #: model:ir.module.module,description:base.module_helpdesk_sms
 #: model:ir.module.module,summary:base.module_helpdesk_sms
 msgid "Send text messages when ticket stage move"
-msgstr "Envía mensajes de texto cuando un ticket cambie de etapa"
+msgstr "Envíe mensajes de texto cuando un ticket cambie de etapa"
 
 #. module: base
 #: model:ir.module.module,description:base.module_whatsapp_calendar
@@ -45323,12 +45331,12 @@ msgstr "Envía mensajes de WhatsApp al terminar de mover tus existencias"
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_easypost
 msgid "Send your parcels through Easypost and track them online"
-msgstr "Envía tus paquetes a través de EasyPost y rastréalos en línea"
+msgstr "Envíe sus paquetes a través de EasyPost y rastréelos en línea"
 
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_shiprocket
 msgid "Send your parcels through shiprocket and track them online"
-msgstr "Envía tus paquetes a través de Shiprocket y rastréalos en línea"
+msgstr "Envíe sus paquetes a través de Shiprocket y rastréelos en línea"
 
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_dhl_rest
@@ -45834,7 +45842,7 @@ msgstr "Integración entre IA y Firma electrónica"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_contract_salary
 msgid "Sign Employment Contracts"
-msgstr "Firma los contratos de trabajo"
+msgstr "Firme los contratos de los empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_test_sign
@@ -45849,7 +45857,7 @@ msgstr "Firma documentos adjuntos a las carpetas de reclutamiento"
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_project_sign
 msgid "Sign documents attached to tasks"
-msgstr "Firma los documentos adjuntos a las tareas"
+msgstr "Firme los documentos adjuntos a las tareas"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_sign_emsigner
@@ -46588,7 +46596,7 @@ msgstr "Tablero de hojas de cálculo para Suscripciones"
 #: model:ir.module.module,shortdesc:base.module_spreadsheet_dashboard_hr_timesheet
 #: model:ir.module.module,shortdesc:base.module_spreadsheet_dashboard_sale_timesheet
 msgid "Spreadsheet dashboard for time sheets"
-msgstr "Tablero de hojas de cálculo para Registro de horas"
+msgstr "Tablero de hojas de cálculo para Hojas de horas"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_spreadsheet_dashboard_sale_timesheet_enterprise
@@ -46841,7 +46849,7 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_documents_hr_payroll
 msgid "Store employee payslips in the Document app"
 msgstr ""
-"Almacena los recibos de nómina de los empleados en la aplicación Documentos"
+"Almacene los recibos de nómina de los empleados en la aplicación Documentos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_l10n_ke_hr_payroll
@@ -46854,13 +46862,13 @@ msgstr ""
 #: model:ir.module.module,summary:base.module_documents_hr_holidays
 msgid "Store employee's time off documents in the Document app"
 msgstr ""
-"Almacena los documentos de los empleados correspondientes a Vacaciones en la "
-"aplicación Documentos"
+"Almacene los documentos de tiempo personal de los empleados en la aplicación "
+"Documentos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_hr_expense
 msgid "Store expense documents in the Document app"
-msgstr "Almacena los documentos de gastos en la aplicación Documentos"
+msgstr "Almacene los documentos de gastos en la aplicación Documentos"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_documents_l10n_ch_hr_payroll
@@ -46998,7 +47006,7 @@ msgstr "Submenús"
 #: model:ir.module.module,summary:base.module_hr_expense
 #: model:ir.module.module,summary:base.module_hr_payroll_expense
 msgid "Submit, validate and reinvoice employee expenses"
-msgstr "Envía, valida y vuelve a facturar los gastos de los empleados"
+msgstr "Envíe, valide y vuelva a facturar los gastos de los empleados"
 
 #. module: base
 #: model:ir.module.category,name:base.module_category_sales_subscriptions
@@ -48972,8 +48980,9 @@ msgid ""
 "in 2024."
 msgstr ""
 "Esta integración con FedEx es obsoleta y ya no es compatible con el "
-"software.         Instala el nuevo módulo \"Envío por FedEx\" y desinstala "
-"este lo antes posible. Esta integración dejará de funcionar en el 2024."
+"software.         Instale el nuevo módulo \"Envío por Fedex\" y desinstale "
+"este tan pronto como le sea posible. Esta integración dejará de funcionar en "
+"el 2024."
 
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_ups
@@ -48982,9 +48991,9 @@ msgid ""
 "Please install the new \"UPS Shipping\" module and uninstall this one as "
 "soon as possible. This integration will stop working in 2024."
 msgstr ""
-"Esta es una integración de UPS obsoleta y ya no es compatible.         "
-"Instala el nuevo módulo \"Envíos por UPS\" y desinstala este lo antes "
-"posible. Esta integración dejará de funcionar en 2024."
+"Esta es la integración heredada con UPS y ya no es compatible.         "
+"Instale el nuevo modulo \"Envíos por UPS\" y desinstale este tan pronto como "
+"le sea posible. Esta integración dejará de funcionar en el 2024."
 
 #. module: base
 #: model:ir.module.module,description:base.module_delivery_usps
@@ -48993,8 +49002,9 @@ msgid ""
 "States Postal Service (USPS) Shipping\" module and uninstall this one as "
 "soon as possible."
 msgstr ""
-"Esta es la integración obsoleta de USPS. Instala el nuevo módulo \"Envíos "
-"por USPS (United States Postal Service)\" y desinstala este lo antes posible."
+"Esta es la integración heredada con USPS. Instale el nuevo módulo \"Envíos "
+"por USPS (United States Postal Service)\" y desinstale este tan pronto como "
+"le sea posible."
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_no
@@ -49060,8 +49070,8 @@ msgid ""
 "This module adds the OdooBot state and notifications in the user form "
 "modified by hr."
 msgstr ""
-"Este módulo agrega el estado y las notificaciones de OdooBot a los "
-"formularios de usuario que modifica RR. HH."
+"Este módulo agrega estado y notificaciones al OdooBot en los formularios de "
+"usuario que modificó RR. HH."
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_be_codabox
@@ -49732,7 +49742,7 @@ msgstr "Tabla de registro de horas / Asistencias"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_hr_timesheet_attendance
 msgid "Timesheets/attendances reporting"
-msgstr "Registro de horas y reportes de asistencia"
+msgstr "Hojas de horas y reportes de asistencia"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_partner__tz
@@ -49926,13 +49936,13 @@ msgstr "Marketing por SMS - Seguimiento para ponentes"
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_attendance
 msgid "Track employee attendance"
-msgstr "Lleva seguimiento de la asistencia de tus empleados"
+msgstr "Lleve seguimiento de la asistencia de sus empleados"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_timesheet
 #: model:ir.module.module,summary:base.module_timesheet_grid
 msgid "Track employee time on tasks"
-msgstr "Registra el tiempo que los empleados dedican a las tareas"
+msgstr "Lleve seguimiento del tiempo que tardan los empleados en sus tareas"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_maintenance
@@ -49953,7 +49963,7 @@ msgstr "Monitoree su flujo de reclutamiento"
 #. module: base
 #: model:ir.module.module,summary:base.module_helpdesk
 msgid "Track, prioritize, and solve customer tickets"
-msgstr "Lleva seguimiento, prioriza y soluciona los tickets de tus clientes"
+msgstr "De seguimiento, priorice y resuelva los tickets de sus clientes"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_event
@@ -51040,7 +51050,7 @@ msgstr "Usa las integraciones de los dispositivos IoT para eventos"
 #. module: base
 #: model:ir.module.module,summary:base.module_delivery_iot
 msgid "Use IoT devices in delivery operations"
-msgstr "Usa dispositivos IoT en las operaciones de entrega"
+msgstr "Use los dispositivos IoT en operaciones de entrega"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_appointment_sms
@@ -51125,12 +51135,11 @@ msgid ""
 "This allow the user to send badges to employees instead of simple users.\n"
 "Badge received are displayed on the user profile.\n"
 msgstr ""
-"Usa los recursos de RR. HH. para el proceso de ludificación.\n"
+"Use los recursos de RR. HH. para el proceso de ludificación.\n"
 "\n"
-"La persona responsable de RR. HH. podrá gestionar los desafíos y las "
-"insignias.\n"
-"Esto permite que el usuario envíe insignias a los empleados en lugar de a "
-"usuarios comunes.\n"
+"El encargado de de RR. HH. podrá administrar los desafíos e insignias.\n"
+"Esto permite que el usuario pueda enviar insignias a los empleados en lugar "
+"de a usuarios normales.\n"
 "Las insignias recibidas aparecen en el perfil del usuario.\n"
 
 #. module: base

@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:45+0000\n"
+"POT-Creation-Date: 2026-05-03 17:38+0000\n"
 "PO-Revision-Date: 2026-06-30 20:01+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Portuguese <https://translate.odoo.com/projects/odoo-s19-3/"
@@ -72,12 +72,6 @@ msgstr "Inscrição de eventos online %s"
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_main
 #: model_terms:ir.ui.view,arch_db:website_event_track.tracks_display_list
 msgid "(timezone:"
-msgstr ""
-
-#. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid ", your favorites are only available from this device."
 msgstr ""
 
 #. module: website_event_track
@@ -149,17 +143,7 @@ msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.tracks_search
-msgid "<i class=\"fa fa-star mx-2 text-muted\"/> Favorite Talks"
-msgstr ""
-
-#. module: website_event_track
-#: model_terms:ir.ui.view,arch_db:website_event_track.track_widget_reminder
-msgid "<i class=\"fa fa-star\" title=\"Favorite On\"/> Favorited"
-msgstr ""
-
-#. module: website_event_track
-#: model_terms:ir.ui.view,arch_db:website_event_track.track_widget_reminder
-msgid "<i class=\"fa fa-star-o\" title=\"Set Favorite\"/> Add to favorite"
+msgid "<i class=\"fa fa-bell mx-2 text-muted\"/> Favorite Talks"
 msgstr ""
 
 #. module: website_event_track
@@ -300,8 +284,7 @@ msgid ""
 "                                    Hello<t t-if=\"not user_id.is_public\" t-"
 "out=\"' ' + user_id.name\"/>,\n"
 "                                    <br/><br/>\n"
-"                                    You recently showed interest for the "
-"talk\n"
+"                                    You recently show interest for the talk\n"
 "                                    <a t-if=\"object.description or "
 "object.partner_biography\" t-attf-href=\"{{ object.get_base_url() }}"
 "{{ object.website_url }}\" style=\"font-weight:bold;color:#875A7B;text-"
@@ -631,8 +614,7 @@ msgstr ""
 #. module: website_event_track
 #: model:event.track,name:website_event_track.event_track7
 msgid "A technical explanation of how to use computer design apps"
-msgstr ""
-"Uma explicação técnica de como usar aplicativos de design computacional"
+msgstr "Uma explicação técnica de como usar aplicativos de design computacional"
 
 #. module: website_event_track
 #: model:ir.model.fields,help:website_event_track.field_event_track__kanban_state
@@ -726,6 +708,12 @@ msgid "Add talk reminder: {{ object.name }}"
 msgstr ""
 
 #. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
+msgid "Add this talk to your agenda ?"
+msgstr ""
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_track19
 msgid "Advanced lead management: tips and tricks from the fields"
 msgstr "Gestão avançada de leads: dicas dos setores"
@@ -810,12 +798,6 @@ msgstr ""
 "armazena a escolha do usuário de remover o lembrete para sessões principais."
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "As you are not"
-msgstr ""
-
-#. module: website_event_track
 #: model_terms:event.track,description:website_event_track.event_7_track_17
 msgid ""
 "As you may have heard before, making your own furniture is actually not as "
@@ -894,6 +876,11 @@ msgid "Book your seats to the best talks"
 msgstr "Reserve lugares nas melhores palestras"
 
 #. module: website_event_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.tracks_display_list
+msgid "Book your talks"
+msgstr "Reserve suas palestras"
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_7_track_14
 msgid "Building a DIY cabin from the ground up"
 msgstr "Construindo uma cabana do zero por conta própria"
@@ -944,6 +931,12 @@ msgid "Category"
 msgstr "Categoria"
 
 #. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
+msgid "Check your email to add the track to your agenda."
+msgstr ""
+
+#. module: website_event_track
 #: model:event.track,name:website_event_track.event_7_track_12
 msgid "Climate positive"
 msgstr "Favorável ao clima"
@@ -991,6 +984,12 @@ msgstr "Nome da Empresa"
 #: model:ir.model,name:website_event_track.model_res_config_settings
 msgid "Config Settings"
 msgstr "Configurações"
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
+msgid "Confirm"
+msgstr ""
 
 #. module: website_event_track
 #: model:mail.template,subject:website_event_track.mail_template_data_track_confirmation
@@ -1192,10 +1191,9 @@ msgstr ""
 "sua sessão."
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "Do you want an invitation by email to add to your agenda?"
-msgstr ""
+#: model_terms:ir.ui.view,arch_db:website_event_track.event_track_aside_other_track
+msgid "Done"
+msgstr "Concluído"
 
 #. module: website_event_track
 #: model_terms:event.track,description:website_event_track.event_7_track_18
@@ -1350,6 +1348,12 @@ msgstr "Nome do aplicativo de eventos"
 #: model_terms:ir.ui.view,arch_db:website_event_track.res_config_settings_view_form
 msgid "Events PWA"
 msgstr "PWA de Eventos"
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
+msgid "Favorite On"
+msgstr "Favorito"
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.session_topbar
@@ -1844,6 +1848,7 @@ msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.agenda_main_track
+#: model_terms:ir.ui.view,arch_db:website_event_track.event_track_aside_other_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.track_list_item
 msgid "Live"
 msgstr "Ativo"
@@ -2023,12 +2028,6 @@ msgid "Next Activity Type"
 msgstr "Tipo da Atividade Seguinte"
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "No Invitation"
-msgstr ""
-
-#. module: website_event_track
 #: model_terms:ir.actions.act_window,help:website_event_track.event_track_visitor_action
 msgid "No Track Visitors yet!"
 msgstr "Sem visitantes na sessão ainda."
@@ -2036,7 +2035,13 @@ msgstr "Sem visitantes na sessão ainda."
 #. module: website_event_track
 #. odoo-javascript
 #: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "No don't ask again"
+msgid "No thanks"
+msgstr ""
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
+msgid "No thanks & don't ask again"
 msgstr ""
 
 #. module: website_event_track
@@ -2304,12 +2309,6 @@ msgid "Select Categories"
 msgstr ""
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "Send Invitation"
-msgstr ""
-
-#. module: website_event_track
 #: model:mail.template,description:website_event_track.mail_template_data_track_confirmation
 msgid ""
 "Sent to speakers whose track proposal is accepted (set the template on the "
@@ -2330,6 +2329,12 @@ msgstr "Nome de SEO"
 #: model:ir.model.fields,field_description:website_event_track.field_event_track_tag_category__sequence
 msgid "Sequence"
 msgstr "Sequência"
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
+msgid "Set Favorite"
+msgstr "Adicionar aos favoritos"
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__website_cta_delay
@@ -2428,12 +2433,6 @@ msgid "Submit Proposal"
 msgstr "Submeter Proposta"
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "Successfully added to your favorites"
-msgstr ""
-
-#. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_track__partner_tag_line
 msgid "Tag Line"
 msgstr "Linha de marcador"
@@ -2467,6 +2466,12 @@ msgid ""
 "Talk already in your Favorites. The page does not seem to be up-to-date and "
 "needs a refresh."
 msgstr ""
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
+msgid "Talk removed from your Favorites"
+msgstr "Palestra removida dos favoritos"
 
 #. module: website_event_track
 #. odoo-python
@@ -2780,15 +2785,15 @@ msgstr ""
 "quantas vezes sessões foram adicionadas aos favoritos."
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
-msgid "Track added to favorites"
-msgstr ""
-
-#. module: website_event_track
 #: model:mail.message.subtype,description:website_event_track.mt_track_blocked
 msgid "Track blocked"
 msgstr "Sessão bloqueada"
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/interactions/event_track_reminder.js:0
+msgid "Track successfully added to your favorites."
+msgstr ""
 
 #. module: website_event_track
 #: model:ir.model.fields,field_description:website_event_track.field_event_event__track_ids
@@ -2955,6 +2960,12 @@ msgid "We will evaluate your proposition and get back to you shortly."
 msgstr ""
 "Vamos avaliar sua proposta e voltaremos em entrar em contacto consigo em "
 "breve."
+
+#. module: website_event_track
+#. odoo-javascript
+#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
+msgid "We will send you a link to add this talk to your agenda."
+msgstr ""
 
 #. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.event_track_proposal
@@ -3163,12 +3174,6 @@ msgid "in %s"
 msgstr ""
 
 #. module: website_event_track
-#. odoo-javascript
-#: code:addons/website_event_track/static/src/xml/website_event_track_email_reminder.xml:0
-msgid "logged in"
-msgstr ""
-
-#. module: website_event_track
 #: model_terms:ir.ui.view,arch_db:website_event_track.view_event_track_form
 msgid "minutes after Track start"
 msgstr "minutos até o início da sessão"
@@ -3199,18 +3204,3 @@ msgstr ""
 #: code:addons/website_event_track/static/src/xml/website_event_pwa.xml:0
 msgid "x"
 msgstr ""
-
-#~ msgid "Book your talks"
-#~ msgstr "Reserve suas palestras"
-
-#~ msgid "Done"
-#~ msgstr "Concluído"
-
-#~ msgid "Favorite On"
-#~ msgstr "Favorito"
-
-#~ msgid "Set Favorite"
-#~ msgstr "Adicionar aos favoritos"
-
-#~ msgid "Talk removed from your Favorites"
-#~ msgstr "Palestra removida dos favoritos"

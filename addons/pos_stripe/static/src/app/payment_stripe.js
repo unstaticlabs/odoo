@@ -1,6 +1,5 @@
 /* global StripeTerminal */
 
-import { markup } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { loadJS } from "@web/core/assets";
 import { PaymentInterface } from "@point_of_sale/app/utils/payment/payment_interface";
@@ -167,8 +166,6 @@ export class PaymentStripe extends PaymentInterface {
         const collectPaymentMethod = await this.terminal.collectPaymentMethod(clientSecret, {
             config_override: {
                 enable_customer_cancellation: true,
-                // Odoo does not record a tip chosen on the reader, so Stripe would charge it unseen
-                skip_tipping: true,
             },
         });
         if (collectPaymentMethod.error) {
@@ -187,11 +184,8 @@ export class PaymentStripe extends PaymentInterface {
                 return false;
             } else if (processPayment.paymentIntent) {
                 line.setPaymentStatus("waitingCapture");
-                const paymentMethodDetails =
-                    processPayment.paymentIntent.charges?.data[0]?.payment_method_details;
-                line.uiState.stripeCardPresentNetwork = paymentMethodDetails?.card_present?.network;
-                line.uiState.stripeOvercaptureSupported =
-                    paymentMethodDetails?.card_present?.overcapture_supported;
+                line.uiState.stripeCardPresentNetwork =
+                    processPayment.paymentIntent.charges?.data[0]?.payment_method_details?.card_present?.network;
 
                 const [captured_card_type, captured_transaction_id] =
                     this._getCapturedCardAndTransactionId(processPayment);
@@ -262,12 +256,6 @@ export class PaymentStripe extends PaymentInterface {
         // Don't capture if the customer can tip, in that case we
         // will capture later.
         if (!this.canBeAdjusted(line.uuid)) {
-            if (
-                this.pos.config.set_tip_after_payment &&
-                line.uiState.stripeOvercaptureSupported === false
-            ) {
-                await this.showOvercaptureNotSupportedError();
-            }
             const capturePayment = await this.capturePayment(processPayment.paymentIntent.id);
             if (!capturePayment) {
                 return false;
@@ -280,24 +268,6 @@ export class PaymentStripe extends PaymentInterface {
             line.transaction_id = capturePayment.id;
         }
         return true;
-    }
-
-    async showOvercaptureNotSupportedError() {
-        const mcc = await this.pos.data.silentCall("pos.payment.method", "stripe_account_mcc", [
-            [this.payment_method_id.id],
-        ]);
-        const mccMessage = mcc
-            ? _t("Your current Stripe account's merchant category code (MCC) is %(mcc)s.", { mcc })
-            : _t("Your current Stripe account's merchant category code (MCC) is not set.");
-        const url =
-            "https://docs.stripe.com/terminal/features/collecting-tips/on-receipt#availability";
-        const link = markup`<a href="${url}" target="_blank">${_t("Stripe's documentation")}</a>`;
-        this._showError(
-            _t(
-                "Tips can't be added to this Stripe payment. Stripe only allows tips after payment (overcapture) for certain merchant categories and card brands. %(mccMessage)s To check whether your business is eligible, see %(link)s or contact Stripe support.",
-                { mccMessage, link }
-            )
-        );
     }
 
     async sendPaymentAdjust(uuid) {
@@ -315,8 +285,7 @@ export class PaymentStripe extends PaymentInterface {
             this.pos.config.set_tip_after_payment &&
             line.payment_method_id.payment_provider === "stripe" &&
             line.card_type !== "interac" &&
-            line.uiState.stripeCardPresentNetwork !== "eftpos_au" &&
-            line.uiState.stripeOvercaptureSupported !== false
+            line.uiState.stripeCardPresentNetwork !== "eftpos_au"
         );
     }
 

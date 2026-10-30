@@ -19,7 +19,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-24 11:01+0000\n"
-"PO-Revision-Date: 2026-10-27 01:33+0000\n"
+"PO-Revision-Date: 2026-09-25 08:33+0000\n"
 "Last-Translator: \"Junko Augias (juau)\" <juau@odoo.com>\n"
 "Language-Team: Japanese <https://translate.odoo.com/projects/odoo-s19-3/base/"
 "ja/>\n"
@@ -1006,10 +1006,9 @@ msgid ""
 "A helper model for managing transfers between accounts.\n"
 msgstr ""
 "\n"
-"勘定間振替\n"
+"口座振替について\n"
 "===========================\n"
-"勘定間の振替を管理するための補助モデルです。\n"
-"\n"
+"口座間の送金を管理するためのサポートモデルです。\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_accountant
@@ -1024,13 +1023,13 @@ msgid ""
 "accounting application and only user rights to the Demo user.\n"
 msgstr ""
 "\n"
-"会計のアクセス権\n"
+"会計アクセス権\n"
 "========================\n"
-"管理者ユーザに、仕訳明細や勘定科目表など、会計機能すべてへのアクセス権を付与"
-"します。\n"
+"これは仕訳明細と勘定科目一覧表など、すべてのアカウンティング機能への管理者"
+"ユーザのアクセスを提供します。\n"
 "\n"
-"また、会計アプリについては、管理者にはマネジャー権限とユーザ権限の両方を割り"
-"当て、デモユーザにはユーザ権限のみを割り当てます。\n"
+"ここで、デモ・ユーザーに会計アプリケーションのみユーザー権限の管理者に管理者"
+"とユーザーのアクセス権を割り当てます。\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_in_asset
@@ -1331,7 +1330,7 @@ msgid ""
 "Accounting Expense Bridge\n"
 msgstr ""
 "\n"
-"会計経費ブリッジ\n"
+"会計費用ブリッジ\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_accountant_fleet
@@ -7267,12 +7266,12 @@ msgid ""
 "for customization purpose.\n"
 msgstr ""
 "\n"
-"カスタムデータモジュールのインポート\n"
-"===========================\n"
+"カスタムデータモジュールをインポート\n"
+"===============\n"
 "\n"
-"このモジュールは、権限を持つユーザがカスタマイズ目的で"
-"カスタムデータモジュール(.xmlファイルおよび静的アセット)を\n"
-"インポートすることを許可します。\n"
+"このモジュールを使用すると、許可されたユーザーは、カスタマイズのために\n"
+"カスタムデータモジュール(.xmlファイルとstatic assests)をインポートできます"
+"。\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_sale_amazon
@@ -9375,28 +9374,25 @@ msgid ""
 "  need or want an online import can avoid it being available to users.\n"
 msgstr ""
 "\n"
-"Odoo向け 拡張可能な新しいファイルインポート機能\n"
+"New extensible file import for Odoo\n"
 "======================================\n"
 "\n"
-"Odooのファイルインポートシステムを再実装しました:\n"
+"Re-implement Odoo's file import system:\n"
 "\n"
-"* サーバサイド処理への移行: 従来のシステムではロジックの\n"
-"  大部分がクライアント側に置かれていました。そのため、クライアント間での開発"
-"工数\n"
-"  の重複が生じ、クライアントを介さない利用(RPCの直接呼び出しや各種自動化処理)"
-"が\n"
-"  非常に困難になっていました。また、インポート/エクスポート関連のノウハウが3"
-"つ以上の\n"
-"  異なるプロジェクトに分散し、把握しづらい\n"
-"  要因にもなっていました。\n"
+"* Server side, the previous system forces most of the logic into the\n"
+"  client which duplicates the effort (between clients), makes the\n"
+"  import system much harder to use without a client (direct RPC or\n"
+"  other forms of automation) and makes knowledge about the\n"
+"  import/export system much harder to gather as it is spread over\n"
+"  3+ different projects.\n"
 "\n"
-"* 拡張性の向上: ユーザーやパートナー企業が独自のフロントエンドを構築し、\n"
-"  業務フローやデータ生成元に合わせて扱いやすい他のファイル形式\n"
-"   (例：OpenDocumentファイルなど) からインポート\n"
-"  できるようにしました。\n"
+"* In a more extensible manner, so users and partners can build their\n"
+"  own front-end to import from other file formats (e.g. OpenDocument\n"
+"  files) which may be simpler to handle in their work flow or from\n"
+"  their data production sources.\n"
 "\n"
-"*オンラインでのインポート機能を必要としない、あるいはユーザに提供したくない\n"
-"  管理者やユーザが、機能を無効化できるようにモジュール化しました。\n"
+"* In a module, so that administrators and users of Odoo who do not\n"
+"  need or want an online import can avoid it being available to users.\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_l10n_ng
@@ -12691,9 +12687,8 @@ msgid ""
 "RFQ from an approval purchase request.\n"
 msgstr ""
 "\n"
-"本モジュールは、承認購買リクエストから見積依頼書(RFQ)を生成する機能を\n"
-"承認ワークフローに追加します。\n"
-"\n"
+"このモジュールは、承認ワークフローで購入承認要求からのRFQを生成出来るようにし"
+"ます\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_hr_attendance
@@ -12903,12 +12898,12 @@ msgstr ""
 "うになります。\n"
 "============================================================\n"
 "\n"
-"自動化ルールを使用すると、さまざまな画面でアクションを自動的にトリガできます"
+"自動化アクションを使用して、さまざまな画面のアクションを自動的にトリガします"
 "。\n"
 "\n"
-"**例:** 特定のユーザによって作成されたリードを特定の販売チームに自動的に設定"
-"したり、14日経過しても保留ステータスのままの案件に対して\n"
-"自動リマインダーメールをトリガしたりできます。\n"
+"**例:** 特定のユーザによって作成されたリードは、自動的に特定の営業チームに設"
+"定されるかもしれません。または案件が14日後もまだ保留のステータスの場合\n"
+"自動リマインダメールをトリガすることもできます。\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_onboarding
@@ -14391,13 +14386,12 @@ msgid ""
 "creates next activities for the related approvers.\n"
 msgstr ""
 "\n"
-"本モジュールは承認ワークフローを管理します\n"
+"モジュールは承認ワークフローを管理します\n"
 "======================================\n"
-"出張、休暇・不在、残業、備品貸出、一般的承認、\n"
-"調達、契約承認などの承認リクエストを管理します。\n"
+"モジュールはビジネスのような承認要求を管理します\n"
+"出張、不在、残業、借入品目、一般承認、調達、契約承認など。\n"
 "\n"
-"承認タイプリクエストは\n"
-"関連する承認者に対する次の活動を作成します。\n"
+"承認タイプの設定に従って、要求は関連する承認者の次の活動を作成します。\n"
 
 #. module: base
 #: model:ir.module.module,description:base.module_account_check_printing
@@ -17795,7 +17789,7 @@ msgstr "AIエージェントの情報ソースとしてドキュメントを追�
 #. module: base
 #: model:ir.module.module,summary:base.module_base_address_extended
 msgid "Add extra fields on addresses"
-msgstr "住所にフィールドを追加"
+msgstr "アドレスにフィールドを追加する"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_portal_address_extended
@@ -19986,7 +19980,7 @@ msgstr "アポイントメントMicrosoftカレンダー"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_appointment_sms
 msgid "Appointment SMS"
-msgstr "アポイントメントSMS"
+msgstr "予約SMS"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_test_appointment_full
@@ -20029,12 +20023,12 @@ msgstr "承認"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_approvals_purchase
 msgid "Approvals - Purchase"
-msgstr "承認 - 購買"
+msgstr "承認-購入"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_approvals_purchase_stock
 msgid "Approvals - Purchase - Stock"
-msgstr "承認 - 購買 - 在庫"
+msgstr "承認-購入-在庫"
 
 #. module: base
 #: model:ir.actions.act_window,name:base.open_module_tree
@@ -23581,7 +23575,7 @@ msgstr "コホートビュー"
 #. module: base
 #: model:ir.module.module,summary:base.module_account_sepa_direct_debit
 msgid "Collect payments from your customers through SEPA direct debit."
-msgstr "SEPA口座振替で、顧客からの支払いを回収します。"
+msgstr "SEPAダイレクトデビットを通じて顧客から支払いを収集します。"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_documents
@@ -27024,7 +27018,7 @@ msgstr "モバイルの従業員"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_appointment_hr
 msgid "Employees on Appointments"
-msgstr "予約担当従業員"
+msgstr "予約中の従業員"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_l10n_employment_hero
@@ -28318,7 +28312,7 @@ msgstr "AI機能(文字起こしなど)で電話機能を拡張"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_base_address_extended
 msgid "Extended Addresses"
-msgstr "拡張住所"
+msgstr "拡張アドレス"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_portal_address_extended
@@ -30019,7 +30013,7 @@ msgstr "グロープ (グループなし = グローバル)"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_users__all_group_ids
 msgid "Groups and implied groups"
-msgstr "グループと包含グループ"
+msgstr "グループと内包グループ"
 
 #. module: base
 #: model:ir.model.fields,help:base.field_res_users__group_ids
@@ -30691,7 +30685,7 @@ msgstr "I - 宿泊・飲食サービス業"
 msgid ""
 "I'll be happy to send a webhook for you, but you really need to give me a "
 "URL to reach out to..."
-msgstr "Webhookの送信には、送信先URLの指定が必要です。"
+msgstr "ウェブフックを送りします。連絡先のURLが必要です。"
 
 #. module: base
 #. odoo-python
@@ -31253,22 +31247,22 @@ msgstr "FPSファイナンスのガイドラインに準拠した登録済みの
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_groups_search
 msgid "Implied"
-msgstr "包含"
+msgstr "内包"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__implied_ids
 msgid "Implied Groups"
-msgstr "包含グループ"
+msgstr "内包グループ"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_groups_list
 msgid "Implied groups"
-msgstr "包含グループ"
+msgstr "内包グループ"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__implied_by_ids
 msgid "Implying Groups"
-msgstr "包含元グループ"
+msgstr "継承グループ"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.view_base_import_language
@@ -31956,13 +31950,13 @@ msgstr "Odoo PoSとイタリアのフィスカルプリンタの統合"
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_sale_purchase_stock_inter_company_rules
 msgid "Inter Company Module for Sale/Purchase Orders (with Inventory link)"
-msgstr "販売/購買オーダおよび請求書用グループ会社間モジュール(在庫リンクあり)"
+msgstr "販売/購買オーダおよび請求書のための会社間モジュール(在庫リンクあり)"
 
 #. module: base
 #: model:ir.module.module,shortdesc:base.module_account_inter_company_rules
 #: model:ir.module.module,shortdesc:base.module_sale_purchase_inter_company_rules
 msgid "Inter Company Module for Sale/Purchase Orders and Invoices"
-msgstr "販売/購買オーダおよび請求書用グループ会社間モジュール"
+msgstr "販売/購買オーダおよび請求書用会社間モジュール"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_sale_service
@@ -32506,7 +32500,7 @@ msgstr "イスラエル- 会計レポート"
 #: code:addons/base/models/res_groups.py:0
 msgid ""
 "It is not possible to remove implied group %(group)s from users %(users)s"
-msgstr "包含グループ %(group)s はユーザ %(users)s から削除できません"
+msgstr "内包グループは%(group)sユーザから%(users)sから削除できません"
 
 #. module: base
 #: model_terms:ir.ui.view,arch_db:base.form_res_users_key_description
@@ -34328,7 +34322,7 @@ msgstr "マルタIntrastat申告書"
 #. module: base
 #: model:ir.module.module,summary:base.module_appointment_hr
 msgid "Manage Appointments with Employees"
-msgstr "従業員アプリと連携してアポイントメントを管理"
+msgstr "従業員との予約を管理"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_hr_recruitment_integration_website
@@ -40230,7 +40224,7 @@ msgstr "パスワードポリシー"
 #: model:ir.module.module,shortdesc:base.module_auth_password_policy_portal
 #: model:ir.module.module,shortdesc:base.module_auth_password_policy_signup
 msgid "Password Policy support for Signup"
-msgstr "新規登録時のパスワードポリシー対応"
+msgstr "登録為のパスワードサポートポリシー"
 
 #. module: base
 #: model:res.currency,currency_unit_label:base.MOP
@@ -42812,7 +42806,7 @@ msgstr "対象レコードの読取権限"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_attachment__res_access_write
 msgid "Res Access Write"
-msgstr "対象レコードの書込権限"
+msgstr "対象レコードの書き込み権限"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_users__res_users_settings_ids
@@ -46440,7 +46434,7 @@ msgstr "テクニカルガイド"
 #. module: base
 #: model:ir.module.module,description:base.module_approvals_purchase_stock
 msgid "Technical module to link Approvals, Purchase and Inventory together. "
-msgstr "承認、購買、在庫を連携させるための技術モジュール。 "
+msgstr "承認、購入、在庫をリンクするための技術モジュール。 "
 
 #. module: base
 #: model:ir.module.module,summary:base.module_product_matrix
@@ -47148,7 +47142,7 @@ msgstr "以下の変数が使用できます:"
 #. module: base
 #: model:ir.model.fields,help:base.field_res_groups__all_implied_ids
 msgid "The group itself with all its implied groups."
-msgstr "当該グループおよび、そのグループに包含されるすべてのグループ。"
+msgstr "そのグループ自体と、そのグループに内包されるすべてのグループ。"
 
 #. module: base
 #. odoo-python
@@ -48824,12 +48818,12 @@ msgstr "Transifexの連携機能"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__all_implied_ids
 msgid "Transitively Implied Groups"
-msgstr "間接的に包含されるグループ"
+msgstr "連鎖的に内包されるグループ"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__all_implied_by_ids
 msgid "Transitively Implying Groups"
-msgstr "間接的に包含するグループ"
+msgstr "間接的に継承するグループ"
 
 #. module: base
 #: model:ir.model.fields,field_description:base.field_ir_model_fields__translate
@@ -49322,7 +49316,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/models.py:0
 msgid "Uh-oh! You’ve got some company inconsistencies here:"
-msgstr "注意!会社情報に不整合があります:"
+msgstr "おっと！ ここには文体の一貫性に欠ける部分があります："
 
 #. module: base
 #: model:res.country,name:base.ua
@@ -49688,7 +49682,7 @@ msgstr "Unsplash 画像ライブラリ"
 #. odoo-python
 #: code:addons/domains.py:0
 msgid "Unsupported operator on %(field_label)s %(model_label)s in %(domain)s"
-msgstr "%(field_label)s %(model_label)s (%(domain)s)内でサポートされていない演算子"
+msgstr "%(field_label)s %(model_label)s (%(domain)s)内での未サポートの演算子"
 
 #. module: base
 #: model:ir.module.module,summary:base.module_appointment_account_payment
@@ -50186,13 +50180,13 @@ msgstr "ユーザログ"
 #. module: base
 #: model:ir.model.fields,field_description:base.field_res_groups__all_user_ids
 msgid "Users and implied users"
-msgstr "ユーザおよび包含ユーザ"
+msgstr "ユーザおよび内包ユーザ"
 
 #. module: base
 #. odoo-python
 #: code:addons/base/models/res_groups.py:0
 msgid "Users and implied users of %(group)s"
-msgstr "%(group)sのユーザおよび包含ユーザ"
+msgstr "%(group)sのユーザおよび内包ユーザ"
 
 #. module: base
 #: model:ir.model.fields,help:base.field_res_groups__user_ids
@@ -50651,9 +50645,9 @@ msgid ""
 "enhancing solutions through the use of advanced software for our clients "
 "worldwide. At Lumber Inc we bring operational experience combined..."
 msgstr ""
-"当社は、高度なソフトウェアを活用し、世界中のクライアントに向けて価値創出"
-"ソリューションを提供するテクノロジーコンサルティングおよび戦略アドバイザリー"
-"企業です。Lumber Inc. では、これまでの実務運用経験と..."
+"私たちは、世界中のクライアントのために高度なソフトウェアを使用して価値を高め"
+"るソリューションを作成する技術コンサルティングおよび戦略的アドバイザリー会社"
+"です。 Lumber Incであれば、運用経験が統合できます..."
 
 #. module: base
 #: model_terms:res.partner,website_description:base.res_partner_18

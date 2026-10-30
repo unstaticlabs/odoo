@@ -18,10 +18,8 @@ registry.category("web_tour.tours").add('crm_forecast', {
         content: 'Open Forecast menu',
         run: 'click',
     }, {
-        // The "New" button only opens the quick create once the groups are
-        // loaded, otherwise it opens the full form view.
-        trigger: ".o_forecast_kanban_view .o_kanban_group",
-        content: "Wait for the forecast view to be loaded",
+        trigger: '.o_column_quick_create',
+        content: 'Wait page loading',
     }, {
         trigger: ".o-kanban-button-new",
         content: "click create",

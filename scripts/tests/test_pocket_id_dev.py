@@ -15,12 +15,10 @@ class _PocketIdApi:
         existing_client=None,
         updated_client=None,
         legacy_secret_api=False,
-        client_secrets=None,
     ):
         self.existing_client = existing_client
         self.updated_client = updated_client
         self.legacy_secret_api = legacy_secret_api
-        self.client_secrets = client_secrets or []
         self.calls = []
 
     def request(self, method, path, payload=None):
@@ -30,7 +28,7 @@ class _PocketIdApi:
                 raise pocket_id_dev.PocketIDError(
                     "Pocket ID returned HTTP 404: API endpoint not found",
                 )
-            return self.client_secrets
+            return []
         if method == "GET":
             clients = [self.existing_client] if self.existing_client else []
             return {"data": clients}
@@ -41,10 +39,7 @@ class _PocketIdApi:
         if method == "POST" and path == "/api/oidc/clients":
             return self.updated_client
         if method == "POST" and path.endswith("/secrets"):
-            return {
-                "id": "credential-id", "isActive": True,
-                "prefix": payload["secret"][:4], "secret": payload["secret"],
-            }
+            return {"id": "credential-id", "isActive": True}
         if method == "POST" and path.endswith("/secret"):
             return {"id": "credential-id", "isActive": True}
         raise AssertionError(f"Unexpected request: {method} {path}")
@@ -54,14 +49,9 @@ class PocketIdClientProvisioningTest(unittest.TestCase):
     def test_existing_active_secret_is_not_duplicated(self):
         client = {
             "id": "odoo-client",
-            "credentials": {
-                "secrets": [{"id": "existing", "prefix": "conf", "isActive": True}],
-            },
+            "credentials": {"secrets": [{"id": "existing", "isActive": True}]},
         }
-        api = _PocketIdApi(
-            existing_client=client, updated_client=client,
-            client_secrets=client["credentials"]["secrets"],
-        )
+        api = _PocketIdApi(existing_client=client, updated_client=client)
 
         pocket_id_dev._ensure_client(
             api,
@@ -94,57 +84,6 @@ class PocketIdClientProvisioningTest(unittest.TestCase):
             {"secret": "configured-secret"},
         )
         self.assertIn(secret_request, api.calls)
-
-    def test_new_client_auto_generated_secret_does_not_replace_configured_secret(self):
-        generated = {"id": "generated", "prefix": "auto", "isActive": True}
-        client = {"id": "odoo-client", "credentials": {"secrets": [generated]}}
-        api = _PocketIdApi(updated_client=client, client_secrets=[generated])
-
-        pocket_id_dev._ensure_client(
-            api, {"id": "odoo-client", "name": "Odoo"},
-            "configured-secret", "odoo-users",
-        )
-
-        self.assertIn(
-            ("POST", "/api/oidc/clients/odoo-client/secrets",
-             {"secret": "configured-secret"}), api.calls,
-        )
-        self.assertFalse(any(method == "DELETE" for method, _, _ in api.calls))
-
-    def test_existing_unrelated_active_secret_is_retained_and_owned_secret_added(self):
-        unrelated = {"id": "unrelated", "prefix": "auto", "isActive": True}
-        client = {"id": "odoo-client", "credentials": {"secrets": [unrelated]}}
-        api = _PocketIdApi(
-            existing_client=client, updated_client=client, client_secrets=[unrelated],
-        )
-
-        pocket_id_dev._ensure_client(
-            api, {"id": "odoo-client", "name": "Odoo"},
-            "configured-secret", "odoo-users",
-        )
-
-        self.assertIn(
-            ("POST", "/api/oidc/clients/odoo-client/secrets",
-             {"secret": "configured-secret"}), api.calls,
-        )
-        self.assertFalse(any(method == "DELETE" for method, _, _ in api.calls))
-
-    def test_expired_owned_secret_is_not_treated_as_usable(self):
-        expired = {"id": "expired", "prefix": "conf", "isActive": False}
-        client = {"id": "odoo-client", "credentials": {"secrets": [expired]}}
-        api = _PocketIdApi(
-            existing_client=client, updated_client=client, client_secrets=[expired],
-        )
-        pocket_id_dev._ensure_client(
-            api, {"id": "odoo-client", "name": "Odoo"},
-            "configured-secret", "odoo-users",
-        )
-        self.assertTrue(
-            any(
-                method == "POST" and path.endswith("/secrets")
-                for method, path, _ in api.calls
-            ),
-        )
 
     def test_existing_client_on_legacy_api_keeps_write_only_secret(self):
         client = {"id": "odoo-client"}

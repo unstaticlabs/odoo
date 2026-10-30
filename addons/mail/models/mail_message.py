@@ -12,7 +12,7 @@ from lxml import html
 from typing import Self
 
 from odoo import _, api, fields, models, modules, tools
-from odoo.exceptions import AccessError, MissingError, UserError
+from odoo.exceptions import AccessError, MissingError
 from odoo.fields import Domain
 from odoo.tools import clean_context, groupby, SQL
 from odoo.tools.constants import PREFETCH_MAX
@@ -393,11 +393,10 @@ class MailMessage(models.Model):
     @api.depends_context("uid")
     def _compute_is_bookmarked(self):
         """ Compute if the message is bookmarked by the current user. """
-        partner = self.env.user.partner_id
+        # TDE FIXME: use SQL
         bookmarked = (
             self.sudo()
-            .with_context(active_test=False)
-            .filtered(lambda msg: partner in msg.bookmarked_partner_ids and partner.active)
+            .filtered(lambda msg: self.env.user.partner_id in msg.bookmarked_partner_ids)
             .sudo(False)
         )
         for message in self:
@@ -479,8 +478,7 @@ class MailMessage(models.Model):
         if not isinstance(domain, Domain):
             domain = Domain.TRUE
         # Non-employee see only messages with a subtype and not internal
-        share_domain = self._get_search_domain_share()
-        domain = share_domain & domain
+        domain = self._get_search_domain_share() & domain
         self = self.sudo(False)  # noqa: PLW0642
 
         # searching for all messages or a subset of models
@@ -533,10 +531,7 @@ class MailMessage(models.Model):
             model_codomains |= codomain
 
         partner = self.env.user.partner_id
-        # The search domain is only used above to restrict the models and ids
-        # to check: the caller already filters on it, repeating it here would
-        # only duplicate its conditions in the final query.
-        return share_domain & Domain.OR((
+        domain &= Domain.OR((
             Domain('author_id', '=', partner.id),
             Domain('create_uid', '=', self.env.uid),
             # force an IN condition with a list of values
@@ -547,6 +542,8 @@ class MailMessage(models.Model):
             # complete from records-based domain).
             model_codomains & Domain('message_type', '!=', 'user_notification'),
         ))
+
+        return domain
 
     def _get_search_domain_share(self):
         if self.env.user._is_internal():
@@ -628,10 +625,7 @@ class MailMessage(models.Model):
             for values in self.env.cr.dictfetchall()
         }
         if len(messages_to_check) == MAX_SEARCH_LIMIT:  # avoid out of memory
-            raise UserError(self.env._(
-                "Too many messages to be processed.\n"
-                "Please apply additional filters to reduce the number of potential messages."
-            ))
+            raise ValueError(self.env._("Cannot search, too many messages"))
         accessible = self.browse(messages_to_check)
         if not messages_to_check:
             return accessible

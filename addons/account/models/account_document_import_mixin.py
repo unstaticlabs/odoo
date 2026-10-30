@@ -421,13 +421,7 @@ class AccountDocumentImportMixin(models.AbstractModel):
 
     def _should_attach_to_record(self, attachment):
         """ Indicate whether a given attachment should be displayed in the record's attachments. """
-        if not attachment or attachment.res_field:
-            return False
-
-        if attachment.mimetype.startswith('image/'):
-            return not self.env.context.get('from_email')
-
-        return attachment.mimetype in {
+        return attachment and not attachment.res_field and attachment.mimetype in {
             'text/csv',
             'application/pdf',
             'application/vnd.ms-excel',

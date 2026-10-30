@@ -26,7 +26,7 @@
 # Kim Asplund <kim.asplund@gmail.com>, 2023
 # Martin Trigaux, 2023
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Jacob Ljungström <jacob.ljungstrom03@gmail.com>, 2025.
 # Camille Dantinne <cmd@odoo.com>, 2025.
 # Hanna Kharraziha <hakha@odoo.com>, 2026.
@@ -34,9 +34,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 15:35+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-09-10 15:11+0000\n"
+"Last-Translator: Hanna Kharraziha <hakha@odoo.com>\n"
 "Language-Team: Swedish <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/sv/>\n"
 "Language: sv\n"
@@ -325,21 +325,18 @@ msgid ""
 "'Alt tag' specifies an alternate text for an image, if the image cannot be "
 "displayed (slow connection, missing image, screen reader ...)."
 msgstr ""
-"'Alt tag' anger en alternativ text för en bild, om bilden inte kan visas "
-"(långsam anslutning, saknad bild, skärmläsare ...)."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "'Title tag' is shown as a tooltip when you hover the picture."
 msgstr ""
-"'Title tag' visas som ett verktygstips när du för muspekaren över bilden."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "+ Fält"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -696,7 +693,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid ": Once loaded, follow the"
-msgstr ": Efter laddningen följer du"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2006,8 +2003,8 @@ msgid ""
 "                <span class=\"visually-hidden\">Loading...</span>\n"
 "            </span>"
 msgstr ""
-"<span class=\"o_search_spinner d-none spinner-border spinner-border-sm "
-"text-500\" style=\"--spinner-border-width: 0.1em;\" role=\"status\">\n"
+"<span class=\"o_search_spinner d-none spinner-border spinner-border-sm text-"
+"500\" style=\"--spinner-border-width: 0.1em;\" role=\"status\">\n"
 "                <span class=\"visually-hidden\">Laddar...</span>\n"
 "            </span>"
 
@@ -2580,7 +2577,7 @@ msgstr "<u>info@yourcompany.example.com</u>"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "A"
-msgstr "A"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -2920,8 +2917,8 @@ msgstr "Bild för dragspel"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Konton kan användas på alla dina webbplatser"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -3046,7 +3043,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/timeline_option.xml:0
 #: code:addons/website/static/src/builder/plugins/timeline_images_option.xml:0
 msgid "Add Date"
-msgstr "Lägg till datum"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3070,31 +3067,31 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Lägg till media"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Lägg till megamenyobjekt"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Lägg till menyalternativ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "Lägg till en milstolpe"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Add New"
-msgstr "Lägg till nytt"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3125,7 +3122,7 @@ msgstr "Lägg till Rad"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Lägg till sektion"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3215,7 +3212,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Lägga till en bild"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3641,7 +3638,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
-msgstr "Tillåt användning av cookies från denna hemsida i denna webbläsare?"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3670,7 +3667,7 @@ msgstr "Redan installerad"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt tag"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -4090,13 +4087,13 @@ msgstr "Tillgänglig på webbplatsen"
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Avatars"
-msgstr "Avatarer"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "B"
-msgstr "B"
+msgstr ""
 
 #. module: website
 #: model:website.page,name:website.bs_debug_page
@@ -4156,7 +4153,7 @@ msgstr "Bakgrundsfärg"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "Bakgrundsposition"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4428,7 +4425,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Blur"
-msgstr "Oskärpa"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4650,7 +4647,7 @@ msgstr "Bygg upp din %s"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.js:0
 msgid "Building your website."
-msgstr "Vi bygger din hemsida..."
+msgstr "Bygga din webbplats."
 
 #. module: website
 #. odoo-javascript
@@ -4717,7 +4714,7 @@ msgstr "Köp nu"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Köp nu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -4738,7 +4735,7 @@ msgstr "Som standard är domänerna för följande tjänster redan blockerade:"
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -5148,7 +5145,7 @@ msgstr "Chatta med besökare för att förbättra dragkraften"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Bocka för"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5299,7 +5296,7 @@ msgstr "Välj från listan"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Välj din favorit"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5883,7 +5880,7 @@ msgstr "Fortsätt läsa <i class=\"fa fa-long-arrow-right align-middle ms-1\"/>"
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "Kontrollera"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -5992,7 +5989,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Could be used in many places, see here:"
-msgstr "Kan användas på många ställen, se här:"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6114,7 +6111,7 @@ msgstr "Skapa en kund"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "Skapa ett Google-projekt och få en nyckel"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6264,7 +6261,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Anpassad URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6337,7 +6334,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6366,7 +6363,7 @@ msgstr "Daniel säkerställer en effektiv daglig drift och processoptimering."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Dark"
-msgstr "Mörk"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6546,7 +6543,7 @@ msgstr "Försening"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Radera"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6765,7 +6762,7 @@ msgstr "Diavola"
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "Sammanställning"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6861,7 +6858,7 @@ msgstr "Upptäck"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "Upptäck mer"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -6979,7 +6976,7 @@ msgstr "Upptäckt"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "Diskret"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7225,7 +7222,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Visa inte igen"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7275,12 +7272,6 @@ msgstr "Munk"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr "Dra blocket <b>%s</b> och släpp det längst ner på sidan."
@@ -7289,7 +7280,7 @@ msgstr "Dra blocket <b>%s</b> och släpp det längst ner på sidan."
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "Dra till höger för att få en undermeny"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7484,7 +7475,7 @@ msgstr "Redigera %s"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Edit 404 page"
-msgstr "Redigera 404-sida"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7523,7 +7514,7 @@ msgstr "Redigera stilar"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "Redigera kod"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7700,7 +7691,7 @@ msgstr "Tomt fältnamn i \"%s\""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "Aktivera fakturering på ditt Google-projekt"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -7711,7 +7702,7 @@ msgstr "Aktivera formulärbyggarfunktionen för denna modell."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "Aktivera rätt Google Map API:er i ditt Google-konto"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7952,7 +7943,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Allt"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -8115,7 +8106,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Explore on"
-msgstr "Utforska vidare"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_gallery_s_text_block_2nd
@@ -8171,7 +8162,7 @@ msgstr "Externt ID"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Extra innehåll"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8326,7 +8317,7 @@ msgstr "Fetched Elements"
 #: code:addons/website/static/src/builder/plugins/form/utils.js:0
 #: model:ir.model,name:website.model_ir_model_fields
 msgid "Field"
-msgstr "Fält"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__field_names
@@ -8394,7 +8385,7 @@ msgstr "Fyll"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Fill Color"
-msgstr "Fyllningsfärg"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8540,21 +8531,21 @@ msgstr "Fast"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Flagga"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Code"
-msgstr "Flagga och kod"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "Flagga och text"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8974,7 +8965,7 @@ msgstr "Få levererat"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_intro_pill
 msgid "Get Started"
-msgstr "Kom igång"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_descriptive
@@ -9058,12 +9049,6 @@ msgstr ""
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
 msgstr "Gå tillbaka"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9153,15 +9138,6 @@ msgstr "Google Map"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Google Maps API-nyckel"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9618,8 +9594,6 @@ msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
 msgstr ""
-"Tips: Så här använder du Google Map på din webbplats (sidan Kontakta oss och "
-"som ett utdrag)"
 
 #. module: website
 #. odoo-javascript
@@ -9788,7 +9762,7 @@ msgstr "Jag är säker på det här."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "Jag vill ha"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -9987,8 +9961,6 @@ msgid ""
 "If you need to add analytics or marketing tags, inject code in your <head> "
 "or <body> instead."
 msgstr ""
-"Om du behöver lägga till analys- eller marknadsföringstaggar, injicera kod i "
-"din <head> eller <body> istället."
 
 #. module: website
 #. odoo-javascript
@@ -10200,7 +10172,7 @@ msgstr "I menyn"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "Under tiden inbjuder vi dig att besöka vår"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10211,10 +10183,6 @@ msgid ""
 "            Each modification on the master page is automatically applied to "
 "all translated versions."
 msgstr ""
-"I detta läge kan du bara översätta texter. Om du vill ändra sidans struktur "
-"måste du redigera huvudsidan.\n"
-"            Varje ändring på huvudsidan tillämpas automatiskt på alla "
-"översatta versioner."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10613,7 +10581,7 @@ msgstr "Ogiltig URL"
 #. odoo-python
 #: code:addons/website/models/ir_ui_view.py:0
 msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "Ogiltigt fältvärde för %(field_name)s: %(value)s"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10977,7 +10945,7 @@ msgstr "Jobb"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "John Doe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -11493,7 +11461,7 @@ msgstr "Låt oss sätta igång"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "Nu kör vi!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -11674,7 +11642,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Ladda mer"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11761,7 +11729,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "Kontrollera att fakturering är aktiverat"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11770,15 +11738,12 @@ msgid ""
 "Make sure to wait if errors keep being shown: sometimes enabling an API "
 "allows to use it immediately but Google keeps triggering errors for a while"
 msgstr ""
-"Se till att vänta om fel fortsätter att visas: ibland gör aktiveringen av "
-"ett API det möjligt att använda det omedelbart men Google fortsätter att "
-"utlösa fel under en tid"
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "Kontrollera att dina inställningar är korrekt konfigurerade:"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -12371,7 +12336,7 @@ msgstr "Monitorer"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Mer"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12489,7 +12454,7 @@ msgstr "Flera kryssrutor"
 #. odoo-javascript
 #: code:addons/website/static/src/js/backend/view_hierarchy/view_hierarchy.xml:0
 msgid "Multiple tree exists for this view"
-msgstr "Flera träd finns för denna vy"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
@@ -12689,7 +12654,7 @@ msgstr "Popup-fönster för nyhetsbrev"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
 msgid "Newsletter SMS Notifications"
-msgstr "Sms-notiser för nyhetsbrev"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12725,7 +12690,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Nej"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12827,7 +12792,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Nej, behåll det"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12854,7 +12819,7 @@ msgstr "Inga"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Normal"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -13116,7 +13081,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "One"
-msgstr "Ett"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13296,7 +13261,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "Order"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13318,7 +13283,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Övriga"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -14075,8 +14040,8 @@ msgstr "Platshållare"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+msgid "Places API"
+msgstr "API för platser"
 
 #. module: website
 #. odoo-javascript
@@ -14152,7 +14117,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/image/image_popup_option.xml:0
 msgid "Pop-up on Click"
-msgstr "Popup-fönster vid klick"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14257,13 +14222,13 @@ msgstr "Förhandsgranska bild"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Förhandsgranskning av"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "Förhandsgranska denna URL på en ny flik"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14556,7 +14521,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "Publiceringsdatum"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14567,7 +14532,7 @@ msgstr "Publiceringsdatum"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__published_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__published_date
 msgid "Published date"
-msgstr "Publiceringsdatum"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14746,7 +14711,7 @@ msgstr "Är du redo att förverkliga din digitala vision?"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "Redo att bygga"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -14968,7 +14933,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Ta bort alla"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15016,7 +14981,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "Upprepa mönster"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15065,7 +15030,7 @@ msgstr "Obligatorisk"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Requirement"
-msgstr "Grundkrav"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15125,7 +15090,7 @@ msgstr "Resurser"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "Att respektera din integritet är vår högsta prioritet."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15340,7 +15305,7 @@ msgstr "Rutt"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Row"
-msgstr "Rad"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15425,7 +15390,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "Spara och ladda om"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15465,7 +15430,7 @@ msgstr "Trappor"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Planerad"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -15554,7 +15519,7 @@ msgstr "Sökfält"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.js:0
 msgid "Search Engine Optimization"
-msgstr "Sökmotoroptimering"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_text_block_h2
@@ -15601,11 +15566,6 @@ msgstr "Sök på vår webbplats"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "Sök inom"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Sök..."
 
 #. module: website
 #. odoo-javascript
@@ -15856,7 +15816,7 @@ msgstr "Sekvens"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "Servera teckensnitt från Googles servrar"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -15928,7 +15888,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Skugga"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -16008,7 +15968,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
 msgid "Shop Now"
-msgstr "Handla nu"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -16272,7 +16232,7 @@ msgstr "Storlek 5x"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Skip and start from scratch"
-msgstr "Hoppa över och skapa eget"
+msgstr "Hoppa över och börja om från början"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
@@ -16299,7 +16259,7 @@ msgstr "Bildspel"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "Hovring över bildspel"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16550,7 +16510,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "Utbredd"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16600,7 +16560,7 @@ msgstr "Börja nu"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner
 msgid "Start Now <span class=\"fa fa-angle-right ms-2\"/>"
-msgstr "Börja nu <span class=\"fa fa-angle-right ms-2\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -16883,7 +16843,7 @@ msgstr "Innehållsförteckning"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Table of Contents"
-msgstr "Innehållsförteckning"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -17271,7 +17231,13 @@ msgstr "Följande domän är inte giltig:"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Formuläret har skickats framgångsrikt."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "Formulärets specificerade modell existerar inte"
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -17291,7 +17257,6 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_absolute_url
 msgid "The full absolute URL to access the document through the website."
 msgstr ""
-"Hela den absoluta länken för att få åtkomst till dokument genom hemsidan."
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_partner__website_url
@@ -17304,8 +17269,6 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_website_snippet_filter__website_url
 msgid "The full relative URL to access the document through the website."
 msgstr ""
-"Den fullständiga relativa URL:en för att få tillgång till dokumentet genom "
-"hemsidan."
 
 #. module: website
 #. odoo-python
@@ -17478,7 +17441,7 @@ msgstr "Verktyg för teman"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/add_page_dialog.xml:0
 msgid "Then enable the \"Is a Template\" option."
-msgstr "Aktivera sedan alternativet \"Är en mall\"."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_website_public_pages
@@ -17632,13 +17595,6 @@ msgid ""
 msgstr ""
 "Detta teckensnitt finns redan, du kan bara lägga till det som ett lokalt "
 "teckensnitt för att ersätta serverversionen."
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -17828,7 +17784,7 @@ msgstr "Tid sedan senaste sidvisning. T.ex.: 2 minuter sedan"
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "Time's up! You can now visit"
-msgstr "Tiden är ute! Du kan nu besöka"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
@@ -17939,7 +17895,7 @@ msgstr "Titel Position"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "Titel taggen"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -17959,8 +17915,6 @@ msgid ""
 "To add your page to this category, open the page properties: \"Site -> "
 "Properties\"."
 msgstr ""
-"För att lägga till din sida i denna kategori, öppna sidans egenskaper: "
-"\"Webbplats -> Egenskaper\"."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_tabs
@@ -17992,8 +17946,6 @@ msgstr ""
 #: code:addons/website/static/src/xml/website.cookies_warning.xml:0
 msgid "To see the interactive content, you need to accept optional cookies."
 msgstr ""
-"För att kunna se det interaktiva innehållet måste du acceptera valfria "
-"cookies."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
@@ -18205,7 +18157,7 @@ msgstr "Översätt"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "Translate 404 page"
-msgstr "Översätt 404-sida"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18241,7 +18193,7 @@ msgstr "Översätt innehåll"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "Översättning..."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18291,7 +18243,7 @@ msgstr "Förvandla vision till verklighet"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "Två"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18470,7 +18422,7 @@ msgstr "Oregistrerad"
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Unschedule"
-msgstr "Utan schema"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -18511,7 +18463,7 @@ msgstr "Uppdateringar och förbättringar"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Ladda upp"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18536,7 +18488,7 @@ msgstr "Url till statisk bild på flagga"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "Url eller e-post"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -18770,7 +18722,7 @@ msgstr "Grönsallad, biffburgare och mangoglass"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Verifiera"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19389,8 +19341,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"Vi använder kakor för att förbättra upplevelsen på denna webbplats. Du kan "
-"läsa mer om våra kakor och hur vi använder dem i vår"
 
 #. module: website
 #. odoo-javascript
@@ -19426,7 +19376,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "Vi hjälper dig att komma igång med"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -19486,7 +19436,7 @@ msgstr "Hemsida"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__website_absolute_url
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__website_absolute_url
 msgid "Website Absolute URL"
-msgstr "Absolut länk till hemsida"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__website_company_id
@@ -19876,7 +19826,7 @@ msgstr "WhatsApp"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/social_media_option_plugin.js:0
 msgid "Whatsapp"
-msgstr "WhatsApp"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_alternation_image_text_template
@@ -19962,7 +19912,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Wrap"
-msgstr "Omslag"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20052,14 +20002,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Ja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20168,12 +20118,6 @@ msgstr "Du kan inte duplicera detta fält."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "Du angav inte en giltig Facebook-länk"
@@ -20194,7 +20138,7 @@ msgstr "Du har inte rätt att publicera/avpublicera"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "Du har inte behörighet att redigera denna post."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20447,7 +20391,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "a Color Palette"
-msgstr "en färgpalett"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20489,7 +20433,7 @@ msgstr "en webbplats för evenemang"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "och"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20552,7 +20496,7 @@ msgstr "sekundär knapp"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "företag"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20915,7 +20859,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "för mina"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20927,7 +20871,7 @@ msgstr "forum"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "funnen(a)"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20951,7 +20895,7 @@ msgstr "gratis webbsida"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "från Logo"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -21273,7 +21217,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "i det övre högra hörnet för att börja designa."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -21435,7 +21379,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "sida"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21466,7 +21410,7 @@ msgstr "platshållare"
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "pointer to discover features."
-msgstr "peka för att upptäcka funktioner."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -21735,7 +21679,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "text-danger"
-msgstr "textfara"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21782,13 +21726,13 @@ msgstr "hemsida"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "med huvudsyftet att"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "years"
-msgstr "år"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -21831,15 +21775,6 @@ msgstr "✽ Pizzor"
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr "✽ Vad vi erbjuder"
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Konton kan användas på alla dina webbplatser"
-
-#~ msgid "Places API"
-#~ msgstr "API för platser"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Formulärets specificerade modell existerar inte"
 
 #~ msgid "<u>Wednesday</u><br/>8.00am-12.00am"
 #~ msgstr "<u>Veddag</u><br/>8.00-12.00"

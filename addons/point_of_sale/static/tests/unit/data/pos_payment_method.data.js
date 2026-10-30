@@ -18,16 +18,6 @@ export class PosPaymentMethod extends models.ServerModel {
         ];
     }
 
-    get_qr_code_value(
-        _amount,
-        _free_communication,
-        _structured_communication,
-        _currency,
-        _debtor_partner
-    ) {
-        return "http://localhost:4444";
-    }
-
     _records = [
         {
             id: 2,

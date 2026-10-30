@@ -80,7 +80,7 @@ export class DataServiceOptions {
     }
 
     get cleanupModels() {
-        return ["product.template", "product.product", "product.template.attribute.value"];
+        return ["product.template", "product.product"];
     }
 
     get prohibitedAutoLoadedFields() {

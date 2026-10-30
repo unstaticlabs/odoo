@@ -20,12 +20,7 @@ class ProductTemplate(models.Model):
             line.product_template_value_ids._only_active().ids for line in attribute_lines
         ]
 
-        if self.env.context.get("show_template_name_in_grid", False):
-            header = [{"name": self.display_name}]
-        else:
-            header = [{"name": ""}]
-
-        header += [
+        header = [{"name": ""}] + [
             attr._grid_header_cell(
                 fro_currency=self.currency_id,
                 to_currency=currency_id,

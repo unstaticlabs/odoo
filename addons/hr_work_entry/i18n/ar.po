@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:43+0000\n"
-"PO-Revision-Date: 2026-10-12 11:09+0000\n"
+"POT-Creation-Date: 2026-06-12 17:37+0000\n"
+"PO-Revision-Date: 2026-08-03 15:30+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/"
 "hr_work_entry/ar/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_work_entry
 #. odoo-python
@@ -1031,8 +1031,8 @@ msgid ""
 "during the theoretical legal period of guaranteed salary for reasons not "
 "attributable to the worker"
 msgstr ""
-"المرض أو الحادث بموجب القانون العام، غير المشمول بالراتب المضمون، خلال "
-"الفترة القانونية النظرية للراتب المضمون لأسباب لا تعزى إلى العامل"
+"المرض أو الحادث بموجب القانون العام، غير المشمول بالراتب المضمون، خلال الفترة "
+"القانونية النظرية للراتب المضمون لأسباب لا تعزى إلى العامل"
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_be_work_entry_type_construction_imperative_maintained_salary
@@ -1258,13 +1258,13 @@ msgstr "الالتزام بالخدمة العسكرية (غير مدفوع ال
 #. odoo-python
 #: code:addons/hr_work_entry/models/hr_version.py:0
 msgid "Missing date or duration on work entry"
-msgstr "هناك تاريخ أو مدة مفقودة في قيد العمل"
+msgstr ""
 
 #. module: hr_work_entry
 #. odoo-python
 #: code:addons/hr_work_entry/models/hr_version.py:0
 msgid "Missing timezone for work entries generation."
-msgstr "لم يتم تحديد المنطقة الزمنية المطلوبة لتوليد قيود العمل."
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_ch_swissdec_monthly_wt
@@ -1484,7 +1484,7 @@ msgstr "الساعات الإضافية"
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_us_work_entry_type_overtime
 msgid "Overtime Hours (Paid at 150%)"
-msgstr "ساعات العمل الإضافية (تُدفع بمعدل 150%)"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_be_work_entry_type_overtime_no_onss
@@ -1492,23 +1492,8 @@ msgid "Overtime Hours not subject to social security contribution"
 msgstr ""
 
 #. module: hr_work_entry
-#: model:hr.work.entry.type,name:hr_work_entry.uae_work_entry_type_overtime_off_days
-msgid "Overtime Off-days"
-msgstr ""
-
-#. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_eg_work_entry_type_overtime_rest_days
 msgid "Overtime Restday"
-msgstr ""
-
-#. module: hr_work_entry
-#: model:hr.work.entry.type,name:hr_work_entry.uae_work_entry_type_overtime_work_days_daytime
-msgid "Overtime Weekdays Daytime"
-msgstr ""
-
-#. module: hr_work_entry
-#: model:hr.work.entry.type,name:hr_work_entry.uae_work_entry_type_overtime_work_days_nighttime
-msgid "Overtime Weekdays Nighttime"
 msgstr ""
 
 #. module: hr_work_entry
@@ -1671,7 +1656,7 @@ msgstr "Paid Parental Leave"
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_eg_work_entry_type_paid_sick_leave
 msgid "Paid Sick Time off"
-msgstr "إجازة مرضية مدفوعة الأجر"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.au_work_entry_type_legal_leave
@@ -1734,7 +1719,7 @@ msgstr "إجازة الأبوة"
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_hk_work_entry_type_paternity_leave_80
 msgid "Paternity Leave 80%"
-msgstr "إجازة الأبوة 80%"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_be_work_entry_type_paternity_company
@@ -1981,7 +1966,7 @@ msgstr ""
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_jo_work_entry_type_sick_leave_unpaid
 msgid "Sick Leave (Unpaid)"
-msgstr "إجازة مرضية (غير مدفوعة الأجر)"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_hk_work_entry_type_sick_leave_80
@@ -2023,7 +2008,7 @@ msgstr "الإجازة المرضية"
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_pl_work_entry_type_sick_leave
 msgid "Sick Time Off (Paid at 80%)"
-msgstr "إجازات مرضية (مدفوعة بنسبة 80%)"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_be_work_entry_type_part_sick
@@ -2053,12 +2038,12 @@ msgstr ""
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_eg_work_entry_type_sick_leave_75
 msgid "Sick Time off (75% Paid)"
-msgstr "إجازة مرضية (مدفوعة بنسبة 75%)"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_eg_work_entry_type_sick_leave_unpaid
 msgid "Sick Time off (Unpaid)"
-msgstr "إجازة مرضية (غير مدفوعة الأجر)"
+msgstr ""
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_lu_work_entry_type_situational_unemployment
@@ -2186,8 +2171,8 @@ msgid ""
 "Temporary unemployment due to collective closure of the company due to "
 "compulsory leave under a collective labor agreement"
 msgstr ""
-"البطالة المؤقتة بسبب الإغلاق الجماعي للشركة بسبب الإجازة الإجبارية بموجب "
-"اتفاقية عمل جماعية"
+"البطالة المؤقتة بسبب الإغلاق الجماعي للشركة بسبب الإجازة الإجبارية بموجب اتفاقية "
+"عمل جماعية"
 
 #. module: hr_work_entry
 #: model:hr.work.entry.type,name:hr_work_entry.l10n_be_work_entry_type_temporary_unemployment_collective_closure_reduction

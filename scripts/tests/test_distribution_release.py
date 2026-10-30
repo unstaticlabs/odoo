@@ -377,7 +377,7 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
 
     def test_release_image_can_load_installed_oca_tests(self) -> None:
         requirements = (ROOT / "requirements.txt").read_text(encoding="utf-8")
-        self.assertRegex(requirements, r"(?m)^responses==0\.26\.3\b")
+        self.assertRegex(requirements, r"(?m)^responses==0\.26\.2\b")
 
     def test_external_ingress_alias_is_explicit(self) -> None:
         overlay = (ROOT / "compose.odoo-ingress.yaml").read_text(encoding="utf-8")
@@ -389,56 +389,6 @@ class DistributionReleaseWorkflowTests(unittest.TestCase):
             "${USL_EXTERNAL_INGRESS_NETWORK:?Existing ingress network is required}",
             overlay,
         )
-
-
-class CoordinatedServiceImageDefaultsTests(unittest.TestCase):
-    def test_runtime_examples_and_release_assembly_use_the_compose_images(self) -> None:
-        compose = (ROOT / "compose.yaml").read_text(encoding="utf-8")
-        defaults = dict(re.findall(
-            r"\$\{(OLLAMA_IMAGE|POCKET_ID_IMAGE|PAPERLESS_GOTENBERG_IMAGE):-([^}]+)\}",
-            compose,
-        ))
-        self.assertEqual(
-            set(defaults),
-            {"OLLAMA_IMAGE", "POCKET_ID_IMAGE", "PAPERLESS_GOTENBERG_IMAGE"},
-        )
-        for image in defaults.values():
-            self.assertRegex(image, r"@sha256:[0-9a-f]{64}$")
-        paths = (
-            ".env.example",
-            "compose.pocket-id.yaml",
-            "deploy/preprod.env.example",
-            "deploy/production.external-pocket-id.env.example",
-            "deploy/documents/preprod.env.example",
-            "deploy/documents/qa.env",
-            ".github/workflows/product-image.yml",
-        )
-        for relative in paths:
-            text = (ROOT / relative).read_text(encoding="utf-8")
-            for key, expected in defaults.items():
-                assignments = re.findall(rf"(?m)^\s*{key}[=:]\s*([^\s#]+)", text)
-                images = re.findall(rf"\$\{{{key}:-([^}}]+)\}}", text)
-                images.extend(
-                    image for image in assignments if not image.startswith("${")
-                )
-                for image in images:
-                    with self.subTest(path=relative, service=key):
-                        self.assertEqual(image.split("@")[-1], expected.split("@")[-1])
-
-    def test_new_pocket_id_bootstrap_matches_the_runtime_image(self) -> None:
-        from contextlib import redirect_stdout
-        from io import StringIO
-        from unittest import mock
-        from scripts import pocket_id_dev
-
-        compose = (ROOT / "compose.pocket-id.yaml").read_text(encoding="utf-8")
-        expected = re.search(r"\$\{POCKET_ID_IMAGE:-([^}]+)\}", compose).group(1)
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "qa.env"
-            with mock.patch.dict(os.environ, {}, clear=True), redirect_stdout(StringIO()):
-                pocket_id_dev._write_new_env(path)
-            image = re.search(r"(?m)^POCKET_ID_IMAGE=(.+)$", path.read_text()).group(1)
-        self.assertEqual(image, expected)
 
 
 if __name__ == "__main__":

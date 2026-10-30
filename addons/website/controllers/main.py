@@ -17,6 +17,7 @@ import requests
 import werkzeug.urls
 import werkzeug.wrappers
 from lxml import etree, html
+from markupsafe import escape as markup_escape
 from werkzeug.exceptions import NotFound
 
 from odoo import _, fields, http, models, release, tools
@@ -1041,14 +1042,14 @@ class Website(Home):
             img['field'] = 'arch_db' if img['field'] == 'arch' else img['field']
             tree = html.fromstring(str(record[img['field']]))
             modified = False
-            for index, element in enumerate(tree.xpath('//img[@src]')):
+            for index, element in enumerate(tree.xpath('//img')):
                 imgId = self._get_image_id(img['res_model'], img['res_id'], img['field'], str(index))
                 if imgId == img['id']:
                     if (img['decorative']):
                         element.set('alt', '')
                         element.set('role', 'presentation')
                     else:
-                        element.set('alt', img['alt'])
+                        element.set('alt', markup_escape(img['alt']))
                         element.attrib.pop('role', None)
                     modified = True
             if modified:
@@ -1076,7 +1077,7 @@ class Website(Home):
                     if link['remove']:
                         element.drop_tag()
                     else:
-                        element.set('href', link['newLink'])
+                        element.set('href', markup_escape(link['newLink']))
                     modified = True
             if modified:
                 new_html_content = html.tostring(tree, encoding='unicode', method='html')

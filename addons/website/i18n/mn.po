@@ -22,15 +22,15 @@
 # Martin Trigaux, 2023
 # Baskhuu Lodoikhuu <baskhuujacara@gmail.com>, 2023
 # "Tiffany Chang (tic)" <tic@odoo.com>, 2025.
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 13:39+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-06-30 06:33+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Mongolian <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/mn/>\n"
 "Language: mn\n"
@@ -38,7 +38,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -378,7 +378,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.layout
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "/contactus"
-msgstr "/contactus"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2696,7 +2696,7 @@ msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
+msgid "Accounts are usable across all your multiple websites"
 msgstr ""
 
 #. module: website
@@ -2842,19 +2842,19 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Бичлэг оруулах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Мега дэд цэс нэмэх"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Дэд цэс нэмэх"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2897,7 +2897,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Хэсэг нэмэх"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2987,7 +2987,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Зураг нэмэх"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3563,7 +3563,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__append
 msgid "Append"
-msgstr "Залгах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3776,7 +3776,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_view_form
 msgid "Authorized Groups"
-msgstr "Зөвшөөрөгдсөн групп"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3875,7 +3875,7 @@ msgstr "Backdrop"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_features
 msgid "Backend"
-msgstr "Үндсэн систем"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4059,7 +4059,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/mega_menu_option.xml:0
 msgid "Big Icons Subtitles"
-msgstr "Том дүрсүүдтэй Гарчиг"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4465,7 +4465,7 @@ msgstr "Шууд авах"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Шууд авах"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -4484,7 +4484,7 @@ msgstr ""
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "C"
-msgstr "C"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_config_settings__cdn_url
@@ -4883,7 +4883,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Шалгах"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5039,7 +5039,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
 msgid "Cinnamon Roll"
-msgstr "Шанцайтай ороомог боов"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5097,7 +5097,7 @@ msgstr "Энд дарж block tab руу буцна."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "Үүнийг дарна уу"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5139,7 +5139,7 @@ msgstr "Илүү зураг сонгохын тулд энд дарна уу"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Click to select"
-msgstr "Сонгохын тулд дарна уу"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_numbers
@@ -5305,7 +5305,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Compact"
-msgstr "Нягт"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -5425,7 +5425,7 @@ msgstr "Бидэнтэй холбогдох"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Connected"
-msgstr "Холбогдсон"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5602,7 +5602,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "Хяналт"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -5807,7 +5807,7 @@ msgstr "Үүсгэх"
 #. module: website
 #: model:ir.model,website_form_label:website.model_res_partner
 msgid "Create a Customer"
-msgstr "Захиалагч үүсгэх"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5957,7 +5957,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Өөриймшүүлсэн URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6026,7 +6026,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "D"
-msgstr "D"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6235,7 +6235,7 @@ msgstr "Саатал"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Устгах"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6443,7 +6443,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "Товч"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6462,7 +6462,7 @@ msgstr "Чиглэл"
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__directive
 msgid "Directive"
-msgstr "Удирдамж"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6517,7 +6517,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/website_builder.js:0
 msgid "Discard changes"
-msgstr "Өөрчлөлтийг цуцлах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6899,7 +6899,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Дахин харахгүй"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6945,12 +6945,6 @@ msgstr "Icon дээр хоёр дарснаар үүнийг өөрийн сон
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/chart_option.xml:0
 msgid "Doughnut"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
 msgstr ""
 
 #. module: website
@@ -7061,7 +7055,7 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_res_config_settings__website_domain
 #: model:ir.model.fields,help:website.field_website__domain
 msgid "E.g. https://www.mydomain.com"
-msgstr "Жишээ нь https://www.mydomain.com"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7192,7 +7186,7 @@ msgstr "Загварыг засварлах"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "Код засах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7611,7 +7605,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Бүх зүйл"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -7810,7 +7804,7 @@ msgstr "Гадаад ID"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Нэмэлт агуулга"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7965,7 +7959,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/utils.js:0
 #: model:ir.model,name:website.model_ir_model_fields
 msgid "Field"
-msgstr "Талбар"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__field_names
@@ -8012,15 +8006,11 @@ msgid ""
 "                                                          Useful to (hard) "
 "reset broken views or to read arch from file in dev-xml mode."
 msgstr ""
-"Харагдацын эх файл.\n"
-"                                                          Эвдэрсэн "
-"харагдацыг (хатуу) сэргээх эсвэл dev-xml горимд файлаас бүтцийг уншихад "
-"хэрэгтэй."
 
 #. module: website
 #: model:ir.model,name:website.model_ir_binary
 msgid "File streaming helper model for controllers"
-msgstr "Контроллерт зориулсан файл дамжуулах туслах модел"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8175,7 +8165,7 @@ msgstr "Тогтмол"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Туг хатгах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8666,12 +8656,6 @@ msgstr "Буцах"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "Go to"
 msgstr "Очих"
@@ -8756,15 +8740,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Google Maps API түлхүүр"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10159,13 +10134,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__invalid_locators
 #: model:ir.model.fields,field_description:website.field_website_page__invalid_locators
 msgid "Invalid Locators"
-msgstr "Буруу байршуулагчид"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.js:0
 msgid "Invalid URL"
-msgstr "Буруу URL"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -10384,7 +10359,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "Is greater than or equal to"
-msgstr "Их буюу тэнцүү"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10526,7 +10501,7 @@ msgstr "Ажлын байрууд"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "John Doe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10987,7 +10962,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.footer_custom
 msgid "Legal"
-msgstr "Хууль эрх зүй"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_big_icons_subtitles
@@ -11065,7 +11040,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Light"
-msgstr "Цайвар"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11210,7 +11185,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Илүү ачаалах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11650,7 +11625,7 @@ msgstr ""
 #. module: website
 #: model:ir.model,name:website.model_base_partner_merge_automatic_wizard
 msgid "Merge Partner Wizard"
-msgstr "Харилцагч нэгтгэх хөтөч"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11723,7 +11698,7 @@ msgstr "Дунд"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Milestones"
-msgstr "Үе шатууд"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11845,7 +11820,7 @@ msgstr "Моделийн нэр"
 #: model:ir.model.fields,field_description:website.field_website_controller_page__model_id
 #: model:ir.model.fields,field_description:website.field_website_page__model_id
 msgid "Model of the view"
-msgstr "Харагдацын модел"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_list
@@ -11892,7 +11867,7 @@ msgstr "Дэлгэцүүд"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Илүү"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12238,7 +12213,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Үгүй"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12339,7 +12314,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Үгүй, энэ хэвээр нь үлдээнэ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12366,7 +12341,7 @@ msgstr "Байхгүй"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Хэвийн"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -12794,7 +12769,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "Захиалга"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12814,7 +12789,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Бусад"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13408,7 +13383,7 @@ msgstr "Нууц үг"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
 msgid "Pastries"
-msgstr "Нарийн боов"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_theme_ir_asset__path
@@ -13519,7 +13494,7 @@ msgstr "Орлуулагч"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
+msgid "Places API"
 msgstr ""
 
 #. module: website
@@ -13653,7 +13628,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields.selection,name:website.selection__theme_ir_asset__directive__prepend
 msgid "Prepend"
-msgstr "Урд нь нэмэх"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.color_combinations_debug_view
@@ -13695,13 +13670,13 @@ msgstr "Урьдчилан харах"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Preview image"
-msgstr "Урьдчилан харах зураг"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Дараахыг урьдчилан харах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13856,7 +13831,7 @@ msgstr "Намтар"
 #: code:addons/website/static/src/builder/plugins/snippets_powerbox_plugin.js:0
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Progress Bar"
-msgstr "Прогресс баар"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13887,7 +13862,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_numbers_charts
 #: model_terms:ir.ui.view,arch_db:website.s_progress_bar
 msgid "Progress bar"
-msgstr "Прогресс баар"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_odoo_menu
@@ -13996,7 +13971,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "Нийтлэсэн Огноо"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14007,7 +13982,7 @@ msgstr "Нийтлэсэн Огноо"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__published_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__published_date
 msgid "Published date"
-msgstr "Нийтлэсэн огноо"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14023,7 +13998,7 @@ msgstr ""
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__domain_punycode
 msgid "Punycode Domain"
-msgstr "Punycode домэйн"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -14109,7 +14084,7 @@ msgstr "Qweb талбартай холбоо тогтоох"
 #. module: website
 #: model:ir.model,name:website.model_ir_qweb_field_html
 msgid "Qweb Field HTML"
-msgstr "Qweb HTML талбар"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14374,7 +14349,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/card_image_option.xml:0
 msgid "Remove Cover"
-msgstr "Нүүр зургийг хасах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14404,7 +14379,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Бүгдийг хасах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14578,7 +14553,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
 msgid "Restore previous version (soft reset)."
-msgstr "Өмнөх хувилбарыг сэргээх (зөөлөн сэргээлт)."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_partner__website_id
@@ -14892,7 +14867,7 @@ msgstr "Хэмжээ"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Товолсон"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -14975,7 +14950,7 @@ msgstr "Хайх"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/header/header_elements_option.xml:0
 msgid "Search Bar"
-msgstr "Хайлтын мөр"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15024,11 +14999,6 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr ""
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Хайх..."
 
 #. module: website
 #. odoo-javascript
@@ -15095,7 +15065,7 @@ msgstr ""
 #: code:addons/website/static/src/snippets/s_countdown/countdown.js:0
 #: model_terms:ir.ui.view,arch_db:website.s_countdown
 msgid "Seconds"
-msgstr "Секунд"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15224,7 +15194,7 @@ msgstr "Имэйл илгээх"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Send Message"
-msgstr "Зурвас илгээх"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_cover
@@ -15350,7 +15320,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Сүүдэр"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -15446,7 +15416,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/ecomm_categories_showcase_option.xml:0
 msgid "Short"
-msgstr "Богино"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website__auto_redirect_lang
@@ -15818,7 +15788,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_s_text_cover
 #: model_terms:ir.ui.view,arch_db:website.snippets
 msgid "Social"
-msgstr "Нийгмийн"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16074,7 +16044,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
 msgid "Storage"
-msgstr "Хадгалалт"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_carousel
@@ -16107,7 +16077,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/progress_bar_option.xml:0
 msgid "Striped"
-msgstr "Судалтай"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -16263,7 +16233,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/website_loader/website_loader.xml:0
 msgid "TIP"
-msgstr "ЗӨВЛӨГӨӨ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16662,7 +16632,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Маягт амжилттай илгээгдлээ."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -16946,7 +16922,7 @@ msgstr ""
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_base
 #: model:ir.model.fields,help:website.field_website_page__arch_base
 msgid "This field is the same as `arch` field without translations"
-msgstr "Энэ талбар нь орчуулгагүй `arch` талбартай ижил"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_res_config_settings__website_default_lang_code
@@ -16975,15 +16951,12 @@ msgid ""
 "                               Note that it will read `arch_db` or `arch_fs` "
 "if in dev-xml mode."
 msgstr ""
-"Харагдацын бүтцэд хандахдаа энэ талбарыг ашиглана. Орчуулга ашиглана.\n"
-"                               dev-xml горимд `arch_db` эсвэл `arch_fs`-ийг "
-"уншина гэдгийг анхаарна уу."
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_db
 #: model:ir.model.fields,help:website.field_website_page__arch_db
 msgid "This field stores the view arch."
-msgstr "Энэ талбар харагдацын бүтцийг хадгална."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_website_controller_page__arch_prev
@@ -16993,9 +16966,6 @@ msgid ""
 "                                                                         Useful "
 "to (soft) reset a broken view."
 msgstr ""
-"Энэ талбар одоогийн `arch_db`-ийг дарж бичихээс өмнө хадгална.\n"
-"                                                                         "
-"Эвдэрсэн харагдацыг (зөөлөн) сэргээхэд хэрэгтэй."
 
 #. module: website
 #. odoo-javascript
@@ -17003,13 +16973,6 @@ msgstr ""
 msgid ""
 "This font already exists, you can only add it as a local font to replace the "
 "server version."
-msgstr ""
-
-#. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
 msgstr ""
 
 #. module: website
@@ -17717,7 +17680,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/visibility_option.xml:0
 msgid "UTM Source"
-msgstr "UTM Эх үүсвэр"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17790,7 +17753,7 @@ msgstr "Нийтлэгдээгүй"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_view_search
 msgid "Unregistered"
-msgstr "Бүртгэлгүй"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
@@ -17837,7 +17800,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Оруулах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17856,7 +17819,7 @@ msgstr "Url"
 #. module: website
 #: model:ir.model.fields,help:website.field_website_visitor__country_flag
 msgid "Url of static flag image"
-msgstr "Тугны статик зургийн Url"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18077,7 +18040,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Батлах"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18172,7 +18135,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_controller_page__technical_usage
 #: model:ir.model.fields,field_description:website.field_website_page__technical_usage
 msgid "View's Technical Usage"
-msgstr "Харагдацын техникийн хэрэглээ"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18382,7 +18345,7 @@ msgstr "Анхааруулга"
 #: model:ir.model.fields,field_description:website.field_website_controller_page__warning_info
 #: model:ir.model.fields,field_description:website.field_website_page__warning_info
 msgid "Warning information"
-msgstr "Анхааруулгын мэдээлэл"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18754,7 +18717,7 @@ msgstr "Вэбсайт Домэйн"
 #. module: website
 #: model:ir.model.constraint,message:website.constraint_website_domain_unique
 msgid "Website Domain should be unique."
-msgstr "Вэбсайтын домэйн давхардахгүй байх ёстой."
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__favicon
@@ -19041,7 +19004,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "Тавтай морил, энэ бол"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -19099,7 +19062,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_share
 msgid "WhatsApp"
-msgstr "WhatsApp"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19267,14 +19230,14 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.template_footer_headline
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
 msgid "X"
-msgstr "X"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Тийм"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19330,7 +19293,7 @@ msgstr ""
 #: code:addons/website/models/res_users.py:0
 #: model:ir.model.constraint,message:website.constraint_res_users_login_key
 msgid "You can not have two users with the same login!"
-msgstr "Ижил нэвтрэх нэртэй хоёр хэрэглэгч байж болохгүй!"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -19366,12 +19329,6 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option_plugin.js:0
 msgid "You cannot duplicate this field."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
 msgstr ""
 
 #. module: website
@@ -19674,13 +19631,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "ба"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "авто"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20039,7 +19996,7 @@ msgstr "цСургалт"
 #. odoo-python
 #: code:addons/website/controllers/form.py:0
 msgid "email"
-msgstr "имэйл"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -20068,7 +20025,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "олдсон"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20505,7 +20462,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "хуудас"
+msgstr ""
 
 #. module: website
 #. odoo-javascript

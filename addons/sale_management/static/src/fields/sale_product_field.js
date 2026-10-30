@@ -5,7 +5,7 @@ patch(SaleOrderLineProductField.prototype, {
     _getAdditionalDialogProps() {
         const props = super._getAdditionalDialogProps();
 
-        const isOptionalLine = this.env.shouldCollapse?.(this.props.record, 'is_optional') ?? false;
+        const isOptionalLine = this.env.shouldCollapse(this.props.record, 'is_optional');
         props.options = {
             showQuantity: !isOptionalLine,
             showPrice: !isOptionalLine,

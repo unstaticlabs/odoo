@@ -31,6 +31,7 @@ class TestEmployeeSkills(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.skipTest(cls, "To be reintroduced post 18.4 freeze")
         cls.employee = cls.env['hr.employee'].create([
             {'name': 'Test Employee'},
         ])

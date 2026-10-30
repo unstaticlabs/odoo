@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0+e\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-12 11:10+0000\n"
+"POT-Creation-Date: 2026-05-03 17:36+0000\n"
+"PO-Revision-Date: 2026-07-28 11:17+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/"
 "im_livechat/ar/>\n"
@@ -25,7 +25,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: im_livechat
 #: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_rating_constraint
@@ -106,7 +106,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/im_livechat/models/chatbot_script_step.py:0
 msgid "%(title)s - Step %(sequence)d"
-msgstr "%(title)s - الخطوة %(sequence)d"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-python
@@ -143,10 +143,13 @@ msgid ""
 "* 'Show with notification' is 'Show' in addition to a floating text just "
 "next to the button.\n"
 "* 'Open automatically' displays the button and automatically opens the "
-"conversation pane on larger screens. On small screens, this behaves like "
-"'Show'.\n"
+"conversation pane.\n"
 "* 'Hide' hides the chat button on the pages.\n"
 msgstr ""
+"* 'إظهار' تعرض زر الدردشة في الصفحات.\n"
+"* 'إظهار مع إشعار' هي 'إظهار' بالإضافة إلى نص عائم بجانب الزر.\n"
+"* 'الفتح تلقائياً' تعرض الزر وتقوم بفتح إطار المحادثة تلقائياً.\n"
+"* 'إخفاء' تخفي زر الدردشة في الصفحات.\n"
 
 #. module: im_livechat
 #. odoo-javascript
@@ -199,7 +202,7 @@ msgstr "<span class=\"o_stat_text\">الجلسات</span>"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "<span>Ongoing Sessions:</span>"
-msgstr "<span>الجلسات الجارية:</span>"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_step_view_form
@@ -217,9 +220,9 @@ msgid ""
 "                    <span>Use Channel Rules if you want the Bot to interact "
 "with visitors only when no operator is available.</span>"
 msgstr ""
-"<span>نصيحة: يجب أن يكون هناك تفاعل واحد على الأقل (سؤال، بريد "
-"إلكتروني، ...) حتى يتمكن الـ Bot من تأدية الإجراءات الأكثر تعقيداً (التحويل "
-"إلى موظف، ...). </span>\n"
+"<span>نصيحة: يجب أن يكون هناك تفاعل واحد على الأقل (سؤال، بريد إلكتروني، ...) "
+"حتى يتمكن الـ Bot من تأدية الإجراءات الأكثر تعقيداً (التحويل إلى موظف، ...). </"
+"span>\n"
 "                    <span>استخدم قواعد القنوات إذا كنت ترغب في أن يتفاعل الـ "
 "Bot مع الزائرين فقط عندما لا يكون هناك موظف متاح.</span>"
 
@@ -230,9 +233,9 @@ msgid ""
 "the Bot can perform more complex actions (Forward to an Operator, ...).</"
 "span>"
 msgstr ""
-"<span>نصيحة: يجب أن يكون هناك تفاعل واحد على الأقل (سؤال، بريد "
-"إلكتروني، ...) حتى يتمكن الـ Bot من تأدية الإجراءات الأكثر تعقيداً (التحويل "
-"إلى موظف، ...).</span>"
+"<span>نصيحة: يجب أن يكون هناك تفاعل واحد على الأقل (سؤال، بريد إلكتروني، ...) "
+"حتى يتمكن الـ Bot من تأدية الإجراءات الأكثر تعقيداً (التحويل إلى موظف، ...).</"
+"span>"
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.chatbot_script_step_view_form
@@ -267,7 +270,7 @@ msgstr "نشط"
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/expertise_tags_autocomplete.js:0
 msgid "Add expertise"
-msgstr "أضف الخبرات "
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -331,7 +334,7 @@ msgstr ""
 msgid ""
 "Agents who are inactive in Odoo for more than 30 minutes will be considered "
 "disconnected."
-msgstr "سيتم اعتبار الوكلاء غير النشطين في أودو لأكثر من 30 دقيقة غير متصلين."
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_rule_view_form
@@ -422,7 +425,7 @@ msgstr "لون خلفية الزر"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Button Colors"
-msgstr "ألوان الزر "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__button_text_color
@@ -493,8 +496,8 @@ msgid ""
 "Chat is private and unique between 2 persons. Group is private among invited "
 "persons. Channel can be freely joined (depending on its configuration)."
 msgstr ""
-"تكون الدردشة خاصة وفريدة بين شخصين 2. الدردشات الجماعية خاصة للأشخاص "
-"المدعوين إليها. بوسك الانضمام إلى القناة متى شئت (بناءً على تهيئتها)."
+"تكون الدردشة خاصة وفريدة بين شخصين 2. الدردشات الجماعية خاصة للأشخاص المدعوين "
+"إليها. بوسك الانضمام إلى القناة متى شئت (بناءً على تهيئتها)."
 
 #. module: im_livechat
 #. odoo-javascript
@@ -618,7 +621,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.constraint,message:im_livechat.constraint_discuss_channel_livechat_end_dt_status_constraint
 msgid "Closed Live Chat session should not have a status."
-msgstr "يجب ألا يكون لجلسة الدردشة الحية المغلقة حالة."
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -646,7 +649,7 @@ msgstr "التهيئة"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
 msgid "Configure Channel"
-msgstr "تهيئة القناة "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model,name:im_livechat.model_res_partner
@@ -679,7 +682,7 @@ msgstr "انتهت المحادثة"
 #. odoo-python
 #: code:addons/im_livechat/models/discuss_channel.py:0
 msgid "Conversation with %s"
-msgstr "المحادثة مع %s"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_digest_digest__kpi_livechat_conversations
@@ -707,7 +710,7 @@ msgstr "الدولة"
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 msgid "Country & Language"
-msgstr "البلد واللغة"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__country_id
@@ -840,8 +843,8 @@ msgid ""
 "selected action must be 'Open automatically' otherwise this parameter will "
 "not be taken into account."
 msgstr ""
-"المهلة (بالثواني) قبل فتح نافذة المحادثة تلقائياً. ملاحظة: يجب أن يكون "
-"الإجراء المحدد هو 'الفتح تلقائياً'، وإلا فلن يؤخذ هذا المعيار في الاعتبار."
+"المهلة (بالثواني) قبل فتح نافذة المحادثة تلقائياً. ملاحظة: يجب أن يكون الإجراء "
+"المحدد هو 'الفتح تلقائياً'، وإلا فلن يؤخذ هذا المعيار في الاعتبار."
 
 #. module: im_livechat
 #. odoo-javascript
@@ -906,7 +909,7 @@ msgstr "اسم العرض"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Do not redirect visitors"
-msgstr "لا تقم بإعادة توجيه الزوار"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -919,7 +922,7 @@ msgstr "تحميل"
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 #: code:addons/im_livechat/static/src/embed/common/feedback_panel/feedback_panel.xml:0
 msgid "Download a copy of this conversation"
-msgstr "تنزيل نسخة من هذه المحادثة"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__duration
@@ -1003,7 +1006,7 @@ msgstr "الخبرات المستخدمة في هذه الجلسة"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__session_expertises
 msgid "Expertises used in this session (String)"
-msgstr "الخبرات المستخدمة في هذه الجلسة (سلسلة)"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -1081,14 +1084,18 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid ""
 "Go to <strong>Website</strong> &gt; <strong>Configuration</strong> &gt; "
-"<strong>Settings</strong> &gt; <strong>General.</strong>"
+"<strong>Settings</strong> &gt; <strong>Email</strong> &amp; "
+"<strong>Marketing.</strong>"
 msgstr ""
+"اذهب إلى <strong>الموقع الإلكتروني</strong> > <strong>التهيئة</strong> > "
+"<strong>الإعدادات</strong> > <strong>البريد الإلكتروني</strong> &amp; <strong>"
+"التسويق.</strong>"
 
 #. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/views/discuss_template.xml:0
 msgid "Go to Sessions"
-msgstr "اذهب إلى الجلسات"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__guest_id
@@ -1167,7 +1174,7 @@ msgstr "حالة المساعدة"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "Here's a copy of your conversation with"
-msgstr "إليك نسخة من محادثتك مع"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -1318,7 +1325,7 @@ msgstr "في مكالمة"
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/views/boolean_phone/boolean_phone.xml:0
 msgid "In a Call"
-msgstr "في مكالمة"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -1347,8 +1354,8 @@ msgstr "معلومات"
 msgid ""
 "Invalid URL '%s'. The Review Link must start with 'http://' or 'https://'."
 msgstr ""
-"عنوان URL غير صالح ’%s‘. يجب أن يبدأ رابط المعاينة بـ ’http://‘ أو "
-"’https://‘."
+"عنوان URL غير صالح ’%s‘. يجب أن يبدأ رابط المعاينة بـ ’http://‘ أو ’https://"
+"‘."
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_step__is_forward_operator_child
@@ -1406,7 +1413,7 @@ msgstr "اللغة"
 #: model:ir.model.fields,help:im_livechat.field_discuss_channel__livechat_lang_id
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_report_channel__lang_id
 msgid "Lang of the visitor of the channel."
-msgstr "لغة زائر القناة."
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -1506,7 +1513,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/common/close_confirmation.js:0
 msgid "Leaving will end the live chat. Do you want to proceed?"
-msgstr "ستؤدي المغادرة إلى إنهاء الدردشة المباشرة. هل ترغب في المتابعة؟"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_module_info_expert_text_step_demo
@@ -1546,7 +1553,7 @@ msgstr ""
 #: model:ir.ui.menu,name:im_livechat.livechat_channels_config
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_list
 msgid "Live Chat Channels"
-msgstr "قنوات الدردشة الحية"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-python
@@ -1589,14 +1596,14 @@ msgstr ""
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Live Chat Window"
-msgstr "نافذة الدردشة الحية"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/public_web/messaging_menu_patch.js:0
 #: model_terms:ir.ui.view,arch_db:im_livechat.view_partner_form
 msgid "Live Chats"
-msgstr "الدردشات الحية"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_member_history__session_livechat_channel_id
@@ -1635,7 +1642,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_expertise_ids
 msgid "Livechat Expertise"
-msgstr "خبرات الدردشة الحية"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.unit_embed_suite
@@ -1645,7 +1652,7 @@ msgstr "الاختبارات الخارجية للدردشة المباشرة"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__livechat_is_in_call
 msgid "Livechat Is In Call"
-msgstr "هناك مكالمة نشطة في الدردشة الآن"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__livechat_lang_ids
@@ -1655,12 +1662,12 @@ msgstr "لغات الدردشة المباشرة"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_matches_self_expertise
 msgid "Livechat Matches Self Expertise"
-msgstr "الخبرات الذاتية للعناصر التي تمت مطابقتها في الدردشة المباشرة "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel__livechat_matches_self_lang
 msgid "Livechat Matches Self Lang"
-msgstr "اللغة الذاتية للعناصر التي تمت مطابقتها في الدردشة المباشرة "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_discuss_channel_member__livechat_member_history_ids
@@ -1817,7 +1824,7 @@ msgstr "الاسم"
 #: model:im_livechat.channel,button_text:im_livechat.im_livechat_channel_data
 #: model:im_livechat.channel,button_text:im_livechat.support_bot_channel_demo
 msgid "Need help? Chat with us."
-msgstr "هل أنت بحاجة إلى المساعدة؟ تحدث معنا."
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_rating__3
@@ -1855,7 +1862,7 @@ msgstr ""
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__block_assignment_during_call
 msgid "No Chats During Call"
-msgstr "لا يتم تلقي أي محادثات أثناء المكالمات "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields.selection,name:im_livechat.selection__discuss_channel__livechat_failure__no_failure
@@ -1934,7 +1941,7 @@ msgstr "الملاحظات"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Notification Text"
-msgstr "نص الإشعار "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__chatbot_script_count
@@ -1944,12 +1951,12 @@ msgstr "عدد أنظمة Chatbot"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__ongoing_session_count
 msgid "Number of Ongoing Sessions"
-msgstr "عدد الجلسات الجارية"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_res_users__livechat_ongoing_session_count
 msgid "Number of Ongoing sessions"
-msgstr "عدد الجلسات الجارية"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -2136,7 +2143,7 @@ msgstr "نص التقييم"
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/embed/common/feedback_panel/feedback_panel.xml:0
 msgid "Receive a copy of this conversation"
-msgstr "استلام نسخة من هذه المحادثة"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_script_answer__redirect_link
@@ -2147,8 +2154,7 @@ msgstr "رابط إعادة التوجيه"
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_rule__regex_url
 msgid ""
 "Regular expression specifying the web pages this rule will be applied on."
-msgstr ""
-"التعبير النمطي الذي يحدد صفحات الويب التي سيتم تطبيق هذه القاعدة عليها."
+msgstr "التعبير النمطي الذي يحدد صفحات الويب التي سيتم تطبيق هذه القاعدة عليها."
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_chatbot_message__mail_message_id
@@ -2160,7 +2166,7 @@ msgstr "رسالة البريد ذات الصلة"
 #: code:addons/im_livechat/static/src/core/public_web/discuss_sidebar_channel_patch.xml:0
 #: code:addons/im_livechat/static/src/core/web/discuss_app/sidebar/category_patch.xml:0
 msgid "Relevant to your expertise"
-msgstr "ذات صلة بخبرتك"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel__remaining_session_capacity
@@ -2418,13 +2424,13 @@ msgstr "الإظهار مع الإشعار"
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/thread_actions.js:0
 msgid "Someone has already joined this conversation"
-msgstr "لقد انضم شخص ما بالفعل إلى هذه المحادثة"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view
 #: model_terms:ir.ui.view,arch_db:im_livechat.res_users_form_view_simple_modif
 msgid "Spoken Languages"
-msgstr "اللغات المتحدث بها "
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__start_date
@@ -2434,7 +2440,7 @@ msgstr "تاريخ بدء الجلسة"
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__start_date_minutes
 msgid "Start Date of session, truncated to minutes"
-msgstr "تاريخ بدء الجلسة، مقتطع إلى دقائق"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_report_channel__start_hour
@@ -2514,12 +2520,6 @@ msgid "Thank you for your feedback"
 msgstr "شكراً لملاحظاتك"
 
 #. module: im_livechat
-#. odoo-python
-#: code:addons/im_livechat/models/im_livechat_channel.py:0
-msgid "The URL Regex '%(regex)s' is not valid."
-msgstr ""
-
-#. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_rule__channel_id
 msgid "The channel of the rule"
 msgstr "قناة القاعدة"
@@ -2539,9 +2539,9 @@ msgid ""
 "these 2 countries. This feature requires GeoIP installed on your server."
 msgstr ""
 "سيتم تطبيق هذه القاعدة على هذه البلدان فقط. مثلًا: إذا اخترت 'بلجيكا' "
-"و'الولايات المتحدة' وقمت بتعيين الإجراء إلى 'إخفاء'، سيتم إخفاء زر الدردشة "
-"عن الزوار الموجودين في هذين البلدين في رابط URL المحدد. تتطلب هذه الخاصية "
-"تثبيت GeoIP على خادمك."
+"و'الولايات المتحدة' وقمت بتعيين الإجراء إلى 'إخفاء'، سيتم إخفاء زر الدردشة عن "
+"الزوار الموجودين في هذين البلدين في رابط URL المحدد. تتطلب هذه الخاصية تثبيت "
+"GeoIP على خادمك."
 
 #. module: im_livechat
 #: model:res.groups,comment:im_livechat.im_livechat_group_manager
@@ -2604,12 +2604,12 @@ msgstr "الخميس"
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_im_livechat_channel_member_history__session_duration_hour
 msgid "Time spent by the persona in the session in hours"
-msgstr "الوقت الذي قضته الشخصية في الجلسة محسوباً بالساعات"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_im_livechat_channel_rule__auto_popup_timer
 msgid "Time to Open"
-msgstr "وقت الفتح"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,field_description:im_livechat.field_digest_digest__kpi_livechat_response
@@ -2764,7 +2764,7 @@ msgstr "إجابة المستخدم المجردة"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_kanban
 msgid "View Channel"
-msgstr "عرض القناة"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2776,7 +2776,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/im_livechat/static/src/core/web/livechat_channel_info_list.xml:0
 msgid "View Contact"
-msgstr "عرض جهة الاتصال"
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2855,7 +2855,7 @@ msgstr "مرحباً بك إلى اسم الشركة! 👋"
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_initial_step_demo
 msgid "Welcome to the Support! How can I assist you today?"
-msgstr "مرحبًا بك في قسم الدعم! كيف يمكنني مساعدتك اليوم؟"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_welcome_step_dispatch
@@ -2866,12 +2866,12 @@ msgstr "ما الذي تبحث عنه؟"
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_troubleshooting_step_browser_demo
 msgid "What browser are you using?"
-msgstr "ما المتصفح الذي تستخدمه؟"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_module_selection_demo
 msgid "What module are you interested in?"
-msgstr "ما هو التطبيق الذي ترغب في استخدامه؟"
+msgstr ""
 
 #. module: im_livechat
 #: model:ir.model.fields,help:im_livechat.field_chatbot_script_step__operator_expertise_ids
@@ -2911,7 +2911,7 @@ msgstr "أداة ذكية"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "Window Colors"
-msgstr "ألوان النوافذ"
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:chatbot.script.step,message:im_livechat.chatbot_script_welcome_step_pricing_email
@@ -2924,7 +2924,7 @@ msgstr "هلّا تركت عنوان بريدك الإلكتروني حتى نت
 #. odoo-python
 #: code:addons/im_livechat/controllers/channel.py:0
 msgid "Write expertises: Only LINK and UNLINK commands are allowed."
-msgstr "اكتب الخبرات: يُسمح فقط باستخدام أوامر LINK و UNLINK."
+msgstr ""
 
 #. module: im_livechat
 #. odoo-javascript
@@ -2989,7 +2989,7 @@ msgstr "مثلًا: مرحبًا، كيف يمكنني مساعدتك؟"
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
 msgid "e.g. Need help? Chat with us."
-msgstr "على سبيل المثال: هل أنت بحاجة إلى المساعدة؟ تحدث معنا."
+msgstr ""
 
 #. module: im_livechat
 #: model_terms:ir.ui.view,arch_db:im_livechat.im_livechat_channel_view_form
@@ -3039,25 +3039,3 @@ msgstr "التعامل مع رسائل websocket"
 #: model_terms:ir.ui.view,arch_db:im_livechat.livechat_email_template
 msgid "width:40px; height:40px; border-radius:0.5rem; display:block;"
 msgstr ""
-
-#~ msgid ""
-#~ "* 'Show' displays the chat button on the pages.\n"
-#~ "* 'Show with notification' is 'Show' in addition to a floating text just "
-#~ "next to the button.\n"
-#~ "* 'Open automatically' displays the button and automatically opens the "
-#~ "conversation pane.\n"
-#~ "* 'Hide' hides the chat button on the pages.\n"
-#~ msgstr ""
-#~ "* 'إظهار' تعرض زر الدردشة في الصفحات.\n"
-#~ "* 'إظهار مع إشعار' هي 'إظهار' بالإضافة إلى نص عائم بجانب الزر.\n"
-#~ "* 'الفتح تلقائياً' تعرض الزر وتقوم بفتح إطار المحادثة تلقائياً.\n"
-#~ "* 'إخفاء' تخفي زر الدردشة في الصفحات.\n"
-
-#~ msgid ""
-#~ "Go to <strong>Website</strong> &gt; <strong>Configuration</strong> &gt; "
-#~ "<strong>Settings</strong> &gt; <strong>Email</strong> &amp; "
-#~ "<strong>Marketing.</strong>"
-#~ msgstr ""
-#~ "اذهب إلى <strong>الموقع الإلكتروني</strong> > <strong>التهيئة</strong> > "
-#~ "<strong>الإعدادات</strong> > <strong>البريد الإلكتروني</strong> &amp; "
-#~ "<strong>التسويق.</strong>"

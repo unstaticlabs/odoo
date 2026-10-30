@@ -31,9 +31,10 @@ bullets.
 
 import argparse
 import functools
-import importlib.util
 import sys
+
 from collections.abc import Iterator
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
 from types import ModuleType
 
@@ -106,14 +107,11 @@ class FileManager:
         self.addons_path = addons_path
         self.glob = glob
         self._files = {
-            str(path): FileAccessor(path, addon_path)
-            for apath in addons_path
-            if (addon_path := Path(apath))
-            for path in addon_path.glob(glob)
+            str(path): FileAccessor(path, Path(addon_path))
+            for addon_path in addons_path
+            for path in Path(addon_path).glob(glob)
+            if '__pycache__' not in path.parts
             if path.suffix in AVAILABLE_EXT
-            if (parts := path.parts)
-            if '__pycache__' not in parts
-            if '.git' not in parts
             if path.is_file()
         }
         self._summary = []
@@ -126,13 +124,6 @@ class FileManager:
 
     def get_file(self, path):
         return self._files.get(str(path))
-
-    def reset(self):
-        """Reset changes in the file manager."""
-        for file in self:
-            if file.dirty:
-                file._content = None
-                file.dirty = False
 
     def add_to_summary(self, message: str) -> None:
         if message:
@@ -159,15 +150,13 @@ def get_upgrade_code_scripts(from_version: tuple[int, ...], to_version: tuple[in
     for script_path in sorted(UPGRADE.glob('*.py')):
         version = parse_version(script_path.name.partition('-')[0])
         if from_version <= version <= to_version:
-            spec = importlib.util.spec_from_file_location(script_path.name, str(script_path))
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+            module = SourceFileLoader(script_path.name, str(script_path)).load_module()
             modules.append((script_path.name, module))
     return modules
 
 
 def migrate(
-    addons_path: list[str] | FileManager,
+    addons_path: list[str],
     glob: str,
     from_version: tuple[int, ...] | None = None,
     to_version: tuple[int, ...] | None = None,
@@ -183,18 +172,12 @@ def migrate(
             else:
                 raise FileNotFoundError(script)
         script_path.relative_to(UPGRADE)  # safeguard, prevent going up
-        spec = importlib.util.spec_from_file_location(script_path.name, str(script_path))
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        module = SourceFileLoader(script_path.name, str(script_path)).load_module()
         modules = [(script_path.name, module)]
     else:
         modules = get_upgrade_code_scripts(from_version, to_version)
 
-    if isinstance(addons_path, FileManager):
-        file_manager = addons_path
-        assert not glob, "FileManager given with a glob, unsupported"
-    else:
-        file_manager = FileManager(addons_path, glob)
+    file_manager = FileManager(addons_path, glob)
     for (name, module) in modules:
         file_manager.print_progress(0)  # 0%
         module.upgrade(file_manager)

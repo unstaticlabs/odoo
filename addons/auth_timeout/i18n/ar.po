@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-03 17:37+0000\n"
-"PO-Revision-Date: 2026-10-12 11:10+0000\n"
+"PO-Revision-Date: 2026-07-29 10:21+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/"
 "auth_timeout/ar/>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_res_groups
@@ -44,12 +44,12 @@ msgstr "اسم العرض"
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_inactivity_mfa
 msgid ""
 "Enable two-factor authentication when the inactivity timeout is reached."
-msgstr "قم بتمكين المصادقة ثنائية العوامل عند انتهاء الوقت المحدد لعدم النشاط."
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_mfa
 msgid "Enable two-factor authentication when the session timeout is reached."
-msgstr "قم بتمكين المصادقة ثنائية العوامل عند انتهاء الوقت المحدد للجلسة."
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_ir_http
@@ -59,12 +59,12 @@ msgstr "مسار HTTP"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__has_lock_timeout
 msgid "Has Lock Timeout"
-msgstr "هناك مهلة قفل"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__has_lock_timeout_inactivity
 msgid "Has Lock Timeout Inactivity"
-msgstr "يحتوي على مهلة قفل في حال عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_auth_totp_device__id
@@ -83,37 +83,37 @@ msgstr "عدم النشاط"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity
 msgid "Inactivity timeout"
-msgstr "مهلة عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_2fa_selection
 msgid "Lock Timeout 2Fa Selection"
-msgstr "اختيار مهلة القفل 2Fa"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_delay_in_unit
 msgid "Lock Timeout Delay In Unit"
-msgstr "تأخير مهلة القفل بالوحدة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_delay_unit
 msgid "Lock Timeout Delay Unit"
-msgstr "وحدة تأخير انتهاء مهلة القفل"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_2fa_selection
 msgid "Lock Timeout Inactivity 2Fa Selection"
-msgstr "اختيار المصادقة الثنائية لوقت انتهاء صلاحية القفل بسبب عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_delay_in_unit
 msgid "Lock Timeout Inactivity Delay In Unit"
-msgstr "تأخير مهلة القفل بسبب عدم النشاط بالوحدة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_delay_unit
 msgid "Lock Timeout Inactivity Delay Unit"
-msgstr "وحدة تأخير مهلة القفل بسبب عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_2fa_selection__without_2fa
@@ -123,37 +123,37 @@ msgstr "تسجيل الخروج"
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_2fa_selection__with_2fa
 msgid "Logout with two-factor authentication"
-msgstr "تسجيل الخروج باستخدام المصادقة الثنائية"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_inactivity_mfa
 msgid "Require MFA on inactivity timeout"
-msgstr "قم بطلب MFA عند انتهاء مهلة عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout_mfa
 msgid "Require MFA on session timeout"
-msgstr "قم بطلب MFA عند انتهاء مهلة الجلسة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__has_lock_timeout_inactivity
 msgid "Requires re-authentication after a period of user inactivity"
-msgstr "يتطلب إعادة المصادقة بعد فترة من عدم نشاط المستخدم"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__has_lock_timeout
 msgid "Requires re-authentication after the user's last connection"
-msgstr "يتطلب إعادة المصادقة بعد آخر اتصال للمستخدم"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_inactivity_2fa_selection__without_2fa
 msgid "Screen lock"
-msgstr "قفل الشاشة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields.selection,name:auth_timeout.selection__res_groups__lock_timeout_inactivity_2fa_selection__with_2fa
 msgid "Screen lock with two-factor authentication"
-msgstr "قفل الشاشة باستخدام المصادقة الثنائية"
+msgstr ""
 
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
@@ -163,7 +163,7 @@ msgstr "الجلسة"
 #. module: auth_timeout
 #: model:ir.model.fields,field_description:auth_timeout.field_res_groups__lock_timeout
 msgid "Session timeout"
-msgstr "انتهاء مهلة الجلسة"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout_inactivity
@@ -171,7 +171,6 @@ msgid ""
 "Time (in minutes) of user inactivity after which re-authentication is "
 "required."
 msgstr ""
-"الوقت (بالدقائق) الذي يمر دون نشاط من المستخدم، وبعده يتعين إعادة المصادقة."
 
 #. module: auth_timeout
 #: model:ir.model.fields,help:auth_timeout.field_res_groups__lock_timeout
@@ -179,8 +178,6 @@ msgid ""
 "Time interval (in minutes) after which re-authentication is required, "
 "regardless of inactivity."
 msgstr ""
-"الفاصل الزمني (بالدقائق) الذي يتعين بعده إعادة المصادقة، بغض النظر عن عدم "
-"النشاط."
 
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
@@ -223,7 +220,7 @@ msgstr "دقائق"
 #. module: auth_timeout
 #: model_terms:ir.ui.view,arch_db:auth_timeout.auth_passkey_groups_form
 msgid "of inactivity"
-msgstr "من عدم النشاط"
+msgstr ""
 
 #. module: auth_timeout
 #: model:ir.model,name:auth_timeout.model_ir_websocket

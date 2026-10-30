@@ -1,7 +1,5 @@
 import { models, Command } from "@web/../tests/web_test_helpers";
 
-const { DateTime } = luxon;
-
 export class PosOrder extends models.ServerModel {
     _name = "pos.order";
 
@@ -55,7 +53,6 @@ export class PosOrder extends models.ServerModel {
 
         const orderIds = [];
         for (const record of data) {
-            record.write_date = DateTime.now().toFormat("yyyy-MM-dd HH:mm:ss");
             const record_uuid_mapping = record.relations_uuid_mapping || {};
             delete record.relations_uuid_mapping;
             if (record.id) {

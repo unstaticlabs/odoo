@@ -28,7 +28,9 @@ export class ProductListPage extends Component {
         this.subCategoryContainerRef = useRef("sub_cat_container");
 
         const initCategories = !this.selfOrder.currentCategory;
-        this.selfOrder.computeAvailableCategories();
+        if (initCategories) {
+            this.selfOrder.computeAvailableCategories();
+        }
         const availableCategories = this.selfOrder.availableCategories;
         const topCategories = availableCategories.filter((category) => !category.parent_id);
         const selectedCategory =

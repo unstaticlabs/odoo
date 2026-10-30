@@ -61,7 +61,7 @@ export {
     freezeTime,
     unfreezeTime,
     microTick,
-    _setFrameRate as setFrameRate,
+    setFrameRate,
     tick,
     waitUntil,
 } from "./helpers/time";

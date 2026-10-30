@@ -641,10 +641,7 @@ export class CustomColorPicker extends Component {
      */
     onHexColorInput(ev) {
         const hexColorValue = ev.target.value.replaceAll("#", "");
-        if (
-            hexColorValue.length === 6 ||
-            (hexColorValue.length === 8 && !this.props.noTransparency)
-        ) {
+        if (hexColorValue.length === 6 || hexColorValue.length === 8) {
             this._updateHex(`#${hexColorValue}`);
             this._updateUI();
             this.shouldSetSelectedColor = true;

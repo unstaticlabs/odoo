@@ -188,10 +188,7 @@ export class SaleOrderTemplateLineListRenderer extends SectionAndNoteListRendere
 
             // Prevent the record from being abandoned when leaveEditMode or sortDrop is called
             record.dirty = true;
-            const left = await this.props.list.leaveEditMode();
-            if (!left) {
-                return;
-            }
+            await this.props.list.leaveEditMode();
             const recordMap = this._getRecordsToRecompute(
                 record,
                 previous ? previous.dataset.id : null

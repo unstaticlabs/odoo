@@ -17,7 +17,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0beta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-03 17:38+0000\n"
-"PO-Revision-Date: 2026-10-12 11:09+0000\n"
+"PO-Revision-Date: 2026-08-03 15:30+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/"
 "website_payment/ar/>\n"
@@ -27,7 +27,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.donation_mail_body
@@ -92,15 +92,11 @@ msgid ""
 "payments.\n"
 "                        </span>"
 msgstr ""
-"<span class=\"oe_inline pe-0\">\n"
-"                            قم بتمكين مزود خدمات الدفع لاستلام المدفوعات عبر "
-"الإنترنت.\n"
-"                        </span>"
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span class=\"oe_inline px-0\">or</span>"
-msgstr "<span class=\"oe_inline px-0\">أو</span>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.s_donation_button
@@ -151,7 +147,7 @@ msgstr ""
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "<span>Enable a payment provider to accept online payments.</span>"
-msgstr "<span>تفعيل مزود الدفع لقبول المدفوعات الإلكترونية.</span>"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
@@ -233,7 +229,7 @@ msgstr "تهيئة"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Configure Payment Methods"
-msgstr "تكوين طرق الدفع"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
@@ -327,7 +323,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/website_payment/controllers/portal.py:0
 msgid "Donation Payment"
-msgstr "تقديم تبرع"
+msgstr ""
 
 #. module: website_payment
 #. odoo-python
@@ -366,12 +362,12 @@ msgstr "أدخل رقما ًصالحاً!"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Find a Payment Provider"
-msgstr "ابحث عن مزود خدمات الدفع"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form
 msgid "Find another provider"
-msgstr "ابحث عن مزود آخر"
+msgstr ""
 
 #. module: website_payment
 #. odoo-javascript
@@ -442,7 +438,7 @@ msgstr "الاسم مطلوب."
 #. odoo-javascript
 #: code:addons/website_payment/static/src/snippets/s_supported_payment_methods/000.edit.xml:0
 msgid "No published payment methods"
-msgstr "لا توجد طرق دفع منشورة"
+msgstr ""
 
 #. module: website_payment
 #. odoo-javascript
@@ -488,12 +484,12 @@ msgstr "الدفعات"
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please enter a valid email address."
-msgstr "يرجى إدخال عنوان بريد إلكتروني صالح."
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.website_payment_donation_form
 msgid "Please provide a name."
-msgstr "يرجى إدخال اسم."
+msgstr ""
 
 #. module: website_payment
 #. odoo-javascript
@@ -567,7 +563,7 @@ msgstr "لا يوجد شيء لدفعه."
 #. odoo-javascript
 #: code:addons/website_payment/static/src/snippets/s_supported_payment_methods/000.edit.xml:0
 msgid "View providers"
-msgstr "عرض مزودي الخدمات"
+msgstr ""
 
 #. module: website_payment
 #: model_terms:ir.ui.view,arch_db:website_payment.res_config_settings_view_form

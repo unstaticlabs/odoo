@@ -199,7 +199,7 @@ export class BuilderColorPicker extends Component {
     }
 
     getUsedCustomColors() {
-        return getAllUsedColors(this.env.editor.editable, this.props.noTransparency);
+        return getAllUsedColors(this.env.editor.editable);
     }
 
     getCorrespondingColorPickerTab(selectedColor) {

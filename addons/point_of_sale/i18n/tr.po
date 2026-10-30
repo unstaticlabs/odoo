@@ -38,8 +38,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-14 13:34+0000\n"
+"POT-Creation-Date: 2026-07-31 17:36+0000\n"
+"PO-Revision-Date: 2026-08-19 11:45+0000\n"
 "Last-Translator: Burkay Yıldızhan <seyil@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-3/"
 "point_of_sale/tr/>\n"
@@ -48,7 +48,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -229,7 +229,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/optional_products_popup/optional_products_popup.xml:0
 msgid "+ Add"
-msgstr "+ Ekle"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -548,7 +548,6 @@ msgid "<strong>INTERNAL NOTE</strong>"
 msgstr ""
 
 #. module: point_of_sale
-#: model_terms:ir.ui.view,arch_db:point_of_sale.pos_order_receipt
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_orderline_receipt_information
 msgid "<strong>Note: </strong>"
 msgstr ""
@@ -708,14 +707,14 @@ msgstr "Erişim Anahtarı"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"Access printer configuration panel by putting this URL in your search bar:"
+"Access printer configuration panel by puttin this URL in your search bar:"
 msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"Access the below URL but replace [printer_ip] with your current Printer IP "
+"Access the below URL but replace [printer_ip] with your current Pritner IP "
 "address"
 msgstr ""
 
@@ -962,7 +961,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/combo_configurator_popup/combo_configurator_popup.xml:0
 msgid "Add to order"
-msgstr "Siparişe ekleme yapın"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -1046,7 +1045,7 @@ msgstr "Öğleden Sonra"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/partner_list/partner_line/partner_line.xml:0
 msgid "All Orders"
-msgstr "Tüm Siparişler"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_payment_method__all_providers_installed
@@ -1194,7 +1193,7 @@ msgstr "Toplam Tutar"
 #: code:addons/point_of_sale/static/src/app/components/popups/qr_code_popup/qr_code_popup.xml:0
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "Amount:"
-msgstr "Tutar:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1369,7 +1368,6 @@ msgstr "Çalışan Devam Kontrolü"
 #. module: point_of_sale
 #: model:ir.actions.act_window,name:point_of_sale.pos_product_attribute_action
 #: model:ir.ui.menu,name:point_of_sale.pos_menu_products_attribute_action
-#: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Attributes"
 msgstr "Nitelikler"
 
@@ -1616,7 +1614,7 @@ msgstr "Barkod kuralı"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Barcode Scanner"
-msgstr "Barkod Tarayıcı"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -1936,7 +1934,7 @@ msgstr "Nakit - Mobilya Mağazası"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
 msgid "Cash In"
-msgstr "Nakit Girişi"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1982,7 +1980,7 @@ msgstr "Nakit Açılış"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
 msgid "Cash Out"
-msgstr "Nakit Çıkışı"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -2349,7 +2347,6 @@ msgstr "Müşteri"
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/chose_combo_popup/chose_combo_popup.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/product_configurator_popup/product_configurator_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/product_info_popup/product_info_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/tour_selector_popup/tour_selector_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/customer_display/customer_display_qr_code_popup.xml:0
@@ -2624,7 +2621,6 @@ msgstr "En az bir Satış Noktası yapılandırın."
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/money_details_popup/money_details_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/number_popup/number_popup.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/select_default_printer_popup/select_default_printer_popup.xml:0
@@ -2680,7 +2676,6 @@ msgstr "Bağlı Cihazlar"
 
 #. module: point_of_sale
 #. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
 #: code:addons/point_of_sale/static/src/app/utils/error_handlers.js:0
 msgid "Connection Lost"
 msgstr "Bağlantı Kesildi"
@@ -2777,7 +2772,7 @@ msgstr "Maliyet:"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "Count"
-msgstr "Sayı"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_preset__count_linked_config
@@ -2857,7 +2852,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Create Product"
-msgstr "Ürün Oluştur"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,website_form_label:point_of_sale.model_res_partner
@@ -3122,7 +3117,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "Daily Sale"
-msgstr "Günlük Satış"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
@@ -3164,7 +3159,7 @@ msgstr "Tarih"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/product_info_popup/product_info_popup.xml:0
 msgid "Days"
-msgstr "Gün"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_decimal_precision
@@ -3388,7 +3383,7 @@ msgstr "POS Terminalinde görüntüleme sırasını belirleme"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Device ID:"
-msgstr "Cihaz Kimliği:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__device_seq_id
@@ -3431,7 +3426,7 @@ msgstr "Masa Servisi"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Disable"
-msgstr "Devre dışı"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3660,7 +3655,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "EAN-13"
-msgstr "EAN-13"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -3682,7 +3677,7 @@ msgstr "Düzenle"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/partner_list/partner_line/partner_line.xml:0
 msgid "Edit Details"
-msgstr "Detayları Düzenle"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -3694,7 +3689,7 @@ msgstr "Partneri Düzenle"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/order_details_dialog/order_details_dialog.xml:0
 msgid "Edit Payment"
-msgstr "Ödemeyi Düzenle"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.actions.act_window,name:point_of_sale.product_template_action_edit_pos
@@ -3872,7 +3867,7 @@ msgstr "Satış Noktası verilerini dışa aktarma"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Export data"
-msgstr "Verileri dışa aktar"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_pos_form
@@ -4087,7 +4082,7 @@ msgstr "Ücretsiz"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/product_info_banner/product_info_banner.xml:0
 msgid "Free To Use:"
-msgstr "Kullanım Ücretsiz:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_product_combo__qty_free
@@ -4463,7 +4458,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"If this endpoint does not return a 404 error and displays a blank page, "
+"If this endpoint does not returan a 404 error and displays a blank page, "
 "everything is ready."
 msgstr ""
 
@@ -4515,7 +4510,7 @@ msgstr "Görsel 128"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Import data"
-msgstr "Veri içe aktarma"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -4580,7 +4575,7 @@ msgstr "Bilgi mesajı"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Install App"
-msgstr "App Yükle"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.actions.act_window,help:point_of_sale.action_pos_payment_method_form
@@ -5436,14 +5431,6 @@ msgid "Message Delivery error"
 msgstr "Mesaj Teslim hatası"
 
 #. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/controllers/main.py:0
-msgid ""
-"Message: %(messages)s\n"
-"Please update the %(invalid_fields)s"
-msgstr ""
-
-#. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__message_ids
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__message_ids
 msgid "Messages"
@@ -5696,7 +5683,7 @@ msgstr "Sonraki Sipariş Listesi"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Next number:"
-msgstr "Sıradaki numara:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5823,7 +5810,7 @@ msgstr "\"%s\" için başka ürün bulunamadı."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.xml:0
 msgid "No products found for"
-msgstr "Şunun için ürün bulunamadı:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5847,7 +5834,7 @@ msgstr "Oturum bulunamadı"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/preset_slots_popup/preset_slots_popup.xml:0
 msgid "No slot available for this day"
-msgstr "Bu gün için yer yok"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -6001,7 +5988,7 @@ msgstr "İşlem sayısı:"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Number stack:"
-msgstr "Numara yığını:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6065,12 +6052,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Online reservation for Point of Sale"
 msgstr "Satış Noktası için online rezervasyon"
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "Only Point of Sale managers can modify a Point of Sale configuration."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6137,7 +6118,7 @@ msgstr "Açık"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_screen.xml:0
 msgid "Open Cashbox"
-msgstr "Nakit Çekmecesini Aç"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6405,7 +6386,7 @@ msgstr "Sipariş Satırları"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Order saved for later"
-msgstr "Sipariş daha sonraki bir zaman için kaydedildi"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_preset_form
@@ -6842,7 +6823,7 @@ msgstr "Ödeme Yöntemleri"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "Payments in"
-msgstr "Ödemeler"
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_pecan_pie_product_template
@@ -6883,7 +6864,7 @@ msgstr "Pine Labs Ödeme Terminali"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/pos_kanban_view/pos_kanban_view.xml:0
 msgid "Please"
-msgstr "Lütfen"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6992,7 +6973,7 @@ msgstr "Lütfen faturayı sunucu uygulamadan yazdırın"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_status/payment_status.xml:0
 msgid "Please select a payment method"
-msgstr "Lütfen bir ödeme yöntemi seçin"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -7283,11 +7264,6 @@ msgid "Pos Order Count"
 msgstr "Sipariş Sayısı"
 
 #. module: point_of_sale
-#: model:ir.model.fields,field_description:point_of_sale.field_account_tax__pos_order_line_ids
-msgid "Pos Order Line"
-msgstr ""
-
-#. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_account_bank_statement_line__pos_payment_ids
 #: model:ir.model.fields,field_description:point_of_sale.field_account_move__pos_payment_ids
 msgid "Pos Payment"
@@ -7353,7 +7329,7 @@ msgstr "Onaylanmış"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "Powered by"
-msgstr "Hazırlayan"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_order_receipt_footer
@@ -7547,7 +7523,7 @@ msgstr "Fişi Yazdır"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Print Report"
-msgstr "Rapor Yazdır"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -7662,7 +7638,7 @@ msgstr "Yazıcı kapağı açık. Lütfen kapatın ve tekrar deneyin!"
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
-msgid "Printer's local IP address is printed"
+msgid "Printer's local IP address is printerd"
 msgstr ""
 
 #. module: point_of_sale
@@ -7944,7 +7920,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.xml:0
 msgid "Quickly refresh essential data."
-msgstr "Temel verileri hızla yenileyin."
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_cash_move_receipt
@@ -8094,7 +8070,7 @@ msgstr "Referans"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Refresh"
-msgstr "Refresh"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8144,7 +8120,7 @@ msgstr "İade işlemi devam ediyor"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/ticket_screen.xml:0
 msgid "Refunded"
-msgstr "İade Edildi"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -8198,9 +8174,6 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/confirmation_dialog/confirmation_dialog.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.xml:0
-#: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Reload Data"
 msgstr "Verileri Yeniden Yükle"
 
@@ -8214,8 +8187,6 @@ msgstr "POS Menüsünü Yeniden Yükle"
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.xml:0
 msgid "Reload all data (may take longer depending on the amount of data)."
 msgstr ""
-"Tüm verileri yeniden yükleyin (veri miktarına bağlı olarak daha uzun "
-"sürebilir)."
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8423,8 +8394,6 @@ msgstr "Yuvarlama"
 #: code:addons/point_of_sale/static/src/app/components/tour_selector_popup/tour_selector_popup.xml:0
 msgid "Running a fake tour will create random orders. Use at your own risk."
 msgstr ""
-"Sahte bir tur çalıştırmak rastgele siparişler oluşturur. Bu riski alarak "
-"kullanın."
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_rye_bread_product_template
@@ -8538,7 +8507,7 @@ msgstr "Bu sayfayı kaydedin ve özelliği ayarlamak için buraya dönün."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Scan"
-msgstr "Tara"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8612,12 +8581,6 @@ msgid "Secure printing"
 msgstr ""
 
 #. module: point_of_sale
-#. odoo-javascript
-#: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
-msgid "Secure printing enabled"
-msgstr ""
-
-#. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_bus_mixin__access_token
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__access_token
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__access_token
@@ -8669,7 +8632,7 @@ msgstr "Fiyat listesini seçin"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/ticket_screen.xml:0
 msgid "Select the product(s) to refund and set the quantity"
-msgstr "İade edilecek ürün(ler)i seçin ve miktarı belirleyin"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order_line__attribute_value_ids
@@ -8691,11 +8654,6 @@ msgstr "Self-order arayüzleri etkilenmez."
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__point_of_sale_use_ticket_qr_code
 msgid "Self-service invoicing"
 msgstr "Self-servis faturalama"
-
-#. module: point_of_sale
-#: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
-msgid "Sell variants of a product using attributes (size, color, etc.)."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8744,7 +8702,7 @@ msgstr "Makbuzu SMS ile gönder"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/send_receipt_popup/send_receipt_popup.xml:0
 msgid "Sending"
-msgstr "Gönderiyor"
+msgstr ""
 
 #. module: point_of_sale
 #: model:mail.template,description:point_of_sale.email_template_pos_receipt
@@ -9102,7 +9060,6 @@ msgstr ""
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/main.js:0
-#: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid ""
 "Some paid orders have not been synced to the server yet. Closing or "
 "reloading now may cause data loss."
@@ -9498,12 +9455,6 @@ msgstr "Test"
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "Thank you."
 msgstr "Teşekkürler."
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/controllers/main.py:0
-msgid "The %s must be filled in your details."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -9915,12 +9866,6 @@ msgstr "Makbuz her siparişin sonunda otomatik olarak yazdırılır."
 
 #. module: point_of_sale
 #. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
-msgid "The register cannot be opened while offline. Please try again."
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/ticket_screen.js:0
 msgid ""
 "The requested quantity to be refunded is higher than the ordered quantity. "
@@ -10240,13 +10185,6 @@ msgstr ""
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__pos_fast_payment_method_ids
 msgid "These payment methods will be available for fast payment"
 msgstr "Bu ödeme yöntemleri hızlı ödeme için kullanılabilecektir"
-
-#. module: point_of_sale
-#. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
-msgid ""
-"This action will delete all unsaved orders and other locally stored data"
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10867,7 +10805,7 @@ msgstr "Bilinmeyen Hata"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Unpaid"
-msgstr "Ödenmemiş"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10982,7 +10920,7 @@ msgstr "VKN/TCKN"
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
 msgid "VAT:"
-msgstr "VKN/TCKN :"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11161,7 +11099,7 @@ msgstr "Tam buğday somun ekmeği"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "With a"
-msgstr "İle"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_resource_calendar_attendance
@@ -11382,12 +11320,6 @@ msgstr "Gönderilmiş bir siparişin ödemesini düzenleyemezsiniz."
 
 #. module: point_of_sale
 #. odoo-python
-#: code:addons/point_of_sale/models/pos_order_line.py:0
-msgid "You cannot refund more than the outstanding quantity for this product."
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid ""
 "You cannot share open orders with configuration that does not use the same "
@@ -11507,7 +11439,7 @@ msgstr "Oturumunuza bir Satış Noktası atamalısınız."
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.xml:0
 msgid "You still have"
-msgstr "Hala"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11581,13 +11513,13 @@ msgstr "default_preset_id"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "discount"
-msgstr "indirim"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/orderline/orderline.xml:0
 msgid "discount off on"
-msgstr "indirim kapalı"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_partner_form_pos_ui
@@ -11693,7 +11625,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/send_receipt_popup/send_receipt_popup.xml:0
 msgid "failed. Please try again"
-msgstr "başarısız oldu. Lütfen tekrar deneyin"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.ticket_validation_screen
@@ -11715,7 +11647,7 @@ msgstr "ve sipariş tutarı"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/product_info_popup/product_info_popup.xml:0
 msgid "from"
-msgstr "kimden"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11741,13 +11673,13 @@ msgstr "kimlik"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/send_receipt_popup/send_receipt_popup.xml:0
 msgid "in progress"
-msgstr "devam ediyor"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.xml:0
 msgid "in this category."
-msgstr "bu kategoride."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11771,7 +11703,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.xml:0
 msgid "items"
-msgstr "öğeler"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_preset_form
@@ -11793,24 +11725,12 @@ msgstr "not"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.xml:0
 msgid "open orders for the next few days."
-msgstr "önümüzdeki birkaç gün için açık siparişler."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "open orders planned for later."
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "order"
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "orders"
 msgstr ""
 
 #. module: point_of_sale
@@ -11822,7 +11742,7 @@ msgstr "başına sipariş"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "orders:"
-msgstr "siparişler:"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_config_kanban
@@ -11867,7 +11787,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/pos_kanban_view/pos_kanban_view.xml:0
 msgid "to activate the buttons."
-msgstr "butonları etkinleştirmek için."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript

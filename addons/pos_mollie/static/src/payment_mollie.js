@@ -15,11 +15,6 @@ export class PaymentMollie extends PaymentInterface {
                     (line) => line.transaction_id === payload.payment_id
                 );
 
-                if (paymentLine && paymentLine.uuid !== payload.payment_uuid) {
-                    console.warn("Ignoring mismatched Mollie webhook");
-                    return;
-                }
-
                 if (
                     paymentLine &&
                     !paymentLine.isDone() &&

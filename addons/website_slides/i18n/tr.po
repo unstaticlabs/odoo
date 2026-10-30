@@ -38,7 +38,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-03 17:39+0000\n"
-"PO-Revision-Date: 2026-10-14 13:34+0000\n"
+"PO-Revision-Date: 2026-08-19 09:10+0000\n"
 "Last-Translator: Burkay Yıldızhan <seyil@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-3/"
 "website_slides/tr/>\n"
@@ -47,7 +47,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website_slides
 #: model:ir.model.fields,field_description:website_slides.field_slide_channel__members_engaged_count
@@ -160,6 +160,7 @@ msgstr "(örneğin, https://drive.google.com/file/d/ABC/view)."
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "(e.g., https://drive.google.com/file/d/ABC/view?usp=sharing)."
 msgstr "(örneğin, https://drive.google.com/file/d/ABC/view?usp=sharing)."
 
@@ -1956,6 +1957,7 @@ msgstr "Bahçeciliğin Temelleri"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_unsubscribe_dialog/slide_unsubscribe_dialog.xml:0
+#, fuzzy
 msgid "Be notified when a new content is added."
 msgstr "Yeni bir içerik eklendiğinde haberdar olun."
 
@@ -2127,6 +2129,7 @@ msgstr "Kopya kağıdı"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_quiz_finish_dialog/slide_quiz_finish_dialog.xml:0
+#, fuzzy
 msgid "Check Profile"
 msgstr "Profili Kontrol Et"
 
@@ -2437,6 +2440,7 @@ msgstr "İletişim Sorumlusu"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "Contact the responsible to enroll."
 msgstr "Kaydolmak için sorumluyla iletişime geçin."
 
@@ -2531,6 +2535,7 @@ msgstr "Bağlantıyı kopyala"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "Copy the shareable link"
 msgstr "Paylaşılabilir bağlantıyı kopyalayın"
 
@@ -2762,12 +2767,14 @@ msgstr "Kapak Özellikleri"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_category.xml:0
+#, fuzzy
 msgid "Create New Category \""
 msgstr "Yeni Kategori Oluştur \""
 
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_category.xml:0
+#, fuzzy
 msgid "Create New Tag \""
 msgstr "Yeni Etiket Oluştur \""
 
@@ -2801,12 +2808,14 @@ msgstr "E-Öğreniminiz için yeni içerikler oluşturun"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/course_tag_add_dialog/course_tag_add_dialog.xml:0
+#, fuzzy
 msgid "Create this tag \""
 msgstr "Bu etiketi oluştur \""
 
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/course_tag_add_dialog/course_tag_add_dialog.xml:0
+#, fuzzy
 msgid "Create this tag group\""
 msgstr "Bu etiket grubunu oluştur\""
 
@@ -3588,6 +3597,7 @@ msgstr "Google Drive:"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
+#, fuzzy
 msgid "Grant Access"
 msgstr "Erişim Ver"
 
@@ -3918,6 +3928,7 @@ msgstr "Yükle"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog_select.xml:0
+#, fuzzy
 msgid "Install the"
 msgstr "Yükle"
 
@@ -4059,6 +4070,7 @@ msgstr "Bu katılımcı için davet beklemede mi."
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "It should look similar to"
 msgstr "Şuna benzemelidir:"
 
@@ -4086,6 +4098,7 @@ msgstr "İlgili eğitime katıl"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "Join the course to take the quiz and verify your answers!"
 msgstr "Testi çözmek ve cevaplarınızı doğrulamak için kursa katılın!"
 
@@ -5242,6 +5255,7 @@ msgstr "Alıcılar"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/core/web/activity_patch.xml:0
+#, fuzzy
 msgid "Refuse Access"
 msgstr "Erişimi Reddet"
 
@@ -5298,6 +5312,7 @@ msgstr "Requesting Partner"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "Reset"
 msgstr "Sıfırla"
 
@@ -5337,6 +5352,7 @@ msgstr "Sorumlu Kullanıcı"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "Responsible already contacted."
 msgstr "Sorumlu zaten temasa geçti."
 
@@ -5362,6 +5378,7 @@ msgstr "Yinele"
 
 #. module: website_slides
 #: model_terms:ir.ui.view,arch_db:website_slides.profile_access_denied
+#, fuzzy
 msgid "Return to the course."
 msgstr "Kursa geri dön."
 
@@ -5634,12 +5651,14 @@ msgstr "Sıralama"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "Set file permissions to"
 msgstr "Dosya izinlerini şu şekilde ayarlayın"
 
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "Set permissions to"
 msgstr "İzinleri şu şekilde ayarlayın"
 
@@ -5769,6 +5788,7 @@ msgstr "Kaydolun!"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "Sign in and join the course to verify your answers!"
 msgstr "Yanıtlarınızı doğrulamak için oturum açın ve kursa katılın!"
 
@@ -6224,6 +6244,7 @@ msgstr "Bu kurs yayımlanmamış. Katılımcılar içeriğine erişemeyebilir."
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "This course is private."
 msgstr "Bu kurs özeldir."
 
@@ -6480,6 +6501,7 @@ msgstr ""
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "Upload as"
 msgstr "Olarak yükle"
 
@@ -6532,6 +6554,7 @@ msgstr "Şablonu Kullan"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "Use the"
 msgstr "Kullan"
 
@@ -7025,6 +7048,7 @@ msgstr "Oy vermek için yeterli karmanız yok"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_quiz_finish_dialog/slide_quiz_finish_dialog.xml:0
+#, fuzzy
 msgid "You gained"
 msgstr "Kazandın"
 
@@ -7133,6 +7157,7 @@ msgstr ""
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
+#, fuzzy
 msgid "Your email(s) will arrive shortly."
 msgstr "E-postalarınız kısa süre içinde ulaşacaktır."
 
@@ -7197,6 +7222,7 @@ msgstr "her neyse"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog_select.xml:0
+#, fuzzy
 msgid "app."
 msgstr "uyg."
 
@@ -7208,12 +7234,14 @@ msgstr "içerik haritası"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_upload_dialog/slide_upload_dialog.xml:0
+#, fuzzy
 msgid "button to get a link"
 msgstr "bağlantı almak için düğme"
 
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
+#, fuzzy
 msgid "by email."
 msgstr "eposta ile."
 
@@ -7435,12 +7463,14 @@ msgstr "sorumlu kişiyle iletişim kurmak için"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/xml/slide_quiz.xml:0
+#, fuzzy
 msgid "to enroll."
 msgstr "kayıt olmak."
 
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/course_join_popup/course_join_popup.xml:0
+#, fuzzy
 msgid "to join this course"
 msgstr "bu kursa katılmak için"
 
@@ -7452,6 +7482,7 @@ msgstr "erişim talep etmek için"
 #. module: website_slides
 #. odoo-javascript
 #: code:addons/website_slides/static/src/js/public/components/slide_share_dialog/email_sharing_input.xml:0
+#, fuzzy
 msgid "to share this"
 msgstr "bunu paylaşmak için"
 

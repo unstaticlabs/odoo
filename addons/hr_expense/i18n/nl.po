@@ -13,8 +13,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-22 07:53+0000\n"
+"POT-Creation-Date: 2026-07-03 17:39+0000\n"
+"PO-Revision-Date: 2026-07-06 19:16+0000\n"
 "Last-Translator: Bren Driesen <brdri@odoo.com>\n"
 "Language-Team: Dutch <https://translate.odoo.com/projects/odoo-s19-3/"
 "hr_expense/nl/>\n"
@@ -23,7 +23,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: hr_expense
 #: model:ir.model.fields,help:hr_expense.field_hr_expense__has_existing_bill
@@ -996,11 +996,6 @@ msgid "Hotel, plane ticket, taxi, etc."
 msgstr "Hotel, vliegticket, taxi, etc."
 
 #. module: hr_expense
-#: model:ir.model.fields,field_description:hr_expense.field_account_tax__hr_expense_ids
-msgid "Hr Expense"
-msgstr ""
-
-#. module: hr_expense
 #: model:ir.model.fields,field_description:hr_expense.field_res_config_settings__hr_expense_alias_domain_id
 msgid "Hr Expense Alias Domain"
 msgstr "Aliasdomein HR-onkosten"
@@ -1341,7 +1336,7 @@ msgstr "Volgende activiteit type"
 #. module: hr_expense
 #: model_terms:ir.ui.view,arch_db:hr_expense.hr_expense_view_form
 msgid "No (Direct Expense)"
-msgstr "Nee (directe onkost)"
+msgstr "No (directe onkost)"
 
 #. module: hr_expense
 #. odoo-python
@@ -2498,7 +2493,6 @@ msgstr "Je hebt de rechten niet om deze onkost te bewerken."
 #. module: hr_expense
 #. odoo-python
 #: code:addons/hr_expense/models/hr_expense.py:0
-#: code:addons/hr_expense/wizard/hr_expense_post_wizard.py:0
 msgid "You don't have the access rights to modify this expense."
 msgstr "Je hebt geen toegangsrechten om deze onkostendeclaratie te wijzigen."
 

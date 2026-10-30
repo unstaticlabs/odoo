@@ -33,7 +33,7 @@ test("selectProduct", async () => {
 test("getSubCategories and selectCategory", async () => {
     const store = await setupSelfPosEnv();
     const models = store.models;
-    expect(store.currentCategory.id).toBe(1);
+    expect(store.currentCategory).toBeEmpty();
     const comp = await mountWithCleanup(ProductListPage, {});
 
     expect(store.currentCategory.id).toBe(1);

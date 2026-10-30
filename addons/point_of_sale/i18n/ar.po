@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-12 15:33+0000\n"
+"POT-Creation-Date: 2026-07-31 17:36+0000\n"
+"PO-Revision-Date: 2026-08-03 15:30+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/"
 "point_of_sale/ar/>\n"
@@ -26,7 +26,7 @@ msgstr ""
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -117,7 +117,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_ticket_printer_service.js:0
 msgid "%s almost runs out of paper."
-msgstr "%s تكاد تنفد امن لورق."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -169,7 +169,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/order_payment_validation.js:0
 msgid "%s required"
-msgstr "%s مطلوب"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -181,7 +181,7 @@ msgstr "%s غير شامل الضريبة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.js:0
 msgid "%s update not allowed"
-msgstr "%s التحديث غير مسموح به"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_order_change_receipt
@@ -192,7 +192,7 @@ msgstr "(مكرر!)"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "(Replace [printer_ip] with the printer IP address)"
-msgstr "(استبدل [printer_ip] بعنوان IP للطابعة)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -204,7 +204,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/optional_products_popup/optional_products_popup.xml:0
 msgid "+ Add"
-msgstr "+ إضافة"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -215,7 +215,7 @@ msgstr "+ متجر جديد"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ", you can skip the system parameter section."
-msgstr "، يمكنك تخطي قسم إعدادات النظام."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -239,7 +239,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "19.1 or above"
-msgstr "19.1 أو أعلى"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -523,7 +523,6 @@ msgid "<strong>INTERNAL NOTE</strong>"
 msgstr ""
 
 #. module: point_of_sale
-#: model_terms:ir.ui.view,arch_db:point_of_sale.pos_order_receipt
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_orderline_receipt_information
 msgid "<strong>Note: </strong>"
 msgstr ""
@@ -576,7 +575,7 @@ msgstr "توجد بالفعل ملاحظة بها هذا الاسم"
 #. module: point_of_sale
 #: model:ir.model.constraint,message:point_of_sale.constraint_pos_payment_unique_uuid
 msgid "A payment with this uuid already exists"
-msgstr "توجد عملية دفع تحمل هذا الرقم التعريفي الفريد بالفعل"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.actions.act_window,help:point_of_sale.action_pos_session
@@ -644,12 +643,12 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Accept payments with a Pine Labs payment terminal"
-msgstr "قبول المدفوعات باستخدام جهاز الدفع Pine Labs"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Accept payments with a QFPay payment terminal"
-msgstr "قبول المدفوعات باستخدام جهاز الدفع QFPay"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -682,14 +681,14 @@ msgstr "رمز الوصول"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"Access printer configuration panel by putting this URL in your search bar:"
+"Access printer configuration panel by puttin this URL in your search bar:"
 msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"Access the below URL but replace [printer_ip] with your current Printer IP "
+"Access the below URL but replace [printer_ip] with your current Pritner IP "
 "address"
 msgstr ""
 
@@ -761,7 +760,7 @@ msgstr "إجراء مطلوب"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Action cancelled (%(ACTION)s)"
-msgstr "تم إلغاء الإجراء (%(ACTION)s)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -837,7 +836,7 @@ msgstr "إضافة بقشيش"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/control_buttons/orderline_note_button/orderline_note_button.js:0
 msgid "Add a "
-msgstr "قم بإضافة "
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_res_company__point_of_sale_ticket_unique_code
@@ -924,7 +923,7 @@ msgstr "إضافة واحدة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Add system parameter"
-msgstr "إضافة إعداد للنظام"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -935,7 +934,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/combo_configurator_popup/combo_configurator_popup.xml:0
 msgid "Add to order"
-msgstr "إضافة إلى الطلب"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -1007,7 +1006,7 @@ msgstr "جهاز دفع Adyen"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "After 19.1:"
-msgstr "بعد الإصدار 19.1:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1019,7 +1018,7 @@ msgstr "بعد الظهر"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/partner_list/partner_line/partner_line.xml:0
 msgid "All Orders"
-msgstr "كافة الطلبات"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_payment_method__all_providers_installed
@@ -1149,7 +1148,7 @@ msgstr "لقد تغير مبلخ %(old_pm)s من %(old_amount)s إلى%(new_amou
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/number_popup/number_popup.js:0
 msgid "Amount of guests"
-msgstr "عدد الضيوف"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_close_session_wizard__amount_to_balance
@@ -1224,12 +1223,12 @@ msgstr "معرف داخلي للطابعة"
 #. module: point_of_sale
 #: model:ir.model.constraint,message:point_of_sale.constraint_pos_order_line_unique_uuid
 msgid "An order line with this uuid already exists"
-msgstr "يوجد بند طلب يحمل هذا الرقم التعريفي الفريد بالفعل"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.constraint,message:point_of_sale.constraint_pos_order_unique_uuid
 msgid "An order with this uuid already exists"
-msgstr "يوجد طلب يحمل هذا الرقم التعريفي الفريد بالفعل"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1340,7 +1339,6 @@ msgstr "الحضور"
 #. module: point_of_sale
 #: model:ir.actions.act_window,name:point_of_sale.pos_product_attribute_action
 #: model:ir.ui.menu,name:point_of_sale.pos_menu_products_attribute_action
-#: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Attributes"
 msgstr "الخصائص"
 
@@ -1491,7 +1489,7 @@ msgstr "الواجهة الخلفية"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/order_payment_validation.js:0
 msgid "Backend Invoice"
-msgstr "فاتورة تم إصدارها عن طريق الواجهة الخلفية"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__customer_display_bg_img
@@ -1541,7 +1539,7 @@ msgstr "البنك"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_payment_method.py:0
 msgid "Bank App (QR Code)"
-msgstr "تطبيق البنك (رمز الاستجابة السريعة)"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__bank_payment_ids
@@ -1586,7 +1584,7 @@ msgstr "قاعدة الباركود"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Barcode Scanner"
-msgstr "ماسح الباركود"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -1614,19 +1612,19 @@ msgstr "الإيصال الأساسي"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Be aware that it works only on chromium based browser:"
-msgstr "يرجى العلم بأن هذه الميزة تعمل فقط على المتصفحات القائمة على Chrome:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.xml:0
 msgid "Be aware that reloading data will delete unsaved orders."
-msgstr "يرجى العلم أن إعادة تحميل البيانات سيؤدي إلى حذف الطلبات غير المحفوظة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Before 19.1:"
-msgstr "قبل الإصدار 19.1:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__cash_register_difference
@@ -1714,7 +1712,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Browser LNA Prompt"
-msgstr "موجه LNA للمتصفح"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.actions.act_window,help:point_of_sale.pos_product_combo_choice_action
@@ -1795,7 +1793,7 @@ msgstr "تم الإلغاء"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/order_summary/order_summary.js:0
 msgid "Cannot edit orderline"
-msgstr "لا يمكن تعديل بند الطلب"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1906,7 +1904,7 @@ msgstr "متجر أثاث (الدفع النقدي)"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
 msgid "Cash In"
-msgstr "الإيرادات"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1952,7 +1950,7 @@ msgstr "فتح النقد"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
 msgid "Cash Out"
-msgstr "النفقات"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1963,7 +1961,7 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
 msgid "Cash Rounding:"
-msgstr "تقريب النقد:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -1993,7 +1991,7 @@ msgstr "الفروقات النقدية التي تمت ملاحظتها عند 
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Cash drawer opened (%(ACTION)s)"
-msgstr "تم فتح درج النقود (%(ACTION)s)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -2135,7 +2133,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Check if"
-msgstr "تحديد إذا"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_product_product__available_in_pos
@@ -2154,13 +2152,13 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
 msgid "Check list"
-msgstr "قائمة مراجعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Check printer reachability:"
-msgstr "تحقق من إمكانية الوصول إلى الطابعة:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__cash_control
@@ -2185,8 +2183,6 @@ msgid ""
 "Check the printer configuration for the 'Device ID' setting.\n"
 "It should be set to: 'local_printer'"
 msgstr ""
-"تحقق من إعدادات الطابعة للتأكد من إعداد \"معرف الجهاز\".\n"
-"يجب أن يكون الإعداد على: \"local_printer\""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -2195,14 +2191,12 @@ msgid ""
 "Check the printer configuration for the 'Device ID' setting.\n"
 "It should be set to: local_printer"
 msgstr ""
-"تحقق من إعدادات الطابعة للتأكد من إعداد \"معرف الجهاز\".\n"
-"يجب أن يكون الإعداد كما يلي: local_printer"
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Checking Local Network Access permission..."
-msgstr "التحقق من إذن الوصول إلى الشبكة المحلية..."
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_cheese_croissant_product_template
@@ -2262,7 +2256,7 @@ msgstr "اختر كيفية طباعة رابط URL الخاص بالبوابة 
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/control_buttons/control_buttons.js:0
 msgid "Choose the tax you want to apply"
-msgstr "اختر الضريبة التي تريد تطبيقها"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -2315,7 +2309,6 @@ msgstr "العميل"
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/chose_combo_popup/chose_combo_popup.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/product_configurator_popup/product_configurator_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/product_info_popup/product_info_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/tour_selector_popup/tour_selector_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/customer_display/customer_display_qr_code_popup.xml:0
@@ -2358,7 +2351,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Close debug widget"
-msgstr "إغلاق أداة تصحيح الأخطاء"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields.selection,name:point_of_sale.selection__pos_session__state__closed
@@ -2416,7 +2409,7 @@ msgstr "إغلاق الجلسة"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Closing counted: %s \n"
-msgstr "الرصيد الختامي: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -2428,13 +2421,13 @@ msgstr "فرق الإغلاق في %(payment_method)s (%(session)s)"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Closing difference: %s \n"
-msgstr "فرق الرصيد الختامي: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Closing expected: %s \n"
-msgstr "الرصيد الختامي المتوقع: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -2590,7 +2583,6 @@ msgstr "تهيئة نقطة بيع واحدة على الأقل."
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/cash_move_popup/cash_move_popup.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/money_details_popup/money_details_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/number_popup/number_popup.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/select_default_printer_popup/select_default_printer_popup.xml:0
@@ -2625,7 +2617,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Connect printer to internet (Ethernet cable recommended)"
-msgstr "قم بوصل الطابعة بالإنترنت (يُوصى باستخدام كابل إيثرنت)"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
@@ -2646,7 +2638,6 @@ msgstr "الأجهزة المتصلة"
 
 #. module: point_of_sale
 #. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
 #: code:addons/point_of_sale/static/src/app/utils/error_handlers.js:0
 msgid "Connection Lost"
 msgstr "تم فقد الإتصال"
@@ -2719,8 +2710,6 @@ msgid ""
 "Continuous printing of high-density printing caused a printing error. Please "
 "retry later"
 msgstr ""
-"تسبب الطباعة المستمرة عالية الكثافة في حدوث خطأ في الطباعة. يرجى إعادة "
-"المحاولة لاحقًا"
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_payment__currency_rate
@@ -2822,7 +2811,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Create Product"
-msgstr "أنشئ منتجًا"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,website_form_label:point_of_sale.model_res_partner
@@ -3086,7 +3075,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "Daily Sale"
-msgstr "المبيعات اليومية"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
@@ -3102,7 +3091,7 @@ msgstr "تحتوي الجلسات اليومية على مبيعات من نقط
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.js:0
 msgid "Dangerous: Too Many Products"
-msgstr "خطير: عدد كبير جدًا من المنتجات"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.ui.menu,name:point_of_sale.menu_pos_dashboard
@@ -3113,7 +3102,7 @@ msgstr "لوحة البيانات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/models/utils/indexed_db.js:0
 msgid "Database Connection Lost"
-msgstr "فقد الاتصال بقاعدة البيانات"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3275,19 +3264,19 @@ msgstr "حذف الطلبات؟"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Delete all indexed DB"
-msgstr "حذف جميع قواعد البيانات المفهرسة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Delete paid orders"
-msgstr "حذف الطلبات المدفوعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Delete unpaid orders"
-msgstr "حذف الطلبات غير المدفوعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
@@ -3350,12 +3339,12 @@ msgstr "قم بتحديد ترتيب العرض فيجهاز الدفع الخا
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Device ID:"
-msgstr "معرف الجهاز:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__device_seq_id
 msgid "Device Sequence"
-msgstr "تسلسل الأجهزة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3399,13 +3388,13 @@ msgstr "تعطيل "
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Disable \"Redirect HTTP to HTTPS\""
-msgstr "تعطيل \"إعادة توجيه HTTP إلى HTTPS\""
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Disable debug mode"
-msgstr "تعطيل وضع تصحيح الأخطاء"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_pos_form
@@ -3529,7 +3518,7 @@ msgstr "اسم العرض"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/customer_display/customer_display_qr_code_popup.xml:0
 msgid "Display QR"
-msgstr "عرض QR"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -3542,7 +3531,7 @@ msgstr "قم بعرض وتحديث معلومات منتجاتك من خلال �
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__pos_iface_group_by_categ
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Display products grouped by categories."
-msgstr "عرض المنتجات مجمعة حسب الفئات."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__use_closing_entry_by_product
@@ -3583,19 +3572,19 @@ msgstr "تنزيل"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Download IDB Errors"
-msgstr "تنزيل أخطاء IDB"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Download IndexedDB error logs from localStorage"
-msgstr "تنزيل سجلات أخطاء IndexedDB من localStorage"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Download Logs"
-msgstr "تحميل السجلات"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_pos_form
@@ -3612,7 +3601,7 @@ msgstr "قم بتنزيل تقرير يحتوي على كافة مبيعات ج�
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Download logs"
-msgstr "تحميل السجلات"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3640,7 +3629,7 @@ msgstr "تحرير"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/partner_list/partner_line/partner_line.xml:0
 msgid "Edit Details"
-msgstr "تعديل التفاصيل"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -3652,7 +3641,7 @@ msgstr "تعديل الشريك"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/order_details_dialog/order_details_dialog.xml:0
 msgid "Edit Payment"
-msgstr "تعديل الدفع"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.actions.act_window,name:point_of_sale.product_template_action_edit_pos
@@ -3716,13 +3705,13 @@ msgstr "طلب فارغ"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Enable LNA on your database"
-msgstr "قم بتمكين LNA في قاعدة البيانات الخاصة بك"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__use_fast_payment
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__pos_use_fast_payment
 msgid "Enable fast payment methods to validate orders on the product screen."
-msgstr "قم بتمكين طرق الدفع السريعة للتحقق من صحة الطلبات على شاشة المنتج."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3731,8 +3720,6 @@ msgid ""
 "Enable the “Use Local Network Access” checkbox directly on the printer "
 "configuration."
 msgstr ""
-"قم بتفعيل خانة الاختيار \"استخدام الوصول إلى الشبكة المحلية\" مباشرةً في "
-"إعدادات الطابعة."
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_product_product__to_weight
@@ -3785,7 +3772,7 @@ msgstr "إدخال "
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Environment check"
-msgstr "فحص البيئة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_printer__printer_ip
@@ -3819,13 +3806,13 @@ msgstr "المتوقع"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Export PoS data"
-msgstr "تصدير بيانات نقاط البيع"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Export data"
-msgstr "تصدير البيانات"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_pos_form
@@ -3841,7 +3828,7 @@ msgstr "بيانات الضريبة الإضافية"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "Failed to print a test receipt. Check your printer."
-msgstr "فشلت عملية طباعة الإيصال التجريبي. تحقق من الطابعة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -3860,13 +3847,13 @@ msgstr "التسمية الاحتياطية"
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__fast_payment_method_ids
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__pos_fast_payment_method_ids
 msgid "Fast Payment Methods"
-msgstr "طرق الدفع السريعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__use_fast_payment
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__pos_use_fast_payment
 msgid "Fast Payment Validation"
-msgstr "التحقق السريع من الدفع"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__use_custom_receipt_info
@@ -3950,7 +3937,7 @@ msgstr "الطحين"
 #. module: point_of_sale
 #: model:product.template,description_sale:point_of_sale.product_flour_product_template
 msgid "Flour sold by the kilogram."
-msgstr "دقيق يباع بالكيلوغرام."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__message_follower_ids
@@ -4000,7 +3987,7 @@ msgstr "لشاشات اللمس غير الدقيقة."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_lines/payment_lines.js:0
 msgid "Force Cancel"
-msgstr "فرض الإلغاء"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -4039,7 +4026,7 @@ msgstr "مجاني"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/product_info_banner/product_info_banner.xml:0
 msgid "Free To Use:"
-msgstr "جاهز للاستخدام"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_product_combo__qty_free
@@ -4124,7 +4111,7 @@ msgstr "عد"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Google chrome, Microsoft Edge, Brave, Opera, Arc and others"
-msgstr "Google Chrome، Microsoft Edge، Brave، Opera، Arc وغيرها"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -4152,7 +4139,7 @@ msgstr "تجميع المنتجات في نقطة البيع"
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__iface_group_by_categ
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__pos_iface_group_by_categ
 msgid "Group products by categories"
-msgstr "تصنيف المنتجات حسب الفئات"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_ir_http
@@ -4212,7 +4199,7 @@ msgstr "إخفاء وسيلة كود QR"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/loader/critical_pos_error/critical_pos_error.xml:0
 msgid "Hide details"
-msgstr "إخفاء التفاصيل"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__group_pos_preset
@@ -4258,13 +4245,13 @@ msgstr "الساعة من اليوم للطلب"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "How to configure my devices properly:"
-msgstr "كيف أقوم بإعداد أجهزتي بشكل صحيح:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "How to configure my printers"
-msgstr "كيفية تكوين طابعاتي"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -4276,15 +4263,12 @@ msgstr "كيفية إدارة الأسعار الشاملة للضريبة"
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "I have access to my router configuration (To fix device IP addresses)"
 msgstr ""
-"يمكنني الوصول إلى إعدادات جهاز التوجيه الخاص بي (لإصلاح عناوين IP للأجهزة)"
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "I use an Epson printer (Check supported printers in Odoo documentation)"
 msgstr ""
-"أستخدم طابعة من طراز Epson (تحقق من الطابعات المدعومة التي تم ذكرها في وثائق "
-"أودو)"
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_account_account__id
@@ -4393,15 +4377,13 @@ msgid ""
 "If everything is correct, the Local Network Access status icon will turn "
 "green:"
 msgstr ""
-"إذا كان كل شيء صحيحًا، فسيتحول لون رمز حالة الوصول إلى الشبكة المحلية إلى "
-"اللون الأخضر:"
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
 "If the permission is denied, refreshing the PoS will show this notification:"
-msgstr "في حال تم رفض الإذن، سيظهر هذا الإشعار عند تحديث نقاط البيع:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -4410,14 +4392,12 @@ msgid ""
 "If the system parameter is set, but the browser doesn't support LNA, the PoS "
 "will show this notification:"
 msgstr ""
-"إذا تم تعيين إعدادات النظام، لكن المتصفح لا يدعم LNA، فسيعرض نظام نقاط البيع "
-"هذا الإشعار:"
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
-"If this endpoint does not return a 404 error and displays a blank page, "
+"If this endpoint does not returan a 404 error and displays a blank page, "
 "everything is ready."
 msgstr ""
 
@@ -4444,13 +4424,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "If you have the secure printing setting, disable it"
-msgstr "إذا كان لديك إعداد الطباعة الآمنة، فقم بتعطيله"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "If your database is version"
-msgstr "إذا كانت قاعدة البيانات الخاصة بك في الإصدار"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_category__image_512
@@ -4469,7 +4449,7 @@ msgstr "صورة 128"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Import data"
-msgstr "استيراد البيانات"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -4532,7 +4512,7 @@ msgstr "رسالة المعلومات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Install App"
-msgstr "تثبيت التطبيق"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.actions.act_window,help:point_of_sale.action_pos_payment_method_form
@@ -4743,7 +4723,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "It seems like you don't have enough rights to load data."
-msgstr "يبدو أنك لا تملك صلاحيات كافية لتحميل البيانات."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -4752,8 +4732,6 @@ msgid ""
 "It seems that no barcode nomenclature is set in your point of sale. You can "
 "add it in the settings of your shop."
 msgstr ""
-"يبدو أنه لم يتم تعيين أي تسمية للباركود في نقطة البيع الخاصة بك. يمكنك "
-"إضافتها في إعدادات متجرك."
 
 #. module: point_of_sale
 #. odoo-python
@@ -4772,7 +4750,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/printer/epson_printer.js:0
 msgid "It seems that the printer runs out of paper."
-msgstr "يبدو أن الورق قد نفد من الطابعة."
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.jean_jacket_product_template
@@ -4820,7 +4798,7 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid ""
 "Keep TLS settings enabled, otherwise the printer will not work with HTTPS."
-msgstr "حافظ على تمكين إعدادات TLS، وإلا فلن تعمل الطابعة مع HTTPS."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -4848,19 +4826,19 @@ msgstr "LNA"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "LNA Green Status"
-msgstr "حالة LNA الخضراء"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.js:0
 msgid "LNA Permission status"
-msgstr "حالة إذن LNA"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "LNA not supported message"
-msgstr "رسالة تفيد بعدم دعم LNA"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_payment__name
@@ -4887,7 +4865,7 @@ msgstr "لابتوب موديل X"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.js:0
 msgid "Large Product Count Detected"
-msgstr "تم الكشف عن عدد كبير من المنتجات"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__iface_big_scrollbars
@@ -4952,7 +4930,7 @@ msgstr "آخر تحديث في"
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__last_data_change
 msgid "Last Write Date"
-msgstr "تاريخ آخر كتابة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__last_order_preparation_change
@@ -5060,7 +5038,7 @@ msgstr "رقم البند"
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Link Cashdrawer"
-msgstr "ربط درج النقد"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_product_uom
@@ -5077,7 +5055,7 @@ msgstr "تم نسخ الرابط إلى الحافظة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Link your printers to your POS (ePOS)"
-msgstr "اربط طابعاتك بنظام نقاط البيع (ePOS)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -5132,14 +5110,12 @@ msgid ""
 "Local IP address of an Epson receipt printer, or its serial number if the "
 "'Automatic Certificate Update' option is enabled in the printer settings."
 msgstr ""
-"عنوان IP المحلي لطابعة إيصالات Epson، أو رقمها التسلسلي إذا تم تمكين خيار "
-"”التحديث التلقائي للشهادة“ في إعدادات الطابعة."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Local Network Access"
-msgstr "الوصول إلى الشبكة المحلية"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5151,10 +5127,6 @@ msgid ""
 "browser communicate with \n"
 "                your devices without the need for importing certificates."
 msgstr ""
-"الوصول إلى الشبكة المحلية (LNA) هي ميزة في Chrome تسمح لمتصفحك بالتواصل \n"
-"                مباشرة مع شبكتك المحلية. وهذا يعني أنه يمكنك جعل متصفحك "
-"يتواصل مع \n"
-"                أجهزتك دون الحاجة إلى استيراد الشهادات."
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5165,9 +5137,6 @@ msgid ""
 "feature. Please note that IOS devices do not support Local Network Access "
 "yet."
 msgstr ""
-"تم تمكين تكوين الوصول إلى الشبكة المحلية، ولكن متصفحك لا يعتمد على Chromium. "
-"يرجى استخدام متصفح يعتمد على Chromium للاستفادة من هذه الميزة. يرجى ملاحظة "
-"أن أجهزة IOS لا تدعم الوصول إلى الشبكة المحلية حتى الآن."
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5176,20 +5145,18 @@ msgid ""
 "Local Network Access is enabled for this POS, but your browser version does "
 "not support it. Please update your browser to the latest version."
 msgstr ""
-"تم تمكين الوصول إلى الشبكة المحلية لنقطة البيع هذه، ولكن إصدار متصفحك لا "
-"يدعمها. يرجى تحديث متصفحك إلى أحدث إصدار."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Local Network Access is not configured for this POS."
-msgstr "لم تتم تهيئة إعدادات الوصول إلى الشبكة المحلية لنقطة البيع هذه."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/init_lna.js:0
 msgid "Local Network Access permission granted."
-msgstr "تم منح إذن الوصول إلى الشبكة المحلية."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5198,8 +5165,6 @@ msgid ""
 "Local Network Access permission is denied. Some hardware devices might not "
 "work properly. Please allow Local Network Access in your browser settings."
 msgstr ""
-"تم رفض إذن الوصول إلى الشبكة المحلية. قد لا تعمل بعض الأجهزة بشكل صحيح. يرجى "
-"السماح بالوصول إلى الشبكة المحلية في إعدادات المتصفح."
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5209,8 +5174,6 @@ msgid ""
 "might not work properly. Please allow Local Network Access in your browser "
 "settings."
 msgstr ""
-"لم يتم منح إذن الوصول إلى الشبكة المحلية بعد. قد لا تعمل بعض الأجهزة بشكل "
-"صحيح. يرجى السماح بالوصول إلى الشبكة المحلية في إعدادات المتصفح."
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_config_view_form
@@ -5238,7 +5201,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "Low voltage unrecoverable error occured, please check the printer"
-msgstr "حدث خطأ لا يمكن إصلاحه بسبب انخفاض الجهد الكهربائي، يرجى فحص الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:pos.category,name:point_of_sale.pos_category_lower
@@ -5361,7 +5324,7 @@ msgstr "تم الوصول إلى القيمة القصوى"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "Mechanical error, please check the printer"
-msgstr "خطأ ميكانيكي، يرجى التحقق من الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
@@ -5383,14 +5346,6 @@ msgstr "الرسالة"
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__message_has_error
 msgid "Message Delivery error"
 msgstr "خطأ في تسليم الرسائل"
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/controllers/main.py:0
-msgid ""
-"Message: %(messages)s\n"
-"Please update the %(invalid_fields)s"
-msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__message_ids
@@ -5417,7 +5372,7 @@ msgstr "متفرقات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/order_payment_validation.js:0
 msgid "Missing required"
-msgstr "إحدى المتطبات مفقودة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__mobile
@@ -5487,19 +5442,19 @@ msgstr "جلساتي"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "My browser is above version 142"
-msgstr "إصدار متصفحي أعلى من 142"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "My browser is chromium based (Chrome, Edge, Brave, etc.)"
-msgstr "متصفحي قائم على كروم (Chrome، Edge، Brave، إلخ)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "My printer can be connected through ethernet cables (recommended)"
-msgstr "يمكن توصيل طابعتي عبر كابلات إيثرنت (موصى به)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5646,7 +5601,7 @@ msgstr "قائمة الطلبات التالية"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Next number:"
-msgstr "الرقم التالي:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5728,7 +5683,7 @@ msgstr "لا توجد أي بيانات بعد!"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_order.py:0
 msgid "No invoice journal configured for this POS session."
-msgstr "لم يتم تكوين دفتر يومية لفواتير جلسة نقطة البيع هذه."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -5771,7 +5726,7 @@ msgstr "لم يتم العثور على منتجات أخرى لـ \"%s\"."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.xml:0
 msgid "No products found for"
-msgstr "لم يتم العثور على منتجات لـ"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5795,13 +5750,13 @@ msgstr "لم يتم العثور على جلسات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/preset_slots_popup/preset_slots_popup.xml:0
 msgid "No slot available for this day"
-msgstr "لا توجد فترة زمنية متاحة لهذا اليوم"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/wizard/pos_make_invoice.py:0
 msgid "No valid orders were selected. No new invoices could be generated"
-msgstr "لم يتم تحديد أي طلبات صالحة. لم يتم إنشاء أي فواتير جديدة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__barcode_nomenclature_id
@@ -5818,7 +5773,7 @@ msgstr "لا شيء"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_payment_method.py:0
 msgid "None required"
-msgstr "لا شيء مطلوب"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_report_pos_order_search
@@ -5846,7 +5801,7 @@ msgstr "غير متاح"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/printer/base_printer.js:0
 msgid "Not implemented"
-msgstr "لم يتم التنفيذ"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields.selection,name:point_of_sale.selection__pos_preset__identification__none
@@ -5878,7 +5833,7 @@ msgstr "الملاحظات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Now your printer is properly configured to work with LNA"
-msgstr "الآن أصبحت الطابعة مهيأة بشكل صحيح للعمل مع LNA"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5949,7 +5904,7 @@ msgstr "عدد المعاملات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Number stack:"
-msgstr "مجموعة الأرقام:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -5986,7 +5941,7 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "One-click Payment"
-msgstr "الدفع بنقرة واحدة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6006,19 +5961,11 @@ msgid ""
 "Online payment, delivery payment, terminal payment, and methods that require "
 "customer identification are not supported for fast payment validation."
 msgstr ""
-"لا يتم دعم طرق الدفع عبر الإنترنت والدفع عند التسليم والدفع عبر أجهزة الدفع "
-"والطرق التي تتطلب تحديد هوية العميل لإجراء التحقق السريع من صحة الدفع."
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Online reservation for Point of Sale"
 msgstr "الحجز عبر الإنترنت من خلال نقطة البيع"
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "Only Point of Sale managers can modify a Point of Sale configuration."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6082,7 +6029,7 @@ msgstr "فتح"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_screen.xml:0
 msgid "Open Cashbox"
-msgstr "فتح صندوق النقد"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6113,7 +6060,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Open debug widget"
-msgstr "فتح أداة تصحيح الأخطاء"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6125,7 +6072,7 @@ msgstr "فتح النافذة المنبثقة لتفاصيل الأموال"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Open your POS and try to print a ticket"
-msgstr "افتح جهاز نقاط البيع وحاول طباعة إيصال"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_session__user_id
@@ -6178,19 +6125,19 @@ msgstr "النقد الافتتاحي"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Opening cash counted: %s \n"
-msgstr "الرصيد الافتتاحي: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Opening cash difference: %s \n"
-msgstr "فرق الرصيد الافتتاحي: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Opening cash expected: %s \n"
-msgstr "الرصيد الافتتاحي المتوقع: %s \n"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -6248,7 +6195,7 @@ msgstr "لم يتم دفع مبلغ الطلب %s كلياً."
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__order_backend_seq_id
 msgid "Order Backend Sequence"
-msgstr "تسلسل الطلبات في الواجهة الخلفية"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_make_invoice__count
@@ -6278,7 +6225,7 @@ msgstr ""
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__order_line_seq_id
 msgid "Order Line Sequence"
-msgstr "تسلسل بنود الطلب"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__lines
@@ -6350,7 +6297,7 @@ msgstr "بنود الطلب"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Order saved for later"
-msgstr "طلب محفوظ لوقت لاحق"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_preset_form
@@ -6459,7 +6406,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "POS LNA denied message"
-msgstr "رسالة رفض نقاط البيع LNA"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_product_product__pos_optional_product_ids
@@ -6537,25 +6484,25 @@ msgstr "جلسات نقطة البيع"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid "POS device from config #%s"
-msgstr "جهاز نقاط البيع من التهيئة #%s"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid "POS order backend from config #%s"
-msgstr "طلب الواجهة الخلفية لنقطة البيع من التهيئة #%s"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid "POS order from config #%s"
-msgstr "طلب نقطة البيع من التهيئة #%s"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid "POS order line from config #%s"
-msgstr "بند طلب نقطة البيع من التهيئة #%s"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.actions.server,name:point_of_sale.ir_cron_snooze_cleanup_ir_actions_server
@@ -6787,7 +6734,7 @@ msgstr "طرق الدفع"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "Payments in"
-msgstr "المدفوعات في"
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_pecan_pie_product_template
@@ -6822,7 +6769,7 @@ msgstr "Pine Labs"
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__module_pos_pine_labs
 msgid "Pine Labs Payment Terminal"
-msgstr "جهاز الدفع Pine Labs"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -6934,13 +6881,13 @@ msgstr "يرجى طباعة الفاتورة من الواجهة الخلفية"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_status/payment_status.xml:0
 msgid "Please select a payment method"
-msgstr "يرجى اختيار طريقة دفع"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/models/pos_order.js:0
 msgid "Please select a time slot before proceeding."
-msgstr "يرجى تحديد فترة زمنية قبل المتابعة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -7186,7 +7133,7 @@ msgstr "نقاط البيع"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Point of sale configuration:"
-msgstr "تهيئة نقطة البيع:"
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,description_sale:point_of_sale.product_crocheted_poncho_unisize_product_template
@@ -7224,11 +7171,6 @@ msgstr "طلب نقطة البيع"
 #: model:ir.model.fields,field_description:point_of_sale.field_res_users__pos_order_count
 msgid "Pos Order Count"
 msgstr "عدد طلبات نقطة البيع"
-
-#. module: point_of_sale
-#: model:ir.model.fields,field_description:point_of_sale.field_account_tax__pos_order_line_ids
-msgid "Pos Order Line"
-msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_account_bank_statement_line__pos_payment_ids
@@ -7296,7 +7238,7 @@ msgstr "مُرحّل"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "Powered by"
-msgstr "مشغل بواسطة"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_order_receipt_footer
@@ -7490,7 +7432,7 @@ msgstr "طباعة الإيصال"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 msgid "Print Report"
-msgstr "طباعة التقرير"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -7566,7 +7508,7 @@ msgstr "فئات المنتجات المطبوعة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Printer Checkbox"
-msgstr "مربع اختيار الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -7583,7 +7525,7 @@ msgstr "اسم الطابعة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Printer Password Location"
-msgstr "موقع كلمة مرور الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_printer__printer_type
@@ -7594,18 +7536,18 @@ msgstr "نوع الطابعة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "Printer cover is open, please close it before printing"
-msgstr "غطاء الطابعة مفتوح، يرجى إغلاقه قبل الطباعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/printer/epson_printer.js:0
 msgid "Printer cover is open. Please close it and try again!"
-msgstr "غطاء الطابعة مفتوح. يرجى إغلاقه والمحاولة مرة أخرى!"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
-msgid "Printer's local IP address is printed"
+msgid "Printer's local IP address is printerd"
 msgstr ""
 
 #. module: point_of_sale
@@ -7647,7 +7589,7 @@ msgstr "الاستمرار بأي حال"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/feedback_screen/feedback_screen.xml:0
 msgid "Processing..."
-msgstr "جاري المعالجة..."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_product_template
@@ -7826,7 +7768,7 @@ msgstr "QFPay"
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__module_pos_qfpay
 msgid "QFPay Payment Terminal"
-msgstr "جهاز الدفع QFPay"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -7884,7 +7826,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.xml:0
 msgid "Quickly refresh essential data."
-msgstr "قم بتحديث البيانات الأساسية بكل سهولة."
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_cash_move_receipt
@@ -8040,7 +7982,7 @@ msgstr "تحديث "
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/debug/debug_widget.xml:0
 msgid "Refresh customer display"
-msgstr "تحديث شاشة العملاء"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8138,9 +8080,6 @@ msgstr "إعادة تحميل"
 #: code:addons/point_of_sale/static/src/app/components/navbar/navbar.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/confirmation_dialog/confirmation_dialog.js:0
 #: code:addons/point_of_sale/static/src/app/components/popups/confirmation_dialog/confirmation_dialog.xml:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.xml:0
-#: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid "Reload Data"
 msgstr "إعادة تحميل البيانات:"
 
@@ -8154,13 +8093,12 @@ msgstr "إعادة تحميل قائمة نقطة البيع"
 #: code:addons/point_of_sale/static/src/app/components/popups/sync_popup/sync_popup.xml:0
 msgid "Reload all data (may take longer depending on the amount of data)."
 msgstr ""
-"إعادة تحميل كافة البيانات (قد يستغرق وقتاً أطول بناءً على كمية البيانات)."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/loader/critical_pos_error/critical_pos_error.xml:0
 msgid "Reload data"
-msgstr "إعادة تحميل البيانات:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8361,7 +8299,6 @@ msgstr "التقريب"
 #: code:addons/point_of_sale/static/src/app/components/tour_selector_popup/tour_selector_popup.xml:0
 msgid "Running a fake tour will create random orders. Use at your own risk."
 msgstr ""
-"سيؤدي إجراء جولة وهمية إلى إنشاء أوامر عشوائية. استخدمها على مسؤوليتك الخاصة."
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_rye_bread_product_template
@@ -8389,13 +8326,13 @@ msgstr "تم بيعها:"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "SSL Settings"
-msgstr "إعدادات SSL"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "SSL/TLS > Basic"
-msgstr "SSL/TLS > أساسي"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_report_pos_order__nbr_lines
@@ -8481,7 +8418,7 @@ msgstr "مسح "
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/customer_display/customer_display_qr_code_popup.xml:0
 msgid "Scan QR"
-msgstr "مسح رمز QR"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8544,12 +8481,6 @@ msgstr "البحث عن المنتجات..."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Secure printing"
-msgstr "الطباعة الآمنة"
-
-#. module: point_of_sale
-#. odoo-javascript
-#: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
-msgid "Secure printing enabled"
 msgstr ""
 
 #. module: point_of_sale
@@ -8604,7 +8535,7 @@ msgstr "اختيار قائمة الأسعار"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/ticket_screen/ticket_screen.xml:0
 msgid "Select the product(s) to refund and set the quantity"
-msgstr "قم بتحديد المنتج (المنتجات) لاسترداد قيمتها وتحديد الكمية"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order_line__attribute_value_ids
@@ -8626,11 +8557,6 @@ msgstr "لا تتأثر واجهات الطلب الذاتي."
 #: model:ir.model.fields,field_description:point_of_sale.field_res_config_settings__point_of_sale_use_ticket_qr_code
 msgid "Self-service invoicing"
 msgstr "فوترة الخدمة الذاتية"
-
-#. module: point_of_sale
-#: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
-msgid "Sell variants of a product using attributes (size, color, etc.)."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -8760,7 +8686,7 @@ msgstr "إحصائيات الجلسة"
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "Session already closed"
-msgstr "تم إغلاق الجلسة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:mail.activity.type,name:point_of_sale.mail_activity_old_session
@@ -8895,7 +8821,7 @@ msgstr "معجنات مع حشوة كرز موريلو."
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "Shortcut to skip payment screen"
-msgstr "اختصار لتخطي شاشة الدفع"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__show_category_images
@@ -8930,7 +8856,7 @@ msgstr "إظهار صور الفئات في واجهة نقطة البيع."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/loader/critical_pos_error/critical_pos_error.xml:0
 msgid "Show details"
-msgstr "إظهار التفاصيل"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__module_pos_hr
@@ -9007,7 +8933,7 @@ msgstr "عجينة طرية مع حشوة القرفة بالزبدة، مغطا
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_order.py:0
 msgid "Some orders are already being invoiced. Please try again later."
-msgstr "بعض الطلبات قيد الفوترة بالفعل. يرجى المحاولة مرة أخرى لاحقًا."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9034,19 +8960,16 @@ msgstr ""
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/main.js:0
-#: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid ""
 "Some paid orders have not been synced to the server yet. Closing or "
 "reloading now may cause data loss."
 msgstr ""
-"لم تتم مزامنة بعض الطلبات المدفوعة مع الخادم بعد. قد يؤدي إغلاق الصفحة أو "
-"إعادة تحميلها الآن إلى فقدان البيانات."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/order_payment_validation.js:0
 msgid "Some required information is missing."
-msgstr "بعض المعلومات المطلوبة غير موجودة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9062,7 +8985,6 @@ msgid ""
 "Something went wrong... If you really are stuck, share the report with your "
 "friendly support service"
 msgstr ""
-"حدث خطأ ما... إذا كنت حقاً عالقاً، قم بمشاركة التقرير مع خدمة الدعم الودودة"
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.product_sourdough_loaf_product_template
@@ -9231,7 +9153,7 @@ msgstr "فطيرة حلوة محشوة بالبقان، مع حشوة غنية �
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "System Parameter Setup"
-msgstr "إعداد معلمات النظام"
+msgstr ""
 
 #. module: point_of_sale
 #: model:product.template,name:point_of_sale.t_shirt_slim_product_template
@@ -9433,12 +9355,6 @@ msgstr "شكراً لك."
 
 #. module: point_of_sale
 #. odoo-python
-#: code:addons/point_of_sale/controllers/main.py:0
-msgid "The %s must be filled in your details."
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
 #: code:addons/point_of_sale/models/pos_category.py:0
 msgid "The Availability After must be set between 00:00 and 24:00"
 msgstr "يجب أن يتم تعيين \"متوفر بعد\" بين 00:00 و 24:00"
@@ -9485,7 +9401,7 @@ msgstr "تدعم نقطة البيع فقط استراتيجية تقريب \"إ
 #. odoo-python
 #: code:addons/point_of_sale/controllers/main.py:0
 msgid "The Ticket Number should be at least 12 characters long."
-msgstr "يجب أن يتكون رقم التذكرة من 12 حرف على الأقل."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9506,9 +9422,6 @@ msgid ""
 "The rounding precision is %(rounding)s so you should set %(expectedAmount)s "
 "as payment amount instead of %(paidAmount)s."
 msgstr ""
-"يجب تقريب مبلغ بنود الدفع الخاصة بك حتى تتمكن من تصديق المعاملة.\n"
-"دقة التقريب هي %(rounding)s ، لذا يجب عليك تعيين %(expectedAmount)s كمبلغ "
-"الدفع بدلاً من %(paidAmount)s."
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_payment__card_brand
@@ -9519,7 +9432,7 @@ msgstr "العلامة التجارية للبطاقة المستخدمة للد
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_config.py:0
 msgid "The company must have a fiscal country set."
-msgstr "يجب أن يكون لدى الشركة بلد ضريبي محدد."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9528,14 +9441,12 @@ msgid ""
 "The connection to the local database was lost. Reloading the page will "
 "restore it and prevent any loss of unsaved orders."
 msgstr ""
-"انقطع الاتصال بقاعدة البيانات المحلية. ستؤدي إعادة تحميل الصفحة إلى استعادة "
-"الاتصال ومنع فقدان أي طلبات لم يتم حفظها."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "The cutter has a foreign matter, please check the cutter mechanism"
-msgstr "يوجد جسم غريب في القاطع، يرجى فحص آلية القاطع"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -9567,7 +9478,7 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid ""
 "The device is not connected, please check the printer power / connection"
-msgstr "الجهاز غير متصل، يرجى التحقق من طاقة/اتصال الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -9664,7 +9575,7 @@ msgstr "يجب أن تكون الكمية القصوى للكومبو أكبر �
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "The message will appear from the browser."
-msgstr "ستظهر الرسالة من المتصفح."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9728,13 +9639,13 @@ msgstr "يختلف المبلغ المدفوع عن المبلغ الإجمال�
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "The paper is empty, please load paper into the printer"
-msgstr "الورق فارغ، يرجى تحميل الورق في الطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "The password is located on the back of the printer (remove covers)."
-msgstr "كلمة المرور موجودة على الجزء الخلفي من الطابعة (قم بإزالة الأغطية)."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -9758,7 +9669,7 @@ msgstr ""
 #: code:addons/point_of_sale/models/pos_payment_method.py:0
 msgid ""
 "The points of sale for the payment method %s must belong to its company."
-msgstr "يجب أن تنتمي نقاط البيع الخاصة بطريقة الدفع %s إلى شركتها."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_account_bank_statement_line__reversed_pos_order_id
@@ -9787,13 +9698,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/utils/printer/epson_printer.js:0
 msgid "The printer is not reachable."
-msgstr "لا يمكن الوصول إلى الطابعة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "The printers are properly configured and the LNA is activated."
-msgstr "تم تهيئة الطابعات بشكل صحيح وتم تنشيط LNA."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_category__hour_after
@@ -9829,12 +9740,6 @@ msgstr "سوف يتم تخطي شاشة الإيصال إذا كان من الم
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__pos_iface_print_auto
 msgid "The receipt will automatically be printed at the end of each order."
 msgstr "ستتم طباعة الإيصال تلقائياً عند نهاية كل طلب."
-
-#. module: point_of_sale
-#. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.js:0
-msgid "The register cannot be opened while offline. Please try again."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -9981,7 +9886,7 @@ msgstr ""
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.res_config_settings_view_form
 msgid "The transactions are processed by QFPay on the terminal."
-msgstr "تتم معالجة المعاملات بواسطة QFPay على جهاز الدفع."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__module_pos_qfpay
@@ -9989,8 +9894,6 @@ msgid ""
 "The transactions are processed by QFPay. Set your QFPay credentials on the "
 "related payment method."
 msgstr ""
-"تتم معالجة المعاملات بواسطة QFPay. قم بتعيين بيانات اعتماد QFPay الخاصة بك "
-"على طريقة الدفع ذات الصلة."
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__module_pos_razorpay
@@ -10042,9 +9945,6 @@ msgid ""
 "(limit)s). Loading all products may slow down the Point of Sale. Do you want "
 "to continue with Full Synchronization?"
 msgstr ""
-"توجد %(count)s منتجات متاحة لنقطة البيع هذه (الحد الذي تم تهيئته في النظام: %"
-"(limit)s). قد يؤدي تحميل جميع المنتجات إلى إبطاء أداء نقطة البيع. هل ترغب في "
-"متابعة عملية المزامنة الكاملة؟"
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10055,10 +9955,6 @@ msgid ""
 "may cause it to crash or become unresponsive. It is strongly recommended to "
 "use Limited Synchronization instead. Do you still want to proceed?"
 msgstr ""
-"توجد %(count)sمنتجات متاحة في نقطة البيع هذه (الحد الذي تم تعيينه: %"
-"(limit)s). سيؤدي تحميل هذا العدد الكبير من المنتجات إلى إبطاء النظام بشكل "
-"كبير، وقد يتسبب في تعطله أو عدم استجابته. يوصى بشدة باستخدام ”المزامنة "
-"المحدودة“ بدلاً من ذلك. هل ما زلت ترغب في المتابعة؟"
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10140,13 +10036,6 @@ msgstr ""
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__fast_payment_method_ids
 #: model:ir.model.fields,help:point_of_sale.field_res_config_settings__pos_fast_payment_method_ids
 msgid "These payment methods will be available for fast payment"
-msgstr "ستكون طرق الدفع هذه متاحة للدفع السريع"
-
-#. module: point_of_sale
-#. odoo-javascript
-#: code:addons/point_of_sale/static/src/app/components/popups/error_dialog/error_dialog.js:0
-msgid ""
-"This action will delete all unsaved orders and other locally stored data"
 msgstr ""
 
 #. module: point_of_sale
@@ -10173,7 +10062,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/customer_display/customer_display_qr_code_popup.xml:0
 msgid "This device"
-msgstr "هذا الجهاز"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__amount_authorized_diff
@@ -10262,7 +10151,7 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/app/services/pos_store.js:0
 msgid ""
 "This order is currently syncing, please wait a moment before loading it."
-msgstr "يتم حالياً مزامنة هذا الطلب، يرجى الانتظار قليلاً قبل تحميله."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10278,7 +10167,7 @@ msgstr "هذا الطلب غير متزامن في الخادم بعد. تأكد
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/order_summary/order_summary.js:0
 msgid ""
 "This orderline has already been sent to the kitchen and cannot be edited."
-msgstr "تم إرسال هذا الطلب إلى المطبخ ولا يمكن تعديله."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -10342,7 +10231,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/test_epos/test_epos.js:0
 msgid "Timeout occured, please try again"
-msgstr "حدثت فترة توقف مؤقتة، يرجى المحاولة مرة أخرى"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10465,7 +10354,7 @@ msgstr ""
 #: code:addons/point_of_sale/static/src/app/screens/payment_screen/payment_screen.js:0
 msgid ""
 "To enable invoice creation, please add a journal for it in the settings."
-msgstr "لتمكين عملية إنشاء الفواتير، يرجى إضافة دفتر يوميات لها في الإعدادات."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_order__to_invoice
@@ -10783,7 +10672,7 @@ msgstr "إلى أن تتم إعادة الاتصال، ستعمل نقطة بي�
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "Update the printer firmware"
-msgstr "تحديث البرنامج الثابت للطابعة"
+msgstr ""
 
 #. module: point_of_sale
 #: model:pos.category,name:point_of_sale.pos_category_upper
@@ -10869,7 +10758,7 @@ msgstr "ضريبة القيمة المضافة"
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
 msgid "VAT:"
-msgstr "ضريبة القيمة المضافة:"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -10884,8 +10773,6 @@ msgid ""
 "Validation Error: You cannot assign the same Cash payment method to multiple "
 "POS Shops. Please create a separate Cash payment method for each shop."
 msgstr ""
-"تعذر الحفظ: تعيين طريقة الدفع النقدي ذاتها لأكثر من متجر نقاط بيع غير مسموح. "
-"يُرجى إنشاء طريقة دفع نقدي خاصة بكل متجر."
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_bill__value
@@ -10956,7 +10843,7 @@ msgstr "تحذير، المبلغ المدفوع أعلى من المبلغ ال
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "We duly advise you to use Chrome or Brave browser."
-msgstr "ننصحك بشدة باستخدام متصفح Chrome أو Brave."
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,field_description:point_of_sale.field_pos_config__custom_website
@@ -11003,7 +10890,7 @@ msgstr "مرحباً."
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "What is it?"
-msgstr "ما هو؟"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model.fields,help:point_of_sale.field_pos_config__is_margins_costs_accessible_to_every_user
@@ -11044,7 +10931,7 @@ msgstr "Wholemeal loaf"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/customer_display/customer_display.xml:0
 msgid "With a"
-msgstr "بـ"
+msgstr ""
 
 #. module: point_of_sale
 #: model:ir.model,name:point_of_sale.model_resource_calendar_attendance
@@ -11055,7 +10942,7 @@ msgstr "تفاصيل العمل"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/retry_print_popup/retry_print_popup.xml:0
 msgid "Would you like to continue without printing or retry?"
-msgstr "هل ترغب في المتابعة دون طباعة أو إعادة المحاولة؟"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_session_sales_details
@@ -11099,7 +10986,6 @@ msgid ""
 "You can either use it on this device or scan the QR code to display it on "
 "another device"
 msgstr ""
-"يمكنك استخدامه على هذا الجهاز أو مسح رمز الاستجابة السريعة لعرضه على جهاز آخر"
 
 #. module: point_of_sale
 #. odoo-python
@@ -11108,13 +10994,12 @@ msgid ""
 "You can not archive this journal because it is set on the following payment "
 "method : %s."
 msgstr ""
-"لا يمكنك أرشفة دفتر اليومية هذا لأنه قد تم ضبطه على طريقة الدفع التالية: %s."
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.js:0
 msgid "You can not change the %s of the refund order."
-msgstr "لا يمكنك تغيير عنوان المستلم ( %s ) الخاص بأمر الاسترداد."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11154,8 +11039,6 @@ msgid ""
 "You can't reset this invoice to draft because the POS session is still open. "
 "Please close the ongoing session first, then try again."
 msgstr ""
-"لا يمكنك إعادة تعيين هذه الفاتورة إلى مسودة لأن جلسة نقطة البيع لا تزال "
-"مفتوحة. يرجى إغلاق الجلسة الجارية أولاً، ثم حاول مرة أخرى."
 
 #. module: point_of_sale
 #. odoo-python
@@ -11177,8 +11060,6 @@ msgid ""
 "You cannot archive a product that is set as a special product in a Point of "
 "Sale configuration. Please change the configuration first."
 msgstr ""
-"لا يمكنك أرشفة منتج تم تعيينه كمنتج خاص في إعدادات نقطة البيع. يرجى تغيير "
-"الإعدادات أولاً."
 
 #. module: point_of_sale
 #. odoo-python
@@ -11229,8 +11110,6 @@ msgid ""
 "You cannot delete a customer that has point of sales orders. You can archive "
 "it instead."
 msgstr ""
-"لا يمكنك حذف عميل لديه أوامر بيع في نقطة البيع. يمكنك أرشفة الحساب عوضاً عن "
-"ذلك."
 
 #. module: point_of_sale
 #. odoo-python
@@ -11250,19 +11129,13 @@ msgstr "لا يمكنك حذف طريقة تقريب مستخدمة في تهي�
 #. odoo-python
 #: code:addons/point_of_sale/models/ir_sequence.py:0
 msgid "You cannot delete a sequence used in an active POS config: %s"
-msgstr "لا يمكنك حذف تسلسل مستخدم في تهيئة نقطة بيع نشطة: %s"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_payment.py:0
 msgid "You cannot edit a payment for a posted order."
 msgstr "لا يمكنك تعديل مدفوعات لطلب تم ترحيله."
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_order_line.py:0
-msgid "You cannot refund more than the outstanding quantity for this product."
-msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11312,7 +11185,7 @@ msgstr "لا تملك صلاحية الوصول إلى- بيانات التحك�
 #. odoo-python
 #: code:addons/point_of_sale/models/pos_session.py:0
 msgid "You don't have the access rights to perform a cash in/out."
-msgstr "لا تملك صلاحيات الوصول اللازمة لإجراء عمليات الإيداع/السحب."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11378,7 +11251,7 @@ msgstr "عليك تعيين نقطة بيع لجلستك."
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 #: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.xml:0
 msgid "You still have"
-msgstr "لا يزال لديك"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11458,7 +11331,7 @@ msgstr "خصم"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/orderline/orderline.xml:0
 msgid "discount off on"
-msgstr "خصم على"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_partner_form_pos_ui
@@ -11493,7 +11366,7 @@ msgstr "مثلاً: عنوان الشركة، موقع الشركة"
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_preset_form
 msgid "e.g. Dine in"
-msgstr "على سبيل المثال: تناول الطعام في المطعم"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_printer_form
@@ -11519,13 +11392,13 @@ msgstr "مثال: المشروبات الغازية"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "ePOS print enabled"
-msgstr "تم تمكين الطباعة عبر ePOS"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "ePOS printers (Epson) configuration"
-msgstr "تكوين طابعات ePOS (إبسون)"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11542,7 +11415,7 @@ msgstr "ePoS"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "ePoS Printer Service"
-msgstr "خدمة طابعات ePoS"
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.view_pos_pos_form
@@ -11564,7 +11437,7 @@ msgstr "external_qr"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/send_receipt_popup/send_receipt_popup.xml:0
 msgid "failed. Please try again"
-msgstr "فشلت. يرجى المحاولة مجدداً."
+msgstr ""
 
 #. module: point_of_sale
 #: model_terms:ir.ui.view,arch_db:point_of_sale.ticket_validation_screen
@@ -11598,7 +11471,7 @@ msgstr "http://[printer_ip]/cgi-bin/epos/service.cgi?devid=local_printer"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "iOS devices (iPad, iPhones) are not compatible yet."
-msgstr "أجهزة iOS (iPad وiPhone) غير متوافقة حتى الآن."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-python
@@ -11612,13 +11485,13 @@ msgstr "المعرف"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/send_receipt_popup/send_receipt_popup.xml:0
 msgid "in progress"
-msgstr "قيد التنفيذ"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/screens/product_screen/product_screen.xml:0
 msgid "in this category."
-msgstr "في هذه الفئة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11636,7 +11509,7 @@ msgstr "تثبيت شجرة حسابات"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "is enabled"
-msgstr "مفعّل"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11664,24 +11537,12 @@ msgstr "ملاحظة"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/opening_control_popup/opening_control_popup.xml:0
 msgid "open orders for the next few days."
-msgstr "الطلبات المفتوحة للأيام القليلة القادمة."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/app/components/popups/closing_popup/closing_popup.xml:0
 msgid "open orders planned for later."
-msgstr "الطلبات المفتوحة التي يتم التخطيط لها لاحقًا."
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "order"
-msgstr ""
-
-#. module: point_of_sale
-#. odoo-python
-#: code:addons/point_of_sale/models/pos_config.py:0
-msgid "orders"
 msgstr ""
 
 #. module: point_of_sale
@@ -11738,7 +11599,7 @@ msgstr "جهاز الدفع "
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/pos_kanban_view/pos_kanban_view.xml:0
 msgid "to activate the buttons."
-msgstr "لتفعيل الأزرار."
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11755,7 +11616,7 @@ msgstr "باستخدام"
 #. odoo-javascript
 #: code:addons/point_of_sale/static/src/backend/lna_checklist/lna_checklist.xml:0
 msgid "with a value of"
-msgstr "بقيمة"
+msgstr ""
 
 #. module: point_of_sale
 #. odoo-javascript
@@ -11764,26 +11625,3 @@ msgstr "بقيمة"
 #: model_terms:ir.ui.view,arch_db:point_of_sale.pos_sale_details_receipt_product_line
 msgid "x"
 msgstr "x"
-
-#~ msgid ""
-#~ "Access printer configuration panel by puttin this URL in your search bar:"
-#~ msgstr ""
-#~ "يمكنك الوصول إلى لوحة إعدادات الطابعة عن طريق إدخال عنوان URL هذا في شريط "
-#~ "البحث:"
-
-#~ msgid ""
-#~ "Access the below URL but replace [printer_ip] with your current Pritner "
-#~ "IP address"
-#~ msgstr ""
-#~ "قم بالوصول إلى الرابط أدناه ولكن استبدل [printer_ip] بعنوان IP الحالي "
-#~ "للطابعة"
-
-#~ msgid ""
-#~ "If this endpoint does not returan a 404 error and displays a blank page, "
-#~ "everything is ready."
-#~ msgstr ""
-#~ "إذا لم تُرجِع نقطة النهاية هذه خطأً 404 وعرضت صفحة فارغة، فهذا يعني أن كل "
-#~ "شيء جاهز."
-
-#~ msgid "Printer's local IP address is printerd"
-#~ msgstr "عنوان IP المحلي للطابعة مطبوع"

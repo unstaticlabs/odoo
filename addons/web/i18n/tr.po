@@ -39,8 +39,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:44+0000\n"
-"PO-Revision-Date: 2026-10-14 13:34+0000\n"
+"POT-Creation-Date: 2026-07-24 17:39+0000\n"
+"PO-Revision-Date: 2026-08-17 14:09+0000\n"
 "Last-Translator: Burkay Yıldızhan <seyil@odoo.com>\n"
 "Language-Team: Turkish <https://translate.odoo.com/projects/odoo-s19-3/web/"
 "tr/>\n"
@@ -49,7 +49,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: web
 #. odoo-javascript
@@ -111,19 +111,19 @@ msgstr "(%(mbLoaded)s/%(mbTotal)sMB)"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_edition.xml:0
 msgid "(Community Edition)"
-msgstr "(Topluluk Sürümü)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 msgid "(change)"
-msgstr "(değiştirme)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 msgid "(create)"
-msgstr "(oluştur)"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.external_layout_footer_content
@@ -141,7 +141,7 @@ msgstr "(sonuç yok)"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_button/view_button.xml:0
 msgid "(no string)"
-msgstr "(yazı yok)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -152,10 +152,6 @@ msgid ""
 "                        font-style: normal;\n"
 "                    }"
 msgstr ""
-") format(\"woff\");\n"
-"                        font-weight: normal;\n"
-"                        font-style: normal;\n"
-"                    }"
 
 #. module: web
 #. odoo-javascript
@@ -167,7 +163,7 @@ msgstr "+ Ekle %s"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "+ KEY"
-msgstr "+ ANAHTAR"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -490,9 +486,6 @@ msgid ""
 "                        font-family: \"font\";\n"
 "                        src: url(data:font/ttf;base64,"
 msgstr ""
-"@font-face {\n"
-"                        font-family: \"font\";\n"
-"                        src: url(data:font/ttf;base64,"
 
 #. module: web
 #. odoo-javascript
@@ -596,7 +589,7 @@ msgstr "Erişim Yetkileri"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "Access to all Enterprise Apps"
-msgstr "Enterprise Uygulamaların Tümüne Erişim"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -691,26 +684,26 @@ msgstr "Ekle %s"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/contact_image/contact_image_field.xml:0
 msgid "Add Photo"
-msgstr "Fotoğraf Ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/properties_definition_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/properties_field.xml:0
 msgid "Add Property"
-msgstr "Alan Ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/list/list_renderer.xml:0
 msgid "Add a"
-msgstr "Ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition_selection.xml:0
 msgid "Add a Value"
-msgstr "Bir Değer Ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -735,7 +728,7 @@ msgstr "Sütun ekle"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 msgid "Add condition"
-msgstr "Koşul ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -836,7 +829,7 @@ msgstr "Tüm gün"
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 msgid "All users"
-msgstr "Tüm kullanıcılar"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -900,7 +893,7 @@ msgstr "Yükleme sırasında bir hata oluştu."
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "And more"
-msgstr "Ve daha fazlası"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1082,7 +1075,7 @@ msgstr "Avustralya"
 #. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Auto"
-msgstr "Otomatik"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1262,13 +1255,13 @@ msgstr "Budist"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "Bugfixes guarantee"
-msgstr "Hata düzeltme garantisi"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_button/view_button.xml:0
 msgid "Button"
-msgstr "Buton"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1380,7 +1373,7 @@ msgstr ""
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 #: code:addons/web/static/src/webclient/share_target/share_target_dialog.xml:0
 msgid "Cancel"
-msgstr "İptal"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1404,7 +1397,7 @@ msgstr "Oğlak burcu"
 #. odoo-javascript
 #: code:addons/web/static/src/public/caps_lock_warning.xml:0
 msgid "Caps Lock is on!"
-msgstr "Caps Lock açık!"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1728,7 +1721,7 @@ msgstr "Hesaplanmış Arch"
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 msgid "Condition:"
-msgstr "Koşul:"
+msgstr ""
 
 #. module: web
 #: model:ir.model,name:web.model_res_config_settings
@@ -1826,7 +1819,6 @@ msgstr "WebP’ye dönüştür"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 #: code:addons/web/static/src/core/errors/error_dialogs.js:0
 #: code:addons/web/static/src/views/fields/copy_clipboard/copy_clipboard_field.js:0
 msgid "Copied"
@@ -1838,12 +1830,6 @@ msgstr "Kopyalanan"
 #: code:addons/web/static/src/webclient/actions/action_service.js:0
 msgid "Copy"
 msgstr "Kopyala"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
-msgid "Copy Arch"
-msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -1872,7 +1858,7 @@ msgstr "Telif Hakları;"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_edition.xml:0
 msgid "Copyright © 2004"
-msgstr "Telif hakları © 2004"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -2469,7 +2455,7 @@ msgstr "Yatay görüntüle"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
 msgid "Display in Cards"
-msgstr "Kartlarda görüntüle"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
@@ -2619,13 +2605,13 @@ msgstr "Dracula"
 #. odoo-javascript
 #: code:addons/web/static/src/core/dropzone/dropzone.xml:0
 msgid "Drag Files Here"
-msgstr "Dosyaları buraya sürükle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Draw"
-msgstr "Çiz"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3001,7 +2987,7 @@ msgstr "Alan Seçici"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
 msgid "Field Type"
-msgstr "Alan Türü"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3256,7 +3242,6 @@ msgstr "İkizler Burcu"
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "Get this feature and much more with Odoo Enterprise!"
 msgstr ""
-"Odoo Enterprise ile bu özellik ve hatta daha fazlasına sahip olabilirsiniz!"
 
 #. module: web
 #. odoo-javascript
@@ -3467,7 +3452,7 @@ msgstr "Renk"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "I want to update data (import-compatible export)"
-msgstr "Verileri güncellemek istiyorum (içe ve dışa aktarmaya uyumlu)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3619,7 +3604,7 @@ msgstr "Erişilemeyen/kayıp kayıt kimliği: %s"
 #. odoo-javascript
 #: code:addons/web/static/src/core/domain_selector/domain_selector.xml:0
 msgid "Include archived"
-msgstr "Arşivlenenleri dahil et"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3631,7 +3616,7 @@ msgstr "Uyumsuzluk"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/dynamic_placeholder_popover.xml:0
 msgid "Insert"
-msgstr "Ekle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -3716,7 +3701,7 @@ msgstr "%s için geçersiz varsayılan arama filtresi adı"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 msgid "Invalid domain"
-msgstr "Geçersiz Domain"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4096,7 +4081,7 @@ msgstr "Etiket"
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
 msgid "Lack of inspiration?"
-msgstr "İlham eksikliği mi?"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4217,7 +4202,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "Load"
-msgstr "Yükle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4586,7 +4571,7 @@ msgstr "Eksik gerekli alanlar"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "Mobile support"
-msgstr "Mobil destek"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4819,7 +4804,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/calendar/quick_create/calendar_quick_create.xml:0
 msgid "Name:"
-msgstr "Adı:"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4843,7 +4828,7 @@ msgstr "Yeni Etkinlik"
 #. odoo-javascript
 #: code:addons/web/static/src/views/fields/properties/properties_field.xml:0
 msgid "New Property"
-msgstr "Yeni İlan"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4855,7 +4840,7 @@ msgstr "Yeni Kural"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "New design"
-msgstr "Yeni tasarım"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -4929,7 +4914,7 @@ msgstr "Yetkiniz Yok"
 #. odoo-javascript
 #: code:addons/web/static/src/search/properties_group_by_item/properties_group_by_item.xml:0
 msgid "No Properties"
-msgstr "Özellik Yok"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5268,7 +5253,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/views/form/form_error_dialog/form_error_dialog.xml:0
 msgid "Oh snap!"
-msgstr "Oh snap!"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5332,7 +5317,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/core/debug/debug_menu_items.xml:0
 msgid "Only you"
-msgstr "Sadece sen"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -5377,7 +5362,7 @@ msgstr "Açık"
 #. odoo-javascript
 #: code:addons/web/static/src/core/pwa/install_prompt.xml:0
 msgid "Open \"File\" menu from your browser"
-msgstr "Tarayıcınızdan \"Dosya\" menüsünü açın"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6354,7 +6339,7 @@ msgstr "Görünümü Kaydet"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Save as:"
-msgstr "Farklı kaydet:"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6417,12 +6402,6 @@ msgstr "Arama"
 #: code:addons/web/static/src/views/calendar/calendar_filter_section/calendar_filter_section.js:0
 msgid "Search More..."
 msgstr "Daha Fazla Ara..."
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/views/fields/reference/reference_field.js:0
-msgid "Search a record..."
-msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6520,19 +6499,19 @@ msgstr "Teknik ayrıntıları gör"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_dialogs/select_create_dialog.xml:0
 msgid "Select"
-msgstr "Seçme"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/pwa/install_prompt.xml:0
 msgid "Select \"Add to dock\""
-msgstr "\"Dock’a ekle\"yi seçin"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/pwa/install_prompt.xml:0
 msgid "Select \"Add to home screen\""
-msgstr "\"Ana ekrana eklemeyi\" seçin"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.login
@@ -6571,7 +6550,7 @@ msgstr "Bir görünüm seç"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_components/selection_box.xml:0
 msgid "Select all"
-msgstr "Hepsini Seç"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6773,12 +6752,6 @@ msgstr "Shinto"
 
 #. module: web
 #. odoo-javascript
-#: code:addons/web/static/src/webclient/user_menu/user_menu_items.js:0
-msgid "Shortcuts"
-msgstr ""
-
-#. module: web
-#. odoo-javascript
 #: code:addons/web/static/src/search/control_panel/control_panel.js:0
 msgid "Show %s view"
 msgstr "%s görünümünü göster"
@@ -6818,7 +6791,7 @@ msgstr "Zamanı göster"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_components/view_scale_selector.xml:0
 msgid "Show weekends"
-msgstr "Hafta sonlarını göster"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -6885,8 +6858,6 @@ msgid ""
 "Something went wrong... If you really are stuck, share the report with your "
 "friendly support service"
 msgstr ""
-"Bir şeyler ters gitti... Gerçekten çıkmazdaysanız raporu destek ekibinizle "
-"paylaşın"
 
 #. module: web
 #. odoo-javascript
@@ -6978,7 +6949,7 @@ msgstr "Durum çubuğu"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/settings_confirmation_dialog.xml:0
 msgid "Stay Here"
-msgstr "Burada Kal"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7141,7 +7112,7 @@ msgstr "Taocu"
 #. odoo-javascript
 #: code:addons/web/static/src/core/pwa/install_prompt.xml:0
 msgid "Tap on the share icon"
-msgstr "Paylaş simgesine dokunun"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7165,7 +7136,7 @@ msgstr "Deniz mavisi"
 #. odoo-javascript
 #: code:addons/web/static/src/views/view_dialogs/export_data_dialog.xml:0
 msgid "Template:"
-msgstr "Şablon:"
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.config_speedscope_index
@@ -7209,14 +7180,6 @@ msgstr "Uygulama bu tarayıcıyla yüklenemez"
 #: code:addons/web/static/src/core/install_scoped_app/install_scoped_app.xml:0
 msgid "The app seems to be installed on your device"
 msgstr "Uygulama cihazınızda yüklü görünüyor"
-
-#. module: web
-#. odoo-javascript
-#: code:addons/web/static/src/search/search_arch_parser.js:0
-msgid ""
-"The autocomplete value for %(field)s has not been found: the record with id %"
-"(id)s doesn't seem to exist"
-msgstr ""
 
 #. module: web
 #. odoo-python
@@ -7329,14 +7292,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/web/controllers/export.py:0
 msgid ""
-"There are too many columns (%(count)s columns, limit: %(limit)s) to export "
-"as Excel 2007-2013 (.xlsx) format. Consider splitting the export."
-msgstr ""
-
-#. module: web
-#. odoo-python
-#: code:addons/web/controllers/export.py:0
-msgid ""
 "There are too many rows (%(count)s rows, limit: %(limit)s) to export as "
 "Excel 2007-2013 (.xlsx) format. Consider splitting the export."
 msgstr ""
@@ -7376,7 +7331,7 @@ msgstr "Bu tarih gelecekte"
 #. odoo-javascript
 #: code:addons/web/static/src/core/domain_selector/domain_selector.xml:0
 msgid "This domain is not supported."
-msgstr "Bu domain alanı desteklenmiyor."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7388,13 +7343,13 @@ msgstr "Bu gömülü eylem geneldir ve herkes için kaldırılacaktır."
 #. odoo-javascript
 #: code:addons/web/static/src/core/expression_editor/expression_editor.xml:0
 msgid "This expression is not supported."
-msgstr "Bu ifade desteklenmiyor."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/signature/name_and_signature.xml:0
 msgid "This file is invalid. Please select an image."
-msgstr "Bu dosya geçersiz. Lütfen bir resim seçiniz."
+msgstr ""
 
 #. module: web
 #: model_terms:ir.ui.view,arch_db:web.preview_externalreport
@@ -7799,7 +7754,7 @@ msgstr "Başlıksız"
 #. odoo-javascript
 #: code:addons/web/static/src/views/list/list_confirmation_dialog.xml:0
 msgid "Update"
-msgstr "Güncelle"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7817,7 +7772,7 @@ msgstr "Şimdi Güncelle"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/fields/upgrade_dialog.xml:0
 msgid "Upgrade to future versions"
-msgstr "Gelecek sürüme yükselt"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -7830,7 +7785,7 @@ msgstr ""
 #: code:addons/web/static/src/views/fields/binary/binary_field.xml:0
 #: code:addons/web/static/src/views/fields/pdf_viewer/pdf_viewer_field.xml:0
 msgid "Upload your file"
-msgstr "Dosyanızı yükleyin"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -13199,7 +13154,7 @@ msgstr "empanada"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/actions/blank_component.xml:0
 msgid "empty"
-msgstr "boş"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -18731,7 +18686,7 @@ msgstr "ay izleme töreni"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/settings_form_view/widgets/res_config_invite_users.xml:0
 msgid "more"
-msgstr "daha"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -19555,7 +19510,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "on any screen to show shortcut overlays and"
-msgstr "kısayol kaplamalarını göstermek için herhangi bir ekranda ve"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -21731,7 +21686,7 @@ msgstr "kayıt butonu"
 #: code:addons/web/static/src/views/fields/domain/domain_field.xml:0
 #: code:addons/web/static/src/views/fields/properties/property_definition.xml:0
 msgid "record(s)"
-msgstr "kayıtlar"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -21875,7 +21830,7 @@ msgstr "tekrar yükle"
 #. odoo-javascript
 #: code:addons/web/static/src/views/kanban/kanban_renderer.xml:0
 msgid "remaining)"
-msgstr "kalan)"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -22676,7 +22631,7 @@ msgstr "fide"
 #: code:addons/web/static/src/views/view_components/multi_selection_buttons.xml:0
 #: code:addons/web/static/src/views/view_components/selection_box.xml:0
 msgid "selected"
-msgstr "seçilmiş"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -24998,7 +24953,7 @@ msgstr "yorgun yüz"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "to trigger a shortcut."
-msgstr "tıklayarak bir kısayolu tetikleyin."
+msgstr ""
 
 #. module: web
 #. odoo-javascript
@@ -27290,13 +27245,13 @@ msgstr "zombi"
 #. odoo-javascript
 #: code:addons/web/static/src/webclient/user_menu/user_menu_items.xml:0
 msgid "— press"
-msgstr "— basın"
+msgstr ""
 
 #. module: web
 #. odoo-javascript
 #: code:addons/web/static/src/core/commands/command_items.xml:0
 msgid "— search for"
-msgstr "— ara"
+msgstr ""
 
 #. module: web
 #. odoo-javascript

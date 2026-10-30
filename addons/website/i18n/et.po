@@ -23,17 +23,16 @@
 # Martin Trigaux, 2023
 # Leaanika Randmets, 2023
 # Triine Aavik <triine@avalah.ee>, 2023
-# Weblate <noreply-mt-weblate@weblate.org>, 2025, 2026.
+# Weblate <noreply-mt-weblate@weblate.org>, 2025.
 # Kristina Pešehodko <kristina@avalah.ee>, 2025.
 # Odoo Translation Bot <c3p@odoo.com>, 2026.
-# "Dylan Kiss (dyki)" <dyki@odoo.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-28 12:33+0000\n"
-"Last-Translator: Weblate <noreply-mt-weblate@weblate.org>\n"
+"POT-Creation-Date: 2026-07-17 17:38+0000\n"
+"PO-Revision-Date: 2026-07-02 00:10+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Estonian <https://translate.odoo.com/projects/odoo-s19-3/"
 "website/et/>\n"
 "Language: et\n"
@@ -41,7 +40,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.8.1\n"
+"X-Generator: Weblate 2026.6.1\n"
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_quotes_carousel_compact
@@ -323,7 +322,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 msgid "+ Field"
-msgstr "+ Väli"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2788,8 +2787,8 @@ msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.res_config_settings_view_form
-msgid "Accounts created on this website are usable across all other websites"
-msgstr ""
+msgid "Accounts are usable across all your multiple websites"
+msgstr "Kontod on kasutatavad kõigis teie ettevõtetes."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_2_s_three_columns
@@ -2934,31 +2933,31 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_option.xml:0
 msgid "Add Media"
-msgstr "Lisa meedia"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Mega Menu Item"
-msgstr "Lisa menüü (alam-valikutega)"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Add Menu Item"
-msgstr "Lisa menüü"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/timeline_list_option.xml:0
 msgid "Add Milestone"
-msgstr "Lisa eesmärk"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/accordion_option.xml:0
 msgid "Add New"
-msgstr "Lisa Uus"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -2989,7 +2988,7 @@ msgstr "Lisa rida"
 #: code:addons/website/static/src/builder/plugins/options/faq_horizontal_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/table_of_content_option.xml:0
 msgid "Add Section"
-msgstr "Lisage sektsioon"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3079,7 +3078,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/media_list_item_option.xml:0
 msgid "Add an image"
-msgstr "Lisa pilt"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -3119,7 +3118,7 @@ msgstr "Lisa keeled"
 #. odoo-javascript
 #: code:addons/website/static/src/js/send_mail_form.js:0
 msgid "Add multiple emails separated by commas"
-msgstr "Lisa mitu e-posti aadressi, eraldades need komadega"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.view_edit_third_party_domains
@@ -3497,7 +3496,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Allow the use of cookies from this website on this browser?"
-msgstr "Kas lubada selle veebisaidi küpsiste kasutamine selles brauseris?"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_ui_view__track
@@ -3526,7 +3525,7 @@ msgstr "Juba installeeritud"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Alt tag"
-msgstr "Alt silt"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -4001,7 +4000,7 @@ msgstr "Taustavärv"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Background Position"
-msgstr "Tausta asukoht"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4269,7 +4268,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Blur"
-msgstr "Hägustama"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -4558,7 +4557,7 @@ msgstr "Osta kohe"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_banner
 msgid "Buy now"
-msgstr "Osta kohe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_landing_1_s_banner
@@ -4979,7 +4978,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Check"
-msgstr "Kontroll"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_popup
@@ -5130,7 +5129,7 @@ msgstr "Valige listist"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Choose your favorite"
-msgstr "Vali oma lemmik"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_product_catalog
@@ -5193,7 +5192,7 @@ msgstr "Klikake siia ja minge tagasi bloki vahelehele."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Click on"
-msgstr "Vajutage"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -5698,7 +5697,7 @@ msgstr "Jätka lugemist <i class=\"fa fa-long-arrow-right align-middle ms-1\"/>"
 #: code:addons/website/static/src/builder/plugins/carousel_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Control"
-msgstr "Kontroll"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_ir_ui_view__controller_page_ids
@@ -5927,7 +5926,7 @@ msgstr "Lisa klient"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Create a Google Project and Get a Key"
-msgstr "Loo Google projekt ja hangi võti"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6071,7 +6070,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "Custom Url"
-msgstr "Kohandatud URL"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website__custom_code_footer
@@ -6169,7 +6168,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/countdown_option.xml:0
 msgid "Dark"
-msgstr "Tume"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -6349,7 +6348,7 @@ msgstr "Viivitus"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "Delete"
-msgstr "Kustuta"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features_grid
@@ -6559,7 +6558,7 @@ msgstr "Diavola"
 #. module: website
 #: model:ir.model,name:website.model_digest_digest
 msgid "Digest"
-msgstr "Ülevaade"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_s_image_text_2nd
@@ -6655,7 +6654,7 @@ msgstr "Avasta"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_splash_intro
 msgid "Discover More"
-msgstr "Avasta rohkem"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_image_text
@@ -6771,7 +6770,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/cookies_bar_option.xml:0
 msgid "Discrete"
-msgstr "DIskreetne"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.external_snippets
@@ -7018,7 +7017,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Don't show again"
-msgstr "Ära enam kuva"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7068,12 +7067,6 @@ msgstr "Sõõrik"
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/popup_option_plugin.js:0
-msgid "Drag blocks here"
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/js/tours/tour_utils.js:0
 msgid "Drag the <b>%s</b> block and drop it at the bottom of the page."
 msgstr ""
@@ -7082,7 +7075,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Drag to the right to get a submenu"
-msgstr "Lohista paremale alammenüü saamiseks"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner_categories
@@ -7313,7 +7306,7 @@ msgstr "Muuda stiile"
 #. odoo-javascript
 #: code:addons/website/static/src/components/resource_editor/resource_editor_warning.xml:0
 msgid "Edit code"
-msgstr "Redigeeri koodi"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7489,7 +7482,7 @@ msgstr "Tühi välja nimi “%s”"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable billing on your Google Project"
-msgstr "Võimalda oma Google projektis arveldamist"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_model__website_form_access
@@ -7500,7 +7493,7 @@ msgstr "Luba vormi looja funktsioon sellele mudelile."
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Enable the right google map APIs in your google account"
-msgstr "Luba õiged Google Mapsi API-d oma Google kontol."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -7736,7 +7729,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Everything"
-msgstr "Kõik"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_features
@@ -7945,7 +7938,7 @@ msgstr "Väline ID"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Extra Content"
-msgstr "Lisasisu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8100,7 +8093,7 @@ msgstr "Püütud Elemendid"
 #: code:addons/website/static/src/builder/plugins/form/utils.js:0
 #: model:ir.model,name:website.model_ir_model_fields
 msgid "Field"
-msgstr "Väli"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__field_names
@@ -8167,7 +8160,7 @@ msgstr "Täida"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_colors_option.xml:0
 msgid "Fill Color"
-msgstr "Täida värv"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8313,7 +8306,7 @@ msgstr "Fikseeritud"
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag"
-msgstr "Lipp"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8327,7 +8320,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/footer_copyright_option.xml:0
 #: code:addons/website/static/src/builder/plugins/options/language_selector_option.xml:0
 msgid "Flag and Text"
-msgstr "Lipp ja tekst"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8740,7 +8733,7 @@ msgstr "Saa tarnitud"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_intro_pill
 msgid "Get Started"
-msgstr "Alusta"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_descriptive
@@ -8820,12 +8813,6 @@ msgstr ""
 #: code:addons/website/static/src/components/views/theme_preview.xml:0
 msgid "Go Back"
 msgstr "Mine tagasi"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/interactions/website_auth_form.js:0
-msgid "Go back to the homepage"
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -8915,15 +8902,6 @@ msgstr "Google Map"
 #: model:ir.model.fields,field_description:website.field_website__google_maps_api_key
 msgid "Google Maps API Key"
 msgstr "Google Maps API Key"
-
-#. module: website
-#. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_service.js:0
-#: code:addons/website/static/src/core/website_map_service.js:0
-msgid ""
-"Google Maps configuration has changed. Please reload the page for changes to "
-"take effect."
-msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9374,8 +9352,6 @@ msgid ""
 "Hint: How to use Google Map on your website (Contact Us page and as a "
 "snippet)"
 msgstr ""
-"Nipp: Kuidas kasutada Google Mapi oma veebilehel (Kontakt lehel ja "
-"väljalõikena)"
 
 #. module: website
 #. odoo-javascript
@@ -9543,7 +9519,7 @@ msgstr "Ma olen selles kindel."
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "I want"
-msgstr "Ma tahan"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_personal_s_image_text
@@ -9949,7 +9925,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form_editor.xml:0
 msgid "In the meantime we invite you to visit our"
-msgstr "Seni külastage meie"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -9960,10 +9936,6 @@ msgid ""
 "            Each modification on the master page is automatically applied to "
 "all translated versions."
 msgstr ""
-"Selles režiimis saate tõlkida ainult tekste. Lehe struktuuri muutmiseks "
-"peate muutma põhilehekülge.\n"
-"            Iga muudatus põhileheküljel rakendatakse automaatselt kõigile "
-"tõlgitud versioonidele."
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -10358,7 +10330,7 @@ msgstr "Vigane URL"
 #. odoo-python
 #: code:addons/website/models/ir_ui_view.py:0
 msgid "Invalid field value for %(field_name)s: %(value)s"
-msgstr "Välja väärtus on vigane %(field_name)s: %(value)s"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -10719,7 +10691,7 @@ msgstr "Ametikohad"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "John Doe"
-msgstr "Jaan Tamm"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
@@ -11230,7 +11202,7 @@ msgstr "Teeme Ära"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Let's go!"
-msgstr "Lähme!"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_kickoff
@@ -11408,7 +11380,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.list_hybrid
 msgid "Load More"
-msgstr "Lae rohkem"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11495,7 +11467,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure billing is enabled"
-msgstr "Veenduge, et arveldamine oleks lubatud"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -11504,15 +11476,12 @@ msgid ""
 "Make sure to wait if errors keep being shown: sometimes enabling an API "
 "allows to use it immediately but Google keeps triggering errors for a while"
 msgstr ""
-"Veenduge, et ootate, kui vigu kuvatakse: mõnikord võimaldab API "
-"aktiveerimine selle kohe kasutamiseks, kuid Google võib mõnda aega käivitada "
-"vigu."
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
 msgid "Make sure your settings are properly configured:"
-msgstr "Veenduge, et teie seaded on õigesti konfigureeritud:"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_masonry_block_default_template
@@ -12105,7 +12074,7 @@ msgstr "Monitorid"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "More"
-msgstr "Veel"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_color_blocks_2
@@ -12457,7 +12426,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "No"
-msgstr "Ei"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12558,7 +12527,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "No, keep it"
-msgstr "Ei, jäta alles"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -12585,7 +12554,7 @@ msgstr "Pole"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Normal"
-msgstr "Tavaline"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
@@ -12845,7 +12814,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "One"
-msgstr "Üks"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13021,7 +12990,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Order"
-msgstr "Telli"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13041,7 +13010,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/form/form_option.xml:0
 #: code:addons/website/static/src/snippets/s_website_form/add_other_option.js:0
 msgid "Other"
-msgstr "Meeldetuletuse lisamine"
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -13764,8 +13733,8 @@ msgstr "Kohatäitja"
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/google_maps_option/google_maps_api_key_dialog.xml:0
-msgid "Places API (NEW)"
-msgstr ""
+msgid "Places API"
+msgstr "API kohad"
 
 #. module: website
 #. odoo-javascript
@@ -13841,7 +13810,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/image/image_popup_option.xml:0
 msgid "Pop-up on Click"
-msgstr "Hüpikaken klikkimisel"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -13946,13 +13915,13 @@ msgstr "Eelvaata pilti"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Preview of"
-msgstr "Eelvaade:"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/builder_urlpicker.xml:0
 msgid "Preview this URL in a new tab"
-msgstr "Ava see URL uues vahekaardis eelvaateks"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14243,7 +14212,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:website.field_website_page_properties__published_date
 #: model:ir.model.fields,field_description:website.field_website_page_properties_base__published_date
 msgid "Published Date"
-msgstr "Avalikustamise kuupäev"
+msgstr ""
 
 #. module: website
 #: model:ir.model.fields,field_description:website.field_res_partner__published_date
@@ -14254,7 +14223,7 @@ msgstr "Avalikustamise kuupäev"
 #: model:ir.model.fields,field_description:website.field_website_published_multi_mixin__published_date
 #: model:ir.model.fields,field_description:website.field_website_snippet_filter__published_date
 msgid "Published date"
-msgstr "Avaldamise kuupäev"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14433,7 +14402,7 @@ msgstr "Kas olete valmis oma digitaalse nägemuse ellu viima?"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Ready to build the"
-msgstr "Kas oled valmis loomiseks"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_call_to_action_digital
@@ -14655,7 +14624,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/image_gallery_option.xml:0
 msgid "Remove all"
-msgstr "Eemalda kõik"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14702,7 +14671,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "Repeat pattern"
-msgstr "Korda mustrit"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -14811,7 +14780,7 @@ msgstr "Ressursid"
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website.cookies_bar.xml:0
 msgid "Respecting your privacy is our priority."
-msgstr "Teie privaatsuse austamine on meie prioriteediks."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_mega
@@ -15022,7 +14991,7 @@ msgstr "Marsruut"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/avatars_option.xml:0
 msgid "Row"
-msgstr "Rida"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15107,7 +15076,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Save and Reload"
-msgstr "Salvesta ja laadi uuesti"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -15145,7 +15114,7 @@ msgstr "Mõõtkava"
 #: model_terms:ir.ui.view,arch_db:website.website_pages_kanban_view
 #: model_terms:ir.ui.view,arch_db:website.website_pages_tree_view
 msgid "Scheduled"
-msgstr "Planeeritud"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_thumbnails
@@ -15281,11 +15250,6 @@ msgstr "Otsige meie veebilehelt"
 #: code:addons/website/static/src/builder/plugins/options/searchbar_option.xml:0
 msgid "Search within"
 msgstr "Otsi seest"
-
-#. module: website
-#: model_terms:ir.ui.view,arch_db:website.website_search_box_input
-msgid "Search..."
-msgstr "Otsing..."
 
 #. module: website
 #. odoo-javascript
@@ -15481,7 +15445,7 @@ msgstr "Saada kiri"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.contactus
 msgid "Send Message"
-msgstr "Saada sõnum"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_website_form_cover
@@ -15536,7 +15500,7 @@ msgstr "Järjestus"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/font/add_font_dialog.xml:0
 msgid "Serve font from Google servers"
-msgstr "Kasutage fonti Google serveritest"
+msgstr ""
 
 #. module: website
 #: model:ir.model,name:website.model_ir_actions_server
@@ -15607,7 +15571,7 @@ msgstr "Selle lehe seaded kehtivad sellele veebilehele"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab_plugin.js:0
 msgid "Shadow"
-msgstr "Vari"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
@@ -15687,7 +15651,7 @@ msgstr ""
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
 msgid "Shop Now"
-msgstr "Osta kohe"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_floating_blocks
@@ -15976,7 +15940,7 @@ msgstr "Slaid"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/footer_option.xml:0
 msgid "Slide Hover"
-msgstr "Slaid koha peal"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -16219,7 +16183,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_shadow_option.xml:0
 msgid "Spread"
-msgstr "Kattuvus"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_mega_menu_menus_logos
@@ -16269,7 +16233,7 @@ msgstr "Alusta nüüd"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_banner
 msgid "Start Now <span class=\"fa fa-angle-right ms-2\"/>"
-msgstr "Alusta kohe <span class=\"fa fa-angle-right ms-2\"/>"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid_avatars
@@ -16927,7 +16891,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/xml/website_form.xml:0
 msgid "The form has been sent successfully."
-msgstr "Vorm on edukalt saadetud."
+msgstr ""
+
+#. module: website
+#. odoo-python
+#: code:addons/website/controllers/form.py:0
+msgid "The form's specified model does not exist"
+msgstr "Vormile määratud mudel ei eksisteeri. "
 
 #. module: website
 #: model:ir.model.fields,help:website.field_ir_actions_server__website_url
@@ -17275,13 +17245,6 @@ msgid ""
 msgstr ""
 
 #. module: website
-#. odoo-python
-#: code:addons/website/controllers/form.py:0
-msgid ""
-"This form cannot be submitted. Please contact the website administrator."
-msgstr ""
-
-#. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "This is a \""
 msgstr "See on \""
@@ -17458,7 +17421,7 @@ msgstr "Viimane lehe vaade, Nt: 2 minutit tagasi"
 #. odoo-javascript
 #: code:addons/website/static/src/snippets/s_countdown/000.xml:0
 msgid "Time's up! You can now visit"
-msgstr "Aeg on läbi! Nüüd saate külastada"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_bento_grid
@@ -17570,7 +17533,7 @@ msgstr "Title Position"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/attribute_translation_plugin.js:0
 msgid "Title tag"
-msgstr "Pealkirja silt"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.s_three_columns
@@ -17860,7 +17823,7 @@ msgstr "Tõlgitud sisu"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/translation/options/translate_webpage_option.xml:0
 msgid "Translating..."
-msgstr "Tõlkimine..."
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -17910,7 +17873,7 @@ msgstr "Muutes visiooni reaalsuseks"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.bs_debug_view
 msgid "Two"
-msgstr "Kaks"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18089,7 +18052,7 @@ msgstr "Registreerimata"
 #: model_terms:ir.ui.view,arch_db:website.website_page_properties_base_view_form
 #: model_terms:ir.ui.view,arch_db:website.website_pages_form_view
 msgid "Unschedule"
-msgstr "Tühista ajakava"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -18114,7 +18077,7 @@ msgstr "Avaldame oma uusimad lahendused"
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
 msgid "Update My Cookie Preferences"
-msgstr "Uuenda küpsiste eelistusi"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.theme_view_kanban
@@ -18130,7 +18093,7 @@ msgstr "Uuendused ja parendused"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "Upload"
-msgstr "Üleslaadimine"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18155,7 +18118,7 @@ msgstr "Staatilise lipupildi url"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/edit_menu.xml:0
 msgid "Url or Email"
-msgstr "URL või e-post"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.website_visitor_page_view_search
@@ -18387,7 +18350,7 @@ msgstr "Köögiviljasalat, veiseburger ja mangojäätis"
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "Verify"
-msgstr "Kinnitada"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -18972,8 +18935,6 @@ msgid ""
 "We use cookies to provide improved experience on this website. You can learn "
 "more about our cookies and how we use them in our"
 msgstr ""
-"Kasutame küpsiseid selle veebisaidi parema kasutuskogemuse tagamiseks. "
-"Lisateavet meie küpsiste ja nende kasutamise kohta leiate"
 
 #. module: website
 #. odoo-javascript
@@ -19003,7 +18964,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "We'll set you up and running in"
-msgstr "Veebilehe loomiseks on"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_about_full_s_text_image
@@ -19385,7 +19346,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "Welcome to your"
-msgstr "Tere tulemast! See on teie "
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.new_page_template_services_0_s_three_columns
@@ -19626,7 +19587,7 @@ msgstr ""
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 #: model_terms:ir.ui.view,arch_db:website.s_age_verification_popup
 msgid "Yes"
-msgstr "Jah"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -19730,12 +19691,6 @@ msgstr "Te ei saa duplikeerida seda välja."
 
 #. module: website
 #. odoo-javascript
-#: code:addons/website/static/src/builder/plugins/options/card_image_option_plugin.js:0
-msgid "You cannot duplicate this image."
-msgstr ""
-
-#. module: website
-#. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/facebook_option_plugin.js:0
 msgid "You didn't provide a valid Facebook link"
 msgstr "Te ei lisanud sobivat Facebook linki"
@@ -19756,7 +19711,7 @@ msgstr "Teil puuduvad õigused avaldamiseks/avalduse maha võtmiseks"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/seo.xml:0
 msgid "You don't have permissions to edit this record."
-msgstr "Teil ei ole õigusi, et seda uuendada."
+msgstr ""
 
 #. module: website
 #. odoo-python
@@ -20046,13 +20001,13 @@ msgstr "ürituse veebileht"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "and"
-msgstr "ja"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/theme/theme_tab.xml:0
 msgid "auto"
-msgstr "automaatne"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20109,7 +20064,7 @@ msgstr "btn-secondary"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "business"
-msgstr "äri"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20428,7 +20383,7 @@ msgstr "fonts.google.com"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "for my"
-msgstr "minu"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -20440,7 +20395,7 @@ msgstr "foorum"
 #. odoo-javascript
 #: code:addons/website/static/src/components/dialog/page_properties.xml:0
 msgid "found(s)"
-msgstr "leid(e)"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.snippets
@@ -20460,7 +20415,7 @@ msgstr "tasuta veebileht"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "from Logo"
-msgstr "alates logost"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.cookie_policy
@@ -20731,7 +20686,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/website_builder_action.xml:0
 msgid "in the top right corner to start designing."
-msgstr "ülevalt paremast nurgast, et alustada kujundamisega."
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.template_footer_links
@@ -20877,7 +20832,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/website_preview/edit_website_systray_item.xml:0
 msgid "page"
-msgstr "leht"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21136,7 +21091,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/website/static/src/components/fields/redirect_field.xml:0
 msgid "text-danger"
-msgstr "text-danger"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
@@ -21183,13 +21138,13 @@ msgstr "veebileht"
 #. odoo-javascript
 #: code:addons/website/static/src/client_actions/configurator/configurator.xml:0
 msgid "with the main objective to"
-msgstr "peamise eesmärgiga"
+msgstr ""
 
 #. module: website
 #. odoo-javascript
 #: code:addons/website/static/src/builder/plugins/options/age_verification_popup_option.xml:0
 msgid "years"
-msgstr "aasta järel"
+msgstr ""
 
 #. module: website
 #: model_terms:ir.ui.view,arch_db:website.qweb_500
@@ -21232,15 +21187,6 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:website.s_key_benefits
 msgid "✽  What We Offer"
 msgstr ""
-
-#~ msgid "Accounts are usable across all your multiple websites"
-#~ msgstr "Kontod on kasutatavad kõigis teie ettevõtetes."
-
-#~ msgid "Places API"
-#~ msgstr "API kohad"
-
-#~ msgid "The form's specified model does not exist"
-#~ msgstr "Vormile määratud mudel ei eksisteeri. "
 
 #~ msgid "<u>Wednesday</u><br/>8.00am-12.00am"
 #~ msgstr "<u>Kolmapäev</u><br/>8.00am-12.00am"

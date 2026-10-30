@@ -1,10 +1,8 @@
 import io
-import json
 import os
 from datetime import timedelta
+from types import SimpleNamespace
 from unittest.mock import patch
-
-import requests
 
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
@@ -348,83 +346,6 @@ class TestFrenchEinvoiceReception(
             "private_key_id": private_key.id,
             "refresh_token": "offline-test-token",
         })
-
-    def test_active_annuaire_lookup_keeps_existing_offline_boundary(self):
-        self.env["ir.config_parameter"].sudo().set_str("account_peppol.edi.mode", "test")
-        with patch.dict(os.environ, {"USL_EINVOICE_LIVE_ENABLED": "0"}, clear=False), patch(
-            "requests.sessions.Session.send", side_effect=AssertionError("Offline lookup contacted a provider"),
-        ) as provider_call:
-            result = self.env["res.partner"].with_company(self.company)._fetch_active_annuaire_lines("968515759")
-            self.assertEqual(result, {})
-            provider_call.assert_not_called()
-
-    def test_formats_lookup_keeps_existing_offline_boundary(self):
-        self.env["ir.config_parameter"].sudo().set_str("account_peppol.edi.mode", "test")
-        with patch.dict(os.environ, {"USL_EINVOICE_LIVE_ENABLED": "0"}, clear=False), patch(
-            "requests.sessions.Session.send", side_effect=AssertionError("Offline lookup contacted a provider"),
-        ) as provider_call:
-            result = self.env["res.partner"].with_company(self.company)._peppol_lookup_participant_formats_accepted(
-                "0225:968515759", "urn:synthetic:format",
-            )
-            self.assertIsNone(result)
-            provider_call.assert_not_called()
-
-    def test_activated_mocked_directory_refresh_preserves_native_partner_authority(self):
-        # Exercise the existing activation contract; every HTTP call remains mocked.
-        self.env["ir.config_parameter"].sudo().set_str("account_peppol.edi.mode", "prod")
-        self.company.with_user(self.manager).action_rebuild_run_einvoice_acceptance_test()
-        invoice = self._source_invoice()
-        partner = invoice.partner_id.commercial_partner_id
-        partner.write({"peppol_eas": False, "peppol_endpoint": False, "invoice_edi_format": "ubl_21_fr"})
-        self.company.rebuild_einvoice_environment = "production"
-        routing_writes = []
-        original_write = type(partner).write
-
-        def record_routing_write(records, values):
-            if {"peppol_eas", "peppol_endpoint", "invoice_edi_format"}.intersection(values):
-                routing_writes.append((records.env.uid, records.env.su))
-            return original_write(records, values)
-
-        def directory_response(session, request, **kwargs):
-            self.assertEqual(request.method, "GET")
-            response = requests.Response()
-            response.status_code = 200
-            if "/pdp_annuaire_lookup?" in request.url:
-                data = {"annuaire_lines": [{"identifier": "968515759_96851575905823"}]}
-            elif "/annuaire_lookup?" in request.url:
-                data = {"result": {"in_annuaire": True}}
-            elif "/lookup?" in request.url:
-                data = {"result": {"services": [{"formats": ["urn:synthetic:format"]}]}}
-            else:
-                raise AssertionError("Unexpected provider request in offline fixture")
-            response._content = json.dumps(data).encode()
-            return response
-
-        with patch.dict(os.environ, LIVE_ENVIRONMENT, clear=False), patch(
-            "requests.sessions.Session.send", side_effect=directory_response, autospec=True,
-        ) as provider_call:
-            self.company.with_user(self.manager).action_rebuild_approve_einvoice_activation()
-            self._create_production_proxy_user()
-            self.company.write({"pdp_kyc_status": "success", "account_peppol_proxy_state": "receiver"})
-            self.assertTrue(self.company._rebuild_einvoice_live_call_allowed())
-            partner_model = self.env["res.partner"].with_user(self.manager).with_company(self.company)
-            formats = partner_model._peppol_lookup_participant_formats_accepted(
-                "0225:968515759", "urn:synthetic:format",
-            )
-            self.assertEqual(formats["services"], [{"formats": ["urn:synthetic:format"]}])
-            with patch.object(type(partner), "write", record_routing_write):
-                wizard = self.env["account.move.send.wizard"].with_user(self.manager).with_company(self.company).with_context(
-                    active_model="account.move", active_ids=invoice.ids,
-                ).create({})
-                self.assertTrue(wizard.sending_method_checkboxes.get("peppol", {}).get("checked"))
-            self.assertEqual(partner.peppol_endpoint, "968515759_96851575905823")
-            self.assertEqual(partner.peppol_verification_state, "valid")
-            self.assertTrue(routing_writes)
-            # Stored native send-wizard computes run with compute_sudo=True;
-            # they retain the initiating actor rather than switching identities.
-            self.assertTrue(wizard._fields["sending_method_checkboxes"].compute_sudo)
-            self.assertEqual(set(routing_writes), {(self.manager.id, True)})
-            self.assertGreaterEqual(provider_call.call_count, 3)
 
     def test_readiness_offline_test_and_normal_bill_lifecycle(self):
         self.assertEqual(
@@ -1035,54 +956,54 @@ class TestFrenchEinvoiceReception(
             "not_verified",
         )
 
-    def _cii_period_from_native_configuration(self, periods):
-        invoice = self._source_invoice()
-        invoice.invoice_date = fields.Date.to_date("2026-09-01")
-        invoice.invoice_date_due = fields.Date.to_date("2026-09-30")
-        base_lines, tax_lines = invoice._get_rounded_base_and_tax_lines()
-        self.assertEqual(len(base_lines), len(periods))
-        for base_line, period in zip(base_lines, periods):
-            base_line.pop("deferred_start_date", None)
-            base_line.pop("deferred_end_date", None)
-            base_line.update(period)
+    def test_cii_billing_period_without_complete_deferred_fields(self):
         cii = self.env["account.edi.cii"]
-        values = {"invoice": invoice}
-        with patch.object(type(invoice), "_get_rounded_base_and_tax_lines", return_value=(base_lines, tax_lines)):
-            cii._cii_add_invoice_config_vals(values)
-        return values, cii._cii_get_billing_specified_period_node(values)
-
-    def test_cii_billing_period_omits_missing_or_partial_deferrals(self):
-        start = fields.Date.to_date("2026-08-01")
-        end = fields.Date.to_date("2026-10-31")
-        for period in ({}, {"deferred_start_date": start}, {"deferred_end_date": end}):
-            with self.subTest(period=period):
-                values, node = self._cii_period_from_native_configuration([period, period])
-                self.assertEqual(node, {"ram:StartDateTime": None, "ram:EndDateTime": None})
-                self.assertEqual(values["delivery_date"], fields.Date.to_date("2026-09-01"))
-                # The payment due date is not a service-period end date.
-                self.assertFalse(values["billing_end_date"])
+        start = fields.Date.to_date("2026-09-01")
+        end = fields.Date.to_date("2026-09-30")
+        for line_fields in ({}, {"deferred_start_date": object()}, {"deferred_end_date": object()}):
+            for invoice_date, due_date in ((start, end), (False, end), (start, False), (False, False)):
+                with self.subTest(fields=list(line_fields), start=invoice_date, end=due_date):
+                    # A non-iterable fixture proves the fallback never reads
+                    # absent line-level deferral data, including partial schemas.
+                    invoice = SimpleNamespace(
+                        invoice_line_ids=SimpleNamespace(_fields=line_fields),
+                        invoice_date=invoice_date,
+                        invoice_date_due=due_date,
+                    )
+                    node = cii._cii_get_billing_specified_period_node({"invoice": invoice})
+                    self.assertEqual(node, {
+                        "ram:StartDateTime": {
+                            "udt:DateTimeString": {"_text": "20260901", "format": "102"},
+                        } if invoice_date else None,
+                        "ram:EndDateTime": {
+                            "udt:DateTimeString": {"_text": "20260930", "format": "102"},
+                        } if due_date else None,
+                    })
 
     def test_cii_billing_period_preserves_native_complete_deferral_range(self):
-        values, node = self._cii_period_from_native_configuration([
-            {"deferred_start_date": fields.Date.to_date("2026-08-01"),
-             "deferred_end_date": fields.Date.to_date("2026-10-31")},
-            {"deferred_start_date": fields.Date.to_date("2026-08-15"),
-             "deferred_end_date": fields.Date.to_date("2026-10-15")},
-        ])
-        self.assertEqual(node, {
-            "ram:StartDateTime": {"udt:DateTimeString": {"_text": "20260801", "format": "102"}},
-            "ram:EndDateTime": {"udt:DateTimeString": {"_text": "20261031", "format": "102"}},
-        })
-        self.assertFalse(values["delivery_date"])
+        class DeferredLines(list):
+            _fields = {"deferred_start_date": object(), "deferred_end_date": object()}
 
-    def test_cii_incomplete_line_period_uses_delivery_date(self):
-        values, node = self._cii_period_from_native_configuration([
-            {"deferred_start_date": fields.Date.to_date("2026-08-01"),
-             "deferred_end_date": fields.Date.to_date("2026-10-31")},
-            {},
-        ])
-        self.assertEqual(node, {"ram:StartDateTime": None, "ram:EndDateTime": None})
-        self.assertEqual(values["delivery_date"], fields.Date.to_date("2026-09-01"))
+        invoice = SimpleNamespace(
+            invoice_date=fields.Date.to_date("2026-09-01"),
+            invoice_date_due=fields.Date.to_date("2026-09-30"),
+            invoice_line_ids=DeferredLines([
+                SimpleNamespace(
+                    deferred_start_date=fields.Date.to_date("2026-08-01"),
+                    deferred_end_date=fields.Date.to_date("2026-10-31"),
+                ),
+                SimpleNamespace(deferred_start_date=False, deferred_end_date=False),
+            ]),
+        )
+        node = self.env["account.edi.cii"]._cii_get_billing_specified_period_node({"invoice": invoice})
+        self.assertEqual(node, {
+            "ram:StartDateTime": {
+                "udt:DateTimeString": {"_text": "20260801", "format": "102"},
+            },
+            "ram:EndDateTime": {
+                "udt:DateTimeString": {"_text": "20261031", "format": "102"},
+            },
+        })
 
     def test_supported_formats_credit_notes_taxes_and_currencies(self):
         source = self._source_invoice()

@@ -514,7 +514,7 @@ export class ListDataSource extends OdooViewsDataSource {
         return {
             resModel: data.resModel,
             type: "list",
-            fields: [...this.fieldPathsToFetch],
+            fields: data.columns,
             groupby: undefined,
             domain: this._searchParams.domain,
         };

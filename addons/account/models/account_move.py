@@ -1142,10 +1142,6 @@ class AccountMove(models.Model):
         self.ensure_one()
         return self.invoice_date or fields.Date.context_today(self)
 
-    def _get_default_currency_rate_date(self):
-        self.ensure_one()
-        return self.invoice_date or self.create_date.date()
-
     def _get_expected_currency_rate_at(self, date):
         self.ensure_one()
         return self.env['res.currency']._get_conversion_rate(
@@ -1206,7 +1202,6 @@ class AccountMove(models.Model):
         for move in self:
             total_untaxed, total_untaxed_currency = 0.0, 0.0
             total_tax, total_tax_currency = 0.0, 0.0
-            total_residual, total_residual_currency = 0.0, 0.0
             total_reconciled, total_reconciled_currency = 0.0, 0.0
             total, total_currency = 0.0, 0.0
 
@@ -1226,9 +1221,7 @@ class AccountMove(models.Model):
                         total += line.balance
                         total_currency += line.amount_currency
                     elif line.display_type == 'payment_term':
-                        # Residual and reconciled amounts.
-                        total_residual += line.amount_residual
-                        total_residual_currency += line.amount_residual_currency
+                        # Reconciled amount.
                         total_reconciled += line.balance - line.amount_residual
                         total_reconciled_currency += line.amount_currency - line.amount_residual_currency
                 else:
@@ -1238,24 +1231,17 @@ class AccountMove(models.Model):
                         total_currency += line.amount_currency
 
             sign = move.direction_sign
+            tax_totals = move.tax_totals or {}
             move.amount_untaxed = sign * total_untaxed_currency
             move.amount_tax = sign * total_tax_currency
             move.amount_total = sign * total_currency
+            move.amount_residual = tax_totals.get('total_amount_currency', 0.0) + sign * total_reconciled_currency
             move.amount_untaxed_signed = -total_untaxed
             move.amount_untaxed_in_currency_signed = -total_untaxed_currency
             move.amount_tax_signed = -total_tax
             move.amount_total_signed = abs(total) if move.move_type == 'entry' else -total
+            move.amount_residual_signed = -sign * tax_totals.get('total_amount', 0.0) - total_reconciled
             move.amount_total_in_currency_signed = abs(move.amount_total) if move.move_type == 'entry' else -(sign * move.amount_total)
-            if move.state == 'draft':
-                # The payment term lines are only synchronized when saving: follow the lines being edited.
-                tax_totals = move.tax_totals or {}
-                move.amount_residual = tax_totals.get('total_amount_currency', 0.0) + sign * total_reconciled_currency
-                move.amount_residual_signed = -sign * tax_totals.get('total_amount', 0.0) - total_reconciled
-            else:
-                # The totals recomputed from the invoice lines may differ from the journal items (e.g. the tax
-                # rounding method changed after posting): the open balance of the payment term lines is the reference.
-                move.amount_residual = -sign * total_residual_currency
-                move.amount_residual_signed = total_residual
 
     @api.depends('amount_residual', 'move_type', 'state', 'company_id', 'reconciled_payment_ids.state')
     def _compute_payment_state(self):
@@ -1479,7 +1465,7 @@ class AccountMove(models.Model):
         for move in self:
             move.show_journal = (
                 len(move.suitable_journal_ids) > 1
-                or move.journal_id and move.journal_id not in move.suitable_journal_ids._origin
+                or move.journal_id and move.journal_id not in move.suitable_journal_ids
             )
 
     def _compute_payments_widget_to_reconcile_info(self):
@@ -5896,12 +5882,7 @@ class AccountMove(models.Model):
             # lines are recomputed accordingly (if the user didnt' change the rate manually)
             if not invoice.invoice_date:
                 if invoice.is_sale_document(include_receipts=True):
-                    # Float compare is used to avoid rounding error forcing is_manual_rate.
-                    is_manual_rate = float_compare(
-                        invoice.invoice_currency_rate,
-                        invoice._get_expected_currency_rate_at(invoice._get_default_currency_rate_date()),
-                        precision_digits=9
-                    )
+                    is_manual_rate = invoice.invoice_currency_rate != invoice._get_expected_currency_rate_at(invoice.create_date.date())
                     with self.env.protecting([self._fields['invoice_currency_rate']], invoice) if is_manual_rate else nullcontext():
                         invoice.invoice_date = fields.Date.context_today(self)
                 elif invoice.is_purchase_document(include_receipts=True):
@@ -7533,9 +7514,8 @@ class AccountMove(models.Model):
         # Dispatch the attachments into groups, and create a new invoice for each group beyond the first.
         valid_files_data = []
         extra_files_data = []
-        is_email = new_message.message_type == 'email'
         for file_data in files_data:
-            if self.with_context(from_email=is_email)._should_attach_to_record(file_data['attachment']) or file_data['xml_tree'] is not None:
+            if self._should_attach_to_record(file_data['attachment']) or file_data['xml_tree'] is not None:
                 valid_files_data.append(file_data)
             else:
                 extra_files_data.append(file_data)
