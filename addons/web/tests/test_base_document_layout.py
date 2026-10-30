@@ -1,4 +1,7 @@
 import os
+import io
+from pathlib import Path
+from unittest import mock
 import re
 from PIL import Image
 from functools import partial
@@ -6,6 +9,9 @@ from functools import partial
 from odoo.tests import TransactionCase, tagged, Form
 from odoo.tools import BinaryBytes, frozendict
 from odoo.tools.image import image_apply_opt, hex_to_rgb
+from odoo.fields import Command
+from odoo.exceptions import ValidationError
+from odoo.tools.convert import convert_xml_import, ParseError
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -274,3 +280,274 @@ class TestBaseDocumentLayout(TestBaseDocumentLayoutHelpers):
         self.assertIn('o_report_layout_bubble', company_styles)
         self.assertIn('thead th', company_styles)
         self.assertIn(primary_color, company_styles)
+
+
+@tagged("post_install", "-at_install", "usl_upgrade_preservation")
+class TestNativeXmlUpgradePreservation(TransactionCase):
+    """Native XML reloads must retain configured authority and original evidence."""
+
+    def setUp(self):
+        super().setUp()
+        self.Attachments = self.env["ir.attachment"]
+        self.ModelData = self.env["ir.model.data"]
+        self.reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Synthetic upgrade reviewer",
+            "login": "native-loader-reviewer@example.invalid",
+            "group_ids": [Command.clear()],
+        })
+
+    def _bind(self, xmlid, record):
+        module, name = xmlid.split(".", 1)
+        binding = self.ModelData.search([("module", "=", module), ("name", "=", name)])
+        values = {"model": record._name, "res_id": record.id, "noupdate": False}
+        if binding:
+            binding.write(values)
+        else:
+            binding = self.ModelData.create({"module": module, "name": name, **values})
+        binding.flush_recordset(["model", "res_id", "noupdate"])
+        self.env.registry.clear_cache()
+        return binding
+
+    def _import(self, module, xmlid, model, values, *, mode="update"):
+        from xml.sax.saxutils import escape, quoteattr
+
+        fields = []
+        for name, value in values.items():
+            if name == "raw":
+                fields.append(f'<field name="raw" eval={quoteattr(repr(value))}/>')
+            elif name == "user_ids":
+                commands = [(int(command[0]), *command[1:]) for command in value]
+                fields.append(f'<field name="user_ids" eval={quoteattr(repr(commands))}/>')
+            else:
+                fields.append(f'<field name={quoteattr(name)}>{escape(str(value))}</field>')
+        document = io.BytesIO((
+            f'<odoo><record id={quoteattr(xmlid)} model={quoteattr(model)}>'
+            + "".join(fields) + '</record></odoo>'
+        ).encode())
+        document.name = "synthetic-upgrade-preservation.xml"
+        convert_xml_import(self.env, module, document, mode=mode)
+
+    def _group(self, xmlid="stock.group_stock_manager"):
+        group = self.env["res.groups"].create({
+            "name": "Synthetic original authority",
+            "user_ids": [Command.link(self.env.uid)],
+        })
+        self._bind(xmlid, group)
+        return group
+
+    def _style(self, **overrides):
+        attachment = self.Attachments.create({
+            "name": "res.company.scss", "type": "binary", "mimetype": "text/scss",
+            "url": "web/static/asset_styles_company_report.scss",
+            "raw": BinaryBytes(b".synthetic-original { color: black; }"),
+            **overrides,
+        })
+        self._bind("web.asset_styles_company_report", attachment)
+        return attachment
+
+    def _reload_style(self, **overrides):
+        self._import("web", "asset_styles_company_report", "ir.attachment", {
+            "name": "res.company.scss", "type": "binary", "mimetype": "text/scss",
+            "url": "web/static/asset_styles_company_report.scss",
+            "raw": b".synthetic-current { color: blue; }", **overrides,
+        })
+
+    def _attachment_row(self, attachment):
+        self.env.flush_all()
+        self.env.cr.execute("SELECT to_jsonb(a) FROM ir_attachment a WHERE id=%s", [attachment.id])
+        return self.env.cr.fetchone()[0]
+
+    def _attachment_ids(self):
+        return set(self.Attachments.search([]).ids)
+
+    def test_existing_native_seed_reload_keeps_members_and_updates_other_fields(self):
+        group = self._group()
+        members = group.user_ids
+        self._import("stock", "group_stock_manager", "res.groups", {
+            "name": "Synthetic updated native label",
+            "user_ids": [Command.link(self.reviewer.id)],
+        })
+        self.assertEqual(group.name, "Synthetic updated native label")
+        self.assertEqual(group.user_ids, members)
+
+    def test_new_native_seed_group_keeps_install_membership_behavior(self):
+        self.ModelData.search([
+            ("module", "=", "stock"), ("name", "=", "group_stock_manager"),
+        ]).unlink()
+        self._import("stock", "group_stock_manager", "res.groups", {
+            "name": "Synthetic new native group",
+            "user_ids": [Command.link(self.reviewer.id)],
+        })
+        self.assertIn(self.reviewer, self.env.ref("stock.group_stock_manager").user_ids)
+
+    def test_init_mode_keeps_native_seed_behavior(self):
+        group = self._group()
+        self._import("stock", "group_stock_manager", "res.groups", {
+            "user_ids": [Command.link(self.reviewer.id)],
+        }, mode="init")
+        self.assertIn(self.reviewer, group.user_ids)
+
+    def test_unreviewed_group_and_ordinary_write_are_unchanged(self):
+        xmlid = "web.usl_upgrade_unreviewed_group"
+        group = self._group(xmlid)
+        self._import("web", xmlid, "res.groups", {
+            "user_ids": [Command.link(self.reviewer.id)],
+        })
+        self.assertIn(self.reviewer, group.user_ids)
+        reviewed = self._group()
+        reviewed.write({"user_ids": [Command.link(self.reviewer.id)]})
+        self.assertIn(self.reviewer, reviewed.user_ids)
+
+    def test_custom_explicit_xml_migration_can_change_native_membership(self):
+        if self.env["ir.module.module"].search_count([
+            ("name", "=", "stock"), ("state", "=", "installed"),
+        ]) != 1:
+            self.skipTest("Cross-module XMLID fixture requires the installed Stock closure")
+        group = self._group()
+        self._import("web", "stock.group_stock_manager", "res.groups", {
+            "user_ids": [Command.link(self.reviewer.id)],
+        })
+        self.assertIn(self.reviewer, group.user_ids)
+
+    def test_report_style_reload_versions_bytes_and_keeps_original_row_and_blob(self):
+        original = self._style()
+        original_row = self._attachment_row(original)
+        original_bytes = original.raw.content
+        original_path = Path(original._full_path(original.store_fname)) if original.store_fname else None
+        # Warm XMLID lookup so rebinding also proves cache invalidation.
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+        self._reload_style()
+        current = self.env.ref("web.asset_styles_company_report")
+        self.assertNotEqual(current, original)
+        self.assertEqual(current.raw.content, b".synthetic-current { color: blue; }")
+        self.assertEqual(self._attachment_row(original), original_row)
+        self.assertEqual(original.raw.content, original_bytes)
+        if original_path:
+            self.assertEqual(original_path.read_bytes(), original_bytes)
+        self.assertEqual(self.Attachments._get_serve_attachment(current.url), current)
+
+    def test_repeated_identical_style_reload_does_not_create_another_version(self):
+        self._style()
+        self._reload_style()
+        current = self.env.ref("web.asset_styles_company_report")
+        attachments = self._attachment_ids()
+        self._reload_style()
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), current)
+        self.assertEqual(self._attachment_ids(), attachments)
+
+    def test_new_style_and_init_mode_keep_native_loading(self):
+        self.ModelData.search([
+            ("module", "=", "web"), ("name", "=", "asset_styles_company_report"),
+        ]).unlink()
+        self._reload_style()
+        current = self.env.ref("web.asset_styles_company_report")
+        self.assertEqual(current.raw.content, b".synthetic-current { color: blue; }")
+        self._import("web", "asset_styles_company_report", "ir.attachment", {
+            "raw": b".synthetic-init { color: green; }",
+        }, mode="init")
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), current)
+        self.assertEqual(current.raw.content, b".synthetic-init { color: green; }")
+
+    def test_dangling_generated_style_binding_is_recreated_natively(self):
+        original = self._style()
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+        self.env.flush_all()
+        self.env.cr.execute("DELETE FROM ir_attachment WHERE id=%s", [original.id])
+        self.Attachments.invalidate_model()
+        self._reload_style()
+        current = self.env.ref("web.asset_styles_company_report")
+        self.assertNotEqual(current.id, original.id)
+        self.assertEqual(current.raw.content, b".synthetic-current { color: blue; }")
+        self.assertEqual(self.Attachments._get_serve_attachment(current.url), current)
+
+    def test_noupdate_style_binding_keeps_native_skip_behavior(self):
+        original = self._style()
+        binding = self.ModelData.search([
+            ("module", "=", "web"), ("name", "=", "asset_styles_company_report"),
+        ])
+        binding.noupdate = True
+        row = self._attachment_row(original)
+        attachments = self._attachment_ids()
+        self._reload_style()
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+        self.assertEqual(self._attachment_ids(), attachments)
+        self.assertEqual(self._attachment_row(original), row)
+
+    def test_outer_rollback_and_native_failure_cleanup_restore_style_binding(self):
+        class AbortFixture(Exception):
+            pass
+
+        original = self._style()
+        row = self._attachment_row(original)
+        attachments = self._attachment_ids()
+        with self.assertRaises(AbortFixture), self.env.cr.savepoint():
+            self._reload_style()
+            self.assertNotEqual(self.env.ref("web.asset_styles_company_report"), original)
+            raise AbortFixture()
+        # XMLID ormcache is registry-owned, not savepoint-owned. This is the
+        # native service failure cleanup after a surrounding transaction abort.
+        self.env.registry.reset_changes()
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+        self.assertEqual(self._attachment_ids(), attachments)
+        self.assertEqual(self._attachment_row(original), row)
+
+    def test_business_attachment_xml_and_ordinary_style_write_are_unchanged(self):
+        attachment = self.Attachments.create({
+            "name": "Synthetic business evidence", "raw": BinaryBytes(b"original"),
+            "res_model": "res.partner", "res_id": self.env.company.partner_id.id,
+        })
+        self._bind("web.usl_upgrade_business_attachment", attachment)
+        self._import("web", "usl_upgrade_business_attachment", "ir.attachment", {"raw": b"updated"})
+        self.assertEqual(self.env.ref("web.usl_upgrade_business_attachment"), attachment)
+        self.assertEqual(attachment.raw.content, b"updated")
+        style = self._style()
+        style.write({"raw": BinaryBytes(b"ordinary intentional edit")})
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), style)
+        self.assertEqual(style.raw.content, b"ordinary intentional edit")
+
+    def test_wrong_asset_model_binding_fails_without_creating_or_modifying_attachments(self):
+        self._bind("web.asset_styles_company_report", self.env.company.partner_id)
+        attachments = self._attachment_ids()
+        with self.assertRaises(ParseError):
+            self._reload_style()
+        self.assertEqual(self._attachment_ids(), attachments)
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), self.env.company.partner_id)
+
+    def test_malformed_existing_style_provenance_fails_before_any_effect(self):
+        for malformed in (
+            {"name": "Synthetic unrelated evidence"},
+            {"type": "url"},
+            {"url": "synthetic/unrelated.css"},
+            {"mimetype": "text/plain"},
+            {"res_model": "res.partner", "res_id": self.env.company.partner_id.id},
+        ):
+            with self.subTest(fields=sorted(malformed)), self.env.cr.savepoint():
+                original = self._style(**malformed)
+                row = self._attachment_row(original)
+                attachments = self._attachment_ids()
+                with self.assertRaises(ParseError):
+                    self._reload_style()
+                self.assertEqual(self._attachment_ids(), attachments)
+                self.assertEqual(self._attachment_row(original), row)
+                self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+
+    def test_malformed_incoming_style_metadata_fails_before_any_effect(self):
+        original = self._style()
+        row = self._attachment_row(original)
+        attachments = self._attachment_ids()
+        with self.assertRaises(ParseError):
+            self._reload_style(res_model="res.partner", res_id=str(self.env.company.partner_id.id))
+        self.assertEqual(self._attachment_ids(), attachments)
+        self.assertEqual(self._attachment_row(original), row)
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+
+    def test_failed_normal_style_loader_rolls_back_derivative_and_xmlid_together(self):
+        original = self._style()
+        row = self._attachment_row(original)
+        attachments = self._attachment_ids()
+        with mock.patch.object(type(self.Attachments), "_load_records", side_effect=ValidationError("Synthetic failure")):
+            with self.assertRaises(ParseError):
+                self._reload_style()
+        self.assertEqual(self.env.ref("web.asset_styles_company_report"), original)
+        self.assertEqual(self._attachment_ids(), attachments)
+        self.assertEqual(self._attachment_row(original), row)
