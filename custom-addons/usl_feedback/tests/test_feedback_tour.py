@@ -157,3 +157,50 @@ class TestFeedbackMaintainerDirectTour(HttpCase):
         self.assertEqual(quick.stage_id, self.env.ref("usl_feedback.stage_feedback_new"))
         self.assertEqual(full.usl_feedback_category, "ux")
         self.assertEqual(full.stage_id, self.env.ref("usl_feedback.stage_feedback_declined"))
+
+
+@tagged("post_install", "-at_install", "usl_feedback_rendered")
+class TestFeedbackRenderedPreview(FeedbackTourCommon):
+    browser_size = "1440x900"
+
+    def test_compact_preview_uses_real_backend_styles(self):
+        self.browser_js(
+            "/odoo?debug=assets",
+            """(async () => {
+                const waitFor = async (predicate) => {
+                    for (let i = 0; i < 200; i++) {
+                        const result = predicate();
+                        if (result) return result;
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error("Feedback preview did not become ready");
+                };
+                odoo.__WOWL_DEBUG__.root.env.services["usl_feedback.chat_window"].openFeedback();
+                const image = await waitFor(() => document.querySelector(".o-usl-FeedbackPanel-screenshot img"));
+                const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                const check = (limit) => {
+                    const style = getComputedStyle(image);
+                    if (Math.abs(parseFloat(style.maxHeight) - limit) > 0.1 || style.objectFit !== "contain") {
+                        throw new Error(`Preview cap/fit is ${style.maxHeight}/${style.objectFit}, expected ${limit}px/contain`);
+                    }
+                    if (image.getBoundingClientRect().height > limit + 1) throw new Error("Preview exceeds rendered cap");
+                };
+                check(4.5 * rem);
+                document.querySelector(".o-usl-FeedbackPanel-previewToggle").click();
+                await waitFor(() => image.classList.contains("o-expanded"));
+                check(20 * rem);
+                document.querySelector(".o-usl-FeedbackPanel-previewToggle").click();
+                await waitFor(() => !image.classList.contains("o-expanded"));
+                check(4.5 * rem);
+                console.log("test successful");
+            })()""",
+            ready="Boolean(odoo.__WOWL_DEBUG__?.root?.env.services['usl_feedback.chat_window'])",
+            login=self.user.login,
+            timeout=120,
+        )
+
+
+@tagged("post_install", "-at_install", "usl_feedback_rendered", "mobile")
+class TestFeedbackRenderedPreviewMobile(TestFeedbackRenderedPreview):
+    allow_inherited_tests_method = True
+    browser_size = "390x844"

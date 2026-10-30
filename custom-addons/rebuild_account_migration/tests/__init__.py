@@ -2,9 +2,11 @@ from . import test_architecture_compatibility
 from . import test_analytic_pivot_export
 from . import test_bank_statement_hygiene
 from . import test_declaration_closing
+from . import test_declaration_presentation
 from . import test_hygiene_structured_evidence
 from . import test_einvoice_reception
 from . import test_expense_receipt_waiver
+from . import test_fiscal_period_buckets
 from . import test_fec_export
 from . import test_french_tax_report
 from . import test_multi_company_overview
@@ -12,3 +14,7 @@ from . import test_pocketid_profiles
 from . import test_shared_currency_rates
 from . import test_proven_bank_rule_proposals
 from . import test_proven_bank_rule_concurrency
+from . import test_report_provisional
+from . import test_fiscal_result_presentation
+from . import test_report_header_cards
+from . import test_report_provisional_surfaces

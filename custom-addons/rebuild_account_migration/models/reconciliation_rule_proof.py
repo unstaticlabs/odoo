@@ -425,6 +425,8 @@ class AccountReconcileModel(models.Model):
         self.check_access("write")
         if not self.rebuild_is_proposal:
             return True
+        if not self.active:
+            raise UserError(_("Unarchive this suggestion before approving it. Use Unarchive in the action menu."))
         if not self.rebuild_generated_proof:
             raise UserError(_("Recheck evidence before approving this suggestion."))
         scoped = self._rebuild_coordinate_companies(self.company_id)._rebuild_proof_scope()

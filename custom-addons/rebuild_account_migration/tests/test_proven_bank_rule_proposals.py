@@ -176,9 +176,15 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         })
         line.write({"amount_string": "30"})
         line.unlink()
-        with self.assertRaises(AccessError):
-            rule.unlink()
         rule.write({"active": False})
+        if 'usl.audit.event' in self.env:
+            # The distribution's optional irreversible-action guard owns this
+            # refusal; standalone Accounting retains its native unlink ACL.
+            with self.assertRaises(AccessError):
+                rule.unlink()
+        else:
+            rule.unlink()
+            self.assertFalse(rule.exists())
 
     def test_proven_manual_overlap_with_active_generated_refuses(self):
         proposal = self._approved()
@@ -378,6 +384,12 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         model.action_rebuild_analyze_rule_opportunities()
         proposal = model.search([("rebuild_is_proposal", "=", True)]) - before
         self.assertEqual(len(proposal), 1)
+        proposal.action_rebuild_dismiss_proposal()
+        with self.assertRaisesRegex(UserError, "Unarchive this suggestion"):
+            proposal.action_rebuild_approve_proposal()
+        self.assertTrue(proposal.rebuild_is_proposal)
+        self.assertFalse(proposal.active)
+        proposal.action_unarchive()
         proposal.action_rebuild_approve_proposal()
         self.assertFalse(proposal.rebuild_is_proposal)
 
@@ -403,6 +415,35 @@ class TestProvenBankRuleProposals(AccountTestInvoicingCommon):
         proposal = self._find()
         self.assertEqual(len(proposal), 1)
         self.assertNotIn("[QA] Recurring", proposal.rebuild_overlap_warning or "")
+
+    def test_dismissed_suggestion_requires_native_unarchive_before_approval(self):
+        for _index in range(3):
+            self._evidence()
+        proposal = self._find()
+        proposal.action_rebuild_dismiss_proposal()
+        messages = proposal.message_ids
+        with self.assertRaisesRegex(UserError, "Unarchive this suggestion"):
+            proposal.action_rebuild_approve_proposal()
+        self.assertFalse(proposal.active)
+        self.assertTrue(proposal.rebuild_is_proposal)
+        self.assertEqual(proposal.message_ids, messages)
+        proposal.action_unarchive()
+        proposal.action_rebuild_approve_proposal()
+        self.assertTrue(proposal.active)
+        self.assertFalse(proposal.rebuild_is_proposal)
+        self.assertEqual(proposal.trigger, 'manual')
+
+    def test_archived_legacy_suggestion_requires_native_unarchive(self):
+        proposal = self.rules.create(dict(self._manual_values('[QA] Legacy service'), rebuild_is_proposal=True))
+        proposal.action_rebuild_dismiss_proposal()
+        with self.assertRaisesRegex(UserError, "Unarchive this suggestion"):
+            proposal.action_rebuild_approve_proposal()
+        self.assertFalse(proposal.active)
+        self.assertTrue(proposal.rebuild_is_proposal)
+        proposal.action_unarchive()
+        proposal.action_rebuild_approve_proposal()
+        self.assertTrue(proposal.active)
+        self.assertFalse(proposal.rebuild_is_proposal)
 
     def test_dismissed_supported_pattern_is_not_reoffered_or_reactivated(self):
         for _index in range(3):

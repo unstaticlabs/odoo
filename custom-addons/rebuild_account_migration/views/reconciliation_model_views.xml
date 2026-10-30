@@ -78,7 +78,7 @@
                             string="Approve Rule"
                             class="oe_highlight"
                             groups="account.group_account_manager"
-                            invisible="not rebuild_is_proposal"
+                            invisible="not rebuild_is_proposal or not active"
                             title="Activate the reviewed rule with its proposed behavior. Future matching transactions may then use it."
                         />
                         <button
@@ -94,7 +94,7 @@
                             type="object"
                             string="Dismiss"
                             groups="account.group_account_manager"
-                            invisible="not rebuild_is_proposal"
+                            invisible="not rebuild_is_proposal or not active"
                             confirm="Archive this suggestion without activating it?"
                             title="Keep the evidence for audit while removing this suggestion from the active rule list."
                         />
@@ -200,7 +200,7 @@
                         <div
                             class="alert alert-warning o_usl_rule_recommendation"
                             role="status"
-                            invisible="not rebuild_has_actionable_guidance"
+                            invisible="not rebuild_has_actionable_guidance or (rebuild_is_proposal and (not active or rebuild_generated_proof))"
                         >
                             <i class="fa fa-lightbulb-o" aria-hidden="true"/>
                             <field
@@ -210,25 +210,29 @@
                             />
                         </div>
 
-                        <group string="Evidence check" invisible="not rebuild_generated_proof">
-                            <field name="rebuild_evidence_count" readonly="1"/>
-                            <field name="rebuild_replay_summary" readonly="1"/>
-                        </group>
+                        <div class="alert alert-info" role="status" invisible="active or not rebuild_is_proposal">
+                            This suggestion is archived. Use Unarchive in the action menu to review it again.
+                        </div>
+                        <div class="mb-3" invisible="not rebuild_generated_proof">
+                            <field name="rebuild_replay_summary" nolabel="1" readonly="1"/>
+                        </div>
                         <div class="alert alert-warning" role="status" invisible="not rebuild_overlap_warning">
-                            <strong>Review possible overlap</strong>
-                            <field name="rebuild_overlap_warning" nolabel="1" readonly="1"/>
-                            <field name="rebuild_overlap_rule_ids" readonly="1" nolabel="1">
-                                <list create="0" edit="0" delete="0">
-                                    <field name="name"/>
-                                    <field name="rebuild_scope_summary"/>
-                                    <field name="trigger"/>
-                                </list>
-                            </field>
-                            <p class="mb-0">The samples do not prove that every future transaction is disjoint. Review the named rules and examples before approval.</p>
+                            <p class="mb-0">Future transactions may match other rules. Review the possible overlaps.</p>
+                            <details class="o_usl_rule_details">
+                                <summary>Possible overlaps</summary>
+                                <field name="rebuild_overlap_warning" nolabel="1" readonly="1"/>
+                                <field name="rebuild_overlap_rule_ids" readonly="1" nolabel="1">
+                                    <list create="0" edit="0" delete="0">
+                                        <field name="name"/>
+                                        <field name="rebuild_scope_summary"/>
+                                        <field name="trigger"/>
+                                    </list>
+                                </field>
+                            </details>
                         </div>
 
                         <div class="row g-3 o_usl_rule_configuration">
-                            <section class="col-12 col-xl-7">
+                            <section class="col-12 col-xl-7 order-2 order-xl-1">
                                 <div class="o_usl_rule_card">
                                     <div class="o_usl_rule_card_header">
                                         <h3>Match when</h3>
@@ -286,7 +290,7 @@
                                     </div>
                                 </div>
                             </section>
-                            <section class="col-12 col-xl-5">
+                            <section class="col-12 col-xl-5 order-1 order-xl-2">
                                 <div class="o_usl_rule_card o_usl_rule_result_card">
                                     <div class="o_usl_rule_card_header">
                                         <h3>Then</h3>

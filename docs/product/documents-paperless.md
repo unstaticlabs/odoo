@@ -454,3 +454,39 @@ outcomes. The existing archive metadata method supplies that supported boundary.
 Its action policy is operational: writing the Odoo cache cannot reverse an
 already completed Paperless edit. Ordinary sanctioned metadata editing remains
 the supported way to make a deliberate correction.
+
+
+## Attach original evidence to an existing business record
+
+An Agent can attach a client-provided file, copy a readable `ir.attachment`, or
+copy the current original of an accessible archived document onto an expense or
+accounting entry. Use `documents_attach_source_evidence` in the companion MCP,
+or the target's native `attach_source_evidence` method. This shortcut appends
+owned native evidence in one transaction; it never moves or deletes the source.
+An archive link alone does not satisfy the native expense receipt mechanism.
+
+File transfers preserve the original filename, MIME type and exact bytes, up to
+20 MiB. The result includes attachment/source IDs, byte size, SHA-256, native
+checksum, uploader, creation time, native archive status and the target record
+URL. The optional main-attachment flag selects the viewer's receipt explicitly;
+leaving it false retains the current choice. Repeating the same target, filename,
+MIME and bytes reuses the attachment and avoids another identical audit note.
+Separate targets own separate rows while Odoo deduplicates their stored binary.
+
+Archived copies use the same authorized original/version descriptor as the
+native document download. A changed original checksum or incomplete transfer
+aborts the operation. Pending archive permissions retain their native recovery
+message. The selected original remains unchanged; no new bearer grant is issued.
+
+The caller keeps native Odoo access and company rules. An approved expense may
+reject new attachments under the same native rule that applies to a human.
+Retain its original receipt and attach supplementary evidence to its accounting
+entry when available. This action never submits, approves, posts, pays or
+reconciles, and never changes a financial field. It adds an attributed internal
+note without notifying followers. External archival is asynchronous: pending
+means queued, not already archived.
+
+For connector `fileParams`, supported local stdio roots, expired references and
+unknown-outcome recovery, see the companion MCP's `docs/source-evidence-handoff.md`.
+Local test data must be synthetic; never use an accounting source document from
+production to demonstrate the upload.

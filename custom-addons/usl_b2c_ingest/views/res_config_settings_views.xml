@@ -36,7 +36,7 @@
                         <field name="usl_b2c_bank_journal_id"/>
                     </setting>
                     <setting string="Transfers"
-                             help="Where the entries for payouts and top-ups are written, so they read as one movement rather than as bookkeeping inside a bank.">
+                             help="Where an entry for a payout or a top-up is written when no single journal holds the account it moves money out of or into. Otherwise it is written in the journal of that account: the channel's clearing journal, or the wallet.">
                         <field name="usl_b2c_transfer_journal_id"/>
                     </setting>
                 </block>

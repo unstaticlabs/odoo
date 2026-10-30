@@ -472,6 +472,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             )
             raise UserError(message)
         rows = self._report_rows()
+        financial_rows = (
+            self._report_rows(apply_search=False)
+            if (self.search_text or "").strip() else rows
+        )
+        financial_summary = self._report_summary_from_rows(financial_rows)
         collapsed_groups = self._collapsed_group_key_set()
         if HIERARCHY_STATE_SENTINEL not in collapsed_groups:
             default_collapsed = sorted({
@@ -497,6 +502,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         draft_count, warning = self._draft_entry_warning()
         metadata = self._export_metadata(len(rows))
         metadata.update({
+            "financial_summary": financial_summary,
             "preview_limit": limit,
             "previewed_row_count": len(preview_rows) if visible_rows else 0,
             "preview_visible_row_count": len(visible_rows),
@@ -1486,12 +1492,52 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 result.append(item)
         return result
 
+    def _report_provisional_status(self):
+        """Describe preparation status without changing posting authority.
+
+        A report is provisional until Odoo's global fiscal-year lock, or the
+        hard lock, covers the report's closing date. The fiscal exercise that
+        contains that date does not matter, and neither do the tax, sales and
+        purchase locks. Active lock exceptions are ignored, so a personal
+        exception never changes the document status. Every selected company and
+        the comparison period must be covered.
+        """
+        self.ensure_one()
+        companies = self._selected_companies()
+        periods = [(self.date_from, self.date_to)]
+        if self.comparison_mode != "none":
+            periods.append((self.comparison_date_from, self.comparison_date_to))
+        reasons = []
+        if self.target_move == "all":
+            reasons.append("Les écritures brouillon sont incluses.")
+        if not companies or any(not start or not end for start, end in periods):
+            reasons.append(
+                "Le périmètre est incomplet : le verrouillage fiscal "
+                "ne peut pas être établi.",
+            )
+        else:
+            for company in companies:
+                fiscal_lock = max(
+                    company._get_user_lock_date(
+                        "fiscalyear_lock_date", ignore_exceptions=True,
+                    ),
+                    company.user_hard_lock_date,
+                )
+                if any(start > end or end > fiscal_lock for start, end in periods):
+                    reasons.append(
+                        "Le verrouillage fiscal ne couvre pas encore la date de "
+                        "clôture du rapport.",
+                    )
+                    break
+        return {"required": bool(reasons), "reasons": reasons}
+
     def _export_metadata(self, row_count=None):
         partner = self.company_id.partner_id
         companies = self._selected_companies()
         return {
             "report_type": self.report_type,
             "report_name": self._report_type_label(),
+            "provisional": self._report_provisional_status(),
             "company": ", ".join(companies.mapped("display_name")),
             "companies": [
                 {

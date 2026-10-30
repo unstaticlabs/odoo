@@ -6562,3 +6562,106 @@ msgstr "1 document sélectionné. Seules les métadonnées choisies sont modifi�
 #: code:addons/usl_documents/static/src/document_batch.js:0
 msgid "%s selected documents. Only the chosen metadata changes."
 msgstr "%s documents sélectionnés. Seules les métadonnées choisies sont modifiées."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Select the evidence target's company before uploading the file."
+msgstr "Sélectionnez la société du document cible avant de téléverser le fichier."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Provide the original source filename, without a folder path."
+msgstr "Indiquez le nom du fichier source original, sans chemin de dossier."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Provide the source file's MIME type."
+msgstr "Indiquez le type MIME du fichier source."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Source evidence must contain between one byte and 20 MiB."
+msgstr "Le justificatif source doit contenir entre un octet et 20 Mio."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Main attachment selection must be true or false."
+msgstr "Le choix de la pièce jointe principale doit être vrai ou faux."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Provide the SHA-256 checksum of the exact source bytes."
+msgstr "Indiquez la somme de contrôle SHA-256 des octets source exacts."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The source evidence payload is invalid or too large."
+msgstr "Le contenu du justificatif source est invalide ou trop volumineux."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The source evidence size or checksum changed. Upload the original file again."
+msgstr "La taille ou la somme de contrôle du justificatif source a changé. Téléversez à nouveau le fichier original."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The source evidence payload is not valid binary data."
+msgstr "Le contenu du justificatif source n’est pas une donnée binaire valide."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Odoo could not retain this file's exact content and MIME type. No evidence was attached."
+msgstr "Odoo n’a pas pu conserver le contenu exact et le type MIME de ce fichier. Aucun justificatif n’a été joint."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+
+#, python-format
+msgid "Source evidence uploaded: %(filename)s (%(size)s bytes, SHA-256 %(checksum)s)."
+msgstr "Justificatif source téléversé : %(filename)s (%(size)s octets, SHA-256 %(checksum)s)."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+#, python-format
+msgid "Source evidence selected as main attachment: %(filename)s (SHA-256 %(checksum)s)."
+msgstr "Justificatif source sélectionné comme pièce jointe principale : %(filename)s (SHA-256 %(checksum)s)."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Provide one original source: a file, attachment, or archived document."
+msgstr "Indiquez une seule source originale : un fichier, une pièce jointe ou un document archivé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Provide the original attachment or document ID."
+msgstr "Indiquez l’identifiant de la pièce jointe ou du document original."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The original binary attachment is unavailable or exceeds 20 MiB."
+msgstr "La pièce jointe originale est indisponible ou dépasse 20 Mio."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The archived original is unavailable. Refresh the document and try again."
+msgstr "L’original archivé est indisponible. Actualisez le document et réessayez."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "The archived original checksum changed. Refresh the document before copying it."
+msgstr "L’empreinte de l’original archivé a changé. Actualisez le document avant de le copier."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid " Copied from attachment #%(source)s; the original is unchanged."
+msgstr " Copie de la pièce jointe n° %(source)s ; l’original est conservé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid " Copied from archived document #%(source)s; the original is unchanged."
+msgstr " Copie du document archivé n° %(source)s ; l’original est conservé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "Odoo no longer allows attachments on this approved expense. Keep its original receipt; attach supplementary evidence to its accounting entry instead."
+msgstr "Odoo n’autorise plus l’ajout de pièces jointes sur cette note de frais approuvée. Conservez son justificatif original et joignez les preuves complémentaires à son écriture comptable."

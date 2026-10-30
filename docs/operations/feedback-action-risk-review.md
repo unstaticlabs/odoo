@@ -67,3 +67,38 @@ skips. These checks cover the exact tests named by the
 records, not UI behavior, so existing screenshots remain illustrative evidence
 of the original frontend revision. Full-product database and live multi-phase
 provider qualification remain release gates; production was not changed.
+
+## Quick capture and bounded navigation — 2026-10-13
+
+The runtime discovery contains the same 164 modules and action keys. Only the
+`usl_feedback` module identity moves. Twelve normalized action digests change;
+the remaining changed entries carry shifted source line locations only.
+
+The operational `feedback_start` entry and its two existing draft-creation and
+parameter-read sinks now retain at most five untrusted action/model candidates
+on the transient draft. The native browser sends technical identifiers only;
+the transient draft can receive untrusted candidates containing extra keys.
+The private `_validated_page_context` assignment and three metadata-read sinks
+include the result of `_validated_navigation_context`: readable actions/models
+are checked without elevation, malformed candidates and extra keys are omitted
+before saving report/provider context. Opting out saves neither current-page
+state nor navigation on the report; it does not prevent transient receipt.
+Existing `sudo()` calls resolve validated model metadata; they do not grant
+business-record access.
+
+The private `_submit` three state-write sinks, `_poll` deadline-write sink and
+`_accept_phase` transition-write sink receive a two-second first check, two-second
+checks during the first thirty seconds, then ten-second checks. Native owner or
+maintainer entry checks, the run lock, endpoint/configuration validation,
+neutralization, retry backoff, five-minute timeout and stale-result rejection
+remain enforced. These sinks retain `system_internal`; draft creation remains
+`operational`. No classification or authority is widened.
+
+The `feedback-capture-20261013` evidence family executes access/opt-out cases
+and an offline provider that completes before the first poll. At one second
+no request is made; at two seconds native processing advances to drafting.
+The regression fails against the original ten-second scheduling. Long-call
+checks retain a ten-second delay. Desktop and mobile HOOT exercise the native
+palette, a preserved underlying modal, draft generation, clipboard capacity
+and absence of mobile input refocus. Live provider latency is not measured by
+these offline fixtures.

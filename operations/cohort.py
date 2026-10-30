@@ -378,6 +378,30 @@ def _capture_runtime_images(durable: Path) -> None:
         (durable / "runtime-images.json").write_text(json.dumps(images, sort_keys=True), encoding="utf-8")
 
 
+def _capture_release_manifest() -> str:
+    # Manifests include the full MCP contract and can exceed exec's per-argument
+    # limit. Docker's open stdin transports those bytes without an env/argv copy.
+    if os.environ.get("USL_RELEASE_MANIFEST_STDIN") == "1":
+        release_raw = sys.stdin.read()
+    else:
+        release_raw = _required_environment("USL_RELEASE_MANIFEST_JSON")
+    if hashlib.sha256(release_raw.encode()).hexdigest() != _required_environment(
+        "USL_RELEASE_MANIFEST_SHA256",
+    ):
+        raise CohortError("supplied release manifest differs from its digest")
+    try:
+        release_value = validate_release(json.loads(release_raw))
+    except (json.JSONDecodeError, ReleaseManifestError) as error:
+        raise CohortError("supplied release manifest is invalid JSON") from error
+    if release_value.get("source", {}).get("commit") != _required_environment(
+        "USL_RELEASE_COMMIT",
+    ):
+        raise CohortError("supplied release manifest commit differs")
+    if release_value.get("identity") != _required_environment("USL_RELEASE_IDENTITY"):
+        raise CohortError("supplied release identity differs")
+    return release_raw
+
+
 def capture(arguments: argparse.Namespace) -> dict[str, Any]:
     if not RUN_ID.fullmatch(arguments.run_id):
         raise CohortError("run ID is invalid")
@@ -398,21 +422,7 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             "paperless": dump_database("PAPERLESS", durable / "databases/paperless.dump"),
         }
         controls = capture_controls()
-        release_raw = _required_environment("USL_RELEASE_MANIFEST_JSON")
-        if hashlib.sha256(release_raw.encode()).hexdigest() != _required_environment(
-            "USL_RELEASE_MANIFEST_SHA256",
-        ):
-            raise CohortError("supplied release manifest differs from its digest")
-        try:
-            release_value = validate_release(json.loads(release_raw))
-        except (json.JSONDecodeError, ReleaseManifestError) as error:
-            raise CohortError("supplied release manifest is invalid JSON") from error
-        if release_value.get("source", {}).get("commit") != _required_environment(
-            "USL_RELEASE_COMMIT",
-        ):
-            raise CohortError("supplied release manifest commit differs")
-        if release_value.get("identity") != _required_environment("USL_RELEASE_IDENTITY"):
-            raise CohortError("supplied release identity differs")
+        release_raw = _capture_release_manifest()
         (durable / "release.json").write_text(release_raw, encoding="utf-8")
         _capture_runtime_images(durable)
         odoo_database = os.environ["ODOO_DB_NAME"]

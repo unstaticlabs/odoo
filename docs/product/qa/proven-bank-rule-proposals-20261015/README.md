@@ -1,4 +1,10 @@
-# Proven bank-rule proposal QA
+# Proven bank-rule proposal QA — historical captures
+
+These captures illustrate the earlier layout and historical qualification. The
+[30 October final review](../proven-bank-rule-proposals-20261030/README.md) contains
+the current desktop/mobile form and archived-suggestion recovery. On 30 October,
+all eleven JPEG metadata headers were rechecked: standard JFIF APP0 only, with
+no EXIF, XMP, ICC profile or comment metadata.
 
 Captured **15 October 2026** in the native Odoo browser using disposable, invented French QA fixtures. The final tested product and policy revision is `23502c264380d07adb2aa3083ccc9c1e58fa9596`; the following evidence-only commit does not change product behavior. Desktop captures use the normal 1280 × 720 viewport; mobile captures use 390 × 844. The lead personally inspected every selected image and its metadata before publication. Files are unchanged browser JPEGs with only standard JFIF metadata. No production data, credentials, private documents, address bars or local paths are present.
 

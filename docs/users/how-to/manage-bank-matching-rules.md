@@ -38,8 +38,7 @@ Use **Automate** only when every match has one unambiguous treatment.
 
 ## Find suggested rules
 
-The evidence-backed discovery update is currently a draft implementation awaiting
-full qualification. Its prepared flow is:
+Use the discovery flow to prepare a review without changing accounting:
 
 1. Choose **Find** to prepare suggestions from at least three distinct surviving
    transactions with a consistent native accounting result. A partial result
@@ -48,7 +47,8 @@ full qualification. Its prepared flow is:
 2. Inspect the label pattern, supporting transactions and proposed counterpart
    entries. Changing reference digits can be represented without broadening the
    stable wording into an unrestricted pattern.
-3. Review specifically named possible overlaps. Conflicts demonstrated by
+3. Open **Possible overlaps** to inspect the named rules. The visible warning
+   states the uncertainty before approval. Conflicts demonstrated by
    surviving transactions or supported witnesses in the same text field are
    refused. Possible future combinations across label, details and narration
    remain warnings requiring judgment, even when the label patterns are separate.
@@ -68,4 +68,8 @@ new replay check. Recheck evidence is available when their retained examples can
 support the new proof.
 
 Archiving or dismissing a rule preserves its chatter and usage evidence. It
-does not change or undo any existing journal entry.
+does not change or undo any existing journal entry. To reconsider an archived
+suggestion, find it with the native **Archived** filter and choose **Unarchive**
+in the action menu. Review or recheck its evidence, then approve it. Approval and
+dismissal are unavailable while the suggestion is archived, for humans and
+delegated Agents alike.

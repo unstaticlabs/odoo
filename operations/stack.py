@@ -1407,12 +1407,15 @@ def _run_cohort(
     environment: list[str] | None = None,
     *,
     volumes=None,
+    input_text: str | None = None,
 ):
     command = _cohort_command(target, image, action, arguments, volumes=volumes)
+    if input_text is not None:
+        command.insert(2, "-i")
     if environment:
         insertion = command.index(image)
         command[insertion:insertion] = environment
-    result = runner.run(command)
+    result = runner.run(command, **({"input_text": input_text} if input_text is not None else {}))
     lines = [line for line in result.stdout.splitlines() if line.strip()]
     if not lines:
         raise RuntimeError(f"cohort {action} returned no result")
@@ -2866,7 +2869,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         "--env",
                         f"USL_RELEASE_MANIFEST_SHA256={release_sha}",
                         "--env",
-                        f"USL_RELEASE_MANIFEST_JSON={release_raw}",
+                        "USL_RELEASE_MANIFEST_STDIN=1",
                         "--env",
                         f"USL_RUNTIME_IMAGES_JSON={json.dumps(runtime_images, sort_keys=True)}",
                         "--env",
@@ -2884,6 +2887,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         ["--run-id", run_id],
                         environment,
                         volumes=runtime["volumes"],
+                        input_text=release_raw,
                     )
 
                 freeze_started = time.monotonic()

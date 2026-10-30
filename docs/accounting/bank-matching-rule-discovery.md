@@ -1,11 +1,11 @@
 # Bank Matching Rule discovery
 
-## Draft qualification status
+## Qualification
 
-This draft is undergoing qualification. Its runtime seal, complete concurrency
-coverage, upgrade preservation, browser journeys and independent final review
-remain outstanding. It must not be released on the strength of focused tests
-alone.
+The final review, runtime, concurrency and upgrade evidence is recorded in the
+[30 October QA context](../product/qa/proven-bank-rule-proposals-20261030/README.md).
+The 15 October captures remain historical illustrations of the earlier form.
+Release admission and recovery continue through the distribution's normal gates.
 
 ## Prepared workflow
 

@@ -453,6 +453,8 @@ class AccountReconcileModel(models.Model):
         self._rebuild_check_rule_manager()
         if not self.rebuild_is_proposal:
             return True
+        if not self.active:
+            raise UserError(_("Unarchive this suggestion before approving it. Use Unarchive in the action menu."))
         if not self.match_label and not self.match_amount and not self.match_partner_ids:
             raise UserError(_(
                 "Add at least one reliable matching condition before approval.",
