@@ -1,16 +1,16 @@
 # Odoo 19.3 catch-up browser evidence
 
-Recaptured 31 October 2026 from corrected source revision
-`4a60a1664a00808d63d580e9c45d44cc50a4da1f`, after the attachment-fixture repair.
-The task-only test image was rebuilt from that source and the current custom
-add-ons were mounted. The disposable clean-install database contains an invented
-company, supplier and posted EUR 100 bill. All names, references and amounts are
-synthetic. Desktop viewport: 1440 × 900; mobile: 390 × 844. Browser chrome is
-excluded. These replace the earlier pre-repair captures in this directory.
+Recaptured 31 October 2026 with final Odoo product source revision
+`abdf398a1575` mounted, including the API-metadata access repair. The test image's
+native Odoo code is from `4a60a1664a00` and is identical to this revision; current
+custom add-ons are mounted. Later coordinated MCP pin and documentation updates
+do not alter these visible Odoo paths. The disposable clean-install database
+contains an invented company, supplier and posted EUR 100 bill. All names,
+references and amounts are synthetic. Desktop viewport: 1440 × 900; mobile:
+390 × 844. Browser chrome is excluded. These replace the earlier captures.
 
 Each capture was personally inspected. JPEG metadata has only the standard JFIF
-header, with no EXIF, XMP, comments, paths or credentials. Subsequent changes add
-these images and documentation only; visible product code is unchanged.
+header, with no EXIF, XMP, comments, paths or credentials.
 
 ## Observed journey
 

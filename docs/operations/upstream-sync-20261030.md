@@ -112,7 +112,7 @@ These results are local qualification, not a claim of staging deployment.
 
 | Area | Observed result |
 | --- | --- |
-| Repository tooling | 795 tests passed; 20 explicit host/environment skips |
+| Repository tooling | 800 cases: 780 passed, 20 explicit host/environment skips |
 | Release planning and evidence | 48 focused tests passed, including actual installed native/OCA selection and a causal old-controller failure |
 | Clean database | Full installation, two upgrades, affected tests, runtime contracts and product/migration boundaries passed |
 | Recent private restore | Qualified October 30 backup verified, isolated and neutralized; forward upgrade and repeat upgrade both preserve original rows, files, financial and authority controls against the same pre-upgrade baseline; no pending module changes |
@@ -131,7 +131,7 @@ These results are local qualification, not a claim of staging deployment.
 | Browser smoke and visuals | Synthetic posted bill → journal items → label filter → reload → bill breadcrumb; desktop and mobile captures inspected, including JPEG metadata |
 
 The canonical policy digest is
-`b7dcaa214d977f9230b0363b58a53553744fabced3c6edea7a79d66a58d71ce5`.
+`5697604d4cd90c3363c019b15a9adbeb9ea39235b12bc857b55ee804ac273cf4`.
 Action review covers 46 additions, eight removals and 267 changed records. It
 corrects context, effects and recovery guidance without introducing new authority
 gates. The guarded token rotation is the existing irreversible-control boundary.
@@ -202,13 +202,63 @@ Dormant OCA legacy callers are outside the delivered module closure.
 
 The complete affected frontend selection also passes locally: 344 desktop and
 327 mobile cases. Final synthetic screenshots were recaptured from corrected
-source `4a60a1664a00`, inspected and metadata-audited.
+product source `abdf398a1575` mounted (identical native code from the rebuilt
+`4a60a1664a00` image), inspected and metadata-audited.
 
 The failed run published no release and did not change deployed staging. The
 repository recovery protocol calls for reverting #359 to the exact previous
 qualified tree, then qualifying a separate corrected catch-up. Final delivery
 results belong on CIO #3472 and the corrected PR; this record does not claim the
 first hosted full run passed.
+
+## Final compatibility repairs
+
+A project-only collaborator could not load Odoo's API metadata because a
+reconciliation-review access-domain hook attempted to read accounting journals
+before checking that person's existing access. The same failure affected a human
+and an Agent with equivalent delegated access. The hook now returns the native
+restricted domain early for callers without journal/account access, and looks up
+partners only when readable. It grants no accounting permission and adds no
+Agent-only rule. Twenty-seven focused cases pass; the three causal cases fail
+against the previous hook. Actual human and Agent metadata requests return HTTP
+200 with project methods visible, accounting methods absent and direct accounting
+review still denied.
+
+The canonical runtime surface was rediscovered after that repair. Eleven action
+records move source locations; their reviewed digests and classifications remain
+identical. The accounting source hash changes, so the aggregate policy digest
+above is new. Strict clean-runtime and source validation pass.
+
+Inventory publication previously truncated the destination before writing its
+replacement. The CLI now writes and syncs a same-directory temporary file before
+atomic replacement. Readers observe complete old or new JSON. Tests exercise
+partial writes, failed sync/replacement, permission preservation and caller umask;
+the 800-case tooling suite passes (780 passed, 20 explicit host/environment
+skips). This is a single-file publication guarantee, not a transaction across every policy artifact
+or a claim of directory crash durability.
+
+The MCP attachment tool also used the removed field. Companion
+[PR #192](https://github.com/unstaticlabs/odoo-mcp/pull/192) sends native `raw`
+base64 and permits the tool's documented 512 KiB payload through a bounded
+internal request budget; generic request limits, native authority and one-attempt
+mutation behavior remain. End-to-end protocol tests against governed disposable
+Odoo verify exact UTF-8 and 512 KiB opaque bytes, stored checksum, size and task
+ownership. The old field fails causally. All 289 MCP tests, build, evaluation
+validation and image build pass. The temporary QA credential was revoked after
+the checks. These fixtures do not claim every image-processing path was tested.
+
+[MCP PR #193](https://github.com/unstaticlabs/odoo-mcp/pull/193) also corrects
+published compatibility metadata that omitted a module and three native methods.
+The validator now recognizes multiline calls and generic types containing
+semicolons and verifies declared modules. All 13 declared modules and 50 literal
+source actions are represented. Four omission regressions fail against the old
+validator; all 293 MCP tests pass. Runtime authority is unchanged.
+
+A final retained-restore forward and repeat upgrade uses the final mounted
+backend source. Both pass the original financial, authority, strict preservation
+and filestore checks; original baseline hashes and earlier evidence are
+unchanged. The exact private QA PostgreSQL container was stopped afterwards.
+Paperless remains outside this rehearsal.
 
 ## Service ownership
 
