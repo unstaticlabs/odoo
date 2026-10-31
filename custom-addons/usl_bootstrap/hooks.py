@@ -1,4 +1,3 @@
-import base64
 from datetime import date, timedelta
 
 from odoo import SUPERUSER_ID, Command, api
@@ -468,7 +467,7 @@ class Bootstrap:
             "res_model": record._name,
             "res_id": record.id,
             "type": "binary",
-            "datas": base64.b64encode(content.encode()).decode(),
+            "raw": content.encode(),
             "mimetype": "text/plain",
         }
         if attachment:

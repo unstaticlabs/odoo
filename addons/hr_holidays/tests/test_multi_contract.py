@@ -2,6 +2,7 @@
 
 from datetime import datetime, date
 from odoo.exceptions import ValidationError
+from odoo.fields import Command
 from odoo.tests import Form, freeze_time, tagged
 from odoo.addons.hr_holidays.tests.common import TestHolidayContract
 
@@ -472,3 +473,58 @@ class TestHolidaysMultiContract(TestHolidayContract):
         # Assert based on partial-time calendar
         self.assertEqual(leave.number_of_days, 1)
         self.assertEqual(leave.number_of_hours, 6)
+
+    def test_cancelled_leave_next_version_calendar_change(self):
+        # A cancelled time off shouldn't be impacted when the working schedule of the next version changes
+        employee = self.env['hr.employee'].create({
+            'name': 'Employee with two versions',
+            'tz': 'Europe/Brussels',
+        })
+        employee.version_id.write({
+            'date_version': date(2026, 9, 1),
+            'contract_date_start': date(2026, 9, 1),
+            'resource_calendar_id': self.calendar_40h.id,
+        })
+        october_version = employee.create_version({
+            'date_version': date(2026, 10, 1),
+            'resource_calendar_id': self.calendar_40h.id,
+        })
+        leave = self.create_leave(date(2026, 9, 30), date(2026, 10, 2), employee_id=employee.id)
+        leave.action_approve()
+        leave._force_cancel("Not needed anymore")
+        self.assertEqual(leave.state, 'cancel')
+
+        october_version.resource_calendar_id = self.calendar_35h
+
+        self.assertEqual(leave.state, 'cancel')
+        self.assertEqual(leave.resource_calendar_id, self.calendar_40h)
+        self.assertEqual(self.env['hr.leave'].search([('employee_id', '=', employee.id)]), leave)
+
+    def test_leave_in_past_version_with_different_duration_based_schedule(self):
+        """Check that a time off in a past version uses the working schedule of that version."""
+        full_week_calendar, without_tuesday_calendar = self.env['resource.calendar'].create([{
+            'name': 'Monday to Friday',
+            'attendance_ids': [
+                Command.create({'dayofweek': dayofweek, 'duration_hours': 8})
+                for dayofweek in ['0', '1', '2', '3', '4']
+            ],
+        }, {
+            'name': 'Monday to Friday without Tuesday',
+            'attendance_ids': [
+                Command.create({'dayofweek': dayofweek, 'duration_hours': 8})
+                for dayofweek in ['0', '2', '3', '4']
+            ],
+        }])
+        employee = self.env['hr.employee'].create({
+            'name': 'Employee with a new working schedule',
+            'tz': 'Europe/Brussels',
+            'resource_calendar_id': full_week_calendar.id,
+            'date_version': date(2025, 1, 1),
+        })
+        employee.create_version({
+            'date_version': date(2025, 9, 1),
+            'resource_calendar_id': without_tuesday_calendar.id,
+        })
+
+        leave = self.create_leave(date(2025, 8, 5), date(2025, 8, 5), employee_id=employee.id)
+        self.assertEqual(leave.number_of_days, 1)

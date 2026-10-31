@@ -165,6 +165,33 @@ class TestNativeActionDispatch(AccountTestInvoicingCommon, HttpCase):
         self._assert_restored(bill, statement, audit, original, residual=120)
         self.assertEqual(bill.line_ids.filtered("tax_line_id").balance, 16)
 
+    def test_project_only_human_and_agent_can_discover_native_api(self):
+        from odoo.exceptions import AccessError
+        owner = new_test_user(
+            self.env, login="qa.native.action.project-only",
+            groups="project.group_project_manager,api_doc.group_allow_doc",
+            company_id=self.company.id, company_ids=[Command.set(self.company.ids)],
+            usl_identity_classification="active",
+        )
+        agent = self._agent(owner, "project-only", self.project)
+        for actor in (owner, agent):
+            user = actor if actor._name == "res.users" else actor.user_id
+            review = self.env["account.reconciliation.review"].with_user(user)
+            # First-time delegated metadata discovery evaluates the complete
+            # registry; allow its native cold-cache work to finish in CI.
+            response = self.url_open("/doc-bearer/index.json", data="{}", timeout=60,
+                                     headers={"Authorization": f"Bearer {self._key(actor)}",
+                                              "Content-Type": "application/json",
+                                              "X-Odoo-Database": self.cr.dbname})
+            self.assertEqual(response.status_code, 200, response.text)
+            models = {item["model"] for item in response.json()["models"]}
+            self.assertIn("project.task", models)
+            self.assertNotIn("account.reconciliation.review", models)
+            self.assertNotIn("account.move.line", models)
+            self.assertFalse(review.has_access("read"))
+            with self.assertRaises(AccessError):
+                review.search([])
+
     def test_actual_api_document_exposes_action_without_carrier_crud(self):
         key = self._key(self.writer)
         # Prime native credential telemetry on its ordinary write-cursor identity

@@ -6,6 +6,53 @@ from odoo.tests import tagged
 
 @tagged("post_install", "-at_install", "usl_reconciliation_review")
 class TestReconciliationReview(AccountTestInvoicingCommon):
+    def test_project_only_user_metadata_is_false_without_journal_access(self):
+        from odoo.exceptions import AccessError
+        from odoo.tests import new_test_user
+        actor = new_test_user(self.env, login="qa.review.project-only",
+                              groups="project.group_project_user")
+        Review = self.env["account.reconciliation.review"].with_user(actor)
+        self.assertFalse(Review.has_access("read"))
+        with self.assertRaises(AccessError):
+            Review.search([])
+        # A standalone review ACL must not imply access to journal items.
+        role = self.env["res.groups"].create({"name": "[QA review] Metadata only"})
+        actor.group_ids = [Command.link(role.id)]
+        self.env["ir.model.access"].create({
+            "name": "[QA review] Standalone metadata read",
+            "model_id": self.env["ir.model"]._get_id(Review._name),
+            "group_id": role.id, "perm_read": True,
+        })
+        self.env.flush_all()
+        self.env.registry.clear_cache("stable")
+        self.assertFalse(self.env["account.move.line"].with_user(actor).has_access("read"))
+        self.assertFalse(Review.has_access("read"))
+        with self.assertRaises(AccessError):
+            Review.search([])
+
+    def test_required_account_read_and_optional_partner_read_boundaries(self):
+        from unittest.mock import patch
+        reviewer = self._reviewer("related-metadata")
+        domain, path = self._scope()
+        self._post(100)
+        Review = self.env["account.reconciliation.review"].with_user(reviewer)
+        plain = self._mark(Review, domain, path, 0)
+        nested = self._mark(Review, domain, path + [["partner_id", self.partner_a.id]], 0)
+        ids = self.env["account.reconciliation.review"].search([
+            ("scope_key", "in", [plain["scope_key"], nested["scope_key"]]),
+        ]).ids
+        accounts = type(self.env["account.account"])
+        partners = type(self.env["res.partner"])
+        with patch.object(accounts, "has_access", return_value=False), patch.object(
+            accounts, "_search", side_effect=AssertionError("Unreadable accounts must not be queried"),
+        ):
+            self.assertFalse(Review.has_access("read"))
+        with patch.object(partners, "has_access", return_value=False), patch.object(
+            partners, "_search", side_effect=AssertionError("Unreadable partners must not be queried"),
+        ):
+            visible = Review.search([("id", "in", ids)])
+            self.assertEqual(visible.mapped("scope_key"), [plain["scope_key"]])
+
     def test_shared_remaining_review_and_acknowledgement(self):
         self.assertIn("account.reconciliation.review", self.env,
                       "General Reconciliation must retain a shared Remaining review baseline")
