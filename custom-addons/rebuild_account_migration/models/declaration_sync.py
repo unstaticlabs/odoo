@@ -21,10 +21,29 @@ class RebuildAccountDeclaration(models.Model):
         today = fields.Date.context_today(self)
         current_start, current_end = company.rebuild_compute_fiscalyear_dates(today)
         periods = [(current_start, current_end)]
+        # Always retain the most recently completed fiscal year until it is
+        # locked. Otherwise, rolling into October drops the unclosed September
+        # year from the governed schedule and falsely retires its declarations.
+        previous_start, previous_end = company.rebuild_compute_fiscalyear_dates(
+            current_start - timedelta(days=1)
+        )
+        if (previous_start, previous_end) not in periods:
+            periods.append((previous_start, previous_end))
         if company.fiscalyear_lock_date:
-            locked_start, locked_end = company.rebuild_compute_fiscalyear_dates(company.fiscalyear_lock_date)
+            locked_start, locked_end = company.rebuild_compute_fiscalyear_dates(
+                company.fiscalyear_lock_date
+            )
             if (locked_start, locked_end) not in periods:
-                periods.insert(0, (locked_start, locked_end))
+                periods.append((locked_start, locked_end))
+            # A lock may be several fiscal years old. Fill every intervening
+            # year so the retirement pass cannot mark valid obligations N/A.
+            gap_date = locked_end + timedelta(days=1)
+            while gap_date < previous_start:
+                gap_start, gap_end = company.rebuild_compute_fiscalyear_dates(gap_date)
+                if (gap_start, gap_end) not in periods:
+                    periods.append((gap_start, gap_end))
+                gap_date = gap_end + timedelta(days=1)
+        periods.sort()
         next_start, next_end = company.rebuild_compute_fiscalyear_dates(current_end + relativedelta(days=1))
         if (
             next_end <= today + relativedelta(months=18)
@@ -510,6 +529,11 @@ class RebuildAccountDeclaration(models.Model):
             "portal_entry_guidance": rule.filing_guidance,
         }
         if declaration:
+            # A previously (and perhaps mistakenly) superseded open row must
+            # become preparable again when its obligation re-enters the schedule.
+            # Keep any recorded accountant judgment intact.
+            if declaration.status == "not_applicable" and not declaration._with_recorded_review():
+                vals["status"] = "to_prepare"
             declaration.write(vals)
         else:
             declaration = self.create({
