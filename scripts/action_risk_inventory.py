@@ -16,8 +16,11 @@ import ast
 import copy
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
+import tempfile
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
@@ -506,11 +509,23 @@ def load_json(path: Path) -> dict[str, object]:
 
 
 def write_json(path: Path, value: Mapping[str, object]) -> None:
+    content = json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    try:
+        mode = stat.S_IMODE(path.stat().st_mode)
+    except FileNotFoundError:
+        mode = None
+    # Readers (including bind-mounted consumers) see a complete old or new
+    # inventory, never the truncated/intermediate bytes of an in-place write.
+    with tempfile.TemporaryDirectory(prefix=f".{path.name}.", dir=path.parent) as directory:
+        temporary = Path(directory) / path.name
+        with temporary.open("w", encoding="utf-8") as stream:
+            stream.write(content)
+            stream.flush()
+            if mode is not None:
+                temporary.chmod(mode)
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
 
 
 def _manifest(path: Path) -> tuple[dict[str, Any], str]:

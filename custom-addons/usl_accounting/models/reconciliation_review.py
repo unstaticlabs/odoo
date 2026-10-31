@@ -75,11 +75,21 @@ class ReconciliationReview(models.Model):
     @api.model
     def _access_domain(self, operation):
         domain = super()._access_domain(operation)
-        if not self.env.su:
-            domain &= Domain("access_key", "=", self._access_key())
-            domain &= Domain("account_id", "in", self.env["account.account"].with_context(active_test=False)._search([]))
-            domain &= Domain("partner_id", "=", False) | Domain("partner_id", "in", self.env["res.partner"].with_context(active_test=False)._search([]))
-            domain &= Domain("company_ids", "not any", [("id", "not in", self.env.companies.ids)])
+        if domain.is_false() or self.env.su:
+            return domain
+        # Metadata discovery asks has_access() for every model. Unavailable
+        # related models restrict visibility; they must not raise while probing.
+        accounts = self.env["account.account"].with_context(active_test=False)
+        if not self.env["account.move.line"].has_access("read") or not accounts.has_access("read"):
+            return Domain.FALSE
+        domain &= Domain("access_key", "=", self._access_key())
+        domain &= Domain("account_id", "in", accounts._search([]))
+        partners = self.env["res.partner"].with_context(active_test=False)
+        partner_domain = Domain("partner_id", "=", False)
+        if partners.has_access("read"):
+            partner_domain |= Domain("partner_id", "in", partners._search([]))
+        domain &= partner_domain
+        domain &= Domain("company_ids", "not any", [("id", "not in", self.env.companies.ids)])
         return domain
 
     @api.model_create_multi

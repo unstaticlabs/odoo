@@ -1,66 +1,116 @@
 # Bank Matching Rule discovery
 
-## Product contract
+## Qualification
 
-**Accounting > Configuration > Bank Matching Rules > Find** gives an
-Accounting Manager governed suggestions for recurring direct accounting
-treatments. It extends native `account.reconcile.model` records and the
-maintained OCA Bank Matching engine; it is not a parallel reconciliation
-engine.
+The final review, runtime, concurrency and upgrade evidence is recorded in the
+[30 October QA context](../product/qa/proven-bank-rule-proposals-20261030/README.md).
+The 15 October captures remain historical illustrations of the earlier form.
+Release admission and recovery continue through the distribution's normal gates.
 
-The finder is company-scoped and considers posted, reconciled bank
-transactions from the preceding two years. A candidate requires at least three
-transactions with the same normalized bank label, journal, counterpart account
-and partner. It excludes bank and suspense accounts, receivable/payable
-counterparts, tax lines, off-balance lines and transactions with an ambiguous
-set of counterpart accounts.
+## Prepared workflow
 
-At most twelve suggestions are created per run. An existing suggestion key or
-an equivalent active or archived rule prevents duplication. A repeated run is
-therefore safe and reports **No new suggestions** when nothing remains to
-create. The suggestion key also has a database-enforced unique index so
-concurrent UI or MCP requests cannot create parallel suggestions from the same
-evidence.
+**Accounting > Configuration > Bank Matching Rules > Find** prepares inert
+native `account.reconcile.model` suggestions for an Accounting Manager in the
+current company. It uses accessible posted, reconciled transactions from the
+preceding two years, requires at least three distinct supporting transactions,
+and offers at most twelve new suggestions per call.
 
-## Safety boundary
+Stable words and punctuation remain literal. Only demonstrated changing digit
+slots become bounded native regular expressions. The form shows the pattern,
+source transactions, native replay result and any uncertain competing rules.
+Support counts describe examples, not a probability of correctness.
 
-A discovered suggestion is a native reconciliation-model record marked as a
-proposal. OCA matching queries exclude proposals, so discovery does not:
+When some patterns are refused but other suggestions are available, a native
+warning reports the counts and opens the suggestion list immediately. Links open
+up to three preserved skipped-rule forms so their refusal can be inspected.
+Patterns whose native accounting result differs require manual configuration.
 
-- change or reconcile a bank transaction;
-- create, post or alter a journal entry;
-- activate automatic matching;
-- replace an existing rule.
+Every included historical counterpart must match the maintained OCA prospective
+calculation: account, partner, signed amount, company and foreign currency,
+analytic distribution, taxes, reporting tags, repartition/group and reporting
+base. A rule is not offered when the native rule lines cannot reproduce all its
+examples. Multi-counterpart settlements and other unsupported effects remain
+native manual-configuration work rather than being reduced to one guessed
+account. The pinned OCA execution values omit `tax_base_amount`, so a surviving
+nonzero reporting base is not asserted equivalent to native zero.
 
-An Accounting Manager must inspect the source transactions and counterpart
-entry, then explicitly approve or dismiss the suggestion. Approval removes the
-proposal boundary and initially leaves the rule in manual-review mode.
+The native PostgreSQL matcher checks label, transaction details and narration,
+company, journals, partners and signed amount. A conflict demonstrated by a
+surviving transaction or a native-verified same-field witness refuses a generated
+suggestion regardless of sequence or output account. Unknown regex relationships
+and possible future cross-field combinations produce specific warnings and links
+for review. Two separate label shapes can still match different text fields on
+one future transaction; they remain reviewable suggestions. Finite examples and
+separate label patterns never establish universal disjointness.
 
-Technical failures must surface as errors; they must not be reported as “no
-suggestions.” The action is not available to Finance Operators or read-only
-accountants.
+**Recheck evidence** validates current sources, settings and overlaps. An explicit
+**Approve Rule** is still required before a suggestion can match transactions.
+Changed settings invalidate the displayed proof. Rechecking an archived rule
+leaves it archived. Native matching continues to exclude pending suggestions.
 
-## Implementation decision
+## Authority, lifecycle and preservation
 
-Three approaches were considered:
+Generated provenance, evidence references and proof digests are initialized
+privately. Public fields, defaults and serialized context cannot mint a proof or
+activate a generated suggestion. Copies remain suggestions and need rechecking
+and approval. The complete relation to supporting transactions is checked before
+reading source content: a hidden source cannot silently shrink the proof cohort.
 
-1. require managers to discover every recurring pattern manually;
-2. introduce a separate custom or probabilistic matching engine;
-3. deterministically identify proven patterns and create inert native/OCA rule
-   suggestions.
+Approval and generated-rule edits retain Accounting Manager and current-company
+checks. Ordinary native manual rule authoring retains its operation-specific
+permissions, including Billing create-only access. Manual edits receive no
+historical-evidence ceremony. A proven conflict introduced against an active
+generated rule is refused visibly. Existing protected deletion policy remains.
+Older and manually prepared suggestions retain their existing Accounting
+Manager approval workflow and review notes. They do not acquire a verified replay
+claim merely by upgrading. Recheck evidence can establish the new proof when the
+retained supporting transactions permit it; it is not a new prerequisite for
+legacy approval.
 
-The third approach is retained. It saves review time without duplicating the
-authoritative matching engine or allowing a score to authorize accounting
-changes.
+Rejected new suggestions are archived with their reason rather than deleted;
+repeated Find calls retain their history and evidence key.
 
-The public action remains a record-style Odoo method because a list-header
-object button sends the selected record IDs as the first RPC argument, including
-an empty list when nothing is selected. Regression coverage must invoke
-`odoo.service.model.call_kw` with that real list-button argument shape. Direct
-Python calls alone do not validate this contract.
+Analysis, rechecking and approval do not create, write, delete, post, revalue or
+reconcile financial records. Future application of an approved rule uses native
+Bank Matching. No automatic provider activation or production repair is included.
 
-The server regression in
-`custom-addons/rebuild_account_migration/tests/test_rebuild_account_migration.py`
-also protects the label and helper, manager access, deterministic result,
-company assignment, sequential and database-level duplicate prevention,
-no-result notification, proposal inertness and explicit approval.
+## Concurrency decision
+
+One private coordination row per company serializes rule and rule-line authoring.
+It has no ACL, public API, counter or financial meaning. Fixed parameterized
+UPSERTs update the tuple version after native originating-operation and company
+checks. Agents use the same workflow under the existing delegated human rights;
+this addon introduces no Agent-only policy. The barriers do not require
+journal-write permission or change a journal.
+Affected old/new companies and nested parent scopes are resolved before the
+sorted barrier; only an identity-checked internal scope can reuse held companies.
+Public create/copy results restore the caller environment so private proof and
+held-company tokens cannot escape into a later operation on the returned records.
+
+A stale REPEATABLE READ transaction receives native SQLSTATE 40001. The product
+helper does not catch it, commit, open another cursor or retry locally. Odoo's
+maintained outer retry restarts authority, defaults, source proof and overlap
+checks. Financial evidence receives separate native row locks because financial
+writers do not participate in rule-authoring coordination.
+
+The public list action remains record-style, including an empty selected-ID
+list. Final qualification must still exercise the actual protocol argument shape
+and current normal-user desktop/mobile journeys.
+
+## Qualification still required
+
+- Literal fix removal, expected causal failure and exact restored pass.
+- Final-source real RR and financial-writer race repeat, plus the full required
+  nested-company, line-CRUD and competing-writer matrix.
+- Full affected accounting tests, actual Agent protocol and French journeys.
+- True predecessor and repeated upgrades with original financial, attachment,
+  message and membership preservation; final standalone install.
+- Exact 164-module runtime discovery and scoped policy reseal, normal assets,
+  safe final screenshots, independent review and final-head hosted checks.
+
+Committed financial race fixtures are restricted to an explicitly disposable
+`odoo_proven_rule_races_*` database. The tests use the maintained registry-test
+context and `release_test_lock`, while each worker owns a real independent
+`_db.cursor` and Environment. This avoids the test server's startup registry lock
+without weakening the product concurrency protocol. Keep these tests out of an
+existing business or review database.

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_expense_post_bank_match_review" model="ir.ui.view">
+        <field name="name">hr.expense.employee.payment.match</field>
+        <field name="model">hr.expense.post.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Company payment match" create="0">
+                <field name="usl_review_changed" invisible="1"/>
+                <div class="alert alert-info py-2" role="status" invisible="not usl_review_changed">
+                    Suggestions changed. Review the current transactions.
+                </div>
+                <p>A company bank transaction may cover this expense.</p>
+                <field name="usl_review_candidate_ids" mode="list" nolabel="1" readonly="1"
+                       context="{'list_view_ref': 'usl_accounting.view_expense_bank_match_candidate_list'}"/>
+                <footer>
+                    <button name="action_continue_employee_payment" type="object" string="Continue with employee payment" class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

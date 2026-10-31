@@ -3,14 +3,112 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts import action_risk_inventory as inventory
 
 ZERO = "0" * 64
 ONE = "1" * 64
+
+
+class AtomicJsonPublicationTestCase(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.parent = Path(directory.name)
+        self.path = self.parent / "inventory.json"
+        self.old = {"actions": ["previous complete inventory"]}
+        self.path.write_text(json.dumps(self.old), encoding="utf-8")
+
+    def assert_clean(self):
+        self.assertEqual(list(self.parent.iterdir()), [self.path])
+
+    def test_readers_keep_complete_old_json_until_complete_new_publication(self):
+        new = {"actions": ["new inventory", "é"], "schema": 1}
+        original_open = Path.open
+        observed = []
+        case = self
+
+        class ObservedWriter:
+            def __init__(self, stream):
+                self.stream = stream
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return self.stream.__exit__(*args)
+
+            def __getattr__(self, name):
+                return getattr(self.stream, name)
+
+            def write(self, data):
+                middle = len(data) // 2
+                self.stream.write(data[:middle])
+                self.stream.flush()
+                case.assertEqual(inventory.load_json(case.path), case.old)
+                observed.append("partial")
+                return middle + self.stream.write(data[middle:])
+
+        def observe_open(path, mode="r", *args, **kwargs):
+            stream = original_open(path, mode, *args, **kwargs)
+            if mode == "w":
+                # This check runs after open has actually opened/truncated the
+                # writer: an in-place writer already violates the invariant.
+                case.assertEqual(inventory.load_json(case.path), case.old)
+                observed.append("opened")
+                return ObservedWriter(stream)
+            return stream
+
+        with patch.object(Path, "open", observe_open):
+            inventory.write_json(self.path, new)
+        self.assertEqual(observed, ["opened", "partial"])
+        self.assertEqual(inventory.load_json(self.path), new)
+        self.assertEqual(self.path.read_bytes(),
+                         (json.dumps(new, ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode())
+        self.assert_clean()
+
+    def test_failed_flush_durability_keeps_previous_publication_and_cleans_temp(self):
+        previous = self.path.read_bytes()
+        with patch.object(inventory.os, "fsync", side_effect=OSError("fixture fsync failure")):
+            with self.assertRaisesRegex(OSError, "fixture fsync failure"):
+                inventory.write_json(self.path, {"actions": ["replacement"]})
+        self.assertEqual(self.path.read_bytes(), previous)
+        self.assertEqual(inventory.load_json(self.path), self.old)
+        self.assert_clean()
+
+    def test_failed_replacement_keeps_previous_publication_and_cleans_temp(self):
+        previous = self.path.read_bytes()
+        with patch.object(inventory.os, "replace", side_effect=OSError("fixture replace failure")):
+            with self.assertRaisesRegex(OSError, "fixture replace failure"):
+                inventory.write_json(self.path, {"actions": ["replacement"]})
+        self.assertEqual(self.path.read_bytes(), previous)
+        self.assertEqual(inventory.load_json(self.path), self.old)
+        self.assert_clean()
+
+    def test_replacement_preserves_existing_mode(self):
+        self.path.chmod(0o640)
+        inventory.write_json(self.path, {"replacement": True})
+        self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), 0o640)
+        self.assert_clean()
+
+    def test_new_file_respects_callers_umask(self):
+        for mask, expected_mode in ((0o077, 0o600), (0o022, 0o644)):
+            with self.subTest(umask=oct(mask)):
+                self.path.unlink()
+                old_umask = os.umask(mask)
+                try:
+                    inventory.write_json(self.path, {"new": True})
+                finally:
+                    os.umask(old_umask)
+                self.assertEqual(stat.S_IMODE(self.path.stat().st_mode), expected_mode)
+                self.assertEqual(inventory.load_json(self.path), {"new": True})
+                self.assert_clean()
 
 
 class ActionRiskInventoryTestCase(unittest.TestCase):

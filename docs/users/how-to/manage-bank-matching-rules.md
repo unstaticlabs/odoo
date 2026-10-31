@@ -38,27 +38,38 @@ Use **Automate** only when every match has one unambiguous treatment.
 
 ## Find suggested rules
 
-Choose **Find** from the rules list. The analysis looks back two years for at
-least three reconciled bank transactions with the same label, journal and
-counterpart account. It ignores invoice/payment matching and partner-only
-patterns. Running it again is safe: it does not duplicate an existing
-suggestion or equivalent rule.
+Use the discovery flow to prepare a review without changing accounting:
 
-The resulting records are inert **Suggestions**:
+1. Choose **Find** to prepare suggestions from at least three distinct surviving
+   transactions with a consistent native accounting result. A partial result
+   opens the available suggestions immediately and shows a warning with counts
+   and links to preserved skipped rules; dismissing the warning is optional.
+2. Inspect the label pattern, supporting transactions and proposed counterpart
+   entries. Changing reference digits can be represented without broadening the
+   stable wording into an unrestricted pattern.
+3. Open **Possible overlaps** to inspect the named rules. The visible warning
+   states the uncertainty before approval. Conflicts demonstrated by
+   surviving transactions or supported witnesses in the same text field are
+   refused. Possible future combinations across label, details and narration
+   remain warnings requiring judgment, even when the label patterns are separate.
+4. After an edit or a stale-source warning, choose **Recheck evidence**. This
+   checks the current rule without changing accounting or activating it.
+5. Choose **Approve Rule** or **Dismiss**. A pending suggestion cannot run.
 
-- they contain their source, confidence, date range and supporting bank
-  transactions;
-- they cannot participate in Bank Matching;
-- an Accounting Manager must review the condition and counterpart entry, then
-  choose **Approve Rule** or **Dismiss**.
+Support counts are examples, not confidence percentages. Generated provenance
+cannot be replaced through ordinary fields or context, and a copied generated
+rule remains a suggestion. Ordinary handwritten rules keep their native editor
+and permissions. Unsupported historical effects need native manual rule
+configuration; they are not silently replaced by a simple account assignment.
 
-**Find** never changes a bank transaction, journal entry or reconciliation and
-never activates a rule. If there is no new pattern to review, it reports that
-there are no new suggestions.
-
-A future Accounting Agent may create the same kind of suggestion through MCP
-by setting the structured suggestion source, confidence and evidence fields.
-An AI suggestion remains inert under the same approval boundary.
+Suggestions prepared before this update retain their existing manager review and
+approval, with their original notes. They are not presented as having passed the
+new replay check. Recheck evidence is available when their retained examples can
+support the new proof.
 
 Archiving or dismissing a rule preserves its chatter and usage evidence. It
-does not change or undo any existing journal entry.
+does not change or undo any existing journal entry. To reconsider an archived
+suggestion, find it with the native **Archived** filter and choose **Unarchive**
+in the action menu. Review or recheck its evidence, then approve it. Approval and
+dismissal are unavailable while the suggestion is archived, for humans and
+delegated Agents alike.

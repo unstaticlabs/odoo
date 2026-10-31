@@ -1103,7 +1103,7 @@ patch(PosOrder.prototype, {
             remainingAmountPerLine[line.uuid] = line.prices.total_included;
             const product_id = line.combo_parent_id?.product_id.id || line.getProduct().id;
             if (
-                applicableProductIds.has(product_id) ||
+                (!line.reward_id && applicableProductIds.has(product_id)) ||
                 (line._reward_product_id && applicableProductIds.has(line._reward_product_id.id))
             ) {
                 linesToDiscount.push(line);
@@ -1181,8 +1181,9 @@ patch(PosOrder.prototype, {
             if (!discountablePerTax[taxKey]) {
                 discountablePerTax[taxKey] = 0;
             }
-            discountablePerTax[taxKey] +=
-                line.basePrice * (remainingAmountPerLine[line.uuid] / line.prices.total_included);
+            discountablePerTax[taxKey] += line.prices.total_included
+                ? line.basePrice * (remainingAmountPerLine[line.uuid] / line.prices.total_included)
+                : 0;
         }
         return { discountable, discountablePerTax };
     },
