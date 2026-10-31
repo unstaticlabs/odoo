@@ -181903,7 +181903,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 86,
+          "line": 96,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         },
         {
@@ -181971,7 +181971,7 @@
       ],
       "sources": [
         {
-          "line": 304,
+          "line": 314,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         },
         {
@@ -182406,7 +182406,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 245,
+          "line": 255,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         },
         {
@@ -182692,7 +182692,7 @@
       ],
       "sources": [
         {
-          "line": 300,
+          "line": 310,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         },
         {
@@ -183467,16 +183467,16 @@
       ],
       "sources": [
         {
+          "line": 102,
+          "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
+        },
+        {
           "line": 3696,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 604,
           "path": "custom-addons/usl_access_control/models/base.py"
-        },
-        {
-          "line": 92,
-          "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -1632029,7 +1632029,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 254,
+          "line": 264,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1632044,7 +1632044,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 254,
+          "line": 264,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1632059,7 +1632059,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 254,
+          "line": 264,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1632074,7 +1632074,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 254,
+          "line": 264,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1632092,7 +1632092,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 86,
+          "line": 96,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1632110,7 +1632110,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 92,
+          "line": 102,
           "path": "custom-addons/usl_accounting/models/reconciliation_review.py"
         }
       ]
@@ -1719619,7 +1719619,7 @@
       "manifest_sha256": "6777b173d541dd3c023f7fdf00be663a56f3440d59aa58d1170d6bd351c0e0bf",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "1423e651df40e7783db7bfd81c4ed7d60813e9befaec394ab4c0f1a592cf0ff0",
+      "source_sha256": "33a146a68825d27792d22be8ece007beaee7acc7fadfa204e988b9491f705da8",
       "version": "saas~19.3.2.2.20"
     },
     {
