@@ -172,7 +172,7 @@ live sending/reporting stays disabled. Browser smoke is focused and does not
 claim every application or history path was exercised. The fresh reviewer audited
 USL adaptations and critical overlaps, not every line of all 499 upstream commits.
 
-Safe [final-source browser captures](../product/qa/upstream-sync-20261031/README.md)
+Safe [corrected-source browser captures](../product/qa/upstream-sync-20261031/README.md)
 show invented data only. Screenshots establish layout; functional outcomes were
 verified separately. No backup values, private identities, filenames, credentials
 or private logs are included in this public record.
@@ -199,6 +199,10 @@ transaction is rolled back. A variant audit found no other
 active owned writer. Keep the accounting protected-field denylist and the adapter
 that removes an inherited OCA legacy key: those occurrences are intentional.
 Dormant OCA legacy callers are outside the delivered module closure.
+
+The complete affected frontend selection also passes locally: 344 desktop and
+327 mobile cases. Final synthetic screenshots were recaptured from corrected
+source `4a60a1664a00`, inspected and metadata-audited.
 
 The failed run published no release and did not change deployed staging. The
 repository recovery protocol calls for reverting #359 to the exact previous
