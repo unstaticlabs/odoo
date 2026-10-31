@@ -1535,6 +1535,7 @@ class TestAutonomousAgents(TransactionCase):
         child.with_user(agent.user_id).action_unarchive()
         self.assertTrue(child.active)
         self.assertTrue(attachment.exists())
+        attachment.invalidate_recordset(["raw", "checksum"])
         self.assertEqual(attachment.checksum, checksum)
         self.assertEqual(attachment.raw.content, b"SYNTHETIC\n")
         self.assertEqual(attachment.res_id, task.id)
