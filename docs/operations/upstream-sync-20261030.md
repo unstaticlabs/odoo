@@ -260,6 +260,17 @@ and filestore checks; original baseline hashes and earlier evidence are
 unchanged. The exact private QA PostgreSQL container was stopped afterwards.
 Paperless remains outside this rehearsal.
 
+The coordinated tested MCP pin is source
+`3a6cb9c380724e838be734ef1594c70ac5a5c548`, image
+`sha256:5c83aa202247653c31d7f9cd46111c5f3ec182b16b91ed79aef221af980a1763`.
+Its [official immutable publication](https://github.com/unstaticlabs/odoo-mcp/actions/runs/41155126086)
+passes exact-source tests, build, image pull and OCI identity validation. Odoo's
+coordinated contract verifies 13 modules and 58 source/dynamic RPC actions;
+13 release tests pass. Local access could not pull that published image with the
+available GHCR scope, so no local smoke of those exact published bytes is claimed.
+Local source-image and governed attachment journeys passed separately. This
+qualification pin does not override the independently admitted GitOps MCP ledger.
+
 ## Service ownership
 
 These dependency changes update this repository's development/test/default pins
