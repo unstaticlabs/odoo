@@ -10,7 +10,7 @@ et-xmlfile==2.0.0
 isodate==0.7.2
 # Cleaner 0.4.5 requires lxml>=6.1.1; retain the qualified older-runtime pins.
 lxml-html-clean==0.4.4; python_version < '3.14'
-lxml-html-clean==0.4.5; python_version >= '3.14'
+lxml-html-clean==0.4.6; python_version >= '3.14'
 maxminddb==3.2.0
 mdurl==0.1.2
 platformdirs==4.12.3
