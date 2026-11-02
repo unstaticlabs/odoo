@@ -69,6 +69,69 @@ class ModuleReleaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ModuleReleaseError, "unapproved new"):
             validate_upgrade_plan(result)
 
+    def test_approved_stock_integration_is_installed_for_existing_product_cohort(self):
+        modules = inventory([("usl_accounting", "1.0", [], "a", "b")])
+        foundation = {"sale_project", "project_stock_account"}
+        plan = derive_upgrade_plan(
+            release("active", modules), release("candidate", modules),
+            {"usl_accounting"}, installed_foundation_modules=foundation,
+        )
+        self.assertEqual(plan["upgrade_modules"], ["sale_project_stock_account"])
+        self.assertEqual(plan["reasons"], {
+            "sale_project_stock_account": ["approved-native-integration"],
+        })
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_stock_integration_requires_its_existing_product_and_native_cohort(self):
+        from itertools import combinations
+        required = {"usl_accounting", "sale_project", "project_stock_account"}
+        modules = inventory([("usl_accounting", "1.0", [], "a", "b")])
+        for size in range(len(required)):
+            for selected in combinations(sorted(required), size):
+                selected = set(selected)
+                plan = derive_upgrade_plan(
+                    release("active", modules), release("candidate", modules),
+                    selected & {"usl_accounting"},
+                    installed_foundation_modules=selected - {"usl_accounting"},
+                )
+                self.assertNotIn("sale_project_stock_account", plan["upgrade_modules"])
+        foundation = {"sale_project", "project_stock_account", "sale_project_stock_account"}
+        plan = derive_upgrade_plan(
+            release("active", modules), release("candidate", modules),
+            {"usl_accounting"}, installed_foundation_modules=foundation,
+        )
+        self.assertEqual(plan["upgrade_modules"], [])
+
+    def test_legacy_plan_includes_only_the_approved_missing_native_integration(self):
+        modules = inventory([("usl_accounting", "1.0", [], "a", "b")])
+        plan = derive_legacy_upgrade_plan(
+            release("candidate", modules), {"usl_accounting"},
+            active_identity="legacy", installed_foundation_modules={"sale_project", "project_stock_account"},
+        )
+        self.assertNotIn("sale_project_stock_account", plan["installed_modules"])
+        self.assertIn("sale_project_stock_account", plan["upgrade_modules"])
+        self.assertEqual(plan["reasons"]["sale_project_stock_account"], ["approved-native-integration"])
+        self.assertEqual(validate_upgrade_plan(plan), plan)
+
+    def test_native_integration_reason_cannot_enable_other_optional_modules(self):
+        import hashlib, json
+        modules = inventory([("usl_accounting", "1.0", [], "a", "b")])
+        plan = derive_upgrade_plan(
+            release("active", modules), release("candidate", modules),
+            {"usl_accounting"},
+            installed_foundation_modules={"sale_project", "project_stock_account"},
+        )
+        for name, remove in (("iap", None), ("sale_project_stock_account", "sale_project")):
+            altered = copy.deepcopy(plan)
+            altered["upgrade_modules"] = [name]
+            altered["reasons"] = {name: ["approved-native-integration"]}
+            if remove:
+                altered["installed_modules"].remove(remove)
+            body = {key: value for key, value in altered.items() if key != "sha256"}
+            altered["sha256"] = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            with self.assertRaisesRegex(ModuleReleaseError, "unapproved new"):
+                validate_upgrade_plan(altered)
+
     def test_changed_source_without_version_bump_still_upgrades_dependents(self):
         candidate = copy.deepcopy(self.active_inventory)
         candidate["modules"]["base_product"]["source_sha256"] = "e" * 64

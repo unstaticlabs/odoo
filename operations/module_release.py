@@ -12,6 +12,23 @@ from typing import Any
 INVENTORY_SCHEMA = "usl-module-inventory/v1"
 PLAN_SCHEMA = "usl-module-upgrade-plan/v1"
 
+# CIO #3473: explicitly approved on 2026-11-02. This native bridge prevents
+# duplicate project costs for reinvoiced stock in Anglo-Saxon companies.
+# Install it only in the existing USL accounting / Sales / Projects cohort;
+# do not turn native auto-install discovery into a blanket optional-app upgrade.
+APPROVED_NATIVE_INTEGRATIONS = {
+    "sale_project_stock_account": frozenset({
+        "usl_accounting", "sale_project", "project_stock_account",
+    }),
+}
+
+
+def _missing_native_integrations(installed: set[str]) -> set[str]:
+    return {
+        name for name, prerequisites in APPROVED_NATIVE_INTEGRATIONS.items()
+        if name not in installed and prerequisites <= installed
+    }
+
 
 class ModuleReleaseError(ValueError):
     """A module inventory or upgrade plan is incomplete or ambiguous."""
@@ -196,6 +213,10 @@ def derive_upgrade_plan(
                 reasons[dependent].append(f"depends-on:{dependency}")
                 queue.append(dependent)
 
+    for name in _missing_native_integrations(all_installed_modules):
+        changed.add(name)
+        reasons[name].append("approved-native-integration")
+
     modules = sorted(changed)
     payload = {
         "schema": PLAN_SCHEMA,
@@ -223,15 +244,21 @@ def derive_legacy_upgrade_plan(
     unknown = sorted(installed_modules - set(candidate["modules"]))
     if unknown:
         raise ModuleReleaseError("installed module ownership is ambiguous: " + ", ".join(unknown))
-    modules = sorted(installed_modules | (installed_foundation_modules or set()))
+    installed = installed_modules | (installed_foundation_modules or set())
+    integrations = _missing_native_integrations(installed)
+    modules = sorted(installed | integrations)
     payload = {
         "schema": PLAN_SCHEMA,
         "active_release": active_identity,
         "candidate_release": candidate_release["identity"],
         "candidate_module_inventory_sha256": candidate["sha256"],
-        "installed_modules": modules,
+        "installed_modules": sorted(installed),
         "upgrade_modules": modules,
-        "reasons": {name: ["legacy-v2-release-has-no-module-inventory"] for name in modules},
+        "reasons": {
+            name: ["approved-native-integration" if name in integrations
+                   else "legacy-v2-release-has-no-module-inventory"]
+            for name in modules
+        },
     }
     canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
     payload["sha256"] = hashlib.sha256(canonical.encode()).hexdigest()
@@ -255,7 +282,12 @@ def validate_upgrade_plan(value: object) -> dict[str, Any]:
         if value[field] != sorted(set(value[field])):
             raise ModuleReleaseError(f"upgrade plan {field} is not canonical")
     for name in set(value["upgrade_modules"]) - set(value["installed_modules"]):
-        if value["reasons"].get(name) != ["new-product-module"]:
+        reason = value["reasons"].get(name)
+        native_integration = (
+            name in _missing_native_integrations(set(value["installed_modules"]))
+            and reason == ["approved-native-integration"]
+        )
+        if reason != ["new-product-module"] and not native_integration:
             raise ModuleReleaseError("upgrade plan contains an unapproved new module")
     body = {key: item for key, item in value.items() if key != "sha256"}
     canonical = json.dumps(body, sort_keys=True, separators=(",", ":"))
