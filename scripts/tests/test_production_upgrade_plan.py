@@ -137,6 +137,29 @@ class InstalledFoundationPlanTests(unittest.TestCase):
         self.assertNotIn("--update=all", command)
         self.assertNotIn("usl_optional", ",".join(command))
 
+    def test_candidate_initializes_approved_native_bridge_without_update_all(self):
+        from operations.module_release import derive_upgrade_plan
+        from scripts.tests.test_module_release import release
+        modules = inventory([("usl_accounting", "1.0", [], "a", "b")])
+        candidate = release("candidate", modules)
+        candidate["components"] = {"distribution": {"digest_reference": "example.invalid/qa@sha256:" + "a" * 64}}
+        value = derive_upgrade_plan(
+            release("active", modules), candidate, {"usl_accounting"},
+            installed_foundation_modules={"sale_project", "project_stock_account"},
+        )
+        target = SimpleNamespace(value={
+            "environment": "production",
+            "databases": {"odoo": {"name": "qa_restore", "service": "db", "user": "odoo"}},
+            "secrets": {"env_file": "/private/qa/env"},
+        })
+        runner = mock.Mock()
+        _run_candidate_upgrade(target, runner, candidate, "qa-internal",
+                               {"odoo_filestore": "qa-filestore"}, value)
+        command = runner.run.call_args.args[0]
+        self.assertIn("--update=sale_project_stock_account", command)
+        self.assertIn("--init=sale_project_stock_account", command)
+        self.assertNotIn("--update=all", command)
+
     def test_controller_still_rejects_unknown_managed_module(self):
         with self.assertRaisesRegex(RuntimeError, "ambiguous: usl_foreign"):
             self._generate_plan(managed={"usl_foreign"})
