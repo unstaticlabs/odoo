@@ -86,3 +86,37 @@ class TestAnalyticsReinvoice(TestAnalytics):
         analytic_lines = picking_out.move_ids.analytic_account_line_ids
         self.assertEqual(analytic_lines.product_id, self.product2)
         self.assertEqual(analytic_lines.amount, -1000.0)
+
+    def test_analytic_costs_follow_move_company_and_reinvoice_policy(self):
+        """Only Anglo-Saxon reinvoiced products omit the delivery project cost."""
+        for anglo_saxon in (False, True):
+            for policy in ('no', 'cost', 'sales_price'):
+                with self.subTest(anglo_saxon=anglo_saxon, policy=policy):
+                    self.company.anglo_saxon_accounting = anglo_saxon
+                    product = self.env['product.product'].create({
+                        'name': 'Synthetic project material',
+                        'standard_price': 100.0,
+                        'reinvoice_policy': policy,
+                    })
+                    picking = self.PickingObj.create({
+                        'picking_type_id': self.picking_type_out.id,
+                        'location_id': self.stock_location.id,
+                        'location_dest_id': self.customer_location.id,
+                        'project_id': self.project.id,
+                        'move_ids': [Command.create({
+                            'uom_id': self.uom_unit.id,
+                            'location_id': self.stock_location.id,
+                            'location_dest_id': self.customer_location.id,
+                            'product_id': product.id,
+                            'product_uom_qty': 3,
+                        })],
+                    })
+                    picking.picking_type_id.analytic_costs = True
+                    picking.action_confirm()
+                    picking.with_user(self.user_stock_user).button_validate()
+                    lines = picking.move_ids.analytic_account_line_ids
+                    if anglo_saxon and policy in ('cost', 'sales_price'):
+                        self.assertFalse(lines)
+                    else:
+                        self.assertEqual(len(lines), 1)
+                        self.assertEqual(lines.amount, -300.0)
