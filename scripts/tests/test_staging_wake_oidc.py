@@ -182,6 +182,18 @@ class WakeOidcTests(unittest.TestCase):
         with self.assertRaises(OidcError):
             WakeOidc(issuer=ISSUER, client_id="", client_secret="s", redirect_uri=REDIRECT, required_group="g")
 
+    def test_non_ascii_forgeries_are_refused_not_raised(self) -> None:
+        self.assertIsNone(self.oidc.read_session("a.\u00e9"))
+        query, cookie = self.start()
+        with self.assertRaises(OidcError):
+            self.oidc.complete({"state": "\u00e9", "code": "x"}, cookie)
+
+    def test_the_provider_cannot_redirect_the_credentials_elsewhere(self) -> None:
+        import urllib.request
+        from operations.staging_wake_oidc import _RefuseRedirects
+        self.assertIsNone(_RefuseRedirects().redirect_request(None, None, 302, "Found", {}, "http://evil.test/"))
+        self.assertTrue(issubclass(_RefuseRedirects, urllib.request.HTTPRedirectHandler))
+
     def test_cookie_parsing(self) -> None:
         self.assertEqual(parse_cookies("a=1; b=2=3;junk"), {"a": "1", "b": "2=3"})
         self.assertEqual(parse_cookies(None), {})

@@ -1382,16 +1382,23 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
 
     config = _lifecycle_config(target)
     hostname = urlsplit(target.value["endpoints"]["odoo"]).hostname or "staging"
-    cookie_flags = "; Path=/__usl/; HttpOnly; Secure; SameSite="
+    # The login cookie only travels to the callback; the session cookie must reach
+    # every path, because the gateway hands any request to the daemon while
+    # staging sleeps (a cookie scoped to /__usl/ never reaches "/").
+    login_flags = "; Path=/__usl/; HttpOnly; Secure; SameSite=Lax"
+    session_flags = "; Path=/; HttpOnly; Secure; SameSite=Strict"
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "usl-lifecycle"
 
         def log_message(self, format, *args):  # noqa: A002
-            # The query string carries the OIDC code and state: never log it.
-            sys.stderr.write("%s %s\n" % (self.address_string(), format % tuple(
-                str(a).split("?", 1)[0] if i == 0 else a for i, a in enumerate(args)
-            )))
+            # The request line carries the OIDC code and state in its query
+            # string: never log it.  Other messages (send_error's "code %d")
+            # pass through untouched.
+            if format.startswith('"%s"') and args and isinstance(args[0], str):
+                args = (args[0].split("?", 1)[0].split(" ", 2)[:2], *args[1:])
+                args = (" ".join(args[0]), *args[1:])
+            sys.stderr.write("%s %s\n" % (self.address_string(), format % args))
 
         def _send(self, status: int, body: str, content_type: str = "text/html; charset=utf-8",
                   headers: list[tuple[str, str]] | None = None):
@@ -1472,7 +1479,7 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 except wake_oidc.OidcError as error:
                     self._page("/", str(error))
                     return
-                self._redirect(url, [("Set-Cookie", f"usl_wake_login={cookie}; Max-Age=600{cookie_flags}Lax")])
+                self._redirect(url, [("Set-Cookie", f"usl_wake_login={cookie}; Max-Age=600{login_flags}")])
             elif path == "/__usl/callback":
                 oidc, _ = self._person()
                 if oidc is None or not self._human():
@@ -1487,8 +1494,8 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                     return
                 sys.stderr.write(f"sign-in accepted: {who.label}\n")
                 self._redirect("/", [
-                    ("Set-Cookie", f"usl_wake_session={oidc.session_cookie(who)}; Max-Age=28800{cookie_flags}Strict"),
-                    ("Set-Cookie", f"usl_wake_login=; Max-Age=0{cookie_flags}Lax"),
+                    ("Set-Cookie", f"usl_wake_session={oidc.session_cookie(who)}; Max-Age=28800{session_flags}"),
+                    ("Set-Cookie", f"usl_wake_login=; Max-Age=0{login_flags}"),
                 ])
             else:
                 self._page(path)

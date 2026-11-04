@@ -26,6 +26,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import hmac
+import http.client
 import json
 import secrets
 import time
@@ -63,6 +64,21 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
+class _RefuseRedirects(urllib.request.HTTPRedirectHandler):
+    """A provider that redirects would be handed our client secret or access token."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+_NO_REDIRECTS = urllib.request.build_opener(_RefuseRedirects)
+
+
+def same(left: str, right: str) -> bool:
+    """Constant-time equality that never raises on non-ASCII input."""
+    return hmac.compare_digest(str(left).encode(), str(right).encode())
+
+
 def default_http(method: str, url: str, *, data: dict | None = None, headers: dict | None = None):
     """Return ``(status, parsed JSON)``.  Only ``https`` is ever contacted."""
     if not url.startswith("https://"):
@@ -70,11 +86,14 @@ def default_http(method: str, url: str, *, data: dict | None = None, headers: di
     body = urllib.parse.urlencode(data).encode() if data is not None else None
     request = urllib.request.Request(url, data=body, method=method, headers=headers or {})
     try:
-        with urllib.request.urlopen(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
+        with _NO_REDIRECTS.open(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
             return response.status, json.loads(response.read().decode())
     except urllib.error.HTTPError as error:
         return error.code, {}
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
+    except (
+        urllib.error.URLError, TimeoutError, json.JSONDecodeError, UnicodeDecodeError,
+        http.client.HTTPException, OSError,
+    ) as error:
         raise OidcError("the identity provider did not answer") from error
 
 
@@ -107,7 +126,7 @@ class WakeOidc:
             return None
         body, signature = value.split(".")
         expected = _b64(hmac.new(self._key, body.encode(), hashlib.sha256).digest())
-        if not hmac.compare_digest(signature, expected):
+        if not same(signature, expected):
             return None
         try:
             payload = json.loads(_unb64(body))
@@ -151,7 +170,7 @@ class WakeOidc:
             raise OidcError("the sign-in expired; start again")
         if query.get("error"):
             raise OidcError("the identity provider refused the sign-in")
-        if not hmac.compare_digest(query.get("state", ""), login["state"]) or not query.get("code"):
+        if not same(query.get("state", ""), login["state"]) or not query.get("code"):
             raise OidcError("the sign-in does not belong to this browser; start again")
         metadata = self.metadata()
         status, tokens = self.http("POST", metadata["token_endpoint"], data={
@@ -170,7 +189,7 @@ class WakeOidc:
             claims.get("iss", "").rstrip("/") != self.issuer
             or self.client_id not in ([claims["aud"]] if isinstance(claims.get("aud"), str) else claims.get("aud", []))
             or claims.get("exp", 0) < self.clock()
-            or not hmac.compare_digest(str(claims.get("nonce", "")), login["nonce"])
+            or not same(str(claims.get("nonce", "")), login["nonce"])
             or not claims.get("sub")
         ):
             raise OidcError("the identity token is not valid for this sign-in")

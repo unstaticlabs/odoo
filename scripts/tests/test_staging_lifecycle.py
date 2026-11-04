@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import urllib.error
 import unittest
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
@@ -760,6 +761,47 @@ class DaemonHttpTests(unittest.TestCase):
         self.assertEqual(status, 202)
         self.assertEqual(self.woken, ["web:valentin@example.test"])
 
+    def test_a_person_signs_in_with_a_real_cookie_jar_and_sees_the_wake_button_on_every_path(self) -> None:
+        """The session cookie must reach "/" and deep Odoo paths, not only /__usl/."""
+        import http.cookiejar
+        import urllib.parse
+        import urllib.request
+        self.set_state("sleeping")
+        jar = http.cookiejar.CookieJar()
+        base = f"http://127.0.0.1:{self.port}"
+
+        def fetch(path: str):
+            request = urllib.request.Request(base + path, headers={"User-Agent": "Mozilla/5.0 Firefox"})
+            jar.add_cookie_header(request)
+            class NoFollow(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, *a, **k):
+                    return None
+            try:
+                response = urllib.request.build_opener(NoFollow).open(request, timeout=5)
+            except urllib.error.HTTPError as error:
+                response = error
+            jar.extract_cookies(response, request)
+            return response.status, response.read().decode(), dict(response.headers)
+
+        # Cookies are marked Secure, which a jar refuses over http: drop that flag
+        # for the test only; Path/Domain matching is what is under test.
+        original = http.cookiejar.Cookie.__init__
+        def insecure(self, *args, **kwargs):
+            args = list(args)
+            args[10] = False  # secure
+            original(self, *args, **kwargs)
+        with mock.patch.object(http.cookiejar.Cookie, "__init__", insecure):
+            status, body, headers = fetch("/__usl/login")
+            self.assertEqual(status, 302)
+            query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(headers["Location"]).query))
+            self.provider.nonce = query["nonce"]
+            status, _, headers = fetch(f"/__usl/callback?state={query['state']}&code=abc")
+            self.assertEqual((status, headers["Location"]), (302, "/"))
+            for path in ("/", "/odoo/action-12", "/web/login", "/__usl/"):
+                status, body, _ = fetch(path)
+                self.assertIn('action="/__usl/wake"', body, path)
+                self.assertNotIn("/__usl/login", body, path)
+
     def test_the_session_cookie_is_locked_down_and_the_login_state_is_cleared(self) -> None:
         self.set_state("sleeping")
         self.provider.userinfo = {**self.provider.userinfo, "groups": ["c_suite"]}
@@ -776,7 +818,7 @@ class DaemonHttpTests(unittest.TestCase):
         )
         cookies = [v for k, v in headers if k == "Set-Cookie"]
         session = next(c for c in cookies if c.startswith("usl_wake_session="))
-        for flag in ("HttpOnly", "Secure", "SameSite=Strict"):
+        for flag in ("HttpOnly", "Secure", "SameSite=Strict", "Path=/;"):
             self.assertIn(flag, session)
         self.assertTrue(any(c.startswith("usl_wake_login=;") and "Max-Age=0" in c for c in cookies))
 
@@ -810,6 +852,29 @@ class DaemonHttpTests(unittest.TestCase):
         status, _, headers = self.request("GET", "/__usl/login", headers={"User-Agent": "Googlebot/2.1"})
         self.assertEqual(status, 503)
         self.assertNotIn("Location", dict(headers))
+
+    def test_odd_requests_get_an_answer_and_the_log_never_holds_the_oidc_code(self) -> None:
+        import contextlib
+        import io
+        self.set_state("sleeping")
+        captured = io.StringIO()
+        with contextlib.redirect_stderr(captured):
+            status, _, _ = self.request("OPTIONS", "/anything")
+            self.assertEqual(status, 501)
+            self.request("GET", "/__usl/callback?state=SECRETSTATE&code=SECRETCODE")
+        log = captured.getvalue()
+        self.assertIn("/__usl/callback", log)
+        self.assertNotIn("SECRETCODE", log)
+        self.assertNotIn("SECRETSTATE", log)
+        self.assertNotIn("Traceback", log)
+
+    def test_a_forged_non_ascii_cookie_or_state_is_refused_not_a_server_error(self) -> None:
+        self.set_state("sleeping")
+        status, _, _ = self.request("GET", "/", headers={"Cookie": "usl_wake_session=a.b"})
+        self.assertEqual(status, 503)
+        connection = self.http.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request("GET", "/__usl/callback?state=%C3%A9&code=x", headers={"User-Agent": "Mozilla/5.0", "Cookie": "usl_wake_login=%C3%A9.%C3%A9"})
+        self.assertEqual(connection.getresponse().status, 503)
 
     def test_without_a_provisioned_client_nothing_can_wake(self) -> None:
         self.set_state("sleeping")
