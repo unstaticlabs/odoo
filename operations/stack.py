@@ -1350,23 +1350,28 @@ def idle_sweep(target, runner, *, now=lifecycle.utc, window_seconds: int | None 
 
 
 def _wake_oidc(target, runner, http=None):
-    """The OIDC relying party for the wake page, or ``None`` if its client is not provisioned."""
+    """The OIDC relying party for the wake page, or ``None`` if no client is configured.
+
+    The daemon signs in with staging Odoo's own Pocket ID client
+    (``POCKET_ID_CLIENT_ID`` / ``POCKET_ID_CLIENT_SECRET``, the Komodo variables
+    the staging stack already uses), so there is no second secret to keep.
+    """
     config = _lifecycle_config(target)
-    result = runner.run(["cat", config["oidc_client_file"]], check=False)
-    if result.returncode:
+    client_id = os.environ.get("POCKET_ID_CLIENT_ID", "")
+    client_secret = os.environ.get("POCKET_ID_CLIENT_SECRET", "")
+    if not client_id or not client_secret:
         return None
     try:
-        client = json.loads(result.stdout)
         kwargs = {"http": http} if http is not None else {}
         return wake_oidc.WakeOidc(
             issuer=config["oidc_issuer"],
-            client_id=client["client_id"],
-            client_secret=client["client_secret"],
+            client_id=client_id,
+            client_secret=client_secret,
             redirect_uri=target.value["endpoints"]["odoo"].rstrip("/") + "/__usl/callback",
             required_group=config["oidc_required_group"],
             **kwargs,
         )
-    except (json.JSONDecodeError, KeyError, wake_oidc.OidcError):
+    except wake_oidc.OidcError:
         return None
 
 

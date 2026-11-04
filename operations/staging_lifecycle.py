@@ -39,7 +39,6 @@ CONFIG_FIELDS = {
     "gateway_service",
     "listen_port",
     "oidc_issuer",
-    "oidc_client_file",
     "oidc_required_group",
 }
 STATES = ("active", "waking", "sleeping", "stopping", "failed")
@@ -129,9 +128,6 @@ def validate_lifecycle(value: object) -> dict:
         raise LifecycleError("lifecycle.gateway_service is required")
     if not isinstance(value["oidc_issuer"], str) or not value["oidc_issuer"].startswith("https://"):
         raise LifecycleError("lifecycle.oidc_issuer must be an https URL")
-    client = value["oidc_client_file"]
-    if not isinstance(client, str) or not client.startswith("/"):
-        raise LifecycleError("lifecycle.oidc_client_file must be absolute")
     if not isinstance(value["oidc_required_group"], str) or not value["oidc_required_group"]:
         raise LifecycleError("lifecycle.oidc_required_group is required")
     return value

@@ -671,8 +671,11 @@ class DaemonHttpTests(unittest.TestCase):
         self.host = FakeHost(target)
         self.state_path = f"{target.value['state_directory']}/lifecycle.json"
         config = target.value["lifecycle"]
-        self.client_path = config["oidc_client_file"]
-        self.host.files[self.client_path] = json.dumps({"client_id": "client-1", "client_secret": "s3cret"})
+        environment = mock.patch.dict(
+            "os.environ", {"POCKET_ID_CLIENT_ID": "client-1", "POCKET_ID_CLIENT_SECRET": "s3cret"},
+        )
+        environment.start()
+        self.addCleanup(environment.stop)
         import time as _time
         self.provider = FakeProvider(_time.time, config["oidc_issuer"])
         self.woken: list[str] = []
@@ -810,7 +813,9 @@ class DaemonHttpTests(unittest.TestCase):
 
     def test_without_a_provisioned_client_nothing_can_wake(self) -> None:
         self.set_state("sleeping")
-        del self.host.files[self.client_path]
+        environment = mock.patch.dict("os.environ", {"POCKET_ID_CLIENT_ID": "", "POCKET_ID_CLIENT_SECRET": ""})
+        environment.start()
+        self.addCleanup(environment.stop)
         status, body, _ = self.request("GET", "/")
         self.assertEqual(status, 503)
         self.assertIn("not set up", body)

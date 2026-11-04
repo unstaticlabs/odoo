@@ -145,6 +145,42 @@ that lasts eight hours and dies when the client secret is rotated. Health
 probes (`/web/health`) receive `200 {"status":"sleeping"}` so a sleeping staging
 does not page anyone; an *active* staging that does not answer yields a `502`.
 
+The daemon signs in with **staging Odoo's own Pocket ID client**
+(`POCKET_ID_CLIENT_ID` and `POCKET_ID_CLIENT_SECRET`, the Komodo variables the
+staging stack already uses), so there is no second secret. Without them the page
+says that web wake is not set up and only the command line works.
+
+**One-time setup (needs a Pocket ID admin).** In Pocket ID, add this callback URL
+to the existing staging Odoo client, beside its Odoo one:
+
+```
+https://odoo-staging.unstaticlabs.com/__usl/callback
+```
+
+That client is already restricted to the `c_suite` group. Rotating its secret
+signs every wake session out; redeploy the lifecycle stack so the daemon picks up
+the new value.
+
+**From a pipeline.** The GitOps release launcher wakes staging before it touches
+it, passing `--release-lock-held` because it already owns the host-wide release
+lock, and records the end of the work with `touch` (which never starts anything,
+even after a failed release). Qualification, tests,
+backups, deployment and rollback are unchanged. About one hour later the idle
+sweep puts staging back to sleep.
+
+**From the web.** While staging sleeps, `https://odoo-staging.unstaticlabs.com`
+answers `503` with a sleeping page. A person signs in with Pocket ID (the same
+provider and the same `c_suite` group as staging Odoo) and presses **Wake
+staging**; the page then opens staging by itself. The lifecycle daemon speaks
+OpenID Connect itself (authorization code + PKCE, confidential client, userinfo
+for the groups), so nothing depends on Odoo being up. The wake is recorded as
+`web:<email>` in `lifecycle.json`, so the history says who woke staging.
+Bots and probes cannot start a sign-in or a wake; a cross-site request is
+refused; the session is a signed `HttpOnly; Secure; SameSite=Strict` cookie
+that lasts eight hours and dies when the client secret is rotated. Health
+probes (`/web/health`) receive `200 {"status":"sleeping"}` so a sleeping staging
+does not page anyone; an *active* staging that does not answer yields a `502`.
+
 Until the Pocket ID client exists on the host, the page says that web wake is
 not set up and only the command line works.
 
