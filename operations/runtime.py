@@ -15,6 +15,7 @@ from typing import Any, Protocol
 from urllib.parse import urlsplit
 
 from operations.release_manifest import ReleaseManifestError
+from operations.staging_lifecycle import LifecycleError, validate_lifecycle
 from operations.release_manifest import validate as validate_release
 
 SCHEMA = "usl-runtime/v1"
@@ -67,9 +68,12 @@ class CommandRunner:
     deadline_monotonic: float | None = None
 
     @contextmanager
-    def advisory_lock(self, path: str, timeout: float = 30.0):
+    def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
+        """Hold ``flock`` on ``path``.  Fails at once unless ``wait`` seconds are allowed."""
+        mode = ["--timeout", str(wait)] if wait > 0 else ["--nonblock"]
+        timeout = max(timeout, wait + 10.0)
         command = [
-            "flock", "--nonblock", path, "sh", "-c", "printf 'locked\\n'; cat >/dev/null",
+            "flock", *mode, path, "sh", "-c", "printf 'locked\\n'; cat >/dev/null",
         ]
         invocation = [*self.prefix, *command]
         if self.prefix and self.prefix[0] == "ssh":
@@ -197,6 +201,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "cron_policy",
             "secrets",
             "state_directory",
+            "lifecycle",
         },
         "target",
     )
@@ -516,6 +521,12 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             raise RuntimeError(f"secret allowlist contains a topology key: {key}")
     if not isinstance(root["state_directory"], str) or not root["state_directory"].startswith("/"):
         raise RuntimeError("state_directory must be absolute")
+    try:
+        validate_lifecycle(root["lifecycle"])
+    except LifecycleError as error:
+        raise RuntimeError(str(error)) from error
+    if root["lifecycle"]["mode"] == "on_demand" and root["environment"] != "staging":
+        raise RuntimeError("only staging may be put to sleep: on_demand lifecycle is not allowed here")
     return Target(path, root)
 
 

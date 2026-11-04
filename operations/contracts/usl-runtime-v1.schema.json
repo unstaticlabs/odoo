@@ -7,7 +7,7 @@
   "required": [
     "schema", "name", "environment", "protected", "transport", "compose",
     "services", "databases", "storage", "volumes", "paths", "external_networks", "endpoints", "admission_endpoints", "ingress",
-    "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory"
+    "ollama", "backup", "release_manifest", "plan_signing", "cron_policy", "secrets", "state_directory", "lifecycle"
   ],
   "properties": {
     "schema": {"const": "usl-runtime/v1"},
@@ -67,7 +67,33 @@
       }
     },
     "secrets": {"type": "object"},
-    "state_directory": {"type": "string"}
+    "state_directory": {"type": "string"},
+    "lifecycle": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["mode"],
+          "properties": {"mode": {"const": "always_on"}}
+        },
+        {
+          "type": "object", "additionalProperties": false,
+          "required": [
+            "mode", "idle_after_ci_minutes", "idle_after_interactive_minutes", "wake_timeout_seconds",
+            "max_lease_minutes", "sweep_seconds", "gateway_service", "listen_port", "wake_token_sha256_file"
+          ],
+          "properties": {
+            "mode": {"const": "on_demand"},
+            "idle_after_ci_minutes": {"type": "integer", "minimum": 1},
+            "idle_after_interactive_minutes": {"type": "integer", "minimum": 1},
+            "wake_timeout_seconds": {"type": "integer", "minimum": 1},
+            "max_lease_minutes": {"type": "integer", "minimum": 1},
+            "sweep_seconds": {"type": "integer", "minimum": 1, "maximum": 600},
+            "gateway_service": {"type": "string", "minLength": 1},
+            "listen_port": {"type": "integer", "minimum": 1, "maximum": 65535},
+            "wake_token_sha256_file": {"type": "string", "pattern": "^/"}
+          }
+        }
+      ]
+    }
   },
   "$defs": {
     "serviceEndpoints": {

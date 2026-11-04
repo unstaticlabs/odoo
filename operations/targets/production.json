@@ -118,5 +118,6 @@
       "USL_BACKUP_CACHE_PASSWORD"
     ]
   },
-  "state_directory": "/var/lib/usl-odoo/runtime/production"
+  "state_directory": "/var/lib/usl-odoo/runtime/production",
+  "lifecycle": {"mode": "always_on"}
 }
