@@ -15,10 +15,13 @@ from operations.runtime import load_target, validate_target
 from operations.stack import (
     DATA_SERVICE_ROLES,
     GATEWAY_MAINTENANCE_MARKER,
+    RELEASE_OPERATION_LOCK,
     idle_sweep,
     lease_staging,
+    lifecycle_server,
     lifecycle_status,
     sleep_staging,
+    touch_staging,
     wake_staging,
 )
 
@@ -160,6 +163,8 @@ class ActivityTests(unittest.TestCase):
         self.assertIsNone(lifecycle.interactive_activity(["", "garbage", "2026 nope"]))
 
     def test_automated_clients_cannot_wake(self) -> None:
+        for agent in ("", "python-httpx/0.27", "axios/1.6", "node-fetch/3", "okhttp/4"):
+            self.assertFalse(lifecycle.wake_attempt_allowed(agent), agent)
         self.assertFalse(lifecycle.wake_attempt_allowed("Googlebot/2.1"))
         self.assertFalse(lifecycle.wake_attempt_allowed("Uptime-Kuma"))
         self.assertTrue(lifecycle.wake_attempt_allowed("Mozilla/5.0 (Macintosh) Safari"))
@@ -196,7 +201,7 @@ class FakeHost:
         services = sorted(set(target.value["services"].values()))
         self.containers = {name: "running" if running else "exited" for name in services}
         self.commands: list[list[str]] = []
-        self.locked = False
+        self.locks: set[str] = set()
         self.health = health
         self.stop_order: list[list[str]] = []
 
@@ -205,13 +210,13 @@ class FakeHost:
 
     @contextmanager
     def advisory_lock(self, path: str, timeout: float = 30.0):
-        if self.locked:
+        if path in self.locks:
             raise StackRuntimeError(f"another operation owns advisory lock: {path}")
-        self.locked = True
+        self.locks.add(path)
         try:
             yield
         finally:
-            self.locked = False
+            self.locks.discard(path)
 
     def run(self, command, *, check=True, input_text=None):
         self.commands.append(command)
@@ -316,9 +321,9 @@ class CommandTests(unittest.TestCase):
     def test_sleep_is_refused_while_a_release_or_maintenance_is_running(self) -> None:
         host = FakeHost(self.target)
         host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0 - timedelta(days=2))))
-        host.locked = True
+        host.locks.add(RELEASE_OPERATION_LOCK)
         self.assertEqual(sleep_staging(self.target, host, reason="idle", now=lambda: at(0))["status"], "deferred")
-        host.locked = False
+        host.locks.clear()
         host.files[GATEWAY_MAINTENANCE_MARKER] = "{}"
         busy = sleep_staging(self.target, host, reason="idle", force=True, now=lambda: at(0))
         self.assertEqual(busy["status"], "deferred")
@@ -348,7 +353,7 @@ class CommandTests(unittest.TestCase):
             sleep_staging(self.target, host, reason="manual", force=True, now=lambda: at(1))
         self.assertEqual(self.state(host)["state"], "failed")
         self.assertEqual(host.dirs, set())
-        self.assertFalse(host.locked)
+        self.assertEqual(host.locks, set())
 
     def test_wake_starts_everything_and_records_the_reason(self) -> None:
         host = FakeHost(self.target, running=False)
@@ -383,7 +388,7 @@ class CommandTests(unittest.TestCase):
                 wake_staging(self.target, host, reason="manual:me", now=lambda: at(0))
         failed = self.state(host)
         self.assertEqual(failed["state"], "failed")
-        self.assertIn("message", json.dumps(failed["last_error"]) + "message")
+        self.assertIn("did not become healthy", failed["last_error"]["message"])
         # A later wake runs again from `failed`.
         host.health = "200"
         again = wake_staging(self.target, host, reason="manual:me", now=lambda: at(5))
@@ -391,10 +396,83 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(self.state(host)["state"], "active")
         self.assertIsNone(self.state(host)["last_error"])
 
+    def test_a_held_runtime_operation_defers_sleep_and_sweep_without_stopping_anything(self) -> None:
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0 - timedelta(days=2))))
+        host.dirs.add(f"{self.target.value['state_directory']}/operation.lock")
+        self.assertEqual(sleep_staging(self.target, host, reason="idle", now=lambda: at(0))["status"], "deferred")
+        self.assertEqual(idle_sweep(self.target, host, now=lambda: at(0))["status"], "deferred")
+        self.assertEqual(host.stop_order, [])
+
+    def test_wake_starts_nothing_while_a_release_left_work_unfinished(self) -> None:
+        host = FakeHost(self.target, running=False)
+        host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
+        host.files[GATEWAY_MAINTENANCE_MARKER] = "{}"
+        result = wake_staging(self.target, host, reason="manual:me", now=lambda: at(0))
+        self.assertEqual(result["status"], "deferred")
+        self.assertIn("recover the release first", result["detail"])
+        self.assertFalse([c for c in host.commands if c[:2] == ["docker", "compose"]])
+        # The launcher is about to resume that very work, so it may wake.
+        result = wake_staging(self.target, host, reason="release:x", release_lock_held=True, now=lambda: at(0))
+        self.assertEqual(result["status"], "woken")
+
+    def test_touch_records_activity_and_never_starts_a_container(self) -> None:
+        host = FakeHost(self.target, running=False)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0)))
+        result = touch_staging(self.target, host, reason="release:done", now=lambda: at(50))
+        self.assertEqual(result["status"], "touched")
+        self.assertEqual(self.state(host)["last_ci_at"], lifecycle.stamp(at(50)))
+        self.assertFalse([c for c in host.commands if c[:2] == ["docker", "compose"]])
+        host.files[self.path] = lifecycle.dumps(active_state(state="failed"))
+        self.assertEqual(touch_staging(self.target, host, reason="release:done", now=lambda: at(60))["status"], "ignored")
+        self.assertEqual(self.state(host)["state"], "failed")
+
+    def test_a_lease_cannot_resurrect_a_staging_that_is_going_to_sleep(self) -> None:
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(state="stopping"))
+        with self.assertRaisesRegex(StackRuntimeError, "stopping"):
+            lease_staging(self.target, host, minutes=30, holder="manual:me", now=lambda: at(0))
+        self.assertEqual(self.state(host)["state"], "stopping")
+
+    def test_a_lease_works_before_staging_ever_slept(self) -> None:
+        host = FakeHost(self.target)
+        granted = lease_staging(self.target, host, minutes=30, holder="manual:me", now=lambda: at(0))
+        self.assertEqual(granted["status"], "leased")
+
+    def test_writers_never_overwrite_each_other_with_a_stale_copy(self) -> None:
+        # The sweep read the state; the launcher then touched it; the sweep's own
+        # write must start from the touched state, not from what it read.
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0)))
+        original = host.run
+
+        def touching_during_log_read(command, **kw):
+            if command[:2] == ["docker", "logs"]:
+                touch_staging(self.target, host, reason="release:late", now=lambda: at(59))
+                return subprocess.CompletedProcess(
+                    command, 0, log(30, "POST", "/web/dataset/call_kw/a/b", 200) + "\n", "",
+                )
+            return original(command, **kw)
+
+        host.run = touching_during_log_read
+        idle_sweep(self.target, host, now=lambda: at(61))
+        state = self.state(host)
+        self.assertEqual(state["last_ci_at"], lifecycle.stamp(at(59)))
+        self.assertTrue(state["last_interactive_at"].startswith("2026-11-04T12:30"))
+        self.assertEqual(state["state"], "active")
+
+    def test_an_interrupted_transition_is_recorded_not_left_forever(self) -> None:
+        host = FakeHost(self.target, running=False)
+        host.files[self.path] = lifecycle.dumps(active_state(state="waking", since=lifecycle.stamp(T0)))
+        self.assertEqual(idle_sweep(self.target, host, now=lambda: at(5))["state"], "waking")
+        result = idle_sweep(self.target, host, now=lambda: at(60))
+        self.assertEqual(result["state"], "failed")
+        self.assertEqual(self.state(host)["last_error"]["type"], "Interrupted")
+
     def test_wake_inside_a_release_does_not_deadlock_on_its_own_lock(self) -> None:
         host = FakeHost(self.target, running=False)
         host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
-        host.locked = True  # the launcher holds release-operation.lock
+        host.locks.add(RELEASE_OPERATION_LOCK)  # the launcher holds it
         with self.assertRaises(StackRuntimeError):
             wake_staging(self.target, host, reason="manual:me", now=lambda: at(0))
         result = wake_staging(
@@ -453,6 +531,142 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(report["state"], "active")
         self.assertEqual(report["next_sleep_not_before"], lifecycle.stamp(at(60)))
         self.assertTrue(report["services_running"].startswith("13/"))
+
+
+class CleanupWhileAsleepTests(unittest.TestCase):
+    def inventory(self, name: str, state: str, service: str) -> dict:
+        from operations.stack import _cleanup_inventory
+        target = load_target(name, ROOT / "operations/targets-host")
+        labels = {"com.docker.compose.project.config_files": (
+            f"{target.value['state_directory']}/generations/gcandidate/compose.generation.json"
+        )}
+
+        class Runner:
+            def run(self, command, check=True, **_kw):
+                if command[:2] == ["docker", "inspect"]:
+                    return subprocess.CompletedProcess(command, 0, json.dumps(labels), "")
+                if command[0] == "cat":
+                    return subprocess.CompletedProcess(command, 1, "", "")
+                return subprocess.CompletedProcess(command, 0, "", "")
+
+        current = {"volumes": {}, "generation": "gactive", "containers": [
+            {"ID": "c1", "State": state, "Service": service},
+        ]}
+        with mock.patch("operations.stack._cleanup_workspaces", return_value=[]), mock.patch(
+            "operations.stack._cleanup_captures", return_value={},
+        ):
+            return _cleanup_inventory(target, Runner(), current)
+
+    def test_a_sleeping_staging_still_protects_what_its_stopped_cohort_needs(self) -> None:
+        inventory = self.inventory("staging", "exited", "odoo-staging")
+        self.assertIn("gcandidate", inventory["protected_generations"])
+        self.assertIn("usl-odoo-staging-main-gcandidate-recovery", inventory["protected_networks"])
+
+    def test_exited_one_shots_do_not_protect_anything_and_production_is_unchanged(self) -> None:
+        self.assertNotIn("gcandidate", self.inventory("staging", "exited", "odoo-upgrade")["protected_generations"])
+        self.assertNotIn("gcandidate", self.inventory("production", "exited", "odoo")["protected_generations"])
+        self.assertIn("gcandidate", self.inventory("production", "running", "odoo")["protected_generations"])
+
+
+class DaemonHttpTests(unittest.TestCase):
+    """The wake endpoint, exercised over a real socket on an ephemeral port."""
+
+    def setUp(self) -> None:
+        import threading
+        import urllib.request
+        from http.server import ThreadingHTTPServer
+        self.urllib = urllib.request
+        target = load_target("staging", ROOT / "operations/targets-host")
+        self.target = target
+        self.host = FakeHost(target)
+        self.state_path = f"{target.value['state_directory']}/lifecycle.json"
+        self.token_path = target.value["lifecycle"]["wake_token_sha256_file"]
+        self.host.files[self.token_path] = lifecycle.token_digest("open-sesame") + "\n"
+        self.woken: list[str] = []
+        real_init = ThreadingHTTPServer.__init__
+
+        def bind_ephemeral(server, address, handler, *a, **kw):
+            real_init(server, ("127.0.0.1", 0), handler, *a, **kw)
+
+        with mock.patch.object(ThreadingHTTPServer, "__init__", bind_ephemeral):
+            self.server = lifecycle_server(target, self.host, self.woken.append)
+        self.port = self.server.server_address[1]
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.addCleanup(self.server.server_close)
+        self.addCleanup(self.server.shutdown)
+
+    def set_state(self, name: str) -> None:
+        self.host.files[self.state_path] = lifecycle.dumps(active_state(state=name))
+
+    def request(self, method: str, path: str, *, data: bytes | None = None, headers: dict | None = None):
+        request = self.urllib.Request(
+            f"http://127.0.0.1:{self.port}{path}", data=data, method=method,
+            headers={"User-Agent": "Mozilla/5.0 Firefox", **(headers or {})},
+        )
+        try:
+            with self.urllib.urlopen(request, timeout=5) as response:
+                return response.status, response.read().decode()
+        except Exception as error:  # urllib raises for 4xx/5xx
+            return error.code, error.read().decode()
+
+    def test_a_sleeping_staging_serves_the_page_and_healthy_probes(self) -> None:
+        self.set_state("sleeping")
+        status, body = self.request("GET", "/some/odoo/path")
+        self.assertEqual(status, 503)
+        self.assertIn("/__usl/wake", body)
+        self.assertEqual(self.request("POST", "/web/dataset/call_kw")[0], 503)
+        self.assertEqual(self.request("GET", "/web/health"), (200, '{"status": "sleeping"}'))
+        self.assertEqual(
+            json.loads(self.request("GET", "/__usl/status")[1]),
+            {"state": "sleeping", "since": lifecycle.stamp(T0)},
+        )
+
+    def test_an_active_or_failed_staging_that_does_not_answer_is_a_502_not_a_healthy_sleep(self) -> None:
+        for state in ("active", "failed"):
+            self.set_state(state)
+            self.assertEqual(self.request("GET", "/web/health")[0], 502, state)
+            self.assertEqual(self.request("GET", "/")[0], 502, state)
+
+    def test_wake_requires_the_token_and_a_human_user_agent(self) -> None:
+        self.set_state("sleeping")
+        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=wrong")[0], 403)
+        self.assertEqual(self.request("POST", "/__usl/wake", data=b"")[0], 403)
+        self.assertEqual(self.request(
+            "POST", "/__usl/wake", data=b"token=open-sesame", headers={"User-Agent": "Googlebot/2.1"},
+        )[0], 403)
+        self.assertEqual(self.woken, [])
+        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 202)
+        self.assertEqual(self.woken, ["web"])
+
+    def test_a_bearer_token_overrides_the_form_and_works(self) -> None:
+        self.set_state("sleeping")
+        status, _ = self.request(
+            "POST", "/__usl/wake", data=b"token=wrong", headers={"Authorization": "Bearer open-sesame"},
+        )
+        self.assertEqual(status, 202)
+
+    def test_ten_failures_a_minute_lock_the_endpoint(self) -> None:
+        self.set_state("sleeping")
+        for _ in range(10):
+            self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=nope")[0], 403)
+        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 429)
+        self.assertEqual(self.woken, [])
+
+    def test_a_malformed_content_length_is_refused_without_hanging(self) -> None:
+        import socket
+        self.set_state("sleeping")
+        for length in ("abc", "-5"):
+            with socket.create_connection(("127.0.0.1", self.port), timeout=5) as connection:
+                connection.sendall(
+                    f"POST /__usl/wake HTTP/1.1\r\nHost: x\r\nUser-Agent: Mozilla/5.0\r\n"
+                    f"Content-Length: {length}\r\n\r\n".encode(),
+                )
+                self.assertIn(b" 400 ", connection.recv(200).split(b"\r\n")[0] + b" ", length)
+
+    def test_a_missing_token_digest_refuses_every_wake(self) -> None:
+        self.set_state("sleeping")
+        del self.host.files[self.token_path]
+        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 403)
 
 
 if __name__ == "__main__":

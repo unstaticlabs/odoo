@@ -902,19 +902,23 @@ def _adopt_staging_gateway(target, runner) -> dict:
 RELEASE_OPERATION_LOCK = "/var/lib/usl-odoo/runtime/release-operation.lock"
 GATEWAY_MAINTENANCE_MARKER = "/var/lib/usl-odoo/gateway/staging/maintenance"
 LIFECYCLE_ACTIONS = (
-    "wake", "sleep", "lease", "lifecycle", "idle-sweep", "lifecycle-daemon",
+    "wake", "sleep", "touch", "lease", "lifecycle", "idle-sweep", "lifecycle-daemon",
 )
 # Stop the applications first and the data services last, so PostgreSQL and
 # Valkey see every client disconnect before they receive their own SIGTERM.
 DATA_SERVICE_ROLES = ("odoo_db", "paperless_db", "paperless_broker")
 SLEEP_STOP_TIMEOUT_SECONDS = 60
+# A wake or sleep that has not finished after this many wake timeouts was
+# interrupted (the daemon was killed, the host rebooted).  The sweep records it.
+STALE_TRANSITION_FACTOR = 2
 
 
-def _start_runtime(target, runner, current: dict, *, mcp_authority: bool = True) -> dict:
+def _start_runtime(target, runner, current: dict, *, mcp_authority: bool = True, wait_timeout: int | None = None) -> dict:
     identity = _active_generation_identity(target, runner, current, mcp_authority=mcp_authority)
+    wait = ["--wait-timeout", str(wait_timeout)] if wait_timeout else []
     runner.run(compose_command(
         identity,
-        ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *_compose_services(target, identity, runner)],
+        ["up", "--detach", "--wait", *wait, "--no-recreate", "--no-deps", *_compose_services(target, identity, runner)],
     ))
     return identity
 
@@ -951,9 +955,23 @@ def _read_lifecycle(target, runner) -> dict | None:
         raise RuntimeError(f"lifecycle state is invalid: {error}") from error
 
 
-def _write_lifecycle(target, runner, state: dict) -> dict:
-    _write_remote(target, runner, _lifecycle_path(target), lifecycle.dumps(state), "0644")
-    return state
+def _update_lifecycle(target, runner, change, *, now=lifecycle.utc) -> dict:
+    """Read-modify-write ``lifecycle.json`` under its own short lock.
+
+    Everything that writes the file goes through here: wake and sleep (which
+    also hold the long runtime lock), the lease, the activity touch and the
+    sweep's observations.  ``change(state, moment)`` receives the freshly read
+    state and returns the new one, so a concurrent writer is never overwritten
+    with a stale copy.
+    """
+    path = f"{target.value['state_directory']}/lifecycle.lock"
+    runner.run(["install", "-d", "-m", "0700", target.value["state_directory"]])
+    with runner.advisory_lock(path):
+        moment = now()
+        current = _read_lifecycle(target, runner) or lifecycle.new_state(moment)
+        updated = change(current, moment)
+        _write_remote(target, runner, _lifecycle_path(target), lifecycle.dumps(updated), "0644")
+        return updated
 
 
 def _service_container_states(target, runner) -> dict[str, str]:
@@ -974,16 +992,16 @@ def _service_container_states(target, runner) -> dict[str, str]:
 
 
 def _lifecycle_busy(target, runner) -> list[str]:
-    """Reasons that forbid sleeping right now, discovered from the host."""
+    """Work in progress or awaiting recovery, discovered from the host."""
     busy = []
     if runner.run(["test", "-e", GATEWAY_MAINTENANCE_MARKER], check=False).returncode == 0:
         busy.append("maintenance marker present")
-    # A runtime operation holding ``operation.lock`` is not listed here: this
-    # check runs under that very lock, so acquiring it already proved no other
-    # operation owns it.
     unfinished = _unfinished_release_attempts(target, runner)
     if unfinished:
         busy.append("unfinished release attempt " + ", ".join(sorted(unfinished)))
+    # A runtime operation holding ``operation.lock`` is not listed here: callers
+    # run under that very lock, so acquiring it already proved no other
+    # operation owns it.
     return busy
 
 
@@ -1037,54 +1055,93 @@ def _wait_odoo_ready(target, runner, timeout: int) -> None:
     raise RuntimeError(f"staging Odoo did not become healthy in {timeout}s: {last}")
 
 
+def _activity_key(reason: str) -> str:
+    return "last_ci_at" if lifecycle.kind_of(reason) == "ci" else "last_interactive_at"
+
+
 def wake_staging(
     target, runner, *, reason: str, release_lock_held: bool = False,
-    now=lifecycle.utc, sleeper=time.sleep,
+    now=lifecycle.utc,
 ) -> dict:
+    """Start every staging service of the recorded active generation.
+
+    Waking is as intrusive as sleeping, so it refuses to start anything while a
+    release left work unfinished (a failed rollback waiting for ``resume``, a
+    maintenance marker).  The one exception is the GitOps launcher itself
+    (``release_lock_held``): it is about to resume or complete that work.
+    """
     config = _lifecycle_config(target)
-    kind = lifecycle.kind_of(reason)
     with _lifecycle_exclusion(target, runner, "wake", release_lock_held=release_lock_held):
-        moment = now()
-        state = _read_lifecycle(target, runner) or lifecycle.new_state(moment)
         containers = _service_container_states(target, runner)
         running = [name for name, value in containers.items() if value == "running"]
+        state = _read_lifecycle(target, runner) or lifecycle.new_state(now())
         if state["state"] == "active" and len(running) == len(containers):
             # Already awake: still counts as activity, so a pipeline arriving
             # in the last minute of the grace period extends it.
-            state = {**state, "last_ci_at" if kind == "ci" else "last_interactive_at": lifecycle.stamp(moment)}
-            _write_lifecycle(target, runner, lifecycle.record(state, moment, "wake-noop", reason=reason))
+            _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+                {**value, _activity_key(reason): lifecycle.stamp(moment)},
+                moment, "wake-noop", reason=reason,
+            ), now=now)
             return {"schema": "usl-staging-wake/v1", "status": "already-active", "reason": reason}
-        state = lifecycle.record(
-            {**state, "state": "waking", "since": lifecycle.stamp(moment), "last_error": None},
+        if not release_lock_held:
+            busy = _lifecycle_busy(target, runner)
+            if busy:
+                return {
+                    "schema": "usl-staging-wake/v1", "status": "deferred", "reason": reason,
+                    "detail": "; ".join(busy) + ": recover the release first",
+                }
+        _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+            {**value, "state": "waking", "since": lifecycle.stamp(moment), "last_error": None},
             moment, "wake-started", reason=reason,
-        )
-        _write_lifecycle(target, runner, state)
+        ), now=now)
         started = time.monotonic()
         try:
             _report("wake", "services", "started", reason)
             current = inspect_runtime(target, runner)
-            _start_runtime(target, runner, current, mcp_authority=False)
+            _start_runtime(
+                target, runner, current, mcp_authority=False,
+                wait_timeout=config["wake_timeout_seconds"],
+            )
             _wait_odoo_ready(target, runner, config["wake_timeout_seconds"])
         except BaseException as error:
-            failed = lifecycle.record(
-                {**state, "state": "failed", "since": lifecycle.stamp(now()),
-                 "last_error": _lifecycle_error(error)},
-                now(), "wake-failed", reason=reason,
-            )
-            _write_lifecycle(target, runner, failed)
+            failure = _lifecycle_error(error)
+            _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+                {**value, "state": "failed", "since": lifecycle.stamp(moment), "last_error": failure},
+                moment, "wake-failed", reason=reason,
+            ), now=now)
             raise
-        finished = now()
         seconds = round(time.monotonic() - started, 1)
-        key = "last_ci_at" if kind == "ci" else "last_interactive_at"
-        state = lifecycle.record(
-            {**state, "state": "active", "since": lifecycle.stamp(finished),
-             "last_wake_at": lifecycle.stamp(finished), "last_wake_reason": reason,
-             key: lifecycle.stamp(finished), "last_error": None},
-            finished, "wake-finished", reason=reason, seconds=seconds,
-        )
-        _write_lifecycle(target, runner, state)
+        _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+            {**value, "state": "active", "since": lifecycle.stamp(moment),
+             "last_wake_at": lifecycle.stamp(moment), "last_wake_reason": reason,
+             _activity_key(reason): lifecycle.stamp(moment), "last_error": None},
+            moment, "wake-finished", reason=reason, seconds=seconds,
+        ), now=now)
         _report("wake", "ready", "passed", f"{seconds}s")
         return {"schema": "usl-staging-wake/v1", "status": "woken", "reason": reason, "seconds": seconds}
+
+
+def touch_staging(target, runner, *, reason: str, now=lifecycle.utc) -> dict:
+    """Record activity and start nothing.
+
+    The release launcher calls this when an operation ends, successfully or
+    not, so the idle grace period starts from the end of the work.  It never
+    starts a container: a failed release may deliberately have left the cohort
+    stopped.
+    """
+    _lifecycle_config(target)
+
+    def change(value: dict, moment) -> dict:
+        if value["state"] != "active":
+            return value
+        return {**value, _activity_key(reason): lifecycle.stamp(moment)}
+
+    state = _update_lifecycle(target, runner, change, now=now)
+    return {
+        "schema": "usl-staging-touch/v1",
+        "status": "touched" if state["state"] == "active" else "ignored",
+        "state": state["state"],
+    }
 
 
 def sleep_staging(
@@ -1093,6 +1150,7 @@ def sleep_staging(
 ) -> dict:
     """Stop every staging service; keep volumes, generations, snapshots and the gateway."""
     config = _lifecycle_config(target)
+    deferred = {"schema": "usl-staging-sleep/v1", "status": "deferred"}
     with ExitStack() as stack:
         try:
             stack.enter_context(_lifecycle_exclusion(
@@ -1100,27 +1158,28 @@ def sleep_staging(
             ))
         except RuntimeError as error:
             # Someone is releasing, backing up or restoring: that is work, not idleness.
-            return {"schema": "usl-staging-sleep/v1", "status": "deferred", "detail": str(error)}
+            return {**deferred, "detail": str(error)}
         moment = now()
         state = _read_lifecycle(target, runner) or lifecycle.new_state(moment)
         busy = _lifecycle_busy(target, runner)
         if busy:
-            return {"schema": "usl-staging-sleep/v1", "status": "deferred", "detail": "; ".join(busy)}
+            return {**deferred, "detail": "; ".join(busy)}
+        lease = lifecycle.active_lease(state, moment)
+        if lease:
+            return {
+                **deferred,
+                "detail": f"leased by {lease['holder']} until {lease['until']}; "
+                          "release the lease first" if force else
+                          f"leased by {lease['holder']} until {lease['until']}",
+            }
         if not force:
             decision = lifecycle.decide(state, moment, config, busy=[])
             if decision["action"] != "sleep":
-                return {"schema": "usl-staging-sleep/v1", "status": "deferred", "detail": decision["reason"]}
-        elif lifecycle.active_lease(state, moment):
-            lease = state["lease"]
-            return {
-                "schema": "usl-staging-sleep/v1", "status": "deferred",
-                "detail": f"leased by {lease['holder']} until {lease['until']}; release the lease first",
-            }
-        state = lifecycle.record(
-            {**state, "state": "stopping", "since": lifecycle.stamp(moment)},
-            moment, "sleep-started", reason=reason,
-        )
-        _write_lifecycle(target, runner, state)
+                return {**deferred, "detail": decision["reason"]}
+        _update_lifecycle(target, runner, lambda value, at: lifecycle.record(
+            {**value, "state": "stopping", "since": lifecycle.stamp(at)},
+            at, "sleep-started", reason=reason,
+        ), now=now)
         try:
             current = inspect_runtime(target, runner)
             identity = _active_generation_identity(target, runner, current, mcp_authority=False)
@@ -1138,38 +1197,35 @@ def sleep_staging(
             if running:
                 raise RuntimeError("services still running after stop: " + ", ".join(running))
         except BaseException as error:
-            failed = lifecycle.record(
-                {**state, "state": "failed", "since": lifecycle.stamp(now()),
-                 "last_error": _lifecycle_error(error)},
-                now(), "sleep-failed", reason=reason,
-            )
-            _write_lifecycle(target, runner, failed)
+            failure = _lifecycle_error(error)
+            _update_lifecycle(target, runner, lambda value, at: lifecycle.record(
+                {**value, "state": "failed", "since": lifecycle.stamp(at), "last_error": failure},
+                at, "sleep-failed", reason=reason,
+            ), now=now)
             raise
-        finished = now()
-        state = lifecycle.record(
-            {**state, "state": "sleeping", "since": lifecycle.stamp(finished),
-             "last_sleep_at": lifecycle.stamp(finished), "last_sleep_reason": reason,
+        _update_lifecycle(target, runner, lambda value, at: lifecycle.record(
+            {**value, "state": "sleeping", "since": lifecycle.stamp(at),
+             "last_sleep_at": lifecycle.stamp(at), "last_sleep_reason": reason,
              "last_error": None},
-            finished, "sleep-finished", reason=reason,
-        )
-        _write_lifecycle(target, runner, state)
+            at, "sleep-finished", reason=reason,
+        ), now=now)
         return {"schema": "usl-staging-sleep/v1", "status": "sleeping", "reason": reason}
 
 
 def lease_staging(target, runner, *, minutes: int, holder: str, now=lifecycle.utc) -> dict:
     """Pin staging awake for ``minutes`` (a long test, a demo, a debugging session)."""
     config = _lifecycle_config(target)
-    moment = now()
-    state = _read_lifecycle(target, runner)
-    if state is None or state["state"] != "active":
-        raise RuntimeError("only an active staging can be leased; wake it first")
-    try:
-        state = lifecycle.grant_lease(state, moment, config, minutes=minutes, holder=holder)
-    except lifecycle.LifecycleError as error:
-        raise RuntimeError(str(error)) from error
-    kind = "last_ci_at" if lifecycle.kind_of(holder) == "ci" else "last_interactive_at"
-    state = {**state, kind: lifecycle.stamp(moment)}
-    _write_lifecycle(target, runner, state)
+
+    def change(value: dict, moment) -> dict:
+        if value["state"] != "active":
+            raise RuntimeError(f"only an active staging can be leased (it is {value['state']}); wake it first")
+        try:
+            granted = lifecycle.grant_lease(value, moment, config, minutes=minutes, holder=holder)
+        except lifecycle.LifecycleError as error:
+            raise RuntimeError(str(error)) from error
+        return {**granted, _activity_key(holder): lifecycle.stamp(moment)}
+
+    state = _update_lifecycle(target, runner, change, now=now)
     return {"schema": "usl-staging-lease/v1", "status": "leased", "lease": state["lease"]}
 
 
@@ -1221,60 +1277,66 @@ def idle_sweep(target, runner, *, now=lifecycle.utc, window_seconds: int | None 
         # A release or an operator brought staging up behind our back, or a
         # failed sleep left it running.  Believe the containers, and start the
         # grace period from now.
-        state = lifecycle.record(
-            {**state, "state": "active", "since": lifecycle.stamp(moment),
-             "last_ci_at": lifecycle.stamp(moment)},
-            moment, "observed-running",
-        )
-        _write_lifecycle(target, runner, state)
+        def believe(value: dict, at) -> dict:
+            if value["state"] not in {"sleeping", "failed"}:
+                return value
+            return lifecycle.record(
+                {**value, "state": "active", "since": lifecycle.stamp(at),
+                 "last_ci_at": lifecycle.stamp(at)},
+                at, "observed-running",
+            )
+        state = _update_lifecycle(target, runner, believe, now=now)
+    if state["state"] in {"waking", "stopping"}:
+        since = lifecycle.parse_stamp(state["since"]) or moment
+        if moment - since > timedelta(seconds=config["wake_timeout_seconds"] * STALE_TRANSITION_FACTOR):
+            def interrupted(value: dict, at) -> dict:
+                if value["state"] not in {"waking", "stopping"}:
+                    return value
+                return lifecycle.record(
+                    {**value, "state": "failed", "since": lifecycle.stamp(at),
+                     "last_error": {"type": "Interrupted",
+                                    "message": f"{value['state']} never finished; check the lock "
+                                               "under the state directory, then rerun wake or sleep"}},
+                    at, "transition-interrupted",
+                )
+            state = _update_lifecycle(target, runner, interrupted, now=now)
     if state["state"] != "active":
         return {"schema": "usl-staging-sweep/v1", "status": "inactive", "state": state["state"]}
     gateway = _gateway_container_id(target, runner, config)
     if gateway:
-        since = max(
-            lifecycle.parse_stamp(state.get("last_interactive_at")) or moment - timedelta(minutes=5),
-            moment - timedelta(seconds=window_seconds or 3600),
-        )
+        known = lifecycle.parse_stamp(state.get("last_interactive_at"))
+        since = max(known or moment - timedelta(minutes=5), moment - timedelta(seconds=window_seconds or 3600))
         logs = runner.run(
             ["docker", "logs", "--timestamps", "--since", lifecycle.stamp(since), gateway],
             check=False,
         )
         seen = lifecycle.interactive_activity((logs.stdout + "\n" + logs.stderr).splitlines())
-        if seen and seen > (lifecycle.parse_stamp(state.get("last_interactive_at")) or seen - timedelta(seconds=1)):
-            state = {**state, "last_interactive_at": lifecycle.stamp(seen)}
-            _write_lifecycle(target, runner, state)
-    # Running work outranks idleness even when no lock is held at this instant.
+        if seen and (known is None or seen > known):
+            def observe(value: dict, at) -> dict:
+                current = lifecycle.parse_stamp(value.get("last_interactive_at"))
+                if value["state"] != "active" or (current and current >= seen):
+                    return value
+                return {**value, "last_interactive_at": lifecycle.stamp(seen)}
+            state = _update_lifecycle(target, runner, observe, now=now)
     decision = lifecycle.decide(state, moment, config, busy=[])
     if decision["action"] != "sleep":
         return {"schema": "usl-staging-sweep/v1", "status": "awake", **decision}
     outcome = sleep_staging(target, runner, reason="idle", now=now)
-    return {"schema": "usl-staging-sweep/v1", "status": outcome["status"], **outcome}
+    return {"schema": "usl-staging-sweep/v1", **outcome}
 
 
-def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
-    """Serve the wake page and run the idle sweep; the only always-on part."""
-    import threading
+def lifecycle_server(target, runner, wake) -> "ThreadingHTTPServer":
+    """The wake page and endpoint.  ``wake(reason)`` starts a wake in the background."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     from urllib.parse import parse_qs
 
     config = _lifecycle_config(target)
     hostname = urlsplit(target.value["endpoints"]["odoo"]).hostname or "staging"
-    waking = threading.Lock()
     failures: list[float] = []
 
     def expected_digest() -> str:
         result = runner.run(["cat", config["wake_token_sha256_file"]], check=False)
         return result.stdout.strip() if result.returncode == 0 else ""
-
-    def wake_in_background(reason: str) -> None:
-        if not waking.acquire(blocking=False):
-            return
-        try:
-            wake_staging(target, runner, reason=reason)
-        except BaseException as error:  # noqa: BLE001 - recorded in lifecycle.json
-            _report("wake", "background", "failed", json.dumps(_lifecycle_error(error)))
-        finally:
-            waking.release()
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "usl-lifecycle"
@@ -1300,15 +1362,19 @@ def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
 
         def _page(self, path: str) -> None:
             status = self._status()
-            if status["state"] == "active":
-                # The gateway only forwards here when Odoo does not answer.
-                # Say so plainly: an active staging that is down is a failure.
-                self._send(502, "<!doctype html><title>Staging is not responding</title>"
-                                "<h1>Staging is not responding</h1>"
-                                "<p>It is marked active but Odoo did not answer. Retry in a minute.</p>")
+            state = status["state"]
+            if state in {"active", "failed"}:
+                # The gateway only forwards here when Odoo does not answer, so
+                # an active (or failed) staging that reaches this page is down.
+                # Say so plainly, and keep the wake form for the failed case.
+                body = ("<!doctype html><title>Staging is not responding</title>"
+                        "<h1>Staging is not responding</h1>"
+                        f"<p>State: {state}. Retry in a minute; an operator can run "
+                        "<code>scripts/usl-stack --target staging runtime wake</code>.</p>")
+                self._send(502, body)
             elif path in {"/web/health", "/web/login/health"}:
                 # A sleeping staging is healthy by design: probes must not page anyone.
-                self._send(200, json.dumps({"status": "sleeping"}), "application/json")
+                self._send(200, json.dumps({"status": state}), "application/json")
             else:
                 self._send(503, lifecycle.sleeping_page(status, hostname=hostname))
 
@@ -1324,20 +1390,23 @@ def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
         do_HEAD = do_GET
 
         def do_POST(self):
-            if self.path.split("?", 1)[0] != "/__usl/wake":
-                self._page(self.path.split("?", 1)[0])
+            path = self.path.split("?", 1)[0]
+            if path != "/__usl/wake":
+                self._page(path)
                 return
-            agent = self.headers.get("User-Agent", "")
-            if not lifecycle.wake_attempt_allowed(agent):
+            if not lifecycle.wake_attempt_allowed(self.headers.get("User-Agent", "")):
                 self._send(403, '{"error":"automated clients cannot wake staging"}', "application/json")
+                return
+            raw_length = self.headers.get("Content-Length") or "0"
+            if not raw_length.isdigit():
+                self._send(400, '{"error":"invalid content length"}', "application/json")
                 return
             moment = time.monotonic()
             failures[:] = [item for item in failures if moment - item < 60]
             if len(failures) >= 10:
                 self._send(429, '{"error":"too many attempts"}', "application/json")
                 return
-            length = min(int(self.headers.get("Content-Length") or 0), 4096)
-            body = self.rfile.read(length).decode("utf-8", "replace")
+            body = self.rfile.read(min(int(raw_length), 4096)).decode("utf-8", "replace")
             token = (parse_qs(body).get("token") or [""])[0]
             bearer = self.headers.get("Authorization", "")
             if bearer.startswith("Bearer "):
@@ -1346,10 +1415,32 @@ def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
                 failures.append(moment)
                 self._send(403, '{"error":"invalid token"}', "application/json")
                 return
-            threading.Thread(target=wake_in_background, args=("web",), daemon=True).start()
+            wake("web")
             self._send(202, '{"status":"waking"}', "application/json")
 
         do_PUT = do_PATCH = do_DELETE = do_POST
+
+    return ThreadingHTTPServer(("0.0.0.0", config["listen_port"]), Handler)
+
+
+def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
+    """Serve the wake page and run the idle sweep; the only always-on part."""
+    import threading
+
+    config = _lifecycle_config(target)
+    waking = threading.Lock()
+
+    def wake_in_background(reason: str) -> None:
+        def work() -> None:
+            if not waking.acquire(blocking=False):
+                return
+            try:
+                wake_staging(target, runner, reason=reason)
+            except BaseException as error:  # noqa: BLE001 - recorded in lifecycle.json
+                _report("wake", "background", "failed", json.dumps(_lifecycle_error(error)))
+            finally:
+                waking.release()
+        threading.Thread(target=work, daemon=True).start()
 
     def sweeper() -> None:
         while True:
@@ -1363,7 +1454,7 @@ def _lifecycle_daemon(target, runner, arguments: argparse.Namespace) -> int:
             time.sleep(config["sweep_seconds"])
 
     threading.Thread(target=sweeper, daemon=True).start()
-    server = ThreadingHTTPServer(("0.0.0.0", config["listen_port"]), Handler)
+    server = lifecycle_server(target, runner, wake_in_background)
     _report("daemon", "listening", "started", str(config["listen_port"]))
     server.serve_forever()
     return 0
@@ -1390,6 +1481,8 @@ def runtime_command(arguments: argparse.Namespace) -> int:
                 target, runner, reason=arguments.reason, force=arguments.force,
                 release_lock_held=held,
             )
+        elif arguments.action == "touch":
+            result = touch_staging(target, runner, reason=arguments.reason)
         elif arguments.action == "lease":
             result = lease_staging(
                 target, runner, minutes=arguments.minutes, holder=arguments.holder,
@@ -9967,8 +10060,17 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
     # reference candidate files even when the database has returned to baseline.
     prefix = f"{target.value['state_directory']}/generations/"
     suffix = "/compose.generation.json"
+    # A target that sleeps has stopped cohort containers whose labels protect
+    # exactly what running ones would: the recovery network and volumes the next
+    # wake needs.  Only cohort services count, so exited one-shots (such as
+    # odoo-upgrade) keep being cleaned up as before.
+    cohort = set(target.value["services"].values())
+    sleeps = target.value["lifecycle"]["mode"] == "on_demand"
     for container in current.get("containers", []):
-        if container.get("State") != "running" or not container.get("ID"):
+        holds = container.get("State") == "running" or (
+            sleeps and container.get("Service") in cohort
+        )
+        if not holds or not container.get("ID"):
             continue
         labels = json.loads(runner.run([
             "docker", "inspect", container["ID"], "--format", "{{json .Config.Labels}}",

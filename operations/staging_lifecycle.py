@@ -50,7 +50,8 @@ HISTORY_LIMIT = 30
 # behind Cloudflare and sees only the tunnel's address.
 AUTOMATED_AGENT = re.compile(
     r"bot|crawl|spider|slurp|uptime|kuma|monitor|pingdom|healthcheck|probe|"
-    r"curl/|wget/|python-requests|go-http-client|cloudflare|headless|scan",
+    r"curl/|wget/|python-requests|python-httpx|aiohttp|node-fetch|axios|okhttp|"
+    r"libwww|go-http-client|java/|cloudflare|headless|scan",
     re.IGNORECASE,
 )
 # A person at the keyboard shows up as authenticated Odoo traffic.  These are
@@ -289,7 +290,7 @@ def interactive_activity(lines: list[str]) -> datetime | None:
 
 def wake_attempt_allowed(agent: str) -> bool:
     """Bots, crawlers and probes never wake staging, even with a valid token."""
-    return not AUTOMATED_AGENT.search(agent or "")
+    return bool(agent) and not AUTOMATED_AGENT.search(agent)
 
 
 def token_digest(token: str) -> str:
@@ -335,7 +336,7 @@ shared server free for production. Current state: <b id="state">{state}</b>.</p>
   <input id="token" name="token" type="password" autocomplete="off" required>
   <button type="submit">Wake staging</button>
 </form>
-<p id="message"><small>Waking takes about three minutes. This page reloads
+<p id="message"><small>Waking takes two to three minutes. This page reloads
 staging by itself once it answers. No token? Ask a maintainer, or run
 <code>scripts/usl-stack --target staging runtime wake</code>.</small></p>
 <script>

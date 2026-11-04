@@ -44,10 +44,11 @@ the audited release jobs, which start the cohort explicitly.
 
 ```bash
 scripts/usl-stack --target staging runtime lifecycle        # state, next possible sleep, containers
-scripts/usl-stack --target staging runtime wake             # start staging (about two minutes)
+scripts/usl-stack --target staging runtime wake             # start staging (two to three minutes)
 scripts/usl-stack --target staging runtime sleep --force    # sleep now
 scripts/usl-stack --target staging runtime lease --minutes 180 --holder manual:demo
 scripts/usl-stack --target staging runtime idle-sweep       # one pass of the idle policy
+scripts/usl-stack --target staging runtime touch --reason release:x   # record activity, start nothing
 ```
 
 `wake` and `sleep` are idempotent. `--reason` is recorded; a reason starting
@@ -63,6 +64,13 @@ refuses (`deferred`) while:
 - a lease is held.
 
 Nothing outranks work in progress.
+
+`wake` is as careful: unless the GitOps launcher itself is calling it, it
+starts nothing (`deferred`) while the maintenance marker exists or a release
+attempt is unfinished, because a failed rollback may have left the cohort
+stopped on purpose, waiting to be resumed. `touch` only records activity.
+Every write to `lifecycle.json` re-reads the file under a short lock, so a
+lease, a sweep and a release never overwrite one another with a stale copy.
 
 ## Idle policy
 
@@ -92,7 +100,8 @@ count, so they neither keep staging awake nor wake it.
 
 **From a pipeline.** The GitOps release launcher wakes staging before it touches
 it, passing `--release-lock-held` because it already owns the host-wide release
-lock, and refreshes the CI activity time when it finishes. Qualification, tests,
+lock, and records the end of the work with `touch` (which never starts anything,
+even after a failed release). Qualification, tests,
 backups, deployment and rollback are unchanged. About one hour later the idle
 sweep puts staging back to sleep.
 
@@ -139,4 +148,10 @@ SSH access to the host is the authentication.
   deadlock on its own lock.
 - **The host reboots.** Staging stays down if it was asleep; if it was awake,
   Docker restarts it as it always did.
-- **Stuck in `waking` or `stopping`.** Rerun `wake` or `sleep --force`.
+- **Stuck in `waking` or `stopping`.** The daemon marks a transition that has not
+  finished after twice `wake_timeout_seconds` as `failed` (`Interrupted`). If the
+  daemon was killed mid-operation, `operation.lock` under the state directory may
+  remain; when no `usl-stack` process runs, `rmdir` it, then rerun `wake` or
+  `sleep --force`.
+- **Cleanup while asleep.** `cleanup` protects the generations, networks and
+  volumes of the stopped cohort exactly as it does for a running one.
