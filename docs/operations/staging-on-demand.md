@@ -65,12 +65,22 @@ refuses (`deferred`) while:
 
 Nothing outranks work in progress.
 
-`wake` is as careful: unless the GitOps launcher itself is calling it, it
+`wake` is as careful: unless a staging release calls it with `--may-resume`, it
 starts nothing (`deferred`) while the maintenance marker exists or a release
 attempt is unfinished, because a failed rollback may have left the cohort
 stopped on purpose, waiting to be resumed. `touch` only records activity.
 Every write to `lifecycle.json` re-reads the file under a short lock, so a
 lease, a sweep and a release never overwrite one another with a stale copy.
+
+## Locks
+
+A lifecycle operation takes `lifecycle-operation.lock`, then the host-wide
+`release-operation.lock`, then the runtime lock. The GitOps launcher rejects a
+release at once when the release lock is taken, except when
+`lifecycle-operation.lock` is held too: then the holder is a bounded wake or
+sleep and the launcher waits for it instead of failing the pipeline. A wake
+called from inside a release (`--release-lock-held`) takes only the runtime
+lock, and only a staging release is meant to add `--may-resume` (an operator can still pass it by hand as an override). A production release arriving during a wake or sleep waits for it, up to 45 minutes, instead of failing.
 
 ## Idle policy
 

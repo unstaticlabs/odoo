@@ -900,6 +900,11 @@ def _adopt_staging_gateway(target, runner) -> dict:
 
 
 RELEASE_OPERATION_LOCK = "/var/lib/usl-odoo/runtime/release-operation.lock"
+# Held, in addition to the release lock, by every lifecycle operation that is
+# not called from inside a release.  The GitOps launcher fails fast when the
+# release lock is taken; this second lock is how it tells a lifecycle operation
+# (bounded, worth waiting for) from another release (reject at once).
+LIFECYCLE_OPERATION_LOCK = "/var/lib/usl-odoo/runtime/lifecycle-operation.lock"
 GATEWAY_MAINTENANCE_MARKER = "/var/lib/usl-odoo/gateway/staging/maintenance"
 LIFECYCLE_ACTIONS = (
     "wake", "sleep", "touch", "lease", "lifecycle", "idle-sweep", "lifecycle-daemon",
@@ -1019,9 +1024,10 @@ def _lifecycle_exclusion(target, runner, operation: str, *, release_lock_held: b
         with runtime_lock(target, runner, operation, operation):
             yield
         return
-    with runner.advisory_lock(RELEASE_OPERATION_LOCK):
-        with runtime_lock(target, runner, operation, operation):
-            yield
+    with runner.advisory_lock(LIFECYCLE_OPERATION_LOCK):
+        with runner.advisory_lock(RELEASE_OPERATION_LOCK):
+            with runtime_lock(target, runner, operation, operation):
+                yield
 
 
 def _wait_odoo_ready(target, runner, timeout: int) -> None:
@@ -1067,14 +1073,15 @@ def _activity_key(reason: str) -> str:
 
 def wake_staging(
     target, runner, *, reason: str, release_lock_held: bool = False,
-    now=lifecycle.utc,
+    may_resume: bool = False, now=lifecycle.utc,
 ) -> dict:
     """Start every staging service of the recorded active generation.
 
     Waking is as intrusive as sleeping, so it refuses to start anything while a
     release left work unfinished (a failed rollback waiting for ``resume``, a
-    maintenance marker).  The one exception is the GitOps launcher itself
-    (``release_lock_held``): it is about to resume or complete that work.
+    maintenance marker).  The one exception is a staging release
+    (``may_resume``): it is about to resume or complete exactly that work.
+    ``release_lock_held`` only says that the caller owns the release lock.
     """
     config = _lifecycle_config(target)
     with _lifecycle_exclusion(target, runner, "wake", release_lock_held=release_lock_held):
@@ -1089,7 +1096,7 @@ def wake_staging(
                 moment, "wake-noop", reason=reason,
             ), now=now)
             return {"schema": "usl-staging-wake/v1", "status": "already-active", "reason": reason}
-        if not release_lock_held:
+        if not may_resume:
             busy = _lifecycle_busy(target, runner)
             if busy:
                 return {
@@ -1493,6 +1500,7 @@ def runtime_command(arguments: argparse.Namespace) -> int:
         if arguments.action == "wake":
             result = wake_staging(
                 target, runner, reason=arguments.reason, release_lock_held=held,
+                may_resume=arguments.may_resume,
             )
         elif arguments.action == "sleep":
             result = sleep_staging(
@@ -11631,6 +11639,10 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--force", action="store_true", help="sleep now instead of waiting for idleness")
     runtime.add_argument("--minutes", type=int, default=60, help="lease length")
     runtime.add_argument("--holder", default="manual:operator", help="who holds the lease")
+    runtime.add_argument(
+        "--may-resume", action="store_true",
+        help="wake even though a release left work unfinished (only a staging release resumes it)",
+    )
     runtime.add_argument(
         "--release-lock-held", action="store_true",
         help="the GitOps launcher already holds release-operation.lock",

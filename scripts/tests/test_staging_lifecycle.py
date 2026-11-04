@@ -15,6 +15,7 @@ from operations.runtime import load_target, validate_target
 from operations.stack import (
     DATA_SERVICE_ROLES,
     GATEWAY_MAINTENANCE_MARKER,
+    LIFECYCLE_OPERATION_LOCK,
     RELEASE_OPERATION_LOCK,
     idle_sweep,
     lease_staging,
@@ -417,8 +418,52 @@ class CommandTests(unittest.TestCase):
         self.assertIn("recover the release first", result["detail"])
         self.assertFalse([c for c in host.commands if c[:2] == ["docker", "compose"]])
         # The launcher is about to resume that very work, so it may wake.
-        result = wake_staging(self.target, host, reason="release:x", release_lock_held=True, now=lambda: at(0))
+        # Owning the release lock is not permission to resume: production and
+        # MCP releases hold it too, and must not start a cohort left stopped.
+        held = wake_staging(self.target, host, reason="release:x", release_lock_held=True, now=lambda: at(0))
+        self.assertEqual(held["status"], "deferred")
+        result = wake_staging(
+            self.target, host, reason="release:x", release_lock_held=True, may_resume=True, now=lambda: at(0),
+        )
         self.assertEqual(result["status"], "woken")
+
+    def test_lifecycle_operations_announce_themselves_to_the_launcher(self) -> None:
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0 - timedelta(days=2))))
+        held_while_running: list[set[str]] = []
+        held_while_running_up: list[set[str]] = []
+        original = host.run
+
+        def spy(command, **kw):
+            if command[:2] == ["docker", "compose"] and "stop" in command:
+                held_while_running.append(set(host.locks))
+            if command[:2] == ["docker", "compose"] and "up" in command:
+                held_while_running_up.append(set(host.locks))
+            return original(command, **kw)
+
+        host.run = spy
+        sleep_staging(self.target, host, reason="idle", now=lambda: at(0))
+        self.assertTrue(held_while_running)
+        self.assertGreaterEqual(held_while_running[0], {LIFECYCLE_OPERATION_LOCK, RELEASE_OPERATION_LOCK})
+        # A release that already owns the lock must not take the announcement
+        # while it works: the launcher would then probe it as a lifecycle operation.
+        held_while_running.clear()
+        host.containers = {name: "exited" for name in host.containers}
+        host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
+        host.locks.add(RELEASE_OPERATION_LOCK)
+        woken = wake_staging(
+            self.target, host, reason="release:x", release_lock_held=True, may_resume=True, now=lambda: at(1),
+        )
+        self.assertEqual(woken["status"], "woken")
+        self.assertTrue(held_while_running_up)
+        self.assertNotIn(LIFECYCLE_OPERATION_LOCK, held_while_running_up[0])
+
+    def test_sleep_defers_while_another_lifecycle_operation_runs(self) -> None:
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0 - timedelta(days=2))))
+        host.locks.add(LIFECYCLE_OPERATION_LOCK)
+        self.assertEqual(sleep_staging(self.target, host, reason="idle", now=lambda: at(0))["status"], "deferred")
+        self.assertEqual(host.stop_order, [])
 
     def test_touch_records_activity_and_never_starts_a_container(self) -> None:
         host = FakeHost(self.target, running=False)
