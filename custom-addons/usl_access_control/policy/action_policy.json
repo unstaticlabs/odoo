@@ -57339,7 +57339,7 @@
         "route:http:POST:/xmlrpc/<service>": "daaae5bea11d0c0dbc0773254e55961cde3cc965a5d6de0722c69c8a23cb31de",
         "route:http:get,post:/rate/<string:token>/submit_feedback": "512bb0ad4d343b480732d5b5b5fa1eb5de95943a9f2f506542a48297006d68eb",
         "route:json2:ANY:/doc-bearer/<model_name>.json": "805c34495916da4d5bcaf558759440227983b3b8f5521fe5308ad85a29d86fef",
-        "route:json2:ANY:/doc-bearer/index.json": "e332884212ad089c2ca078985371fb9186e0770862c46263cfd41452257718b6",
+        "route:json2:ANY:/doc-bearer/index.json": "ce7537cfeb696c9bfb8ba693c133804d0fd672063e2fcf89f8720b575d22ea55",
         "route:json2:ANY:/doc/<model_name>.json": "a6e42a0e182579439a1ba5088377063e78d64f5a657ed66e3b357a757d35c243",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2": "b3c009beac46c777fbda4d3673c72ce9372810cf01fea6c53997fc05614cb11d",
         "route:json2:DELETE,GET,PATCH,POST,PUT:/json/2/<path:subpath>": "947396b931b39ef45aea67de72b7e2e57d14b2d18cd94ed8c67e27237dec29cc",
@@ -177941,7 +177941,7 @@
       "rationale": "Reachability is limited to the reviewed caller or scheduler; any separately reachable action is classified independently.",
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "43df1803f9e41ac696f883bbec0917f14166e2279d2d7ab0b8f3e101d1d41662",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "b4a04c8d4a76665d9874e0292821fa0423f725361add50dcd14a62b0bb38ee00",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "63f0fd894e7cdbc255384ae69ce2a6b81644d237edae395fbe8c1dafdc1392e9",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "85b959c52d7c886c7fbc12687186f813682d3f38d547178ad6e93b86c37ec197",
@@ -177988,7 +177988,7 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:2": "b9151988a2f5d746b680ae07294c677aac8b96651de2ee6739475e520e1ca87f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:3": "097b63eb7ae849d3fe0888f811e775809aa75607de4baf288ba86525efdbc105",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:4": "41add250e63e54496937926c4abd40669aee25a7473e80c4a8b5fba223d7fdb0",
-        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": "5f0da229aea89c49e20b1a1c2e4165785beba08437cc775e29f94d69afbeffae",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": "9accdc1c83c2be80469561cb8ba61fbb4ef688bb7d82c602705c2b2c9dafd362",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1": "758e0e114b5f130997bf753f00af4a3a42304739a4e76e963b02e62c55acbdcd",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._search_usl_is_ai_agent:sudo:1": "982aaa4655bbffe9c3711e4899eab621bf88054e14c450cee43975777cd55be0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_pocketid_policy_exempt_users:sudo:1": "33dc9cc3117c2965a7bba2775b2efe47eeedb6d247f1bf7329490fc2d783dff8"

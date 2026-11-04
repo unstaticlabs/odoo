@@ -19,6 +19,7 @@ from .agent_policy_tokens import (
     has_agent_collaboration_token,
 )
 from .agent_secrets import is_agent_secret_field
+from .api_doc_scope import api_doc_index_lookup
 
 _logger = logging.getLogger(__name__)
 
@@ -88,9 +89,12 @@ class Base(models.AbstractModel):
     def _usl_managed_agent(self):
         if self.env.uid == SUPERUSER_ID or not self._usl_actor_is_agent():
             return self.env["usl.agent"]
-        return self.env["usl.agent"].sudo().with_context(active_test=False).search(
-            [("user_id", "=", self.env.uid)],
-            limit=1,
+        return api_doc_index_lookup(
+            ("managed_agent", self.env.uid),
+            lambda: self.env["usl.agent"].sudo().with_context(active_test=False).search(
+                [("user_id", "=", self.env.uid)],
+                limit=1,
+            ),
         )
 
     @api.model
