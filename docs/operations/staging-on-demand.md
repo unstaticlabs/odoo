@@ -80,7 +80,7 @@ release at once when the release lock is taken, except when
 `lifecycle-operation.lock` is held too: then the holder is a bounded wake or
 sleep and the launcher waits for it instead of failing the pipeline. A wake
 called from inside a release (`--release-lock-held`) takes only the runtime
-lock, and only a staging release may add `--may-resume`.
+lock, and only a staging release is meant to add `--may-resume` (an operator can still pass it by hand as an override). A production release arriving during a wake or sleep waits for it, up to 45 minutes, instead of failing.
 
 ## Idle policy
 
