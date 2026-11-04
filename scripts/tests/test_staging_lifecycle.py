@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+import urllib.error
 import unittest
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
@@ -171,25 +172,26 @@ class ActivityTests(unittest.TestCase):
         self.assertTrue(lifecycle.wake_attempt_allowed("Mozilla/5.0 (Macintosh) Safari"))
 
 
-class TokenTests(unittest.TestCase):
-    def test_token_is_compared_against_a_stored_digest_only(self) -> None:
-        digest = lifecycle.token_digest("correct horse")
-        self.assertTrue(lifecycle.token_matches("correct horse", digest))
-        self.assertFalse(lifecycle.token_matches("wrong", digest))
-        self.assertFalse(lifecycle.token_matches("", digest))
-        self.assertFalse(lifecycle.token_matches("correct horse", ""))
-        self.assertFalse(lifecycle.token_matches("correct horse", "not-a-digest"))
-
+class PageTests(unittest.TestCase):
     def test_public_status_reveals_no_detail(self) -> None:
         state = active_state(state="failed", last_error={"message": "secret path /opt/x"})
         rendered = json.dumps(lifecycle.public_status(state, T0))
         self.assertNotIn("/opt", rendered)
         self.assertIn("failed", rendered)
 
-    def test_sleeping_page_escapes_the_hostname(self) -> None:
-        page = lifecycle.sleeping_page({"state": "sleeping"}, hostname="<script>x</script>")
-        self.assertNotIn("<script>x", page)
+    def test_sleeping_page_escapes_everything_it_shows(self) -> None:
+        page = lifecycle.sleeping_page(
+            {"state": "sleeping"}, hostname="<script>x</script>", person="<b>a@b</b>", notice="<i>n</i>",
+        )
+        for raw in ("<script>x", "<b>a@b</b>", "<i>n</i>"):
+            self.assertNotIn(raw, page)
         self.assertIn("/__usl/wake", page)
+
+    def test_the_page_offers_sign_in_to_visitors_and_wake_to_signed_in_people(self) -> None:
+        anonymous = lifecycle.sleeping_page({"state": "sleeping"}, hostname="h")
+        self.assertIn("/__usl/login", anonymous)
+        self.assertNotIn('action="/__usl/wake"', anonymous)
+        self.assertIn('action="/__usl/wake"', lifecycle.sleeping_page({"state": "sleeping"}, hostname="h", person="a@b"))
 
 
 class FakeHost:
@@ -657,19 +659,26 @@ class CleanupWhileAsleepTests(unittest.TestCase):
 
 
 class DaemonHttpTests(unittest.TestCase):
-    """The wake endpoint, exercised over a real socket on an ephemeral port."""
+    """The wake page and endpoints, over a real socket, against a fake Pocket ID."""
 
     def setUp(self) -> None:
+        import http.client
         import threading
-        import urllib.request
         from http.server import ThreadingHTTPServer
-        self.urllib = urllib.request
+        from scripts.tests.test_staging_wake_oidc import FakeProvider
+        self.http = http.client
         target = load_target("staging", ROOT / "operations/targets-host")
         self.target = target
         self.host = FakeHost(target)
         self.state_path = f"{target.value['state_directory']}/lifecycle.json"
-        self.token_path = target.value["lifecycle"]["wake_token_sha256_file"]
-        self.host.files[self.token_path] = lifecycle.token_digest("open-sesame") + "\n"
+        config = target.value["lifecycle"]
+        environment = mock.patch.dict(
+            "os.environ", {"POCKET_ID_CLIENT_ID": "client-1", "POCKET_ID_CLIENT_SECRET": "s3cret"},
+        )
+        environment.start()
+        self.addCleanup(environment.stop)
+        import time as _time
+        self.provider = FakeProvider(_time.time, config["oidc_issuer"])
         self.woken: list[str] = []
         real_init = ThreadingHTTPServer.__init__
 
@@ -677,7 +686,7 @@ class DaemonHttpTests(unittest.TestCase):
             real_init(server, ("127.0.0.1", 0), handler, *a, **kw)
 
         with mock.patch.object(ThreadingHTTPServer, "__init__", bind_ephemeral):
-            self.server = lifecycle_server(target, self.host, self.woken.append)
+            self.server = lifecycle_server(target, self.host, self.woken.append, http=self.provider)
         self.port = self.server.server_address[1]
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.addCleanup(self.server.server_close)
@@ -686,81 +695,197 @@ class DaemonHttpTests(unittest.TestCase):
     def set_state(self, name: str) -> None:
         self.host.files[self.state_path] = lifecycle.dumps(active_state(state=name))
 
-    def request(self, method: str, path: str, *, data: bytes | None = None, headers: dict | None = None):
-        request = self.urllib.Request(
-            f"http://127.0.0.1:{self.port}{path}", data=data, method=method,
-            headers={"User-Agent": "Mozilla/5.0 Firefox", **(headers or {})},
-        )
-        try:
-            with self.urllib.urlopen(request, timeout=5) as response:
-                return response.status, response.read().decode()
-        except Exception as error:  # urllib raises for 4xx/5xx
-            return error.code, error.read().decode()
+    def request(self, method: str, path: str, *, headers: dict | None = None, body: bytes | None = None):
+        connection = self.http.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request(method, path, body=body, headers={"User-Agent": "Mozilla/5.0 Firefox", **(headers or {})})
+        response = connection.getresponse()
+        data = response.read().decode()
+        result = (response.status, data, response.getheaders())
+        connection.close()
+        return result
 
-    def test_a_sleeping_staging_serves_the_page_and_healthy_probes(self) -> None:
+    def cookie_from(self, headers, name: str) -> str:
+        for key, value in headers:
+            if key.lower() == "set-cookie" and value.startswith(name + "="):
+                return value.split(";", 1)[0]
+        raise AssertionError(f"no {name} cookie in {headers}")
+
+    def sign_in(self, groups=("c_suite",)) -> str:
+        """Run the whole browser flow; returns the session cookie."""
+        self.provider.userinfo = {**self.provider.userinfo, "groups": list(groups)}
+        status, _, headers = self.request("GET", "/__usl/login")
+        self.assertEqual(status, 302)
+        location = dict(headers)["Location"]
+        import urllib.parse
+        query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(location).query))
+        self.provider.nonce = query["nonce"]
+        login = self.cookie_from(headers, "usl_wake_login")
+        status, _, headers = self.request(
+            "GET", f"/__usl/callback?state={query['state']}&code=abc", headers={"Cookie": login},
+        )
+        return self.cookie_from(headers, "usl_wake_session") if status == 302 else ""
+
+    def test_a_sleeping_staging_serves_the_sign_in_page_and_healthy_probes(self) -> None:
         self.set_state("sleeping")
-        status, body = self.request("GET", "/some/odoo/path")
+        status, body, _ = self.request("GET", "/some/odoo/path")
         self.assertEqual(status, 503)
-        self.assertIn("/__usl/wake", body)
+        self.assertIn("/__usl/login", body)
+        self.assertNotIn('action="/__usl/wake"', body)
         self.assertEqual(self.request("POST", "/web/dataset/call_kw")[0], 503)
-        self.assertEqual(self.request("GET", "/web/health"), (200, '{"status": "sleeping"}'))
+        self.assertEqual(self.request("GET", "/web/health")[:2], (200, '{"status": "sleeping"}'))
         self.assertEqual(
             json.loads(self.request("GET", "/__usl/status")[1]),
             {"state": "sleeping", "since": lifecycle.stamp(T0)},
         )
 
-    def test_an_active_or_failed_staging_that_does_not_answer_is_a_502_not_a_healthy_sleep(self) -> None:
-        for state in ("active", "failed"):
-            self.set_state(state)
-            self.assertEqual(self.request("GET", "/web/health")[0], 502, state)
-            self.assertEqual(self.request("GET", "/")[0], 502, state)
+    def test_an_active_staging_that_does_not_answer_is_a_502_not_a_healthy_sleep(self) -> None:
+        self.set_state("active")
+        self.assertEqual(self.request("GET", "/web/health")[0], 502)
+        self.assertEqual(self.request("GET", "/")[0], 502)
 
-    def test_a_failed_staging_keeps_the_token_form_so_people_can_retry(self) -> None:
+    def test_a_failed_staging_keeps_the_sign_in_so_people_can_retry(self) -> None:
         self.set_state("failed")
-        status, body = self.request("GET", "/")
+        status, body, _ = self.request("GET", "/")
         self.assertEqual(status, 502)
-        self.assertIn("/__usl/wake", body)
+        self.assertIn("/__usl/login", body)
+        self.assertEqual(self.request("GET", "/web/health")[0], 502)
 
-    def test_wake_requires_the_token_and_a_human_user_agent(self) -> None:
+    def test_a_member_of_the_group_signs_in_and_wakes_staging_under_their_own_name(self) -> None:
         self.set_state("sleeping")
-        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=wrong")[0], 403)
-        self.assertEqual(self.request("POST", "/__usl/wake", data=b"")[0], 403)
-        self.assertEqual(self.request(
-            "POST", "/__usl/wake", data=b"token=open-sesame", headers={"User-Agent": "Googlebot/2.1"},
-        )[0], 403)
-        self.assertEqual(self.woken, [])
-        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 202)
-        self.assertEqual(self.woken, ["web"])
-
-    def test_a_bearer_token_overrides_the_form_and_works(self) -> None:
-        self.set_state("sleeping")
-        status, _ = self.request(
-            "POST", "/__usl/wake", data=b"token=wrong", headers={"Authorization": "Bearer open-sesame"},
-        )
+        session = self.sign_in()
+        self.assertTrue(session)
+        status, body, _ = self.request("GET", "/", headers={"Cookie": session})
+        self.assertIn("valentin@example.test", body)
+        self.assertIn('action="/__usl/wake"', body)
+        status, _, _ = self.request("POST", "/__usl/wake", headers={"Cookie": session})
         self.assertEqual(status, 202)
+        self.assertEqual(self.woken, ["web:valentin@example.test"])
 
-    def test_ten_failures_a_minute_lock_the_endpoint(self) -> None:
+    def test_a_person_signs_in_with_a_real_cookie_jar_and_sees_the_wake_button_on_every_path(self) -> None:
+        """The session cookie must reach "/" and deep Odoo paths, not only /__usl/."""
+        import http.cookiejar
+        import urllib.parse
+        import urllib.request
         self.set_state("sleeping")
-        for _ in range(10):
-            self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=nope")[0], 403)
-        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 429)
+        jar = http.cookiejar.CookieJar()
+        base = f"http://127.0.0.1:{self.port}"
+
+        def fetch(path: str):
+            request = urllib.request.Request(base + path, headers={"User-Agent": "Mozilla/5.0 Firefox"})
+            jar.add_cookie_header(request)
+            class NoFollow(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, *a, **k):
+                    return None
+            try:
+                response = urllib.request.build_opener(NoFollow).open(request, timeout=5)
+            except urllib.error.HTTPError as error:
+                response = error
+            jar.extract_cookies(response, request)
+            return response.status, response.read().decode(), dict(response.headers)
+
+        # Cookies are marked Secure, which a jar refuses over http: drop that flag
+        # for the test only; Path/Domain matching is what is under test.
+        original = http.cookiejar.Cookie.__init__
+        def insecure(self, *args, **kwargs):
+            args = list(args)
+            args[10] = False  # secure
+            original(self, *args, **kwargs)
+        with mock.patch.object(http.cookiejar.Cookie, "__init__", insecure):
+            status, body, headers = fetch("/__usl/login")
+            self.assertEqual(status, 302)
+            query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(headers["Location"]).query))
+            self.provider.nonce = query["nonce"]
+            status, _, headers = fetch(f"/__usl/callback?state={query['state']}&code=abc")
+            self.assertEqual((status, headers["Location"]), (302, "/"))
+            for path in ("/", "/odoo/action-12", "/web/login", "/__usl/"):
+                status, body, _ = fetch(path)
+                self.assertIn('action="/__usl/wake"', body, path)
+                self.assertNotIn("/__usl/login", body, path)
+
+    def test_the_session_cookie_is_locked_down_and_the_login_state_is_cleared(self) -> None:
+        self.set_state("sleeping")
+        self.provider.userinfo = {**self.provider.userinfo, "groups": ["c_suite"]}
+        _, _, headers = self.request("GET", "/__usl/login")
+        login_cookie = dict((k, v) for k, v in headers if k == "Set-Cookie")["Set-Cookie"]
+        for flag in ("HttpOnly", "Secure", "SameSite=Lax", "Path=/__usl/"):
+            self.assertIn(flag, login_cookie)
+        import urllib.parse
+        query = dict(urllib.parse.parse_qsl(urllib.parse.urlsplit(dict(headers)["Location"]).query))
+        self.provider.nonce = query["nonce"]
+        _, _, headers = self.request(
+            "GET", f"/__usl/callback?state={query['state']}&code=abc",
+            headers={"Cookie": login_cookie.split(";", 1)[0]},
+        )
+        cookies = [v for k, v in headers if k == "Set-Cookie"]
+        session = next(c for c in cookies if c.startswith("usl_wake_session="))
+        for flag in ("HttpOnly", "Secure", "SameSite=Strict", "Path=/;"):
+            self.assertIn(flag, session)
+        self.assertTrue(any(c.startswith("usl_wake_login=;") and "Max-Age=0" in c for c in cookies))
+
+    def test_someone_outside_the_group_cannot_sign_in_and_so_cannot_wake(self) -> None:
+        self.set_state("sleeping")
+        self.assertEqual(self.sign_in(groups=("accountants",)), "")
         self.assertEqual(self.woken, [])
 
-    def test_a_malformed_content_length_is_refused_without_hanging(self) -> None:
-        import socket
+    def test_waking_needs_a_session_a_human_agent_and_the_right_origin(self) -> None:
         self.set_state("sleeping")
-        for length in ("abc", "-5"):
-            with socket.create_connection(("127.0.0.1", self.port), timeout=5) as connection:
-                connection.sendall(
-                    f"POST /__usl/wake HTTP/1.1\r\nHost: x\r\nUser-Agent: Mozilla/5.0\r\n"
-                    f"Content-Length: {length}\r\n\r\n".encode(),
-                )
-                self.assertIn(b" 400 ", connection.recv(200).split(b"\r\n")[0] + b" ", length)
+        session = self.sign_in()
+        self.assertEqual(self.request("POST", "/__usl/wake")[0], 401)
+        self.assertEqual(self.request("POST", "/__usl/wake", headers={"Cookie": session + "x"})[0], 401)
+        self.assertEqual(self.request(
+            "POST", "/__usl/wake", headers={"Cookie": session, "User-Agent": "Googlebot/2.1"})[0], 403)
+        self.assertEqual(self.request(
+            "POST", "/__usl/wake", headers={"Cookie": session, "Origin": "https://evil.example.test"})[0], 403)
+        self.assertEqual(self.woken, [])
+        origin = self.target.value["endpoints"]["odoo"].rstrip("/")
+        self.assertEqual(self.request("POST", "/__usl/wake", headers={"Cookie": session, "Origin": origin})[0], 202)
 
-    def test_a_missing_token_digest_refuses_every_wake(self) -> None:
+    def test_a_callback_without_the_login_cookie_or_with_a_forged_state_is_refused(self) -> None:
         self.set_state("sleeping")
-        del self.host.files[self.token_path]
-        self.assertEqual(self.request("POST", "/__usl/wake", data=b"token=open-sesame")[0], 403)
+        status, body, headers = self.request("GET", "/__usl/callback?state=x&code=y")
+        self.assertEqual(status, 503)
+        self.assertIn("expired", body)
+        self.assertFalse([v for k, v in headers if k == "Set-Cookie" and v.startswith("usl_wake_session=")])
+
+    def test_automated_clients_cannot_even_start_a_sign_in(self) -> None:
+        self.set_state("sleeping")
+        status, _, headers = self.request("GET", "/__usl/login", headers={"User-Agent": "Googlebot/2.1"})
+        self.assertEqual(status, 503)
+        self.assertNotIn("Location", dict(headers))
+
+    def test_odd_requests_get_an_answer_and_the_log_never_holds_the_oidc_code(self) -> None:
+        import contextlib
+        import io
+        self.set_state("sleeping")
+        captured = io.StringIO()
+        with contextlib.redirect_stderr(captured):
+            status, _, _ = self.request("OPTIONS", "/anything")
+            self.assertEqual(status, 501)
+            self.request("GET", "/__usl/callback?state=SECRETSTATE&code=SECRETCODE")
+        log = captured.getvalue()
+        self.assertIn("/__usl/callback", log)
+        self.assertNotIn("SECRETCODE", log)
+        self.assertNotIn("SECRETSTATE", log)
+        self.assertNotIn("Traceback", log)
+
+    def test_a_forged_non_ascii_cookie_or_state_is_refused_not_a_server_error(self) -> None:
+        self.set_state("sleeping")
+        status, _, _ = self.request("GET", "/", headers={"Cookie": "usl_wake_session=a.b"})
+        self.assertEqual(status, 503)
+        connection = self.http.HTTPConnection("127.0.0.1", self.port, timeout=5)
+        connection.request("GET", "/__usl/callback?state=%C3%A9&code=x", headers={"User-Agent": "Mozilla/5.0", "Cookie": "usl_wake_login=%C3%A9.%C3%A9"})
+        self.assertEqual(connection.getresponse().status, 503)
+
+    def test_without_a_provisioned_client_nothing_can_wake(self) -> None:
+        self.set_state("sleeping")
+        environment = mock.patch.dict("os.environ", {"POCKET_ID_CLIENT_ID": "", "POCKET_ID_CLIENT_SECRET": ""})
+        environment.start()
+        self.addCleanup(environment.stop)
+        status, body, _ = self.request("GET", "/")
+        self.assertEqual(status, 503)
+        self.assertIn("not set up", body)
+        self.assertEqual(self.request("GET", "/__usl/login")[0], 503)
+        self.assertEqual(self.request("POST", "/__usl/wake")[0], 401)
 
 
 if __name__ == "__main__":

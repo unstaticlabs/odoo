@@ -78,7 +78,8 @@
           "type": "object", "additionalProperties": false,
           "required": [
             "mode", "idle_after_ci_minutes", "idle_after_interactive_minutes", "wake_timeout_seconds",
-            "max_lease_minutes", "sweep_seconds", "gateway_service", "listen_port", "wake_token_sha256_file"
+            "max_lease_minutes", "sweep_seconds", "gateway_service", "listen_port", "oidc_issuer",
+            "oidc_required_group"
           ],
           "properties": {
             "mode": {"const": "on_demand"},
@@ -89,7 +90,8 @@
             "sweep_seconds": {"type": "integer", "minimum": 1, "maximum": 600},
             "gateway_service": {"type": "string", "minLength": 1},
             "listen_port": {"type": "integer", "minimum": 1, "maximum": 65535},
-            "wake_token_sha256_file": {"type": "string", "pattern": "^/"}
+            "oidc_issuer": {"type": "string", "pattern": "^https://"},
+            "oidc_required_group": {"type": "string", "minLength": 1}
           }
         }
       ]
