@@ -176,9 +176,21 @@ SSH access to the host is the authentication.
 - **The host reboots.** Staging stays down if it was asleep; if it was awake,
   Docker restarts it as it always did.
 - **Stuck in `waking` or `stopping`.** The daemon marks a transition that has not
-  finished after twice `wake_timeout_seconds` as `failed` (`Interrupted`). If the
-  daemon was killed mid-operation, `operation.lock` under the state directory may
-  remain; when no `usl-stack` process runs, `rmdir` it, then rerun `wake` or
-  `sleep --force`.
+  finished after three `wake_timeout_seconds` as `failed` (`Interrupted`). If a
+  `usl-stack` process was killed mid-operation, `operation.lock` under the state
+  directory stays behind and every wake, sleep and release refuses with "another
+  operation already owns staging". Check that no `usl-stack` or `docker compose`
+  process for the staging project is still running (a killed client leaves its
+  remote `compose stop` to finish), then:
+
+  ```bash
+  ssh odoo -- 'cat /var/lib/usl-odoo/runtime/staging/operation.lock/owner.json'   # who held it, since when
+  ssh odoo -- 'rm -f /var/lib/usl-odoo/runtime/staging/operation.lock/owner.json && rmdir /var/lib/usl-odoo/runtime/staging/operation.lock'
+  scripts/usl-stack --target staging runtime wake      # or: runtime sleep --force
+  ```
+
+  Rehearsed on 2026-11-04: a `sleep` killed after 25 s left 10 of 13 services
+  stopped and the state `stopping`; after removing the lock, `wake` started the
+  remaining services and the state returned to `active` (13/13).
 - **Cleanup while asleep.** `cleanup` protects the generations, networks and
   volumes of the stopped cohort exactly as it does for a running one.
