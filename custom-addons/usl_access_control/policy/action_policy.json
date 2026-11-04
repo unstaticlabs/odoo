@@ -177771,6 +177771,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:4",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._search_usl_is_ai_agent:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_pocketid_policy_exempt_users:sudo:1"
@@ -177928,6 +177932,18 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1": {
+          "reachability_proof": "OCA's failure bookkeeping on the job record (subscribe the queue managers), recorded as the system when the job's user is an Agent. Reached only from queue.job.write with state failed, which the job runner issues in process; no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2": {
+          "reachability_proof": "OCA's failure bookkeeping on the job record (post the failure message in its chatter), recorded as the system when the job's user is an Agent. Reached only from queue.job.write with state failed, which the job runner issues in process; no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1": {
+          "reachability_proof": "Internal read of the Agent record that owns a running job, used to decide whether the job body gets an operation scope. Called only by the job runner controller's _runjob; performs no mutation and has no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2": {
+          "reachability_proof": "Internal read of the queue.job.function registry to accept only fixed, reviewed job functions for an Agent operation scope. Called only by the job runner controller's _runjob; performs no mutation and has no independent RPC, controller, UI or scheduled entry point."
+        },
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
@@ -177989,6 +178005,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:3": "097b63eb7ae849d3fe0888f811e775809aa75607de4baf288ba86525efdbc105",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:4": "41add250e63e54496937926c4abd40669aee25a7473e80c4a8b5fba223d7fdb0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": "9accdc1c83c2be80469561cb8ba61fbb4ef688bb7d82c602705c2b2c9dafd362",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1": "cceb9818eb4f6d66741b3cdcc8002eb58ab93dec9892e8f735cdb8b79dfa57d8",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2": "1111a0e586ee9e9b56cfd1825aaa3b7c332e474ada88a3986d4e4c9469405973",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1": "203f42029de6385f89afea655b9de12db55e25065779be18e818c1f1500cb417",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2": "07945fa836c3c5592392072165172cfefc8572dedc8138c2a0ea7d61e9e5a0d0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1": "758e0e114b5f130997bf753f00af4a3a42304739a4e76e963b02e62c55acbdcd",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._search_usl_is_ai_agent:sudo:1": "982aaa4655bbffe9c3711e4899eab621bf88054e14c450cee43975777cd55be0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_pocketid_policy_exempt_users:sudo:1": "33dc9cc3117c2965a7bba2775b2efe47eeedb6d247f1bf7329490fc2d783dff8"

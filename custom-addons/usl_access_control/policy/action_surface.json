@@ -1624671,6 +1624671,66 @@
       ]
     },
     {
+      "digest": "cceb9818eb4f6d66741b3cdcc8002eb58ab93dec9892e8f735cdb8b79dfa57d8",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_access_control/models/queue_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "1111a0e586ee9e9b56cfd1825aaa3b7c332e474ada88a3986d4e4c9469405973",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_access_control/models/queue_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "203f42029de6385f89afea655b9de12db55e25065779be18e818c1f1500cb417",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_access_control/models/queue_job.py"
+        }
+      ]
+    },
+    {
+      "digest": "07945fa836c3c5592392072165172cfefc8572dedc8138c2a0ea7d61e9e5a0d0",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_access_control/models/queue_job.py"
+        }
+      ]
+    },
+    {
       "digest": "a3b9d2ab9f0021f697c96c355c8f47e30b58aa3f1f0334277e08a64a49feb34f",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/readonly_accounting_report.py:ir.attachment.create:orm_create:1",
       "kind": "sink",
@@ -1719613,7 +1719673,7 @@
       "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "190f744d0da25380fcdfee45d5507c9fe90a8df10d8d67634094d7b9e9586b47",
+      "source_sha256": "62550f28839a3802a2fb478db5a0d0be610bf5ba846399349ccada3829eef069",
       "version": "saas~19.3.1.8.12"
     },
     {
