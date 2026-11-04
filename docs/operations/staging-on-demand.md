@@ -1,7 +1,7 @@
 # Staging on demand
 
 Staging shares one VPS (`prod-odoo-nbg1-2`) with production. Awake and idle it
-holds about 1.6 GB of RAM and 13 containers. It therefore sleeps by default:
+holds about 1.7 GB of RAM across 13 service containers. It therefore sleeps by default:
 every application service is stopped, everything that is *state* is kept, and
 it wakes when a pipeline or a person needs it.
 
@@ -9,6 +9,23 @@ The lifecycle extends `usl-stack runtime`; it does not deploy anything. Waking
 and sleeping use the same Compose identity, the same locks and the same
 `--no-recreate` starts as `runtime start` and `runtime stop`, so a woken
 staging is exactly the generation that was running when it went to sleep.
+
+## What it saves
+
+Measured on `prod-odoo-nbg1-2` (4 vCPU, 7.7 GB RAM) on 2026-11-04, awake then
+asleep, nothing else changed:
+
+| | Awake | Asleep |
+|---|---|---|
+| Staging containers running | 14 (13 services + gateway) | 1 (gateway) |
+| Staging memory (container sum) | about 1.7 GB | about 8 MB (gateway) |
+| Host memory in use | 5.2 GB | 3.4 GB |
+| Host memory available | 2.5 GB | 4.4 GB |
+| Host processes | 1765 | 1445 |
+
+The lifecycle daemon, a stack of its own, stays up in both columns (a few tens of MB, not in the table). Idle staging also used a few percent of one CPU (more while Odoo and Paperless
+index), and every wake costs two to three minutes of start-up CPU. Sleeping
+returns that to production.
 
 ## States
 
