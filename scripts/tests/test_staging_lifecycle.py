@@ -202,6 +202,7 @@ class FakeHost:
         self.containers = {name: "running" if running else "exited" for name in services}
         self.commands: list[list[str]] = []
         self.locks: set[str] = set()
+        self.busy_briefly: set[str] = set()
         self.health = health
         self.stop_order: list[list[str]] = []
 
@@ -209,7 +210,10 @@ class FakeHost:
         return subprocess.CompletedProcess(command, code, out, "")
 
     @contextmanager
-    def advisory_lock(self, path: str, timeout: float = 30.0):
+    def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
+        if path in self.locks and wait > 0 and path in self.busy_briefly:
+            self.locks.discard(path)  # the other holder finished within the wait
+            self.busy_briefly.discard(path)
         if path in self.locks:
             raise StackRuntimeError(f"another operation owns advisory lock: {path}")
         self.locks.add(path)
@@ -469,6 +473,45 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(result["state"], "failed")
         self.assertEqual(self.state(host)["last_error"]["type"], "Interrupted")
 
+    def test_a_brief_overlap_on_the_state_lock_does_not_fail_a_wake(self) -> None:
+        host = FakeHost(self.target, running=False)
+        host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
+        state_lock = f"{self.target.value['state_directory']}/lifecycle.lock"
+        host.locks.add(state_lock)
+        host.busy_briefly.add(state_lock)  # the sweep is writing, and lets go within the wait
+        result = wake_staging(
+            self.target, host, reason="release:x", release_lock_held=True, now=lambda: at(0),
+        )
+        self.assertEqual(result["status"], "woken")
+        self.assertEqual(self.state(host)["state"], "active")
+
+    def test_a_lease_granted_while_sleeping_starts_wins_over_the_sleep(self) -> None:
+        host = FakeHost(self.target)
+        host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0)))
+        original = host.run
+        done = []
+
+        def lease_arrives(command, **kw):
+            if command[:2] == ["docker", "compose"] and not done:
+                done.append(1)
+            return original(command, **kw)
+
+        # The lease lands between the check and the "stopping" write.
+        real = __import__("operations.stack", fromlist=["_update_lifecycle"])._update_lifecycle
+        calls = []
+
+        def racing(target, runner, change, **kw):
+            calls.append(1)
+            if len(calls) == 1:
+                lease_staging(target, runner, minutes=30, holder="manual:me", now=lambda: at(61))
+            return real(target, runner, change, **kw)
+
+        with mock.patch("operations.stack._update_lifecycle", racing):
+            result = sleep_staging(self.target, host, reason="idle", now=lambda: at(61))
+        self.assertEqual(result["status"], "deferred")
+        self.assertEqual(host.stop_order, [])
+        self.assertEqual(self.state(host)["state"], "active")
+
     def test_wake_inside_a_release_does_not_deadlock_on_its_own_lock(self) -> None:
         host = FakeHost(self.target, running=False)
         host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
@@ -626,6 +669,12 @@ class DaemonHttpTests(unittest.TestCase):
             self.set_state(state)
             self.assertEqual(self.request("GET", "/web/health")[0], 502, state)
             self.assertEqual(self.request("GET", "/")[0], 502, state)
+
+    def test_a_failed_staging_keeps_the_token_form_so_people_can_retry(self) -> None:
+        self.set_state("failed")
+        status, body = self.request("GET", "/")
+        self.assertEqual(status, 502)
+        self.assertIn("/__usl/wake", body)
 
     def test_wake_requires_the_token_and_a_human_user_agent(self) -> None:
         self.set_state("sleeping")

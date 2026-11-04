@@ -910,7 +910,7 @@ DATA_SERVICE_ROLES = ("odoo_db", "paperless_db", "paperless_broker")
 SLEEP_STOP_TIMEOUT_SECONDS = 60
 # A wake or sleep that has not finished after this many wake timeouts was
 # interrupted (the daemon was killed, the host rebooted).  The sweep records it.
-STALE_TRANSITION_FACTOR = 2
+STALE_TRANSITION_FACTOR = 3
 
 
 def _start_runtime(target, runner, current: dict, *, mcp_authority: bool = True, wait_timeout: int | None = None) -> dict:
@@ -966,7 +966,9 @@ def _update_lifecycle(target, runner, change, *, now=lifecycle.utc) -> dict:
     """
     path = f"{target.value['state_directory']}/lifecycle.lock"
     runner.run(["install", "-d", "-m", "0700", target.value["state_directory"]])
-    with runner.advisory_lock(path):
+    # Wait briefly: holders keep this lock for one read and one write, and a
+    # release must not be rejected because the sweep was writing at that instant.
+    with runner.advisory_lock(path, wait=10.0):
         moment = now()
         current = _read_lifecycle(target, runner) or lifecycle.new_state(moment)
         updated = change(current, moment)
@@ -1053,6 +1055,10 @@ def _wait_odoo_ready(target, runner, timeout: int) -> None:
                 return
         time.sleep(3)
     raise RuntimeError(f"staging Odoo did not become healthy in {timeout}s: {last}")
+
+
+class _LeaseHeld(RuntimeError):
+    pass
 
 
 def _activity_key(reason: str) -> str:
@@ -1176,10 +1182,20 @@ def sleep_staging(
             decision = lifecycle.decide(state, moment, config, busy=[])
             if decision["action"] != "sleep":
                 return {**deferred, "detail": decision["reason"]}
-        _update_lifecycle(target, runner, lambda value, at: lifecycle.record(
-            {**value, "state": "stopping", "since": lifecycle.stamp(at)},
-            at, "sleep-started", reason=reason,
-        ), now=now)
+        def begin(value: dict, at) -> dict:
+            # A lease granted since the check above still wins.
+            held = lifecycle.active_lease(value, at)
+            if held:
+                raise _LeaseHeld(f"leased by {held['holder']} until {held['until']}")
+            return lifecycle.record(
+                {**value, "state": "stopping", "since": lifecycle.stamp(at)},
+                at, "sleep-started", reason=reason,
+            )
+
+        try:
+            _update_lifecycle(target, runner, begin, now=now)
+        except _LeaseHeld as error:
+            return {**deferred, "detail": str(error)}
         try:
             current = inspect_runtime(target, runner)
             identity = _active_generation_identity(target, runner, current, mcp_authority=False)
@@ -1363,15 +1379,17 @@ def lifecycle_server(target, runner, wake) -> "ThreadingHTTPServer":
         def _page(self, path: str) -> None:
             status = self._status()
             state = status["state"]
-            if state in {"active", "failed"}:
+            if state == "failed":
+                # The last wake or sleep failed: say so, and keep the token form
+                # so a person can retry without an operator.
+                self._send(502, lifecycle.sleeping_page(status, hostname=hostname))
+            elif state == "active":
                 # The gateway only forwards here when Odoo does not answer, so
-                # an active (or failed) staging that reaches this page is down.
-                # Say so plainly, and keep the wake form for the failed case.
-                body = ("<!doctype html><title>Staging is not responding</title>"
-                        "<h1>Staging is not responding</h1>"
-                        f"<p>State: {state}. Retry in a minute; an operator can run "
-                        "<code>scripts/usl-stack --target staging runtime wake</code>.</p>")
-                self._send(502, body)
+                # an active staging that reaches this page is down.
+                self._send(502, "<!doctype html><title>Staging is not responding</title>"
+                                "<h1>Staging is not responding</h1>"
+                                "<p>Retry in a minute; an operator can run "
+                                "<code>scripts/usl-stack --target staging runtime wake</code>.</p>")
             elif path in {"/web/health", "/web/login/health"}:
                 # A sleeping staging is healthy by design: probes must not page anyone.
                 self._send(200, json.dumps({"status": state}), "application/json")
