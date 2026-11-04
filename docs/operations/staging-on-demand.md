@@ -133,22 +133,38 @@ backups, deployment and rollback are unchanged. About one hour later the idle
 sweep puts staging back to sleep.
 
 **From the web.** While staging sleeps, `https://odoo-staging.unstaticlabs.com`
-answers `503` with a sleeping page and a token field. A valid token starts the
-wake; the page then reloads staging by itself. Wrong tokens get `403`; ten
-failures a minute lock the endpoint for the minute (`429`), which only delays
-the next legitimate attempt, since the command line still works. Requests from
-automated user agents are refused even with a valid token. Health probes
-(`/web/health`) receive `200 {"status":"sleeping"}` so a sleeping staging does
-not page anyone; an *active* staging that does not answer yields a `502`.
+answers `503` with a sleeping page. A person signs in with Pocket ID (the same
+provider and the same `c_suite` group as staging Odoo) and presses **Wake
+staging**; the page then opens staging by itself. The lifecycle daemon speaks
+OpenID Connect itself (authorization code + PKCE, confidential client, userinfo
+for the groups), so nothing depends on Odoo being up. The wake is recorded as
+`web:<email>` in `lifecycle.json`, so the history says who woke staging.
+Bots and probes cannot start a sign-in or a wake; a cross-site request is
+refused; the session is a signed `HttpOnly; Secure; SameSite=Strict` cookie
+that lasts eight hours and dies when the client secret is rotated. Health
+probes (`/web/health`) receive `200 {"status":"sleeping"}` so a sleeping staging
+does not page anyone; an *active* staging that does not answer yields a `502`.
 
-The token's SHA-256 digest is the only thing stored, in
-`/var/lib/usl-odoo/lifecycle/wake-token.sha256`. To issue or rotate one:
+Until the Pocket ID client exists on the host, the page says that web wake is
+not set up and only the command line works.
+
+**Provisioning the client (once, needs a Pocket ID admin).** In Pocket ID create
+an OIDC client named `USL staging wake`: confidential, PKCE on, callback URL
+`https://odoo-staging.unstaticlabs.com/__usl/callback`, restricted to the group
+`c_suite`. Then store its credentials on the host, readable by root only:
 
 ```bash
-token="$(openssl rand -hex 24)"
-printf '%s' "$token" | sha256sum | cut -d' ' -f1 | ssh odoo -- 'install -D -m 0644 /dev/stdin /var/lib/usl-odoo/lifecycle/wake-token.sha256'
-# hand $token to the people allowed to wake staging, then forget it
+umask 077
+printf '{"client_id": "%s", "client_secret": "%s"}' "$CLIENT_ID" "$CLIENT_SECRET" \
+  | ssh odoo -- 'install -m 0600 /dev/stdin /opt/usl-odoo/staging/secrets/wake-oidc-client.json'
 ```
+
+No restart is needed: the daemon reads the file on every request. To rotate,
+create a new secret in Pocket ID and rewrite the file; every session ends.
+
+**From a pipeline.** A pipeline never signs in: it reaches the host through the
+fixed control plane (GitLab job, Komodo action, exact intent, launcher as root)
+and the launcher runs `runtime wake` itself.
 
 **From the command line.** `scripts/usl-stack --target staging runtime wake`.
 SSH access to the host is the authentication.
@@ -157,7 +173,8 @@ SSH access to the host is the authentication.
 
 | Part | Where | Role |
 |---|---|---|
-| `operations/staging_lifecycle.py` | this repository | Pure policy: states, idle decision, activity detection, token check, sleeping page. |
+| `operations/staging_lifecycle.py` | this repository | Pure policy: states, idle decision, activity detection, sleeping page. |
+| `operations/staging_wake_oidc.py` | this repository | Pocket ID sign-in for the wake page (code + PKCE, signed cookies). |
 | `runtime wake|sleep|lease|lifecycle|idle-sweep` | `operations/stack.py` | Applies the policy with the existing Compose identity and locks. |
 | `runtime lifecycle-daemon` | `operations/stack.py` | Serves the wake endpoint and runs the idle sweep. The only always-on piece (about 30 MB). |
 | `usl-odoo-staging-lifecycle` stack | GitOps | Runs the daemon from the pinned operations image. |

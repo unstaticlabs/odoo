@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from operations import staging_lifecycle as lifecycle
+from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
 from operations.cohort import (
     SCHEMA as RECOVERY_COHORT_SCHEMA,
@@ -1348,99 +1349,167 @@ def idle_sweep(target, runner, *, now=lifecycle.utc, window_seconds: int | None 
     return {"schema": "usl-staging-sweep/v1", **outcome}
 
 
-def lifecycle_server(target, runner, wake) -> "ThreadingHTTPServer":
+def _wake_oidc(target, runner, http=None):
+    """The OIDC relying party for the wake page, or ``None`` if its client is not provisioned."""
+    config = _lifecycle_config(target)
+    result = runner.run(["cat", config["oidc_client_file"]], check=False)
+    if result.returncode:
+        return None
+    try:
+        client = json.loads(result.stdout)
+        kwargs = {"http": http} if http is not None else {}
+        return wake_oidc.WakeOidc(
+            issuer=config["oidc_issuer"],
+            client_id=client["client_id"],
+            client_secret=client["client_secret"],
+            redirect_uri=target.value["endpoints"]["odoo"].rstrip("/") + "/__usl/callback",
+            required_group=config["oidc_required_group"],
+            **kwargs,
+        )
+    except (json.JSONDecodeError, KeyError, wake_oidc.OidcError):
+        return None
+
+
+def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer":
     """The wake page and endpoint.  ``wake(reason)`` starts a wake in the background."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-    from urllib.parse import parse_qs
+    from urllib.parse import parse_qsl, urlsplit as split
 
     config = _lifecycle_config(target)
     hostname = urlsplit(target.value["endpoints"]["odoo"]).hostname or "staging"
-    failures: list[float] = []
-
-    def expected_digest() -> str:
-        result = runner.run(["cat", config["wake_token_sha256_file"]], check=False)
-        return result.stdout.strip() if result.returncode == 0 else ""
+    cookie_flags = "; Path=/__usl/; HttpOnly; Secure; SameSite="
 
     class Handler(BaseHTTPRequestHandler):
         server_version = "usl-lifecycle"
 
         def log_message(self, format, *args):  # noqa: A002
-            sys.stderr.write("%s %s\n" % (self.address_string(), format % args))
+            # The query string carries the OIDC code and state: never log it.
+            sys.stderr.write("%s %s\n" % (self.address_string(), format % tuple(
+                str(a).split("?", 1)[0] if i == 0 else a for i, a in enumerate(args)
+            )))
 
-        def _send(self, status: int, body: str, content_type: str = "text/html; charset=utf-8"):
+        def _send(self, status: int, body: str, content_type: str = "text/html; charset=utf-8",
+                  headers: list[tuple[str, str]] | None = None):
             payload = body.encode("utf-8")
             self.send_response(status)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(payload)))
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Robots-Tag", "noindex, nofollow")
+            for name, value in headers or []:
+                self.send_header(name, value)
             if status == 503:
                 self.send_header("Retry-After", "60")
             self.end_headers()
             if self.command != "HEAD":
                 self.wfile.write(payload)
 
+        def _redirect(self, location: str, headers: list[tuple[str, str]] | None = None):
+            self.send_response(302)
+            self.send_header("Location", location)
+            self.send_header("Content-Length", "0")
+            self.send_header("Cache-Control", "no-store")
+            for name, value in headers or []:
+                self.send_header(name, value)
+            self.end_headers()
+
         def _status(self) -> dict:
             return lifecycle.public_status(_read_lifecycle(target, runner), lifecycle.utc())
 
-        def _page(self, path: str) -> None:
+        def _person(self):
+            oidc = _wake_oidc(target, runner, http)
+            if oidc is None:
+                return None, None
+            cookies = wake_oidc.parse_cookies(self.headers.get("Cookie"))
+            return oidc, oidc.read_session(cookies.get("usl_wake_session"))
+
+        def _page(self, path: str, notice: str | None = None) -> None:
             status = self._status()
             state = status["state"]
-            if state == "failed":
-                # The last wake or sleep failed: say so, and keep the token form
-                # so a person can retry without an operator.
-                self._send(502, lifecycle.sleeping_page(status, hostname=hostname))
-            elif state == "active":
+            oidc, person = self._person()
+            if state == "active":
                 # The gateway only forwards here when Odoo does not answer, so
                 # an active staging that reaches this page is down.
                 self._send(502, "<!doctype html><title>Staging is not responding</title>"
                                 "<h1>Staging is not responding</h1>"
                                 "<p>Retry in a minute; an operator can run "
                                 "<code>scripts/usl-stack --target staging runtime wake</code>.</p>")
-            elif path in {"/web/health", "/web/login/health"}:
+            elif state != "failed" and path in {"/web/health", "/web/login/health"}:
                 # A sleeping staging is healthy by design: probes must not page anyone.
                 self._send(200, json.dumps({"status": state}), "application/json")
             else:
-                self._send(503, lifecycle.sleeping_page(status, hostname=hostname))
+                if oidc is None:
+                    notice = notice or "Web wake is not set up yet; ask an operator."
+                self._send(
+                    502 if state == "failed" else 503,
+                    lifecycle.sleeping_page(
+                        status, hostname=hostname, person=person.label if person else None, notice=notice,
+                    ),
+                )
+
+        def _human(self) -> bool:
+            return lifecycle.wake_attempt_allowed(self.headers.get("User-Agent", ""))
 
         def do_GET(self):
-            path = self.path.split("?", 1)[0]
+            parts = split(self.path)
+            path = parts.path
             if path == "/__usl/status":
                 self._send(200, json.dumps(self._status()), "application/json")
             elif path == "/healthz":
                 self._send(200, '{"status":"pass"}', "application/json")
+            elif path == "/__usl/login":
+                oidc, _ = self._person()
+                if oidc is None or not self._human():
+                    self._page("/", "Sign-in is not available.")
+                    return
+                try:
+                    url, cookie = oidc.begin()
+                except wake_oidc.OidcError as error:
+                    self._page("/", str(error))
+                    return
+                self._redirect(url, [("Set-Cookie", f"usl_wake_login={cookie}; Max-Age=600{cookie_flags}Lax")])
+            elif path == "/__usl/callback":
+                oidc, _ = self._person()
+                if oidc is None or not self._human():
+                    self._page("/", "Sign-in is not available.")
+                    return
+                cookies = wake_oidc.parse_cookies(self.headers.get("Cookie"))
+                try:
+                    who = oidc.complete(dict(parse_qsl(parts.query)), cookies.get("usl_wake_login"))
+                except wake_oidc.OidcError as error:
+                    sys.stderr.write(f"sign-in refused: {error}\n")
+                    self._page("/", str(error))
+                    return
+                sys.stderr.write(f"sign-in accepted: {who.label}\n")
+                self._redirect("/", [
+                    ("Set-Cookie", f"usl_wake_session={oidc.session_cookie(who)}; Max-Age=28800{cookie_flags}Strict"),
+                    ("Set-Cookie", f"usl_wake_login=; Max-Age=0{cookie_flags}Lax"),
+                ])
             else:
                 self._page(path)
 
         do_HEAD = do_GET
 
         def do_POST(self):
-            path = self.path.split("?", 1)[0]
+            path = split(self.path).path
             if path != "/__usl/wake":
                 self._page(path)
                 return
-            if not lifecycle.wake_attempt_allowed(self.headers.get("User-Agent", "")):
+            if not self._human():
                 self._send(403, '{"error":"automated clients cannot wake staging"}', "application/json")
                 return
-            raw_length = self.headers.get("Content-Length") or "0"
-            if not raw_length.isdigit():
-                self._send(400, '{"error":"invalid content length"}', "application/json")
+            # A cross-site form post would carry the SameSite=Strict session cookie
+            # never, but check the origin as well: it costs one comparison.
+            origin = self.headers.get("Origin")
+            expected = target.value["endpoints"]["odoo"].rstrip("/")
+            if origin is not None and origin != expected:
+                self._send(403, '{"error":"cross-site request"}', "application/json")
                 return
-            moment = time.monotonic()
-            failures[:] = [item for item in failures if moment - item < 60]
-            if len(failures) >= 10:
-                self._send(429, '{"error":"too many attempts"}', "application/json")
+            _, person = self._person()
+            if person is None:
+                self._send(401, '{"error":"sign in first"}', "application/json")
                 return
-            body = self.rfile.read(min(int(raw_length), 4096)).decode("utf-8", "replace")
-            token = (parse_qs(body).get("token") or [""])[0]
-            bearer = self.headers.get("Authorization", "")
-            if bearer.startswith("Bearer "):
-                token = bearer[len("Bearer "):]
-            if not lifecycle.token_matches(token, expected_digest()):
-                failures.append(moment)
-                self._send(403, '{"error":"invalid token"}', "application/json")
-                return
-            wake("web")
+            wake(f"web:{person.label}")
             self._send(202, '{"status":"waking"}', "application/json")
 
         do_PUT = do_PATCH = do_DELETE = do_POST

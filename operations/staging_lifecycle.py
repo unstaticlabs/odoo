@@ -23,8 +23,6 @@ behaviour until the first explicit ``sleep``.
 """
 from __future__ import annotations
 
-import hashlib
-import hmac
 import html
 import json
 import re
@@ -40,7 +38,9 @@ CONFIG_FIELDS = {
     "sweep_seconds",
     "gateway_service",
     "listen_port",
-    "wake_token_sha256_file",
+    "oidc_issuer",
+    "oidc_client_file",
+    "oidc_required_group",
 }
 STATES = ("active", "waking", "sleeping", "stopping", "failed")
 KINDS = ("ci", "interactive")
@@ -127,9 +127,13 @@ def validate_lifecycle(value: object) -> dict:
         raise LifecycleError("lifecycle.sweep_seconds must be at most 600")
     if not isinstance(value["gateway_service"], str) or not value["gateway_service"]:
         raise LifecycleError("lifecycle.gateway_service is required")
-    token = value["wake_token_sha256_file"]
-    if not isinstance(token, str) or not token.startswith("/"):
-        raise LifecycleError("lifecycle.wake_token_sha256_file must be absolute")
+    if not isinstance(value["oidc_issuer"], str) or not value["oidc_issuer"].startswith("https://"):
+        raise LifecycleError("lifecycle.oidc_issuer must be an https URL")
+    client = value["oidc_client_file"]
+    if not isinstance(client, str) or not client.startswith("/"):
+        raise LifecycleError("lifecycle.oidc_client_file must be absolute")
+    if not isinstance(value["oidc_required_group"], str) or not value["oidc_required_group"]:
+        raise LifecycleError("lifecycle.oidc_required_group is required")
     return value
 
 
@@ -293,16 +297,6 @@ def wake_attempt_allowed(agent: str) -> bool:
     return bool(agent) and not AUTOMATED_AGENT.search(agent)
 
 
-def token_digest(token: str) -> str:
-    return hashlib.sha256(token.encode("utf-8")).hexdigest()
-
-
-def token_matches(candidate: str, expected_sha256: str) -> bool:
-    if not candidate or not re.fullmatch(r"[0-9a-f]{64}", expected_sha256 or ""):
-        return False
-    return hmac.compare_digest(token_digest(candidate), expected_sha256)
-
-
 def public_status(state: dict | None, now: datetime) -> dict:
     """What the unauthenticated status endpoint may reveal: the state, nothing else."""
     if state is None:
@@ -313,10 +307,23 @@ def public_status(state: dict | None, now: datetime) -> dict:
     return value
 
 
-def sleeping_page(status: dict, *, hostname: str) -> str:
-    """The page shown while staging sleeps; it polls ``/__usl/status`` itself."""
+def sleeping_page(status: dict, *, hostname: str, person: str | None = None, notice: str | None = None) -> str:
+    """The page shown while staging sleeps; it polls ``/__usl/status`` itself.
+
+    Anonymous visitors get a sign-in button; a signed-in person gets the wake
+    button.  Nothing here can start staging without a Pocket ID session.
+    """
     state = html.escape(str(status.get("state", "sleeping")))
     host = html.escape(hostname)
+    if person:
+        action = (
+            f'<p>Signed in as <b>{html.escape(person)}</b>.</p>'
+            '<form id="wake" method="post" action="/__usl/wake">'
+            '<button type="submit">Wake staging</button></form>'
+        )
+    else:
+        action = '<p><a class="button" href="/__usl/login">Sign in with Pocket ID to wake staging</a></p>'
+    warning = f'<p class="warning">{html.escape(notice)}</p>' if notice else ""
     return f"""<!doctype html>
 <html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -324,20 +331,16 @@ def sleeping_page(status: dict, *, hostname: str) -> str:
 <title>USL Odoo staging is asleep</title>
 <style>
 body{{font:18px system-ui;margin:12vh auto;max-width:34rem;padding:0 1.5rem;color:#29252b}}
-h1{{color:#714b67;font-size:1.6rem}} input,button{{font:inherit;padding:.5rem .8rem;margin:.25rem 0}}
-button{{background:#714b67;color:#fff;border:0;border-radius:4px;cursor:pointer}}
-small{{color:#6b6470}} #message{{margin-top:1rem}}
+h1{{color:#714b67;font-size:1.6rem}} button,.button{{font:inherit;padding:.5rem .9rem;margin:.25rem 0}}
+button,.button{{background:#714b67;color:#fff;border:0;border-radius:4px;cursor:pointer;text-decoration:none;display:inline-block}}
+small{{color:#6b6470}} #message{{margin-top:1rem}} .warning{{color:#a4262c}}
 </style>
 <h1>Staging is asleep</h1>
 <p>{host} runs only when a pipeline or a teammate needs it, which keeps the
 shared server free for production. Current state: <b id="state">{state}</b>.</p>
-<form id="wake" method="post" action="/__usl/wake">
-  <label for="token">Wake token</label><br>
-  <input id="token" name="token" type="password" autocomplete="off" required>
-  <button type="submit">Wake staging</button>
-</form>
-<p id="message"><small>Waking takes two to three minutes. This page reloads
-staging by itself once it answers. No token? Ask a maintainer, or run
+{warning}{action}
+<p id="message"><small>Waking takes two to three minutes and this page then opens
+staging by itself. Operators can also run
 <code>scripts/usl-stack --target staging runtime wake</code>.</small></p>
 <script>
 const message = document.getElementById('message');
@@ -347,17 +350,16 @@ async function poll() {{
     const r = await fetch('/__usl/status', {{cache: 'no-store'}});
     const s = await r.json();
     stateEl.textContent = s.state;
-    if (s.state === 'active') {{ location.reload(); return; }}
+    if (s.state === 'active') {{ location.href = '/'; return; }}
   }} catch (e) {{}}
   setTimeout(poll, 5000);
 }}
-document.getElementById('wake').addEventListener('submit', async (event) => {{
+const form = document.getElementById('wake');
+if (form) form.addEventListener('submit', async (event) => {{
   event.preventDefault();
-  const body = new URLSearchParams(new FormData(event.target));
-  const r = await fetch('/__usl/wake', {{method: 'POST', body}});
+  const r = await fetch('/__usl/wake', {{method: 'POST', credentials: 'same-origin'}});
   message.textContent = r.status === 202 ? 'Waking staging…'
-    : r.status === 403 ? 'That token is not valid.'
-    : r.status === 429 ? 'Too many attempts; wait a minute.'
+    : r.status === 401 ? 'Your session expired; sign in again.'
     : 'Could not start the wake (' + r.status + ').';
   if (r.status === 202) poll();
 }});
