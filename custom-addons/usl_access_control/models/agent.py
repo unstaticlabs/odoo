@@ -7,6 +7,7 @@ from odoo.http import request
 
 from ..exceptions import AgentPolicyAccessError
 from .action_policy import ActionPolicyConfigurationError, load_agent_readonly_policy
+from .api_doc_scope import api_doc_index_lookup
 
 _AGENT_KEY_MAX_DAYS = 5 * 365 + 1
 _AGENT_CREDENTIAL_TOUCH_LOCK_NAMESPACE = 5_590_092
@@ -438,15 +439,23 @@ class UslAgent(models.Model):
             return False
         effective_groups = roots.all_implied_ids
         permission_field = f"perm_{operation}"
-        access_rows = self.env["ir.model.access"].sudo().search(
-            [
-                ("model_id.model", "=", model_name),
-                ("active", "=", True),
-                (permission_field, "=", True),
-            ],
+        access_rows = api_doc_index_lookup(
+            ("model_access", model_name, permission_field),
+            lambda: self.env["ir.model.access"].sudo().search(
+                [
+                    ("model_id.model", "=", model_name),
+                    ("active", "=", True),
+                    (permission_field, "=", True),
+                ],
+            ),
         )
-        generic_groups = self._groups_from_xmlids(
-            ("base.group_public", "base.group_portal", "base.group_user"),
+        # ``env.ref`` runs an ``exists()`` query for every lookup; the index
+        # build asks this for every public method of every model.
+        generic_groups = api_doc_index_lookup(
+            ("generic_groups",),
+            lambda: self._groups_from_xmlids(
+                ("base.group_public", "base.group_portal", "base.group_user"),
+            ),
         )
         if any(
             access.group_id
