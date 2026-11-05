@@ -69,8 +69,8 @@ scripts/usl-stack --target staging runtime touch --reason release:x   # record a
 ```
 
 `wake` and `sleep` are idempotent. `--reason` is recorded; a reason starting
-with `ci:`, `release:` or `pipeline:` gets the short idle grace, anything else
-the long one.
+with `ci:`, `release:` or `pipeline:` gets the pipeline idle grace, anything else
+the interactive one (both are currently 30 minutes).
 
 `sleep` without `--force` obeys the idle policy. With or without `--force` it
 refuses (`deferred`) while:
