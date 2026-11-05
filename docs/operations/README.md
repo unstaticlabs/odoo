@@ -14,6 +14,7 @@ routine product-development or production-operations guide.
 Specialized product procedures remain separate when they require a deliberate
 activation or domain-specific response:
 
+- [Staging on demand](staging-on-demand.md): sleeping staging, wake, idle sleep
 - [Developing in a git worktree](worktree-development.md)
 - [Production image CI contract](production-image-ci.md)
 - [Backup and recovery](backup-and-recovery.md)

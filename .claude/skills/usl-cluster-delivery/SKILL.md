@@ -180,6 +180,14 @@ make action-risk-inventory   # must pass before you tear anything down
 make action-risk-runtime
 ```
 
+Run the host-side `scripts/action_risk_inventory.py` steps (`discover`, `refresh`,
+`action-risk-inventory`) with Python 3.13, the version CI uses. The digests are
+built from Python AST dumps, and another version changes them: on 2026-11-04 the
+Mac default 3.15 reported 1,621 changed actions in `base`, `web_tour` and
+`rebuild_account_migration` on a branch that touched none of them. Put a `python3`
+symlink to a 3.13 interpreter first on `PATH` for these `make` targets, or call the
+script with `python3.13` directly.
+
 Read `docs/operations/action-risk-inventory.md` before classifying. Say in the PR
 how many digests moved and why each one did.
 

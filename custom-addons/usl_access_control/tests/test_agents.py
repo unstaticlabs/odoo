@@ -38,6 +38,7 @@ from ..models.agent_policy_tokens import (
     get_agent_operation_scope,
 )
 from ..models.agent_secrets import is_agent_secret_field, sanitize_agent_payload
+from ..models.api_doc_scope import api_doc_index_lookup, api_doc_index_scope
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -1931,6 +1932,43 @@ class TestAutonomousAgents(TransactionCase):
         self.assertFalse(access["unlink"])
         self.assertTrue(partner_model._api_doc_public_method_allowed("message_post"))
         self.assertFalse(partner_model._api_doc_public_method_allowed("write"))
+
+    def test_agent_api_index_scope_saves_queries_without_changing_decisions(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        partner_model = self.env["res.partner"].with_user(agent.user_id)
+        methods = ("message_post", "write") * 10
+        cr = self.env.cr
+        self.env.flush_all()
+        # Warm the ORM caches first, otherwise the second measured loop wins
+        # on cache hits alone and the comparison proves nothing.
+        for method in methods:
+            partner_model._api_doc_public_method_allowed(method)
+
+        before = cr.sql_log_count
+        unscoped = [partner_model._api_doc_public_method_allowed(m) for m in methods]
+        unscoped_queries = cr.sql_log_count - before
+
+        before = cr.sql_log_count
+        with api_doc_index_scope():
+            scoped = [partner_model._api_doc_public_method_allowed(m) for m in methods]
+        scoped_queries = cr.sql_log_count - before
+
+        self.assertEqual(scoped, unscoped)
+        self.assertLess(scoped_queries, unscoped_queries)
+
+    def test_agent_api_index_scope_does_not_outlive_the_build(self):
+        calls = []
+
+        def lookup():
+            calls.append(1)
+            return len(calls)
+
+        with api_doc_index_scope():
+            self.assertEqual(api_doc_index_lookup("key", lookup), 1)
+            self.assertEqual(api_doc_index_lookup("key", lookup), 1)
+        self.assertEqual(api_doc_index_lookup("key", lookup), 2)
+        self.assertEqual(api_doc_index_lookup("key", lookup), 3)
 
     def test_agent_api_document_cache_varies_by_access_and_company(self):
         agent = self._create_agent()
