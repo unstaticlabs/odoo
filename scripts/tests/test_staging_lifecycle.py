@@ -31,6 +31,9 @@ ROOT = Path(__file__).resolve().parents[2]
 CONFIG = lifecycle.validate_lifecycle(
     load_target("staging", ROOT / "operations/targets-host").value["lifecycle"],
 )
+# The policy tests need the two grace periods to differ, so they pin their own
+# values; ConfigTests alone checks what is actually deployed.
+POLICY_CONFIG = {**CONFIG, "idle_after_ci_minutes": 60, "idle_after_interactive_minutes": 120}
 T0 = datetime(2026, 11, 4, 12, 0, tzinfo=UTC)
 
 
@@ -52,8 +55,8 @@ def log(minute: float, method: str, path: str, status: int, agent: str = "Mozill
 
 class ConfigTests(unittest.TestCase):
     def test_declared_defaults_match_the_agreed_grace_periods(self) -> None:
-        self.assertEqual(CONFIG["idle_after_ci_minutes"], 60)
-        self.assertEqual(CONFIG["idle_after_interactive_minutes"], 120)
+        self.assertEqual(CONFIG["idle_after_ci_minutes"], 30)
+        self.assertEqual(CONFIG["idle_after_interactive_minutes"], 30)
 
     def test_production_and_local_are_always_on_and_staging_is_not(self) -> None:
         for directory, name in (("targets-host", "production"), ("targets", "production"), ("targets", "local")):
@@ -81,55 +84,55 @@ class ConfigTests(unittest.TestCase):
 class PolicyTests(unittest.TestCase):
     def test_idle_after_ci_grace_period(self) -> None:
         state = active_state(last_ci_at=lifecycle.stamp(T0))
-        self.assertEqual(lifecycle.decide(state, at(59), CONFIG, busy=[])["action"], "none")
-        self.assertEqual(lifecycle.decide(state, at(60), CONFIG, busy=[])["action"], "sleep")
+        self.assertEqual(lifecycle.decide(state, at(59), POLICY_CONFIG, busy=[])["action"], "none")
+        self.assertEqual(lifecycle.decide(state, at(60), POLICY_CONFIG, busy=[])["action"], "sleep")
 
     def test_interactive_use_extends_to_the_long_grace_period(self) -> None:
         state = active_state(
             last_ci_at=lifecycle.stamp(T0),
             last_interactive_at=lifecycle.stamp(at(30)),
         )
-        self.assertEqual(lifecycle.decide(state, at(149), CONFIG, busy=[])["action"], "none")
-        self.assertEqual(lifecycle.decide(state, at(150), CONFIG, busy=[])["action"], "sleep")
+        self.assertEqual(lifecycle.decide(state, at(149), POLICY_CONFIG, busy=[])["action"], "none")
+        self.assertEqual(lifecycle.decide(state, at(150), POLICY_CONFIG, busy=[])["action"], "sleep")
 
     def test_a_person_who_woke_staging_gets_the_long_grace_period(self) -> None:
         state = active_state(
             last_ci_at=None, last_wake_at=lifecycle.stamp(T0), last_wake_reason="web",
         )
-        self.assertEqual(lifecycle.decide(state, at(119), CONFIG, busy=[])["action"], "none")
-        self.assertEqual(lifecycle.decide(state, at(120), CONFIG, busy=[])["action"], "sleep")
+        self.assertEqual(lifecycle.decide(state, at(119), POLICY_CONFIG, busy=[])["action"], "none")
+        self.assertEqual(lifecycle.decide(state, at(120), POLICY_CONFIG, busy=[])["action"], "sleep")
 
     def test_a_pipeline_wake_gets_the_short_grace_period(self) -> None:
         state = active_state(
             last_ci_at=None, last_wake_at=lifecycle.stamp(T0), last_wake_reason="ci:123",
         )
-        self.assertEqual(lifecycle.decide(state, at(60), CONFIG, busy=[])["action"], "sleep")
+        self.assertEqual(lifecycle.decide(state, at(60), POLICY_CONFIG, busy=[])["action"], "sleep")
 
     def test_work_in_progress_always_vetoes_sleep(self) -> None:
         state = active_state(last_ci_at=lifecycle.stamp(T0))
-        verdict = lifecycle.decide(state, at(10_000), CONFIG, busy=["maintenance marker present"])
+        verdict = lifecycle.decide(state, at(10_000), POLICY_CONFIG, busy=["maintenance marker present"])
         self.assertEqual(verdict["action"], "none")
         self.assertIn("maintenance", verdict["reason"])
 
     def test_a_lease_vetoes_sleep_until_it_expires(self) -> None:
-        state = lifecycle.grant_lease(active_state(), T0, CONFIG, minutes=300, holder="manual:demo")
-        self.assertEqual(lifecycle.decide(state, at(299), CONFIG, busy=[])["action"], "none")
-        self.assertEqual(lifecycle.decide(state, at(301), CONFIG, busy=[])["action"], "sleep")
+        state = lifecycle.grant_lease(active_state(), T0, POLICY_CONFIG, minutes=300, holder="manual:demo")
+        self.assertEqual(lifecycle.decide(state, at(299), POLICY_CONFIG, busy=[])["action"], "none")
+        self.assertEqual(lifecycle.decide(state, at(301), POLICY_CONFIG, busy=[])["action"], "sleep")
 
     def test_leases_are_capped_and_renewal_never_shortens(self) -> None:
         with self.assertRaises(lifecycle.LifecycleError):
-            lifecycle.grant_lease(active_state(), T0, CONFIG, minutes=CONFIG["max_lease_minutes"] + 1, holder="x")
-        long = lifecycle.grant_lease(active_state(), T0, CONFIG, minutes=100, holder="a")
-        shorter = lifecycle.grant_lease(long, T0, CONFIG, minutes=10, holder="b")
+            lifecycle.grant_lease(active_state(), T0, POLICY_CONFIG, minutes=POLICY_CONFIG["max_lease_minutes"] + 1, holder="x")
+        long = lifecycle.grant_lease(active_state(), T0, POLICY_CONFIG, minutes=100, holder="a")
+        shorter = lifecycle.grant_lease(long, T0, POLICY_CONFIG, minutes=10, holder="b")
         self.assertEqual(shorter["lease"]["until"], long["lease"]["until"])
 
     def test_nothing_changes_unless_the_state_is_active(self) -> None:
         for name in ("sleeping", "waking", "stopping", "failed"):
             state = active_state(state=name, last_ci_at=lifecycle.stamp(T0 - timedelta(days=1)))
-            self.assertEqual(lifecycle.decide(state, at(0), CONFIG, busy=[])["action"], "none", name)
+            self.assertEqual(lifecycle.decide(state, at(0), POLICY_CONFIG, busy=[])["action"], "none", name)
 
     def test_always_on_mode_never_sleeps(self) -> None:
-        config = {**CONFIG, "mode": "always_on"}
+        config = {**POLICY_CONFIG, "mode": "always_on"}
         state = active_state(last_ci_at=lifecycle.stamp(T0 - timedelta(days=1)))
         self.assertEqual(lifecycle.decide(state, at(0), config, busy=[])["action"], "none")
 
@@ -286,6 +289,7 @@ class FakeHost:
 class CommandTests(unittest.TestCase):
     def setUp(self) -> None:
         self.target = load_target("staging", ROOT / "operations/targets-host")
+        self.target.value["lifecycle"] = dict(POLICY_CONFIG)
         self.patches = [
             mock.patch("operations.stack.inspect_runtime", return_value={"compose": {}, "active_state": None}),
             mock.patch("operations.stack._active_generation_identity", return_value={"anchor_service": "odoo-staging"}),

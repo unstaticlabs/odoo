@@ -117,8 +117,8 @@
   },
   "lifecycle": {
     "mode": "on_demand",
-    "idle_after_ci_minutes": 60,
-    "idle_after_interactive_minutes": 120,
+    "idle_after_ci_minutes": 30,
+    "idle_after_interactive_minutes": 30,
     "wake_timeout_seconds": 900,
     "max_lease_minutes": 480,
     "sweep_seconds": 60,
