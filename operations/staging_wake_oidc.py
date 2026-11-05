@@ -38,6 +38,7 @@ from dataclasses import dataclass
 LOGIN_TTL_SECONDS = 600
 SESSION_TTL_SECONDS = 8 * 3600
 HTTP_TIMEOUT_SECONDS = 10
+USER_AGENT = "usl-staging-lifecycle/1"
 SCOPES = "openid profile email groups"
 
 
@@ -84,7 +85,11 @@ def default_http(method: str, url: str, *, data: dict | None = None, headers: di
     if not url.startswith("https://"):
         raise OidcError("identity provider URLs must use https")
     body = urllib.parse.urlencode(data).encode() if data is not None else None
-    request = urllib.request.Request(url, data=body, method=method, headers=headers or {})
+    # Cloudflare in front of the identity provider answers 403 (error 1010) to
+    # urllib's default "Python-urllib" agent: identify ourselves.
+    request = urllib.request.Request(
+        url, data=body, method=method, headers={"User-Agent": USER_AGENT, **(headers or {})},
+    )
     try:
         with _NO_REDIRECTS.open(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
             return response.status, json.loads(response.read().decode())
