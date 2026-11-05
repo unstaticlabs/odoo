@@ -162,6 +162,17 @@ That client is already restricted to the `c_suite` group. Rotating its secret
 signs every wake session out; redeploy the lifecycle stack so the daemon picks up
 the new value.
 
+*Checking it end to end.* With staging asleep (`runtime lifecycle` says `sleeping`),
+open `https://odoo-staging.unstaticlabs.com` in a browser:
+
+1. The page says staging is asleep and offers **Sign in with Pocket ID**.
+2. After signing in you come back to the same page, now showing your email and a
+   **Wake staging** button (if you see the sign-in button again, the gateway is not
+   forwarding the `usl_wake_*` cookies: it needs the staging release that carries
+   the `gateway.conf` of unstaticlabs/infra/gitops!901).
+3. **Wake staging** starts it; two to three minutes later the page opens Odoo.
+4. `runtime lifecycle` shows `last_wake_reason: web:<your email>`.
+
 **From the command line.** `scripts/usl-stack --target staging runtime wake`.
 SSH access to the host is the authentication.
 
