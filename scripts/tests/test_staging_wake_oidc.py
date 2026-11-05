@@ -194,6 +194,31 @@ class WakeOidcTests(unittest.TestCase):
         self.assertIsNone(_RefuseRedirects().redirect_request(None, None, 302, "Found", {}, "http://evil.test/"))
         self.assertTrue(issubclass(_RefuseRedirects, urllib.request.HTTPRedirectHandler))
 
+    def test_the_provider_client_does_not_send_the_default_python_user_agent(self) -> None:
+        """Cloudflare blocks "Python-urllib" (error 1010): found against the real provider."""
+        import urllib.request
+        from unittest import mock
+        from operations import staging_wake_oidc as module
+
+        seen = {}
+
+        class Response:
+            status = 200
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def read(self): return b"{}"
+
+        def fake_open(request, timeout=None):
+            seen["agent"] = request.get_header("User-agent")
+            seen["auth"] = request.get_header("Authorization")
+            return Response()
+
+        with mock.patch.object(module._NO_REDIRECTS, "open", fake_open):
+            module.default_http("GET", "https://auth.example.test/x", headers={"Authorization": "Bearer t"})
+        self.assertEqual(seen["agent"], module.USER_AGENT)
+        self.assertNotIn("Python-urllib", seen["agent"])
+        self.assertEqual(seen["auth"], "Bearer t")
+
     def test_cookie_parsing(self) -> None:
         self.assertEqual(parse_cookies("a=1; b=2=3;junk"), {"a": "1", "b": "2=3"})
         self.assertEqual(parse_cookies(None), {})
