@@ -176,7 +176,7 @@ def record(state: dict, now: datetime, event: str, **details: object) -> dict:
 
 
 def kind_of(reason: str) -> str:
-    """CI and release work gets the short grace period; people get the long one."""
+    """CI and release work gets the pipeline grace period; people get the interactive one."""
     return "ci" if reason.split(":", 1)[0] in {"ci", "release", "pipeline"} else "interactive"
 
 

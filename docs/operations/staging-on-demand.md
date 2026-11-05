@@ -69,8 +69,8 @@ scripts/usl-stack --target staging runtime touch --reason release:x   # record a
 ```
 
 `wake` and `sleep` are idempotent. `--reason` is recorded; a reason starting
-with `ci:`, `release:` or `pipeline:` gets the short idle grace, anything else
-the long one.
+with `ci:`, `release:` or `pipeline:` gets the pipeline idle grace, anything else
+the interactive one (both are currently 30 minutes).
 
 `sleep` without `--force` obeys the idle policy. With or without `--force` it
 refuses (`deferred`) while:
@@ -105,8 +105,8 @@ Declared in the `lifecycle` block of the staging target, not in code:
 
 | Field | Value | Meaning |
 |---|---|---|
-| `idle_after_ci_minutes` | 60 | Grace after the last pipeline activity or a pipeline-triggered wake. |
-| `idle_after_interactive_minutes` | 120 | Grace after the last person using Odoo, or a person-triggered wake. |
+| `idle_after_ci_minutes` | 30 | Grace after the last pipeline activity or a pipeline-triggered wake. |
+| `idle_after_interactive_minutes` | 30 | Grace after the last person using Odoo, or a person-triggered wake. |
 | `max_lease_minutes` | 480 | Longest single lease; renew to keep going. |
 | `wake_timeout_seconds` | 900 | Longest wait for Odoo to report healthy. |
 | `sweep_seconds` | 60 | How often the daemon applies the policy. |
@@ -131,7 +131,7 @@ The GitOps release launcher wakes staging before it touches it, passing
 `--release-lock-held` because it already owns the host-wide release lock, and
 records the end of the work with `touch` (which never starts anything, even after
 a failed release). Qualification, tests, backups, deployment and rollback are
-unchanged. About one hour later the idle sweep puts staging back to sleep.
+unchanged. About half an hour later the idle sweep puts staging back to sleep.
 
 **From the web.** While staging sleeps, `https://odoo-staging.unstaticlabs.com`
 answers `503` with a sleeping page. A person signs in with Pocket ID (the same
