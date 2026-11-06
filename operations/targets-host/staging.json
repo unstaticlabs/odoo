@@ -89,8 +89,8 @@
   "secrets": {"env_file": "/opt/usl-odoo/staging/secrets/operations.env", "allowed_keys": ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "ODOO_DB_PASSWORD", "PAPERLESS_DB_PASSWORD", "RESTIC_PASSWORD", "USL_BACKUP_CACHE_PASSWORD"]},
   "lifecycle": {
     "mode": "on_demand",
-    "idle_after_ci_minutes": 60,
-    "idle_after_interactive_minutes": 120,
+    "idle_after_ci_minutes": 30,
+    "idle_after_interactive_minutes": 30,
     "wake_timeout_seconds": 900,
     "max_lease_minutes": 480,
     "sweep_seconds": 60,
