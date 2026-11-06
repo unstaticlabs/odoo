@@ -6,6 +6,7 @@ from . import (
     test_native_agent_attachments,
     test_agent_expense_decisions,
     test_agent_receipt_copy,
+    test_agent_queue_job,
     test_agents,
     test_api_doc_index,
     test_notification_preferences,
