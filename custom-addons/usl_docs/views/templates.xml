@@ -21,7 +21,7 @@
                 <a class="skip" href="#content">Skip to the content</a>
                 <div class="layout">
                     <aside class="sidebar">
-                        <a class="brand" t-att-href="guide.DOCS_ROUTE">
+                        <a class="brand" t-att-href="docs_route">
                             <span class="brand-mark" aria-hidden="true">?</span>
                             <span>
                                 <span class="brand-name">USL User Guide</span>
@@ -31,7 +31,7 @@
                         <label class="search">
                             <span class="visually-hidden">Search the guide</span>
                             <input id="doc-search" type="search" placeholder="Search the guide" autocomplete="off"
-                                   t-att-data-endpoint="search_href or (guide.DOCS_ROUTE + '/search.json')"/>
+                                   t-att-data-endpoint="search_href or (docs_route + '/search.json')"/>
                         </label>
                         <div id="doc-results" class="results" hidden="hidden"></div>
                         <nav id="doc-nav" aria-label="Guide">
@@ -55,9 +55,9 @@
                         <div class="sidebar-foot">
                             <a href="/odoo">Back to Odoo</a>
                             <span aria-hidden="true">·</span>
-                            <a t-att-href="guide.DOCS_ROUTE + '/llms.txt'" title="The guide as an index for agents">llms.txt</a>
+                            <a t-att-href="docs_route + '/llms.txt'" title="The guide as an index for agents">llms.txt</a>
                             <span aria-hidden="true">·</span>
-                            <a t-att-href="guide.DOCS_ROUTE + '/index.json'" title="The guide as data">index.json</a>
+                            <a t-att-href="docs_route + '/index.json'" title="The guide as data">index.json</a>
                         </div>
                     </aside>
                     <main id="content" class="content">

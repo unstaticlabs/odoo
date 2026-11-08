@@ -69,7 +69,7 @@ class UserDocsController(http.Controller):
     def _page_values(self, root, page, page_records, state, commit, **extra):
         """The values every rendered page shares: navigation, pills, links."""
         values = {
-            "guide": guide,
+            "docs_route": DOCS_ROUTE,
             "page": page,
             "nav": guide.navigation(page_records, page["path"]),
             "state": state,

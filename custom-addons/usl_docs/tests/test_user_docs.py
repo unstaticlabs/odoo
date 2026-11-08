@@ -308,7 +308,7 @@ class TestUserDocsViewer(GuideFixture, HttpCase):
         self._reader()
         with patch.dict(os.environ, {guide.EVIDENCE_ENV_VAR: str(evidence)}):
             response = self._get("/how-to/example.md")
-        self.assertIn("Last tested 2 days ago</a>", response.text)
+        self.assertRegex(response.text, r"Last tested 2 days ago\s*</a>")
         self.assertIn('href="/usl/user-docs/evidence/usl_docs.example"', response.text)
 
     def test_the_evidence_stamped_into_the_database_is_read_and_has_a_test_record(self):
@@ -319,7 +319,7 @@ class TestUserDocsViewer(GuideFixture, HttpCase):
         self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", COMMIT)
         self._reader()
         page = self._get("/how-to/example.md")
-        self.assertIn("Last tested 5 hours ago</a>", page.text)
+        self.assertRegex(page.text, r"Last tested 5 hours ago\s*</a>")
         record = self._get("/evidence/usl_docs.example")
         self.assertEqual(record.status_code, 200)
         self.assertIn("Test record for “Do the example”", record.text)
