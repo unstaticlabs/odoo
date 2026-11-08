@@ -108,30 +108,135 @@ Compatibility patches are applied deterministically from
 
 ## Odoo core patches
 
-The Distribution currently carries focused patches in:
+Everything the Distribution changes under `addons/`, `odoo/` and
+`requirements.txt` relative to upstream `saas-19.3` is listed here, with the
+reason and the commit that introduced it. The list is checked against
+`git diff --stat <upstream merge base> HEAD -- addons odoo requirements.txt`;
+a file in that output and not on this page is a defect of this page. Where
+the last touch of a file is an upstream catch-up (`9c030166`), the originating
+commit is the one named.
 
-- `addons/account/models/account_move.py`;
-- `addons/account/wizard/account_resequence.py`;
-- `addons/mail/tools/link_preview.py`;
-- `addons/web/static/src/search/`;
-- `addons/web/static/src/views/list/`;
-- `addons/web/static/src/webclient/actions/action_service.js`.
+### Accounting sequences — `account`
 
-The Accounting patches keep journal sequences and resequencing aligned with
-the company fiscal year. The webclient patches restore a valid dynamic action
-name when browser history recreates a controller and keep portable search,
-sort and pagination choices in the URL. Each patch has focused regression
-coverage and should be removed when upstream provides an equivalent extension
-point or behavior. The exact navigation contract is documented in
-[`docs/product/navigation.md`](navigation.md).
+- `addons/account/models/account_move.py` and
+  `addons/account/wizard/account_resequence.py` (`33e5aa55`, replay of the USL
+  product on saas-19.3): journal sequences and the resequence wizard derive the
+  fiscal-year range from `compute_fiscalyear_dates`, so a staggered fiscal year
+  gives the same `YY-YY` prefix everywhere instead of recomputing it from the
+  company's last day and month.
 
-The mail preview patch sends unknown remote charset names through the existing
-UTF-8 fallback, so optional previews do not fail after a message is sent. Its
-upgrade cost and removal condition are recorded in
-[`DECISIONS/0002-link-preview-unknown-charsets.md`](../../DECISIONS/0002-link-preview-unknown-charsets.md).
+### Link preview — `mail`
 
-No other product-specific core divergence is allowed without an explicit
-architecture decision, upgrade analysis and regression evidence.
+- `addons/mail/tools/link_preview.py` (`7868e87e`): unknown remote charset
+  names go through the existing UTF-8 fallback, so optional previews do not
+  fail after a message is sent. Upgrade cost and removal condition are in
+  [`DECISIONS/0002-link-preview-unknown-charsets.md`](../../DECISIONS/0002-link-preview-unknown-charsets.md).
+
+### Navigation — `web`
+
+- `addons/web/static/src/search/` (`search_model.js`, `breadcrumbs/`,
+  `with_search/`), `addons/web/static/src/views/` (`list/`, `view.js`,
+  `standard_view_props.js`) and
+  `addons/web/static/src/webclient/actions/action_service.js` (`c41fefbc`,
+  `d64743df`, `e3c2d420`, `38d020cb`, `f441025a`, `8dbacae6`): restore a valid
+  dynamic action name when browser history recreates a controller, keep
+  portable search, sort and pagination choices in the URL, and render an
+  unnamed history entry as a plain Back arrow instead of an *Unnamed* label.
+  The contract is [`docs/product/navigation.md`](navigation.md); its tests
+  live under `addons/web/static/tests/search/` and
+  `addons/web/static/tests/webclient/actions/` (including `86f1d13b`).
+  `concurrency.test.js` carries one line from `547f074d`, which gave the
+  fixture action a name while stabilizing the Web suite under these patches;
+  it is test-only and stays with them.
+- `addons/web/static/src/webclient/navbar/navbar.js` (`d3fb00af`, project
+  favorites): the compact *More* menu re-renders whenever the collapsed
+  section ids change, not only when their count or first app changes, so a
+  same-count replacement (a favorite project swapped for another) updates it
+  immediately. Test: `addons/web/static/tests/webclient/navbar.test.js`.
+
+### Agents' effective API access — `api_doc`
+
+- `addons/api_doc/controllers/api_doc.py`, `models/__init__.py`,
+  `models/base.py` (`bb37d049`): `/doc` reports each model's effective
+  `read`/`create`/`write`/`unlink` access for the caller, and `base` gains
+  three hooks (`_api_doc_access`, `_api_doc_public_method_allowed`,
+  `_api_doc_cache_vary`) that distribution modules override to hide public
+  methods the Agent policy denies and to fold that policy into the cache key.
+  `93068462`: the generated index document is cached as the real superuser,
+  because distributions that keep an Agent actor through `sudo()` would
+  otherwise reject this internal write. Test: `addons/api_doc/tests/test_doc.py`.
+
+### Factur-X and UBL import — `l10n_fr_pdp`
+
+- `addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py` (`b2a546a6`) and
+  `account_edi_xml_cii_facturx.py` (`7a904380`): a bill that settles an
+  advance bill is matched to it by supplier, company and currency, the
+  deductions are created on the destination draft with native tax reversal,
+  and the posted source bill, its reconciliation, manual tax amounts and
+  analytic allocation are preserved; the CII commit applies the same contract
+  to the upstream CII importer and adopts the corrected native billing-period
+  exporter. Tests: `addons/l10n_fr_pdp/tests/test_downpayment_import.py`,
+  registered in `addons/l10n_fr_pdp/tests/__init__.py`, and the extended
+  `test_cii_import_facturx_fr.py`.
+
+### Posted completion dates — `mrp_account`
+
+- `addons/mrp_account/models/mrp_production.py` (`f40828c4`): marking an
+  order done writes its completion date once without tripping the guard that
+  forbids changing the end date of an order with journal entries; a later
+  manual edit of a done order still trips it. Test:
+  `addons/mrp_account/tests/test_mrp_account.py`.
+
+### Reload safety — `odoo/tools/convert.py`
+
+- `odoo/tools/convert.py` (`9b42238d`): on a module update, the eight native
+  manager groups listed in `_USL_NATIVE_SEED_GROUPS` keep their configured
+  members, and the company report-style attachment keeps its original row and
+  blob when its bytes change. The XML IDs and the native asset-loader
+  behaviour are reviewed at every upstream sync. Test:
+  `addons/web/tests/test_base_document_layout.py`.
+
+### Dependencies — `requirements.txt`
+
+- Distribution pins added: `httpx` and `openupgradelib` (`bc1f8c0a`, linked
+  receipts and OCA queue_job migration), `markdown-it-py`, `phonenumbers` and
+  `python-jose` (`33e5aa55`), `opentimestamps` (`89c01bcd`, Sign manifest
+  proofs), `responses` (`ad39ab79`, OCA `auth_oidc` test import).
+- Upstream's own pins are bumped by Dependabot's `compatible-python-updates`
+  group and by `cryptography` maintenance (`2b139980`, `574fc7b5`,
+  `39568997`), so the file differs from upstream on most version lines.
+
+### Test-only additions
+
+Files that add fork coverage to upstream suites without changing behaviour:
+`addons/account/tests/common.py` (`547f074d`: the generic Accounting fixture
+also gets `usl_access_control.group_irreversible_actions` when that module is
+installed, so company creation in `setUpClass` stays authorized),
+`addons/account_edi_ubl_cii/tests/test_cii_export_facturx_fr.py`
+(`0ce5f01c`), `addons/payment/tests/test_flows.py` (`c56de39b`),
+`addons/sale_project_stock_account/tests/test_analytics_reinvoice.py`
+(`e7273316`), `addons/mail/tests/test_link_preview.py` (`7868e87e`), plus the
+tests named with their patches above.
+
+### Formatting only
+
+- `addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.js`:
+  one line differs by trailing whitespace that upstream carries and the
+  catch-up merge `83a3be0e` stripped (reapplied by `9c030166`).
+  `scripts/commit` refuses to reintroduce trailing whitespace, so the line
+  stays; `git diff -w` against upstream is empty.
+
+### Retired
+
+- The `USL-TRACE` sign-out instrumentation in `odoo/http/session.py`
+  (`87e0110b`, 2026-09-10) was retired on 2026-11-08 by decision of Valentin;
+  the file is identical to upstream again. The record is
+  [`docs/archive/operations/session-signout-investigation-20260910.md`](../archive/operations/session-signout-investigation-20260910.md).
+
+Each patch should be removed when upstream provides an equivalent extension
+point or behaviour. No other product-specific core divergence is allowed
+without an explicit architecture decision, upgrade analysis and regression
+evidence.
 
 ## Runtime and release cohort
 

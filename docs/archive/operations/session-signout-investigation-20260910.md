@@ -1,5 +1,14 @@
 # Odoo sign-outs that no release explains — 2026-09-10
 
+> **Closed on 2026-11-08 by decision of Valentin.** Asked whether the cause had
+> been named and whether the trace should go, he answered "Retire-le". The fork
+> is being kept as small and honest as possible, so the `USL-TRACE`
+> instrumentation that commit `87e0110b` added to `odoo/http/session.py` is
+> removed by the commit that moved this page here; that file is identical to
+> upstream again, and `scripts/tests/test_session_signout_trace.py` went with
+> it. Nothing below was updated: it is the record as it stood, kept for the
+> measurements it holds. The `ssh odoo` reading recipe no longer prints anything.
+
 People are signed out of Odoo and have to go through Pocket ID again. The
 reflex is to blame the release: it was blamed, and it was wrong. This records
 what was measured, what it ruled out, and the instrumentation that will name
