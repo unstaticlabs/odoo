@@ -1,3 +1,12 @@
+---
+title: Reconcile a clearing or other account
+type: how-to
+description: Settle balances on a non-bank account from the general reconciliation workspace.
+lang: en
+persona: accountant
+generated: false
+---
+
 # Reconcile a Clearing or Other Account
 
 1. Open **Accounting > General Reconciliation**.

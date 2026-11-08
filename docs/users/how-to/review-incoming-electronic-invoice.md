@@ -1,3 +1,12 @@
+---
+title: Review an incoming electronic invoice
+type: how-to
+description: Check a received e-invoice, accept it as a bill or reject it with a reason.
+lang: en
+persona: finance_operator
+generated: false
+---
+
 # Review an Incoming Electronic Invoice
 
 ## Open work that needs attention

@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Render journey records into the committed pages, or prove they are current.
+
+  scripts/docs-generate render [--records DIR]   write pages and screenshots
+  scripts/docs-generate check  [--records DIR]   fail when a page or screenshot is stale
+
+Records come from JourneyCase tests (custom-addons/usl_docs/tests/journey.py),
+by default under artifacts/usl-docs. Screenshots are compared by pixels when
+Pillow is installed and by bytes otherwise; the check says which.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations.docs_generate import ROOT, check_all, pillow_available, render_all  # noqa: E402
+from operations.user_docs import write_indexes  # noqa: E402
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("command", choices=("render", "check"))
+    parser.add_argument("--records", default=str(ROOT / "artifacts" / "usl-docs"))
+    arguments = parser.parse_args()
+    if not pillow_available():
+        print("note: Pillow is not installed; screenshots are compared by bytes, not pixels")
+    if arguments.command == "render":
+        written = render_all(arguments.records)
+        for path in written:
+            print(f"wrote {path.relative_to(ROOT).as_posix()}")
+        for path in write_indexes():
+            print(f"wrote {path.relative_to(ROOT).as_posix()}")
+        if not written:
+            print("Generated documentation: current")
+        return 0
+    findings = check_all(arguments.records)
+    for path, problem in findings:
+        print(f"{path}: {problem}")
+    if findings:
+        print(f"Generated documentation check: FAIL ({len(findings)} finding(s))")
+        return 1
+    print("Generated documentation check: PASS")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

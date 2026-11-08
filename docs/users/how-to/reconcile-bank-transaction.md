@@ -1,3 +1,14 @@
+---
+title: Match a bank transaction
+type: how-to
+description: Match a bank line against invoices, bills, expenses or a suggested counterpart.
+lang: en
+persona: accountant
+source:
+  - custom-addons/usl_accounting
+generated: false
+---
+
 # Match a Bank Transaction
 
 1. Open **Journals** and locate the bank journal.

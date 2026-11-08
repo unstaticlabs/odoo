@@ -1,3 +1,15 @@
+---
+title: Send product feedback
+type: how-to
+description: Report a bug, suggest an improvement or ask a question from any page and follow the answer.
+lang: en
+persona: everyone
+source:
+  - custom-addons/usl_feedback
+  - custom-addons/usl_feedback/static/tests/tours/feedback_tour.js
+generated: false
+---
+
 # Send product feedback
 
 Report a bug, suggest an improvement, or ask a product question without

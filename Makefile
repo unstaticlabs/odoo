@@ -32,10 +32,6 @@ ACCOUNTING_TEST_LOG_LEVEL ?= warn
 ADDON_TEST_DB ?= odoo_addon_test_$(shell date -u +%Y%m%d%H%M%S)
 ADDON_TEST_TAGS ?= /$(MODULE)
 ADDON_TEST_LOG_LEVEL ?= info
-USER_DOCS_HOST ?= 127.0.0.1
-USER_DOCS_PORT ?= 8079
-USER_DOCS_VENV ?= .venv-docs
-USER_DOCS_PYTHON ?= $(USER_DOCS_VENV)/bin/python
 ACTION_RISK_CANDIDATE ?= artifacts/action-risk/action_surface.candidate.json
 ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 
@@ -44,7 +40,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: oca-addons-sync external-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance addon-tests
-.PHONY: user-docs-deps user-docs-serve user-docs-build
+.PHONY: docs docs-check docs-journeys docs-render docs-reference
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
@@ -78,7 +74,11 @@ help:
 	  '  make oca-addons-sync                Fetch the pinned OCA and external add-ons' \
 	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
-	  '  make user-docs-build                Render user documentation' \
+	  '  make docs                           Run the journeys, render the pages, refresh the indexes' \
+	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
+	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
+	  '  make docs-reference                 Regenerate the reference pages from the action-risk closure' \
+	  '  make docs-check                     Check documentation structure and links' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
 	  'Run migration/manage --help for its lifecycle commands.'
@@ -225,18 +225,39 @@ addon-tests: oca-addons-sync
 		--test-enable --test-tags=$(ADDON_TEST_TAGS) --stop-after-init \
 		--log-level=$(ADDON_TEST_LOG_LEVEL)
 
-$(USER_DOCS_VENV)/.requirements-ready: requirements-docs.txt
-	python3 -m venv $(USER_DOCS_VENV)
-	$(USER_DOCS_VENV)/bin/python -m pip install --disable-pip-version-check --requirement requirements-docs.txt
-	touch $(USER_DOCS_VENV)/.requirements-ready
+docs: docs-journeys docs-render
 
-user-docs-deps: $(USER_DOCS_VENV)/.requirements-ready
+# Journeys run in the test container so screenshots come from the same
+# Chromium as CI. MODULE limits the installed modules; the default is the
+# module set the journeys need.
+DOCS_JOURNEY_DB ?= odoo_docs_journeys
+DOCS_JOURNEY_MODULES ?= $(or $(MODULE),usl_expense_batch)
+docs-journeys:
+	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
+	@docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -T \
+		-e USL_DOCS_JOURNEYS=1 -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-artifacts \
+		-e ODOO_INIT_DB=$(DOCS_JOURNEY_DB) -e ODOO_DB_FILTER='^$(DOCS_JOURNEY_DB)$$' \
+		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+		test odoo --config=/etc/odoo/odoo.conf --database=$(DOCS_JOURNEY_DB) \
+		--init=$(DOCS_JOURNEY_MODULES) --without-demo=true --test-enable \
+		--test-tags=usl_docs_journey --stop-after-init --log-level=test
 
-user-docs-serve: user-docs-deps
-	@$(USER_DOCS_PYTHON) -m mkdocs serve --config-file mkdocs.yml --dev-addr $(USER_DOCS_HOST):$(USER_DOCS_PORT)
+docs-render:
+	@python3 scripts/docs-generate render
 
-user-docs-build: user-docs-deps document-renderer-check
-	@$(USER_DOCS_PYTHON) -m mkdocs build --config-file mkdocs.yml
+# The reference pages come from the registry of the full product closure,
+# the same database make action-risk-db builds, so a page never describes a
+# module the release does not ship.
+docs-reference:
+	@mkdir -p artifacts/usl-docs
+	@docker compose -p $(COMPOSE_PROJECT) exec -T \
+		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
+		odoo odoo shell --config=/etc/odoo/odoo.conf --database=$(ACTION_RISK_DB) --log-level=error \
+		< scripts/odoo/docs_reference.py | tail -n 1 > artifacts/usl-docs/reference.json
+	@python3 scripts/docs-reference render
+
+docs-check:
+	@python3 scripts/check-docs
 
 action-helpers:
 	@python3 scripts/check_action_helpers.py custom-addons

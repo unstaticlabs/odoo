@@ -95,6 +95,7 @@ jobs:
           make action-risk-inventory
           scripts/check-github-governance
           scripts/check-action-pins
+          scripts/check-docs
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
           python3 .usl/bin/agent_skills_lock.py verify
           git diff --check
@@ -116,6 +117,8 @@ jobs:
         run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
+      - name: Install the screenshot comparison library
+        run: python3 -m pip install --disable-pip-version-check --quiet 'Pillow>=10'
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Build and load the qualified test image
@@ -138,6 +141,14 @@ jobs:
             USL_TEST_MODULES="$test_modules" \
             ODOO_TEST_IMAGE="$ODOO_TEST_IMAGE" \
             scripts/ci-product-database
+      - name: Retain the docs evidence and journey captures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: docs-evidence-${{ github.run_id }}
+          path: artifacts/usl-docs
+          if-no-files-found: warn
+          retention-days: 90
 
   result:
     name: USL qualification

@@ -1,3 +1,14 @@
+---
+title: Review Accounting Hygiene
+type: how-to
+description: Work through the deterministic recommendations, open their records and confirm resolution.
+lang: en
+persona: accountant
+source:
+  - custom-addons/rebuild_account_migration/models/hygiene.py
+generated: false
+---
+
 # Review Accounting Hygiene
 
 1. Open **Review > Accounting Hygiene**. For an Accounting Manager, opening

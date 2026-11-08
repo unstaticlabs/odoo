@@ -1,3 +1,12 @@
+---
+title: Reports and filters
+type: reference
+description: The financial reports, their filters and what each column means.
+lang: en
+persona: accountant
+generated: false
+---
+
 # Reports and Filters
 
 Every normal report opens directly as a compact financial statement. The

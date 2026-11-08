@@ -8,6 +8,10 @@ temporary project status, source counts or migration checklists. When code and
 these specifications disagree, resolve the discrepancy explicitly rather than
 silently changing product meaning.
 
+## Decisions
+
+Numbered decision records live in [`decisions/`](decisions/README.md).
+
 ## Documents
 
 - [Distribution fork overview](fork-overview.md)

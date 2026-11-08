@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Create or verify the docs evidence of a qualification run.
+
+  scripts/docs-evidence create --records DIR --repository R --qualified-commit SHA \
+      --workflow-run-id N --run-url URL --output FILE [--committed-docs docs/users]
+  scripts/docs-evidence recovery --repository R --commit SHA --output FILE
+  scripts/docs-evidence verify FILE [--qualified-commit SHA] [--workflow-run-id N]
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from operations import docs_evidence  # noqa: E402
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    commands = parser.add_subparsers(dest="command", required=True)
+    create = commands.add_parser("create")
+    create.add_argument("--records", required=True)
+    create.add_argument("--repository", required=True)
+    create.add_argument("--qualified-commit", required=True)
+    create.add_argument("--workflow-run-id", type=int, required=True)
+    create.add_argument("--run-url", required=True)
+    create.add_argument("--committed-docs", default="docs/users")
+    create.add_argument("--output", required=True)
+    rec = commands.add_parser("recovery")
+    rec.add_argument("--repository", required=True)
+    rec.add_argument("--commit", required=True)
+    rec.add_argument("--output", required=True)
+    verify = commands.add_parser("verify")
+    verify.add_argument("path")
+    verify.add_argument("--qualified-commit")
+    verify.add_argument("--workflow-run-id", type=int)
+    arguments = parser.parse_args()
+    if arguments.command == "create":
+        payload = docs_evidence.build(
+            arguments.records,
+            repository=arguments.repository,
+            qualified_commit=arguments.qualified_commit,
+            workflow_run_id=arguments.workflow_run_id,
+            run_url=arguments.run_url,
+            committed_docs=arguments.committed_docs,
+        )
+        docs_evidence.validate(payload)
+        print(docs_evidence.dump(payload, arguments.output))
+        print(f"{len(payload['journeys'])} journey(s) recorded")
+        return 0
+    if arguments.command == "recovery":
+        payload = docs_evidence.recovery(repository=arguments.repository, commit=arguments.commit)
+        print(docs_evidence.dump(payload, arguments.output))
+        return 0
+    docs_evidence.validate(
+        docs_evidence.load(arguments.path),
+        qualified_commit=arguments.qualified_commit,
+        workflow_run_id=arguments.workflow_run_id,
+    )
+    print("Docs evidence: valid")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
