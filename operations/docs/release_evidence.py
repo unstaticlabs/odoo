@@ -48,20 +48,28 @@ def _download(run_id, repository, gh):
         path = Path(tmp) / "docs-evidence.json"
         if not path.is_file():
             return None
-        return json.loads(path.read_text(encoding="utf-8"))
+        return _json(path.read_text(encoding="utf-8"))
+
+
+def _json(text):
+    """Parse GitHub output; anything unparseable counts as nothing found, never as a failed release."""
+    try:
+        return json.loads(text or "null")
+    except ValueError:
+        return None
 
 
 def _pull_request_runs(repository, commit, gh):
     """The qualification runs of the pull requests merged as ``commit``, newest first."""
-    pulls = json.loads(gh(["api", f"repos/{repository}/commits/{commit}/pulls"]) or "[]")
+    pulls = _json(gh(["api", f"repos/{repository}/commits/{commit}/pulls"])) or []
     run_ids = []
     for pull in pulls:
         head = (pull.get("head") or {}).get("sha")
         if not head:
             continue
-        runs = json.loads(gh([
+        runs = _json(gh([
             "api", f"repos/{repository}/actions/runs?event=pull_request&head_sha={head}&status=success&per_page=50",
-        ]) or "{}")
+        ])) or {}
         for run in runs.get("workflow_runs", []):
             if run.get("name") == WORKFLOW_NAME:
                 run_ids.append(int(run["id"]))
@@ -76,7 +84,7 @@ def resolve(*, repository, commit, tree, workflow_run_id, gh=run_gh):
     commit (a production push), verified by tree.
     """
     own = _download(workflow_run_id, repository, gh)
-    if own is not None:
+    if isinstance(own, dict):
         for binding in ({"qualified_commit": commit}, {"qualified_tree": tree}):
             try:
                 payload = evidence.validate(own, workflow_run_id=workflow_run_id, **binding)
@@ -85,7 +93,7 @@ def resolve(*, repository, commit, tree, workflow_run_id, gh=run_gh):
             return evidence.stamp_release(payload, commit)
     for run_id in _pull_request_runs(repository, commit, gh):
         candidate = _download(run_id, repository, gh)
-        if candidate is None:
+        if not isinstance(candidate, dict):
             continue
         try:
             payload = evidence.validate(candidate, qualified_tree=tree, workflow_run_id=run_id)

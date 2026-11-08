@@ -317,7 +317,10 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         # The user guide's evidence rides with the release so the running
         # product can say when each generated page last passed. It is
         # validated as its own artifact, pinned to this commit: its own run
-        # for a staging release, the adoption stamp for a production one.
+        # for a staging release, the adoption stamp for a production one. The
+        # manifest cannot tell whether the evidence's tree is this commit's
+        # tree; operations/docs/release_evidence.py checks that before it
+        # stamps, and the stamp is covered by the evidence digest.
         try:
             docs_evidence.validate_release(qualification["docs_evidence"], commit)
         except docs_evidence.DocsEvidenceError as error:

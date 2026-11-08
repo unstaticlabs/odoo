@@ -84,4 +84,4 @@ class TestAgentReadsTheGuide(HttpCase):
     def test_the_agent_cannot_write_the_guide_model(self):
         for method, payload in (("create", {"vals_list": [{}]}), ("write", {"ids": [1], "vals": {}}), ("unlink", {"ids": [1]})):
             response = self._call(method, **payload)
-            self.assertNotEqual(response.status_code, 200, f"{method} must be refused")
+            self.assertEqual(response.status_code, 403, f"{method} must be refused by the Agent gate: {response.text}")

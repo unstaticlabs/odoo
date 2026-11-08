@@ -160,6 +160,7 @@ jobs:
           path: artifacts/usl-docs
           if-no-files-found: warn
           retention-days: 90
+          overwrite: true # a re-run attempt shares the run id
 
   result:
     name: USL qualification

@@ -66,6 +66,15 @@ class ReleaseEvidenceTests(unittest.TestCase):
         self.assertEqual(payload["release_commit"], COMMIT)
         self.assertIn(["run", "download", "12", "--repo", "unstaticlabs/odoo", "--name", "docs-evidence-12", "--dir", gh.calls[0][-1]], gh.calls)
 
+    def test_unparseable_github_output_means_no_evidence_not_a_failed_release(self):
+        def gh(arguments, *, cwd=None):
+            if arguments[:2] == ["run", "download"]:
+                Path(arguments[arguments.index("--dir") + 1], "docs-evidence.json").write_text("<html>502</html>", encoding="utf-8")
+                return ""
+            return "<html>502 Bad Gateway</html>"
+
+        self.assertIsNone(release_evidence.resolve(repository="unstaticlabs/odoo", commit=COMMIT, tree=TREE, workflow_run_id=12, gh=gh))
+
     def test_a_different_tree_or_no_run_means_no_evidence(self):
         other_tree = _evidence(MERGE_REF, 9, tree="9" * 40)
         gh = FakeGitHub({9: other_tree}, pulls=[{"number": 1, "head": {"sha": PR_HEAD}}], runs=[{"id": 9, "name": "USL qualification"}])
