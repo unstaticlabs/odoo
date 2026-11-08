@@ -174,6 +174,26 @@ class DocsEvidenceTests(unittest.TestCase):
         with self.assertRaises(docs_evidence.DocsEvidenceError):
             docs_evidence.validate(payload, qualified_commit="f" * 40)
 
+    def test_the_tree_binds_a_production_release_and_adoption_keeps_the_digest_valid(self):
+        payload = docs_evidence.build(
+            self.records,
+            repository="unstaticlabs/odoo",
+            qualified_commit=COMMIT,
+            workflow_run_id=42,
+            run_url="https://github.com/unstaticlabs/odoo/actions/runs/42",
+            committed_docs=self.docs,
+            qualified_tree="a" * 40,
+        )
+        docs_evidence.validate(payload, qualified_tree="a" * 40)
+        with self.assertRaises(docs_evidence.DocsEvidenceError):
+            docs_evidence.validate(payload, qualified_tree="b" * 40)
+        adopted = docs_evidence.stamp_release(payload, "c" * 40)
+        docs_evidence.validate(adopted, qualified_tree="a" * 40)
+        self.assertEqual(adopted["release_commit"], "c" * 40)
+        self.assertNotEqual(adopted["sha256"], payload["sha256"])
+        with self.assertRaises(docs_evidence.DocsEvidenceError):
+            docs_evidence.validate({**adopted, "release_commit": "d" * 40})
+
     def test_a_recovery_release_proves_nothing_and_says_so(self):
         payload = docs_evidence.recovery(repository="unstaticlabs/odoo", commit=COMMIT)
         docs_evidence.validate(payload)

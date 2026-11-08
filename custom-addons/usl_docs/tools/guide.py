@@ -545,7 +545,8 @@ def evidence_state(page, evidence, commit, now=None):
     label = f"Last tested {relative_age(tested_at, now)}" if tested_at else "Tested"
     detail = ""
     qualified = str(evidence.get("qualified_commit") or "").lower()
-    if commit and qualified and qualified != commit:
+    adopted = str(evidence.get("release_commit") or "").lower()
+    if commit and qualified and commit not in {qualified, adopted}:
         detail = "The evidence was produced for a different commit than the running release."
     return {
         "kind": "tested",
@@ -655,7 +656,7 @@ def test_record(journey, entry, evidence, state, page_record, sidecar, commit):
         "commit": qualified,
         "commit_short": short_sha(qualified) or "unknown",
         "commit_url": f"{REPOSITORY_URL}/commit/{qualified}" if RELEASE_COMMIT_RE.fullmatch(qualified) else "",
-        "commit_differs": bool(commit and qualified and qualified != commit),
+        "commit_differs": bool(commit and qualified and commit not in {qualified, str(evidence.get("release_commit") or "")}),
         "run_url": run_url,
         "run_id": str(evidence.get("workflow_run_id", "") or ""),
         "tour": sidecar.get("tour") or entry.get("tour", ""),

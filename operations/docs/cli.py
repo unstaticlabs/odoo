@@ -12,7 +12,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from operations.docs import ROOT, check as docs_check, evidence, generate, mcp, reference
+from operations.docs import ROOT, check as docs_check, evidence, generate, mcp, reference, release_evidence
 
 
 def _print_findings(findings, label):
@@ -86,6 +86,7 @@ def _evidence(arguments):
             workflow_run_id=arguments.workflow_run_id,
             run_url=arguments.run_url,
             committed_docs=arguments.committed_docs,
+            qualified_tree=arguments.qualified_tree,
         )
         evidence.validate(payload)
         print(evidence.dump(payload, arguments.output))
@@ -95,10 +96,28 @@ def _evidence(arguments):
         payload = evidence.recovery(repository=arguments.repository, commit=arguments.commit)
         print(evidence.dump(payload, arguments.output))
         return 0
+    if arguments.action == "resolve":
+        try:
+            payload = release_evidence.resolve(
+                repository=arguments.repository,
+                commit=arguments.commit,
+                tree=arguments.tree,
+                workflow_run_id=arguments.workflow_run_id,
+            )
+        except release_evidence.ReleaseEvidenceError as error:
+            print(f"note: {error}; the release carries no docs evidence", file=sys.stderr)
+            return 0
+        if payload is None:
+            print("No docs evidence qualifies this tree; the guide will say the build is unverified.")
+            return 0
+        print(evidence.dump(payload, arguments.output))
+        print(f"Docs evidence adopted from run {payload['workflow_run_id']} ({len(payload['journeys'])} journey(s))")
+        return 0
     evidence.validate(
         evidence.load(arguments.path),
         qualified_commit=arguments.qualified_commit,
         workflow_run_id=arguments.workflow_run_id,
+        qualified_tree=arguments.qualified_tree,
     )
     print("Docs evidence: valid")
     return 0
@@ -170,8 +189,18 @@ def build_parser():
     create.add_argument("--qualified-commit", required=True)
     create.add_argument("--workflow-run-id", type=int, required=True)
     create.add_argument("--run-url", required=True)
+    create.add_argument("--qualified-tree", help="git tree the run tested; lets a production release recognise its evidence")
     create.add_argument("--committed-docs", default="docs/users")
     create.add_argument("--output", required=True)
+    resolve = actions.add_parser(
+        "resolve",
+        help="find the evidence a release can carry: its own run, or the run that qualified the merged pull request's tree",
+    )
+    resolve.add_argument("--repository", required=True)
+    resolve.add_argument("--commit", required=True)
+    resolve.add_argument("--tree", required=True)
+    resolve.add_argument("--workflow-run-id", type=int, required=True)
+    resolve.add_argument("--output", required=True)
     recovery = actions.add_parser("recovery", help="evidence for a recovery release; it proves nothing")
     recovery.add_argument("--repository", required=True)
     recovery.add_argument("--commit", required=True)
@@ -179,6 +208,7 @@ def build_parser():
     verify = actions.add_parser("verify", help="validate an evidence file, optionally against a commit and run")
     verify.add_argument("path")
     verify.add_argument("--qualified-commit")
+    verify.add_argument("--qualified-tree")
     verify.add_argument("--workflow-run-id", type=int)
     ev.set_defaults(run=_evidence)
     return parser

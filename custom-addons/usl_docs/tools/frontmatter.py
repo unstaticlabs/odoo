@@ -157,7 +157,7 @@ def validate(data, relative_path):
     for key in ("app", "screen", "translation_of", "tour", "journey"):
         if key in data and (not isinstance(data[key], str) or not data[key].strip()):
             problems.append(f"{key} is a non-empty string")
-    if isinstance(data.get("screen"), str) and not data["screen"].startswith("/"):
+    if isinstance(data.get("screen"), str) and (not data["screen"].startswith("/") or data["screen"].startswith("//")):
         problems.append("screen is an absolute path inside the product, such as /odoo/action-usl_home.action_home")
     if "translation_of" in data and data.get("lang", "en") == "en":
         problems.append("translation_of belongs on the translated page, whose lang is not en")

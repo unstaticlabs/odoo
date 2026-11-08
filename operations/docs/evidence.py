@@ -23,6 +23,10 @@ FIELDS = {
     "schema", "repository", "qualified_commit", "workflow_run_id", "run_url",
     "tested_at", "chromium", "mode", "journeys", "sha256",
 }
+#: ``qualified_tree`` is the git tree the run tested, which is how a
+#: production release (a merge commit of the same tree) recognises its
+#: evidence; ``release_commit`` is stamped when a release adopts the evidence.
+OPTIONAL_FIELDS = {"qualified_tree", "release_commit"}
 JOURNEY_FIELDS = {"status", "page", "tour", "started", "finished", "viewports", "screenshots", "source_test"}
 MODES = ("qualification", "recovery")
 _SHA_RE = re.compile(r"[0-9a-f]{40}")
@@ -42,7 +46,7 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
-def build(records_root, *, repository, qualified_commit, workflow_run_id, run_url, committed_docs=None):
+def build(records_root, *, repository, qualified_commit, workflow_run_id, run_url, committed_docs=None, qualified_tree=None):
     """Assemble the evidence from the journey records of one run."""
     records = load_records(records_root)
     journeys = {}
@@ -90,6 +94,15 @@ def build(records_root, *, repository, qualified_commit, workflow_run_id, run_ur
         "mode": "qualification",
         "journeys": journeys,
     }
+    if qualified_tree:
+        body["qualified_tree"] = qualified_tree
+    return {**body, "sha256": _digest(body)}
+
+
+def stamp_release(payload, release_commit):
+    """Return ``payload`` adopted by the release at ``release_commit``, re-digested."""
+    body = {key: value for key, value in payload.items() if key != "sha256"}
+    body["release_commit"] = release_commit
     return {**body, "sha256": _digest(body)}
 
 
@@ -109,9 +122,12 @@ def recovery(*, repository, commit):
     return {**body, "sha256": _digest(body)}
 
 
-def validate(payload, *, qualified_commit=None, workflow_run_id=None):
-    if not isinstance(payload, dict) or set(payload) != FIELDS:
+def validate(payload, *, qualified_commit=None, workflow_run_id=None, qualified_tree=None):
+    if not isinstance(payload, dict) or not FIELDS <= set(payload) <= FIELDS | OPTIONAL_FIELDS:
         raise DocsEvidenceError("docs evidence has the wrong field set")
+    for key in OPTIONAL_FIELDS & set(payload):
+        if not isinstance(payload[key], str) or not _SHA_RE.fullmatch(payload[key]):
+            raise DocsEvidenceError(f"{key} must be a full git sha")
     if payload["schema"] != SCHEMA:
         raise DocsEvidenceError(f"docs evidence schema must be {SCHEMA}")
     if not isinstance(payload["qualified_commit"], str) or not _SHA_RE.fullmatch(payload["qualified_commit"]):
@@ -137,6 +153,8 @@ def validate(payload, *, qualified_commit=None, workflow_run_id=None):
         raise DocsEvidenceError("docs evidence is for a different commit")
     if workflow_run_id is not None and payload["workflow_run_id"] != workflow_run_id:
         raise DocsEvidenceError("docs evidence is from a different workflow run")
+    if qualified_tree is not None and payload.get("qualified_tree") != qualified_tree:
+        raise DocsEvidenceError("docs evidence is for a different tree")
     return payload
 
 

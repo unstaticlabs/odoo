@@ -1330524,7 +1330524,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "9e9d1ba73bc3652ee16e6e04fa46fe4e63ce5a453cee065338480ffca77c47d4",
+      "digest": "a784e22d256b81d3721a9980cfcd46a86e084a0859c82cfc63ede488876ac7ba",
       "guards": [],
       "key": "rpc:usl.docs.guide.list_pages",
       "kind": "rpc",
@@ -1330535,11 +1330535,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "50cd0972931709d89a97846578e14b5f51629ec109075ccb2c2c01d743b14cba",
+      "runtime_digest": "3b25964fc9c842a226a47cb91b8f046e480a616701ecf43b52f43cba638e749f",
       "sinks": [],
       "sources": [
         {
-          "line": 55,
+          "line": 72,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1330795,7 +1330795,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "9c32e5536f702f0d0512b625b0dc159bf876fee2df4eac4cf7990ea6eb7d1992",
+      "digest": "85ef2dfc738526f67ede860634b1ad9095dd73896ebeb6d49847f97b75ce97be",
       "guards": [],
       "key": "rpc:usl.docs.guide.read_page",
       "kind": "rpc",
@@ -1330806,11 +1330806,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "10e94622835689b4fd8dea494068b6ebd1a6d9b641798343a7f9a6dddeeb108c",
+      "runtime_digest": "967e4e19bf74c1bd3830afc921692e711c0ab913af216345187e7be2dd9f9f5a",
       "sinks": [],
       "sources": [
         {
-          "line": 37,
+          "line": 53,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1330906,7 +1330906,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "9e33d67a401b81c5cc0d8d78281b7408d6313551e6e440e28758cd795aa16a7d",
+      "digest": "5c839d7936e666f5123633ff345ecca50dd5b950677d93748c3273a36a5253f3",
       "guards": [],
       "key": "rpc:usl.docs.guide.search_pages",
       "kind": "rpc",
@@ -1330917,11 +1330917,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c5d9ab3b25679310a98466d06b4f345ddabdfdcfc626088a33e0cd248b90cf5e",
+      "runtime_digest": "95fa84aeed485316ff37c4d4199d6ad6807a8349b4797ec184b7ff1016d00edd",
       "sinks": [],
       "sources": [
         {
-          "line": 25,
+          "line": 40,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1721528,7 +1721528,7 @@
       "manifest_sha256": "966138d5a3b1d477c972dbdc20f3adf32bf9effc1c64748e211e805bb9392a11",
       "name": "usl_docs",
       "origin": "custom",
-      "source_sha256": "6d537b922af5ffeeafcfb14c4c909f94f5fffeffe057db7e997df3faa456a088",
+      "source_sha256": "59f0c126344f11cfca5004e0a6d4f3e4b315f5e6cf5e401a2b04ea41b3ade46c",
       "version": "saas~19.3.1.1.0"
     },
     {

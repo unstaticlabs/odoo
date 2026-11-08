@@ -8,7 +8,7 @@ app: Expenses
 models:
   - hr.expense
 actions:
-  - hr_expense.action_hr_expense_my_all
+  - hr_expense.hr_expense_actions_my_all
 source:
   - custom-addons/usl_expense_batch/models/hr_expense.py
 generated: false

@@ -88,7 +88,7 @@ USL_EINVOICE_LIVE_ENABLED=0 USL_EREPORTING_LIVE_ENABLED=0 \
   make deploy
 
 make product-migration-boundary
-make user-docs-build
+make docs-check
 ```
 
 Results:

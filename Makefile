@@ -261,7 +261,7 @@ docs-reference:
 # ODOO_MCP_REPOSITORY at a checkout that has it, or unset it to read GitHub.
 ODOO_MCP_REPOSITORY ?= ../odoo-mcp
 docs-mcp:
-	@scripts/docs mcp render --repository $(ODOO_MCP_REPOSITORY)
+	@scripts/docs mcp render $(if $(strip $(ODOO_MCP_REPOSITORY)),--repository $(ODOO_MCP_REPOSITORY),)
 
 docs-check:
 	@scripts/docs check

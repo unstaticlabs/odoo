@@ -74,17 +74,22 @@ class DocsWiringTests(unittest.TestCase):
         qualification = (ROOT / ".github/workflows/qualification.yml").read_text(encoding="utf-8")
         compatibility = qualification.split("  compatibility:\n", 1)[1].split("\n  database:\n", 1)[0]
         self.assertIn("scripts/docs check\n", compatibility)
+        self.assertIn('scripts/docs mcp check --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"', compatibility)
+        self.assertIn("repository: unstaticlabs/odoo-mcp", compatibility)
 
     def test_the_database_gate_proves_pages_and_creates_evidence(self):
         gate = (ROOT / "scripts/ci-product-database").read_text(encoding="utf-8")
         self.assertIn("python3 scripts/docs generate check --records artifacts/usl-docs", gate)
         self.assertIn("python3 scripts/docs reference check --reference artifacts/usl-docs/reference.json", gate)
         self.assertIn("python3 scripts/docs evidence create \\", gate)
+        self.assertIn('--qualified-tree "$(git rev-parse "${GITHUB_SHA:-HEAD}^{tree}")"', gate)
         self.assertIn("--output artifacts/usl-docs/docs-evidence.json", gate)
 
     def test_the_release_verifies_evidence_and_the_mcp_page(self):
         workflow = (ROOT / ".github/workflows/product-image.yml").read_text(encoding="utf-8")
+        self.assertIn('scripts/docs evidence resolve --repository "$GITHUB_REPOSITORY"', workflow)
         self.assertIn("scripts/docs evidence verify .release/docs-evidence/docs-evidence.json", workflow)
+        self.assertIn("$(cat .release/docs-evidence/manifest-arguments)", workflow)
         self.assertIn('scripts/docs evidence recovery --repository "$GITHUB_REPOSITORY"', workflow)
         external = workflow.split("  external:\n", 1)[1].split("\n  component:\n", 1)[0]
         self.assertLess(
@@ -102,7 +107,7 @@ class DocsWiringTests(unittest.TestCase):
         self.assertIn("scripts/docs check", makefile)
         self.assertIn("scripts/docs generate render", makefile)
         self.assertIn("scripts/docs reference render", makefile)
-        self.assertIn("scripts/docs mcp render --repository $(ODOO_MCP_REPOSITORY)", makefile)
+        self.assertIn("scripts/docs mcp render $(if $(strip $(ODOO_MCP_REPOSITORY)),--repository $(ODOO_MCP_REPOSITORY),)", makefile)
         self.assertIn("ODOO_MCP_REPOSITORY ?= ../odoo-mcp", makefile)
 
     def test_the_superseded_entry_points_are_gone(self):

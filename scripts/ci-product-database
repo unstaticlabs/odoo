@@ -182,6 +182,7 @@ python3 scripts/docs evidence create \
   --records artifacts/usl-docs \
   --repository "${GITHUB_REPOSITORY:-unstaticlabs/odoo}" \
   --qualified-commit "${GITHUB_SHA:-$(git rev-parse HEAD)}" \
+  --qualified-tree "$(git rev-parse "${GITHUB_SHA:-HEAD}^{tree}")" \
   --workflow-run-id "${GITHUB_RUN_ID:-1}" \
   --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-unstaticlabs/odoo}/actions/runs/${GITHUB_RUN_ID:-1}" \
   --output artifacts/usl-docs/docs-evidence.json

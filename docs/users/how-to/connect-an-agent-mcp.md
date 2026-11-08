@@ -36,8 +36,9 @@ that identity.
 3. Choose the companies it may work in and, per application, **No access**,
    **Read-only** or one of your own access levels. A new Agent starts
    read-only everywhere; widen only what the assistant needs.
-4. Save. Settings, identity administration, credentials and Irreversible
-   Actions are never delegable, whatever you choose here.
+4. Save. Identity administration, credentials, secrets and Irreversible
+   Actions are never delegable, whatever you choose here; Settings is, when
+   you hold it yourself.
 
 ## 2. Give it a key
 
@@ -78,7 +79,9 @@ tool). The answer names the Agent, its owner, the key's expiry and the
 companies it works in. Ask it to read this guide: the `usl.docs.guide` model
 offers `search_pages`, `read_page` and `list_pages` through the generic
 `odoo_call_method` tool, so the assistant can look a procedure up before
-acting.
+acting. That tool is absent from `/mcp/read-only`, so an assistant connected
+to that profile reads the guide in a browser or through the `?format=md`
+pages instead.
 
 Everything the Agent reads or changes follows Odoo's own rules in your
 company context. Losing an access right yourself removes it from the Agent at

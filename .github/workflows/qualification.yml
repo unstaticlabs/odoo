@@ -85,6 +85,16 @@ jobs:
           fi
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
+      - name: Read the pinned Odoo MCP commit
+        id: mcp
+        run: printf 'commit=%s\n' "$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
+      - name: Checkout pinned Odoo MCP
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: unstaticlabs/odoo-mcp
+          ref: ${{ steps.mcp.outputs.commit }}
+          path: .release/odoo-mcp
+          persist-credentials: false
       - name: Validate source, contracts, governance, XML and migrations
         env:
           GH_TOKEN: ${{ github.token }}
@@ -96,6 +106,7 @@ jobs:
           scripts/check-github-governance
           scripts/check-action-pins
           scripts/docs check
+          scripts/docs mcp check --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
           python3 .usl/bin/agent_skills_lock.py verify
           git diff --check

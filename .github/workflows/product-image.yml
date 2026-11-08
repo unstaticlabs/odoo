@@ -403,19 +403,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           QUALIFICATION_RUN_ID: ${{ inputs.qualification_run_id }}
         run: |
-          # The qualification run that admitted this release also replayed
-          # every documented journey. Its evidence rides with the release so
-          # the built-in guide can say when each page last passed. A recovery
-          # release has no run and carries evidence that proves nothing.
+          # A staging release finds the journeys its own qualification run
+          # replayed. A production release (the promotion or an urgent merge)
+          # finds the run that qualified the merged pull request, whose tree
+          # is this commit's tree. Nothing found means the guide says
+          # "Unverified build"; it never stalls a release. A recovery release
+          # has no run and carries evidence that proves nothing.
           mkdir -p .release/docs-evidence
           if [ -n "$QUALIFICATION_RUN_ID" ]; then
-            gh run download "$QUALIFICATION_RUN_ID" --repo "$GITHUB_REPOSITORY" \
-              --name "docs-evidence-$QUALIFICATION_RUN_ID" --dir .release/docs-evidence
-            scripts/docs evidence verify .release/docs-evidence/docs-evidence.json \
-              --qualified-commit "$GITHUB_SHA" --workflow-run-id "$QUALIFICATION_RUN_ID"
+            scripts/docs evidence resolve --repository "$GITHUB_REPOSITORY" \
+              --commit "$GITHUB_SHA" --tree "$(git rev-parse "$GITHUB_SHA^{tree}")" \
+              --workflow-run-id "$QUALIFICATION_RUN_ID" \
+              --output .release/docs-evidence/docs-evidence.json
           else
             scripts/docs evidence recovery --repository "$GITHUB_REPOSITORY" \
               --commit "$GITHUB_SHA" --output .release/docs-evidence/docs-evidence.json
+          fi
+          if [ -f .release/docs-evidence/docs-evidence.json ]; then
+            scripts/docs evidence verify .release/docs-evidence/docs-evidence.json
+            printf -- '--docs-evidence\n.release/docs-evidence/docs-evidence.json\n' > .release/docs-evidence/manifest-arguments
+          else
+            : > .release/docs-evidence/manifest-arguments
           fi
       - name: Create release manifest from published components
         run: |
@@ -450,7 +458,7 @@ jobs:
             --ollama-dimension "$OLLAMA_DIMENSION" \
             --evidence "usl-qualification=${{ needs.resolve.outputs.evidence_sha256 }}" \
             --evidence "release-contract=$contract_evidence" \
-            --docs-evidence .release/docs-evidence/docs-evidence.json \
+            $(cat .release/docs-evidence/manifest-arguments) \
             --workflow-run-id "$GITHUB_RUN_ID" \
             --workflow-run-attempt "$GITHUB_RUN_ATTEMPT" \
             --workflow-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
