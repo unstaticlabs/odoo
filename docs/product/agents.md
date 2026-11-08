@@ -189,7 +189,17 @@ including record- and argument-specific checks.
 
 ## Correcting and archiving work
 
-A Project Agent with write access can correct one task activity through
+An Agent edits an existing activity natively (`mail.activity.write` or
+`web_save`, which is what the MCP's `odoo_update_records` calls) under the same
+authority as completion: write delegation on the activity's business model and
+write access to the linked record, company included. It works whoever created
+or is assigned the activity, and it can change any field completion could
+(including archiving it). Moving the activity to another record is checked
+against that record too. A read-only Agent, or one without delegation for the
+business model, is refused, as is an activity linked to no record. Deleting an
+activity, or attaching files to it directly, stays refused.
+
+A Project Agent with write access can also correct one task activity through
 `project.task.mcp_update_activity(activity_id, values)`. The supported fields
 are `date_deadline`, `summary`, `note` and `user_id`. The activity keeps its id
 and remains unfinished; the method cannot move it to another business record.

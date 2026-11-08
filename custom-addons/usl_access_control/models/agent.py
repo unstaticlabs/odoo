@@ -496,6 +496,10 @@ class UslAgent(models.Model):
             model_name, operation, require_write_delegation=not is_crud,
         ):
             return access
+        if access == "write" and method_name in getattr(
+            self.env.get(model_name), "_usl_agent_self_authorized_write_methods", (),
+        ):
+            return access
         return None
 
     def _model_is_read_only(self, model_name):

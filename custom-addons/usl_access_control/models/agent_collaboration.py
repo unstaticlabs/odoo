@@ -324,6 +324,44 @@ class HrExpense(models.Model):
 class MailActivity(models.Model):
     _inherit = "mail.activity"
 
+    # The JSON-2 gate lets these methods reach ``write`` below, which authorizes
+    # each business record. The model ACL itself stays closed to Agents, so no
+    # other path (attachments, rules) gains activity write access.
+    _usl_agent_self_authorized_write_methods = frozenset({"write", "web_save", "web_save_multi"})
+
+    def write(self, vals):
+        # An Agent edits an activity under the authority it holds on the
+        # activity's business record, as for completion. A flow that already
+        # authorized the business record carries the collaboration token, and a
+        # superuser write keeps the native refusal of the Agent policy.
+        if (
+            self.env.su
+            or not self._usl_managed_agent()
+            or has_agent_collaboration_token(self.env.context)
+        ):
+            return super().write(vals)
+        # The token must not reach other models: x2many commands and writable
+        # related fields would write their comodel records under it.
+        for name in vals:
+            field = self._fields.get(name)
+            if field and (
+                field.type in {"one2many", "many2many"}
+                or (field.related and not field.readonly)
+            ):
+                raise AgentPolicyAccessError(
+                    self.env._(
+                        "An Agent cannot change %(field)s of an activity; "
+                        "linked records are changed through their own models.",
+                        field=name,
+                    ),
+                    "agent_read_only_action_denied",
+                )
+        activities = self._usl_agent_complete_activity()
+        result = super(MailActivity, activities).write(vals)
+        if {"res_model", "res_model_id", "res_id"} & set(vals):
+            self._usl_agent_complete_activity()
+        return result
+
     def unlink(self):
         # Native unlink queues notifications before reaching Base.unlink.
         # Reject an unapproved caller before it registers deferred work.

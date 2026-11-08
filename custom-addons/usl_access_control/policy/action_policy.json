@@ -1640,16 +1640,20 @@
     {
       "action_keys": [
         "rpc:project.task.mcp_update_activity",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
       ],
       "classification": "operational",
-      "consequence": "Correct one accessible task activity without changing its identity or completion state.",
+      "consequence": "Correct an accessible activity in place under the authority that completes it; the task method keeps its identity and completion state.",
       "domain": "projects",
       "evidence_id": "agent-task-activity-edit",
       "id": "operational.projects.agent_activity_update",
-      "rationale": "Task write access and activity ownership are checked before updating only the deadline, summary, note and assignee.",
+      "rationale": "Native activity writes by an Agent require write delegation on the business model of the activity and write access to the linked record, checked again after relinking, and x2many or writable related values are refused so the collaboration token never writes another model; the activity ACL stays closed to other Agent paths. The task method additionally limits the fields to deadline, summary, note and assignee.",
       "reviewed_digests": {
         "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1": "cdedcd670a5d9979f91a82fe5e5dc623b571f6e97120e5b03775f1a7a0feecf8",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:2": "ee61a631a5099bd3fcecf6b9781b9744ccd3fa9320084039eaaf1ad5332c13bc",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1": "907e56efc327e0d9b65d1cc0a1bb81ee1e6751d42cb5d6e9ee92ef21d9aac625"
       }
     },
@@ -111245,7 +111249,7 @@
       "rationale": "Reviewed feedback workflow; see docs/operations/feedback-action-risk-review.md and exact per-action rationale.",
       "reviewed_digests": {
         "rpc:mail.activity.create": "b8ffb279b6220831982315f4baef8e153ce840b0e6f67774944f89df2acebc40",
-        "rpc:mail.activity.write": "3cfa7dd03c58a2b059d263e4c627828998f20aa7e25cf3d50fa4f4c296c3a2c9",
+        "rpc:mail.activity.write": "6529168f1f82c27749498c601fae633b4f6c880dd1ea3ad20a260e6abba9277a",
         "rpc:project.project.action_view_tasks": "905758f2da62ea6ed0be8cbd04133fd7de57470a3e242e4e105f743401210e56",
         "rpc:project.project.create": "9c20025abf8574f9074efc63a976aa193bbbb6fe98ed76f3673e258edd35d1fc",
         "rpc:project.project.write": "7174e4d72308bfb44027252a9e85c1599b95c68bd44b9cf822e2a8e1eed19c4c",
@@ -177771,6 +177775,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:3",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:4",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._search_usl_is_ai_agent:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_pocketid_policy_exempt_users:sudo:1"
@@ -177928,6 +177936,18 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1": {
+          "reachability_proof": "OCA's failure bookkeeping on the job record (subscribe the queue managers), recorded as the system when the job's user is an Agent. Reached only from queue.job.write with state failed, which the job runner issues in process; no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2": {
+          "reachability_proof": "OCA's failure bookkeeping on the job record (post the failure message in its chatter), recorded as the system when the job's user is an Agent. Reached only from queue.job.write with state failed, which the job runner issues in process; no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1": {
+          "reachability_proof": "Internal read of the Agent record that owns a running job, used to decide whether the job body gets an operation scope. Called only by the job runner controller's _runjob; performs no mutation and has no independent RPC, controller, UI or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2": {
+          "reachability_proof": "Internal read of the queue.job.function registry to accept only fixed, reviewed job functions for an Agent operation scope. Called only by the job runner controller's _runjob; performs no mutation and has no independent RPC, controller, UI or scheduled entry point."
+        },
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
@@ -177989,6 +178009,10 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:3": "097b63eb7ae849d3fe0888f811e775809aa75607de4baf288ba86525efdbc105",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_feedback.py:usl.agent.submit_mcp_feedback:sudo:4": "41add250e63e54496937926c4abd40669aee25a7473e80c4a8b5fba223d7fdb0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._usl_managed_agent:sudo:1": "9accdc1c83c2be80469561cb8ba61fbb4ef688bb7d82c602705c2b2c9dafd362",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:1": "cceb9818eb4f6d66741b3cdcc8002eb58ab93dec9892e8f735cdb8b79dfa57d8",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._message_post_on_failure:orm_write:2": "1111a0e586ee9e9b56cfd1825aaa3b7c332e474ada88a3986d4e4c9469405973",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:1": "203f42029de6385f89afea655b9de12db55e25065779be18e818c1f1500cb417",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/queue_job.py:queue.job._usl_agent_job_scope:sudo:2": "07945fa836c3c5592392072165172cfefc8572dedc8138c2a0ea7d61e9e5a0d0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._compute_usl_managed_agent_id:sudo:1": "758e0e114b5f130997bf753f00af4a3a42304739a4e76e963b02e62c55acbdcd",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._search_usl_is_ai_agent:sudo:1": "982aaa4655bbffe9c3711e4899eab621bf88054e14c450cee43975777cd55be0",
         "sink:usl_access_control:custom-addons/usl_access_control/models/res_users.py:res.users._usl_pocketid_policy_exempt_users:sudo:1": "33dc9cc3117c2965a7bba2775b2efe47eeedb6d247f1bf7329490fc2d783dff8"
