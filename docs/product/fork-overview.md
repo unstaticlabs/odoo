@@ -130,7 +130,7 @@ point or behavior. The exact navigation contract is documented in
 The mail preview patch sends unknown remote charset names through the existing
 UTF-8 fallback, so optional previews do not fail after a message is sent. Its
 upgrade cost and removal condition are recorded in
-[`DECISIONS/0002-link-preview-unknown-charsets.md`](../../DECISIONS/0002-link-preview-unknown-charsets.md).
+[`docs/product/decisions/0002-link-preview-unknown-charsets.md`](decisions/0002-link-preview-unknown-charsets.md).
 
 No other product-specific core divergence is allowed without an explicit
 architecture decision, upgrade analysis and regression evidence.

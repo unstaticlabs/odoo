@@ -5,9 +5,16 @@ and nothing else. That subset needs no YAML library (the runtime image ships
 none), parses identically from the Odoo viewer and from the repository checks
 in ``scripts/``, and refuses the ambiguities that make full YAML a source of
 surprises in a public repository. The same module is loaded by path from
-``scripts/check-docs`` so the two sides can never disagree.
+``scripts/docs check`` so the two sides can never disagree.
 
-The schema itself is documented in ``docs/README.md``.
+The schema itself is documented in ``docs/README.md``. Beyond the required
+``title``, ``type`` and ``description``, a page may declare ``lang``,
+``persona``, ``journey``, ``tour``, ``source``, ``generated``, and the keys the
+viewer uses to place it: ``app`` (the application the page belongs to, which
+groups the navigation), ``models`` and ``actions`` (the records and screens
+the page is about, which the Help menu matches against the screen the reader
+is on), ``screen`` (the product URL a reader can open to try the page) and
+``translation_of`` (the page this one translates).
 """
 
 from __future__ import annotations
@@ -141,9 +148,17 @@ def validate(data, relative_path):
         problems.append("generated must be true or false")
     if data.get("generated") and not data.get("journey") and page_type in {"tutorial", "how-to"}:
         problems.append("a generated tutorial or how-to names its journey")
-    if "source" in data and (
-        not isinstance(data["source"], list)
-        or not all(isinstance(item, str) and item for item in data["source"])
-    ):
-        problems.append("source is a list of repository paths")
+    for key in ("source", "models", "actions"):
+        if key in data and (
+            not isinstance(data[key], list)
+            or not all(isinstance(item, str) and item for item in data[key])
+        ):
+            problems.append(f"{key} is a list of strings")
+    for key in ("app", "screen", "translation_of", "tour", "journey"):
+        if key in data and (not isinstance(data[key], str) or not data[key].strip()):
+            problems.append(f"{key} is a non-empty string")
+    if isinstance(data.get("screen"), str) and not data["screen"].startswith("/"):
+        problems.append("screen is an absolute path inside the product, such as /odoo/action-usl_home.action_home")
+    if "translation_of" in data and data.get("lang", "en") == "en":
+        problems.append("translation_of belongs on the translated page, whose lang is not en")
     return problems

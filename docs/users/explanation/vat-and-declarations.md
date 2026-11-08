@@ -4,6 +4,10 @@ type: explanation
 description: How taxes on documents become tax bases, tags and the French VAT return.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - rebuild.account.declaration
+  - account.tax
 generated: false
 ---
 

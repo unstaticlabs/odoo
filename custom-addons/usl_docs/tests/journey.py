@@ -4,7 +4,7 @@ A journey is an ordinary tour plus a ``usl_docs.journeys`` registry entry
 (see ``static/tests/journey_runner.js``). ``JourneyCase.run_journey`` starts
 it through the runner, listens for the runner's console lines, captures the
 screen over the DevTools protocol at every documented step, and writes one
-JSON record per journey and viewport. ``scripts/docs_generate.py`` turns
+JSON record per journey and viewport. ``scripts/docs generate`` turns
 those records into the committed page and screenshots; the qualification run
 turns them into the evidence the viewer shows.
 
@@ -274,6 +274,9 @@ class JourneyCase(HttpCase):
             "description": journey["description"],
             "persona": journey["persona"],
             "lang": journey["lang"],
+            "app": journey.get("app") or "",
+            "models": journey.get("models") or [],
+            "url_path": url_path,
             "viewport": viewport,
             "viewport_size": settings["size"],
             "source_test": f"{type(self).__module__}.{type(self).__name__}.{self._testMethodName}",

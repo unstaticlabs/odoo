@@ -6,7 +6,7 @@ description: Add or change documentation in the USL Odoo distribution — a test
 # Documentation that a test proves
 
 Every user page opens with front matter; the directory is the Diátaxis type;
-`scripts/check-docs` is the judge. `docs/README.md` holds the schema. Read the
+`scripts/docs check` is the judge. `docs/README.md` holds the schema. Read the
 page you are changing and its neighbours first, then decide which of the four
 kinds of change you are making.
 
@@ -31,19 +31,24 @@ steps is a how-to that will go stale.
    key fails the test. No `expectUnloadPage`: journeys navigate inside the
    web client.
 2. Register the journey in `usl_docs.journeys` under the same tour name: `id`
-   (the page slug), `type`, `title`, `description`, `persona`, `lang`, and one
-   entry per documented step with `text` (the sentence the reader follows,
+   (the page slug), `type`, `title`, `description`, `persona`, `lang`, `app`
+   (the application that groups the navigation), `models` (what the page is
+   about, so the Help menu finds it from that screen), and one entry per
+   documented step with `text` (the sentence the reader follows,
    Markdown allowed, in the page's language) and `screenshot: true` where a
    screen helps. Steps without an entry run silently.
 3. Drive it from a `JourneyCase` test in `<module>/tests/`, as a non-admin
-   fixture user with synthetic data. Never production records, prices,
+   fixture user with synthetic data. Start it on a stable URL
+   (`/odoo/action-<module>.<xml_id>`, never a database id): it becomes the
+   page's "Open this screen in Odoo" link. Never production records, prices,
    identities or credentials: screenshots are committed to a public repository.
 4. Run `make docs MODULE=<module>` in the isolated stack. It runs the journey
    inside the test container (`make docs-journeys`), writes the page and its
-   screenshots (`make docs-render`), and refreshes the indexes. Commit the
-   page, the screenshots and the tour together.
+   screenshots (`make docs-render`). Commit the page, the screenshots, the
+   sidecar and the tour together; there is no index to refresh.
 5. Prove it: `make docs-check` passes; edit one step's `text`, run
-   `scripts/docs-generate check` and watch it fail; regenerate.
+   `scripts/docs generate check --records artifacts/usl-docs` and watch it
+   fail; regenerate.
 
 ## An explanation
 
@@ -51,6 +56,12 @@ Front matter with `type: explanation`, `generated: false`, and `source`
 pointing at the code the page explains. Write with the repository's
 `writing-clearly-and-concisely` skill: reader first, result first, one idea per
 paragraph, no steps.
+
+## The MCP reference
+
+`reference/mcp-tools.md` is rendered from the pinned `odoo-mcp` commit
+(`deploy/odoo-mcp/release.json`) by `make docs-mcp`; bump the pin, then
+regenerate. Never edit it by hand.
 
 ## A reference page
 
@@ -65,11 +76,12 @@ fails when a committed page no longer matches the registry.
 Next free number, `NNNN-kebab-title.md`, first line `# N. Title`, then
 `Date:` and `Status:` lines, then Context, Decision, Consequences, Alternatives
 considered. Say what was rejected and why. Superseding a decision edits the old
-record's status and links the new one; it never deletes. Run `make docs`.
+record's status and links the new one; it never deletes. `make docs-check`
+proves the numbering.
 
 ## Before handing back
 
-- `make docs-check` passes and `python3 -m unittest scripts.tests.test_user_docs` passes.
+- `make docs-check` passes and `python3 -m unittest scripts.tests.test_docs_check` passes.
 - The page reads correctly in the product at `/usl/user-docs/<path>` as the
   intended persona, desktop and mobile, with the right pills.
 - Any file change under `custom-addons/` needs the action-risk reseal

@@ -4,6 +4,11 @@ type: how-to
 description: Select the expenses that belong together and add them to a proposed Batch so they share one business context.
 lang: en
 persona: employee
+app: Expenses
+models:
+  - hr.expense
+  - usl.expense.batch
+screen: /odoo/action-hr_expense.hr_expense_actions_my_all
 journey: group-expenses-into-a-batch
 tour: usl_expense_batch_create_or_select
 source:

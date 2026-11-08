@@ -4,6 +4,9 @@ type: how-to
 description: Review the Paperless-backed Documents experience on a test database before relying on it.
 lang: en
 persona: everyone
+app: Documents
+models:
+  - usl.document
 source:
   - custom-addons/usl_documents
 generated: false

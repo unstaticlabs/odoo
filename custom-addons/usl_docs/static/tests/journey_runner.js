@@ -5,8 +5,10 @@
  *
  * A journey is a tour plus a sibling entry in the ``usl_docs.journeys``
  * registry, keyed by the tour name. The entry names the page (slug, title,
- * description, persona, language) and, per step ``id``, the sentence the
- * reader follows and whether the screen at that moment belongs on the page.
+ * description, persona, language, optionally the ``app`` it belongs to and
+ * the ``models`` it is about, which place it in the guide and let the Help
+ * menu find it) and, per step ``id``, the sentence the reader follows and
+ * whether the screen at that moment belongs on the page.
  *
  * Tours stay exactly as ``web_tour`` wants them: the tour service validates
  * every step against a closed schema and reports any other key with
@@ -111,6 +113,12 @@ function validateJourney(name, journey, steps) {
     if (journey.lang !== undefined && !LANGUAGES.includes(journey.lang)) {
         problems.push(`lang must be one of ${LANGUAGES.join(", ")}`);
     }
+    if (journey.app !== undefined && (typeof journey.app !== "string" || !journey.app)) {
+        problems.push("app must be a non-empty string");
+    }
+    if (journey.models !== undefined && !(Array.isArray(journey.models) && journey.models.every((m) => typeof m === "string" && m))) {
+        problems.push("models must be a list of model names");
+    }
     const ids = new Set(steps.map((step) => step.id).filter(Boolean));
     for (const [id, meta] of Object.entries(journey.steps || {})) {
         if (!ids.has(id)) {
@@ -213,6 +221,8 @@ export async function startJourney(name, options = {}) {
             description: journey.description,
             persona: journey.persona,
             lang: journey.lang || "en",
+            app: journey.app || "",
+            models: journey.models || [],
             steps: documented,
         })}`
     );

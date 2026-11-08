@@ -4,6 +4,12 @@ type: how-to
 description: Préparer le document, désigner les signataires, suivre la signature et conserver la preuve.
 lang: fr
 persona: manager
+app: Sign
+models:
+  - sign.oca.request
+  - usl.sign.ceremony
+actions:
+  - usl_sign.sign_request_action
 source:
   - custom-addons/usl_sign
 generated: false

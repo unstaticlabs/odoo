@@ -4,6 +4,9 @@ type: reference
 description: Every application menu and the screen it opens.
 lang: en
 persona: everyone
+app: Accounting
+models:
+  - rebuild.account.overview
 generated: false
 ---
 

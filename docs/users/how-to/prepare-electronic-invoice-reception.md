@@ -4,6 +4,10 @@ type: how-to
 description: Get the company, partners and approved platform ready before reception is activated.
 lang: en
 persona: administrator
+app: Accounting
+models:
+  - res.config.settings
+  - res.partner
 generated: false
 ---
 

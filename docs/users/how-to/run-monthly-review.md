@@ -4,6 +4,9 @@ type: how-to
 description: Clear queues, check hygiene, reconcile, review reports and prepare the closing in one pass.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - rebuild.account.overview
 generated: false
 ---
 

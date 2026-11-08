@@ -4,6 +4,11 @@ type: reference
 description: What each document, expense, payment and reconciliation status means.
 lang: en
 persona: everyone
+app: Accounting
+models:
+  - account.move
+  - account.bank.statement.line
+  - hr.expense
 generated: false
 ---
 

@@ -4,6 +4,11 @@ type: how-to
 description: Créer ou choisir un lot, appliquer le contexte commun, contrôler les lignes signalées et soumettre ensemble.
 lang: fr
 persona: employee
+app: Expenses
+models:
+  - usl.expense.batch
+  - hr.expense
+translation_of: how-to/group-expenses-into-a-batch.md
 source:
   - custom-addons/usl_expense_batch/models/expense_batch.py
   - custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js

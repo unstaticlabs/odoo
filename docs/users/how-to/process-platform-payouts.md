@@ -4,6 +4,10 @@ type: how-to
 description: Import a platform payout, generate its invoices and bills, and settle it against the bank.
 lang: en
 persona: finance_operator
+app: Platform billing
+models:
+  - usl.platform.billing.payout
+  - usl.platform.billing.session
 source:
   - custom-addons/usl_platform_billing
 generated: false

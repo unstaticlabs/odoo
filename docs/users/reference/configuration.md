@@ -4,6 +4,12 @@ type: reference
 description: "The settings Accounting managers maintain: companies, journals, taxes, fiscal years and matching."
 lang: en
 persona: administrator
+app: Accounting
+models:
+  - res.config.settings
+actions:
+  - base_setup.action_general_configuration
+  - account.action_account_config
 generated: false
 ---
 

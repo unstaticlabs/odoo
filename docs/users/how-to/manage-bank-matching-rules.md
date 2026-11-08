@@ -4,6 +4,11 @@ type: how-to
 description: Create, order and test the rules that propose counterparts for bank transactions.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - account.reconcile.model
+actions:
+  - account.action_account_reconcile_model
 generated: false
 ---
 

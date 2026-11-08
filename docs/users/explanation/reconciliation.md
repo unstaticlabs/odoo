@@ -4,6 +4,10 @@ type: explanation
 description: What reconciliation links, what a residual means and when partial matching is right.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - account.bank.statement.line
+  - account.move.line
 generated: false
 ---
 

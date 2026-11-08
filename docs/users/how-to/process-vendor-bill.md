@@ -4,6 +4,11 @@ type: how-to
 description: Record a bill from its document, check lines and taxes, post it and match the payment.
 lang: en
 persona: finance_operator
+app: Accounting
+models:
+  - account.move
+actions:
+  - account.action_move_in_invoice_type
 generated: false
 ---
 

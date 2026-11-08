@@ -16,7 +16,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from operations.docs_generate import load_records, page_path_for
+from operations.docs.generate import load_records, page_path_for
 
 SCHEMA = "usl-docs-evidence/v1"
 FIELDS = {

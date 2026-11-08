@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- The guide's frame: one column of navigation, one of content. The
+         stylesheet and the script come from the usl_docs.assets_guide bundle,
+         so the page carries no inline style or script. -->
+    <template id="layout" name="USL user guide layout">
+        <t t-set="lang_code" t-value="page.get('lang') or 'en'"/>
+        <html t-att-lang="lang_code">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="description" t-att-content="page.get('description') or ''"/>
+                <meta name="color-scheme" content="light dark"/>
+                <link rel="alternate" type="text/markdown" t-att-href="markdown_href"/>
+                <link rel="alternate" type="application/json" t-att-href="json_href"/>
+                <title><t t-out="page['title']"/> - USL User Guide</title>
+                <t t-call-assets="usl_docs.assets_guide" t-js="true" t-css="true"/>
+            </head>
+            <body class="usl-guide">
+                <a class="skip" href="#content">Skip to the content</a>
+                <div class="layout">
+                    <aside class="sidebar">
+                        <a class="brand" t-att-href="guide.DOCS_ROUTE">
+                            <span class="brand-mark" aria-hidden="true">?</span>
+                            <span>
+                                <span class="brand-name">USL User Guide</span>
+                                <span class="brand-sub">Ships with this release</span>
+                            </span>
+                        </a>
+                        <label class="search">
+                            <span class="visually-hidden">Search the guide</span>
+                            <input id="doc-search" type="search" placeholder="Search the guide" autocomplete="off"
+                                   t-att-data-endpoint="search_href or (guide.DOCS_ROUTE + '/search.json')"/>
+                        </label>
+                        <div id="doc-results" class="results" hidden="hidden"></div>
+                        <nav id="doc-nav" aria-label="Guide">
+                            <t t-foreach="nav" t-as="section">
+                                <div class="doc-group" t-att-data-section="section['key']">
+                                    <div t-if="section['label']" class="doc-section" t-out="section['label']"/>
+                                    <t t-foreach="section['groups']" t-as="group">
+                                        <div t-if="group['app']" class="doc-app" t-out="group['app']"/>
+                                        <t t-foreach="group['pages']" t-as="link">
+                                            <a t-att-class="'doc-link' + (' active' if link['active'] else '')"
+                                               t-att-href="link['href']" t-att-data-search="link['search']"
+                                               t-att-aria-current="'page' if link['active'] else None">
+                                                <span t-out="link['title']"/>
+                                                <span t-if="link['lang'] != 'en'" class="doc-lang" t-out="link['lang'].upper()"/>
+                                            </a>
+                                        </t>
+                                    </t>
+                                </div>
+                            </t>
+                        </nav>
+                        <div class="sidebar-foot">
+                            <a href="/odoo">Back to Odoo</a>
+                            <span aria-hidden="true">·</span>
+                            <a t-att-href="guide.DOCS_ROUTE + '/llms.txt'" title="The guide as an index for agents">llms.txt</a>
+                            <span aria-hidden="true">·</span>
+                            <a t-att-href="guide.DOCS_ROUTE + '/index.json'" title="The guide as data">index.json</a>
+                        </div>
+                    </aside>
+                    <main id="content" class="content">
+                        <div t-if="notice" class="notice" role="status" t-out="notice"/>
+                        <t t-out="0"/>
+                    </main>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <!-- The pills above a page: what kind of page, for whom, what proves it. -->
+    <template id="page_header" name="USL user guide page header">
+        <header class="doc-header">
+            <div class="doc-pills">
+                <span class="pill pill-type" t-out="type_label"/>
+                <span t-if="persona_label" class="pill" t-out="persona_label"/>
+                <span t-if="page['lang'] != 'en'" class="pill" t-out="page['lang'].upper()"/>
+                <t t-if="state">
+                    <a t-if="state['kind'] == 'tested'" t-att-class="'pill pill-evidence pill-' + state['kind']"
+                       t-att-href="state['record']" t-att-title="state.get('detail') or 'Open the test record'">
+                        <span class="dot" aria-hidden="true"/><t t-out="state['label']"/>
+                    </a>
+                    <span t-else="" t-att-class="'pill pill-evidence pill-' + state['kind']" t-att-title="state.get('detail') or ''" t-out="state['label']"/>
+                </t>
+                <t t-foreach="translations" t-as="other">
+                    <a class="pill pill-lang" t-att-href="other['href']" t-att-hreflang="other['lang']" t-att-title="other['title']">
+                        <t t-out="other['label']"/>
+                    </a>
+                </t>
+            </div>
+            <div class="doc-actions">
+                <a t-if="page.get('screen')" class="button" t-att-href="page['screen']" target="_blank" rel="noopener">
+                    Open this screen in Odoo
+                </a>
+                <span t-if="sources" class="doc-sources">
+                    Source:
+                    <t t-foreach="sources" t-as="source">
+                        <a t-att-href="source['href']" rel="noopener" t-out="source['name']"/><t t-if="not source_last">, </t>
+                    </t>
+                </span>
+            </div>
+        </header>
+    </template>
+
+    <!-- A page: header, outline, rendered Markdown, provenance footer. -->
+    <template id="page" name="USL user guide page">
+        <t t-call="usl_docs.layout">
+            <t t-if="page['type'] != 'home'" t-call="usl_docs.page_header"/>
+            <nav t-if="len(outline) > 2" class="outline" aria-label="On this page">
+                <span class="outline-title">On this page</span>
+                <t t-foreach="outline" t-as="heading">
+                    <a t-att-href="'#' + heading['id']" t-out="heading['title']"/>
+                </t>
+            </nav>
+            <article class="doc-body" t-out="body_html"/>
+            <footer t-if="page['type'] != 'home'" class="doc-footer">
+                <t t-if="page['generated'] and page.get('journey')">
+                    This page is generated from the journey <code t-out="page['journey']"/>.
+                    Change the test, then run <code>make docs</code>; edits to the page itself are overwritten.
+                </t>
+                <t t-elif="page['generated']">
+                    This page is generated from the product's code.
+                    Change the field, group, menu or setting, then run <code>make docs-reference</code>; edits to the page itself are overwritten.
+                </t>
+                <t t-else="">
+                    This page is written by hand: <code>docs/users/<t t-out="page['path']"/></code> in the repository.
+                </t>
+                <span class="doc-formats">
+                    <a t-att-href="markdown_href">Markdown</a>
+                    <span aria-hidden="true">·</span>
+                    <a t-att-href="json_href">JSON</a>
+                </span>
+            </footer>
+        </t>
+    </template>
+
+    <!-- The test record behind a page's "Last tested" pill. -->
+    <template id="test_record" name="USL user guide test record">
+        <t t-call="usl_docs.layout">
+            <header class="doc-header">
+                <div class="doc-pills">
+                    <span class="pill pill-type">Test record</span>
+                    <span t-att-class="'pill pill-evidence pill-' + record['state']['kind']" t-out="record['state']['label']"/>
+                </div>
+            </header>
+            <h1>Test record for “<t t-out="record['title']"/>”</h1>
+            <p class="lead">This page is generated from a browser journey that the qualification of the running release replayed end to end. Here is that run, step by step, with what it asserted and what it saw.</p>
+            <table class="facts">
+                <tr><th>Page</th><td><a t-att-href="record['page_href']" t-out="record['title']"/></td></tr>
+                <tr><th>Last passed</th><td><t t-out="record['state']['label']"/> <span t-if="record['tested_at']" class="mono muted" t-out="record['tested_at']"/></td></tr>
+                <tr><th>Duration</th><td t-out="record['duration']"/></tr>
+                <tr><th>Qualified commit</th><td>
+                    <a t-if="record['commit_url']" t-att-href="record['commit_url']" rel="noopener" t-out="record['commit_short']"/>
+                    <span t-else="" t-out="record['commit_short']"/>
+                    <span t-if="record['commit_differs']" class="pill pill-unverified">differs from the running release</span>
+                </td></tr>
+                <tr><th>Qualification run</th><td>
+                    <t t-if="record['run_url']">
+                        <a t-att-href="record['run_url']" rel="noopener">GitHub run <t t-out="record['run_id']"/></a>
+                        <span class="muted">(GitHub keeps a run for a limited time; this page is the durable record)</span>
+                    </t>
+                    <t t-else="">none</t>
+                </td></tr>
+                <tr><th>Tour</th><td><a t-if="record['tour_url']" t-att-href="record['tour_url']" rel="noopener" t-out="record['tour']"/><span t-else="" t-out="record['tour']"/></td></tr>
+                <tr><th>Test</th><td><a t-if="record['test_url']" t-att-href="record['test_url']" rel="noopener" t-out="record['test']"/><span t-else="" t-out="record['test']"/></td></tr>
+                <tr><th>Ran as</th><td t-out="record['login']"/></tr>
+                <tr><th>Viewport</th><td t-out="record['viewport']"/></tr>
+                <tr><th>Browser</th><td t-out="record['browser']"/></tr>
+            </table>
+            <h2 id="steps">Steps</h2>
+            <ol class="steps">
+                <li t-if="not record['steps']">No committed journey facts for this page.</li>
+                <li t-foreach="record['steps']" t-as="step" class="step">
+                    <div class="step-text" t-out="step['html']"/>
+                    <div class="step-meta">
+                        <span class="mono" t-out="step['assertion']"/>
+                        <span class="mono muted">trigger: <t t-out="step['trigger']"/></span>
+                        <span t-if="step['run']" class="mono muted">run: <t t-out="step['run']"/></span>
+                        <span class="step-link">
+                            <a t-if="step['tour_url']" t-att-href="step['tour_url']" rel="noopener">tour<t t-if="step['tour_line']"> L<t t-out="step['tour_line']"/></t></a>
+                        </span>
+                    </div>
+                    <figure t-if="step['capture']" class="step-shot">
+                        <a t-att-href="step['capture']['src']" t-att-data-shot="step_index" t-att-data-caption="step['text']">
+                            <img t-att-src="step['capture']['src']" t-att-alt="step['capture']['alt']" loading="lazy"/>
+                        </a>
+                        <figcaption>
+                            <span class="mono" t-out="step['capture']['file']"/>
+                            · sha256 <span class="mono" t-att-title="step['capture']['sha256']" t-out="step['capture']['sha256'][:12]"/>
+                            · <t t-out="step['capture']['verdict']"/>
+                        </figcaption>
+                    </figure>
+                </li>
+            </ol>
+            <h2 id="replay">Replay it</h2>
+            <p>From the repository, in an isolated stack, on the module's own fixtures:</p>
+            <pre class="copyable"><code t-out="record['replay']"/><button type="button" class="copy" t-att-data-copy="record['replay']">copy</button></pre>
+            <details>
+                <summary>Raw evidence for this journey</summary>
+                <pre class="copyable"><code t-out="record['raw_evidence']"/><button type="button" class="copy" t-att-data-copy="record['raw_evidence']">copy</button></pre>
+            </details>
+            <details>
+                <summary>Committed journey facts (journey.json)</summary>
+                <pre class="copyable"><code t-out="record['raw_sidecar']"/><button type="button" class="copy" t-att-data-copy="record['raw_sidecar']">copy</button></pre>
+            </details>
+            <p><a t-att-href="record['page_href']">Back to the page</a></p>
+            <dialog id="shot-box">
+                <div class="shot-nav">
+                    <button type="button" data-nav="-1" aria-label="Previous">‹</button>
+                    <span id="shot-counter"></span>
+                    <button type="button" data-nav="1" aria-label="Next">›</button>
+                    <button type="button" data-close="1" aria-label="Close">✕</button>
+                </div>
+                <figure><img src="" alt=""/><figcaption></figcaption></figure>
+            </dialog>
+        </t>
+    </template>
+
+</odoo>

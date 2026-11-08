@@ -15,10 +15,10 @@ class TestExpenseBatchJourneys(TestExpenseBatchBrowser, JourneyCase):
     """
 
     def test_group_expenses_into_a_batch(self):
-        action = self.env.ref("hr_expense.hr_expense_actions_my_all")
+        # The XML id keeps the page's "Open this screen" link stable across databases.
         self.run_journey(
             "usl_expense_batch_create_or_select",
-            f"/odoo/action-{action.id}",
+            "/odoo/action-hr_expense.hr_expense_actions_my_all",
             login=self.expense_user_employee.login,
         )
         self.assertEqual(self.expenses.expense_batch_id, self.batch)

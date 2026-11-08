@@ -387,7 +387,7 @@ class ReleaseManifestTests(unittest.TestCase):
         self.assertEqual(validate(value)["schema"], "usl-release/v2")
 
     def test_carries_and_validates_the_user_guide_evidence(self) -> None:
-        from operations import docs_evidence
+        from operations.docs import evidence as docs_evidence
 
         release = manifest()
         commit = release["source"]["commit"]

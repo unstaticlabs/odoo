@@ -1,7 +1,7 @@
 """Extract the reference facts the user guide generates its pages from.
 
 Odoo shell script: it reads the running registry and prints one JSON
-document (``usl-docs-reference/v1``) on its last line. ``scripts/docs-reference``
+document (``usl-docs-reference/v1``) on its last line. ``scripts/docs reference``
 renders that document into ``docs/users/reference/`` and proves the committed
 pages match it.
 

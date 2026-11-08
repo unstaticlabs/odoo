@@ -4,6 +4,11 @@ type: how-to
 description: Capture a receipt, complete the expense, submit it and follow it to reimbursement.
 lang: en
 persona: employee
+app: Expenses
+models:
+  - hr.expense
+actions:
+  - hr_expense.action_hr_expense_my_all
 source:
   - custom-addons/usl_expense_batch/models/hr_expense.py
 generated: false

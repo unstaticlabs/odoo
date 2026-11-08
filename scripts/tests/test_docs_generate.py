@@ -6,7 +6,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from operations import docs_evidence, docs_generate
+from operations.docs import evidence as docs_evidence
+from operations.docs import generate as docs_generate
 
 PNG_A = bytes.fromhex(
     "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
@@ -78,6 +79,27 @@ class DocsGenerateTests(unittest.TestCase):
         self.assertIn("1. Open **Journals**. Then wait.\n\n   ![Open Journals](match-a-line/01-open.png)\n\n2. Pick a line.\n", page)
         self.assertEqual(docs_generate.render_all(self.records, self.docs), [], "a second render changes nothing")
         self.assertEqual(docs_generate.check_all(self.records, self.docs), [])
+
+    def test_the_screen_and_app_of_a_journey_follow_the_persona(self):
+        record = write_record(self.records)
+        record["url_path"] = "/odoo/accounting"
+        record["app"] = "Accounting"
+        record["models"] = ["account.move", "account.bank.statement.line"]
+        (self.records / "tour_match" / "desktop" / "journey.json").write_text(json.dumps(record), encoding="utf-8")
+        docs_generate.render_all(self.records, self.docs)
+        page = (self.docs / "how-to" / "match-a-line.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "persona: accountant\napp: Accounting\nmodels:\n  - account.move\n  - account.bank.statement.line\n"
+            "screen: /odoo/accounting\njourney: match-a-line\n",
+            page,
+        )
+        self.assertEqual(docs_generate.check_all(self.records, self.docs), [])
+        record["models"] = []
+        record["app"] = ""
+        (self.records / "tour_match" / "desktop" / "journey.json").write_text(json.dumps(record), encoding="utf-8")
+        docs_generate.render_all(self.records, self.docs)
+        page = (self.docs / "how-to" / "match-a-line.md").read_text(encoding="utf-8")
+        self.assertIn("persona: accountant\nscreen: /odoo/accounting\njourney: match-a-line\n", page, "empty keys are omitted")
 
     def test_a_tutorial_renders_at_the_root(self):
         write_record(self.records, journey="tour", page_type="tutorial")

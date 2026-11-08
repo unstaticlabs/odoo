@@ -4,6 +4,9 @@ type: how-to
 description: Configure a company's document templates and render governed invoices, quotes and letters.
 lang: en
 persona: administrator
+app: Documents
+models:
+  - usl.document.template
 source:
   - custom-addons/usl_document_templates
 generated: false

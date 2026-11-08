@@ -4,6 +4,11 @@ type: how-to
 description: Match a bank line against invoices, bills, expenses or a suggested counterpart.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - account.bank.statement.line
+actions:
+  - account.action_bank_statement_tree
 source:
   - custom-addons/usl_accounting
 generated: false

@@ -23,7 +23,7 @@ one exception to its existing fallback. A broad catch around preview publication
 would also hide unrelated access or persistence failures. This distribution-level
 bug fix uses neither approach.
 
-## Consequences and upgrade cost
+## Consequences
 
 This adds a one-line native divergence, covered by native URL/HTML regressions and
 an actual message/attachment publication regression. The fallback may omit bytes

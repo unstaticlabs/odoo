@@ -4,6 +4,10 @@ type: explanation
 description: Why general and analytical accounting answer different questions and how the distribution works.
 lang: en
 persona: ceo
+app: Accounting
+models:
+  - account.analytic.line
+  - account.analytic.account
 generated: false
 ---
 

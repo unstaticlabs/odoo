@@ -4,6 +4,10 @@ type: tutorial
 description: Walk through Overview, journals, documents, reconciliation, reports, hygiene and declarations without changing posted accounting.
 lang: en
 persona: everyone
+app: Accounting
+models:
+  - rebuild.account.overview
+  - account.move
 source:
   - custom-addons/rebuild_account_migration
 generated: false

@@ -4,6 +4,9 @@ type: how-to
 description: Switch the approved reception platform on, watch the first invoices arrive, and pause it safely.
 lang: en
 persona: administrator
+app: Accounting
+models:
+  - res.config.settings
 source:
   - custom-addons/rebuild_account_migration/models/einvoice_transport.py
 generated: false

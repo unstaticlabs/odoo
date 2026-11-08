@@ -4,6 +4,9 @@ type: how-to
 description: Sign in to Odoo and Documents with a passkey through Pocket ID, and recover when it fails.
 lang: en
 persona: everyone
+app: Access & identity
+models:
+  - res.users
 source:
   - custom-addons/usl_pocketid
 generated: false

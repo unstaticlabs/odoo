@@ -4,6 +4,10 @@ type: how-to
 description: Importer un versement de plateforme, générer les factures et le rapprocher de la banque.
 lang: fr
 persona: finance_operator
+app: Platform billing
+models:
+  - usl.platform.billing.payout
+translation_of: how-to/process-platform-payouts.md
 source:
   - custom-addons/usl_platform_billing
 generated: false

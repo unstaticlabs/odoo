@@ -4,6 +4,11 @@ type: how-to
 description: Give an external accountant the Accountant Reviewer role on the right companies only.
 lang: en
 persona: administrator
+app: Access & identity
+models:
+  - res.users
+actions:
+  - base.action_res_users
 source:
   - custom-addons/usl_access_control
 generated: false

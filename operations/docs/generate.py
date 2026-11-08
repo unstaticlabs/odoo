@@ -22,7 +22,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from operations.user_docs import ROOT, USERS, frontmatter
+from operations.docs import ROOT, USERS, frontmatter
 
 RECORD_SCHEMA = "usl-docs-journey/v1"
 GENERATED_NOTE = "<!-- Generated from the journey named in the front matter. Change the test, then run `make docs`. -->"
@@ -127,12 +127,23 @@ def render(record, existing_images=None):
         "description": record["description"],
         "lang": record["lang"],
         "persona": record["persona"],
+    }
+    # Which application the journey belongs to, which models it touches and
+    # the screen it starts on, when the record says; the viewer groups the
+    # navigation by them and opens the right screen. Omitted when empty.
+    if record.get("app"):
+        front["app"] = record["app"]
+    if record.get("models"):
+        front["models"] = list(record["models"])
+    if record.get("url_path"):
+        front["screen"] = record["url_path"]
+    front.update({
         "journey": record["journey"],
         "tour": record["tour"],
         "source": [_source_path(record)],
         "screenshots": _screenshot_manifest(record, images),
         "generated": True,
-    }
+    })
     body = "\n".join([
         GENERATED_NOTE,
         "",

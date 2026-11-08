@@ -61,6 +61,8 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_create_or_select",
     description: "Select the expenses that belong together and add them to a proposed Batch so they share one business context.",
     persona: "employee",
     lang: "en",
+    app: "Expenses",
+    models: ["hr.expense", "usl.expense.batch"],
     steps: {
         work_list: {
             text: "Open **Expenses > My Expenses**. Expenses that belong together, such as a hotel and a taxi from one trip, sit in the same work list.",

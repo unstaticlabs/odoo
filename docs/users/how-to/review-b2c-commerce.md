@@ -4,6 +4,10 @@ type: how-to
 description: Browse orders, events and settlements imported from the sales channels and open their accounting.
 lang: en
 persona: ceo
+app: B2C commerce
+models:
+  - b2c.order
+  - sale.order
 source:
   - custom-addons/usl_b2c
 generated: false

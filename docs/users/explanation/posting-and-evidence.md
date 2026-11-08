@@ -4,6 +4,9 @@ type: explanation
 description: Why posting turns preparation into ledger truth and what evidence must travel with it.
 lang: en
 persona: everyone
+app: Accounting
+models:
+  - account.move
 generated: false
 ---
 

@@ -4,6 +4,9 @@ type: how-to
 description: Read margin and cost by activity, brand or project from the analytic analysis report.
 lang: en
 persona: ceo
+app: Accounting
+models:
+  - account.analytic.line
 generated: false
 ---
 

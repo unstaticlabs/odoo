@@ -4,6 +4,10 @@ type: how-to
 description: Saisir le bulletin calculé par TESE, joindre les justificatifs et suivre les dettes jusqu'au règlement.
 lang: fr
 persona: accountant
+app: Payroll
+models:
+  - usl.tese.payslip
+  - usl.tese.profile
 source:
   - custom-addons/usl_tese_payroll
 generated: false

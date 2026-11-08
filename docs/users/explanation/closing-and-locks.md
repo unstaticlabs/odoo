@@ -4,6 +4,10 @@ type: explanation
 description: What closing a period commits to and how lock dates protect it.
 lang: en
 persona: accountant
+app: Accounting
+models:
+  - rebuild.account.closing.period
+  - rebuild.account.closing.control
 generated: false
 ---
 

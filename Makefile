@@ -40,7 +40,7 @@ ACTION_RISK_RUNTIME_CANDIDATE ?= artifacts/action-risk/runtime.candidate.json
 .PHONY: oca-addons-sync external-addons-sync document-renderer-certs document-renderer-check
 .PHONY: product-migration-source-boundary product-migration-boundary sign-product-validate
 .PHONY: accounting-addon-tests accounting-multicompany-acceptance addon-tests
-.PHONY: docs docs-check docs-journeys docs-render docs-reference
+.PHONY: docs docs-check docs-journeys docs-render docs-reference docs-mcp
 .PHONY: action-helpers action-risk-discover action-risk-refresh action-risk-compile-policy
 .PHONY: action-risk-inventory action-risk-runtime product-assets french-translations
 .PHONY: expense-batch-qa-bootstrap tese-qa-bootstrap
@@ -74,10 +74,11 @@ help:
 	  '  make oca-addons-sync                Fetch the pinned OCA and external add-ons' \
 	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
-	  '  make docs                           Run the journeys, render the pages, refresh the indexes' \
+	  '  make docs                           Run the journeys, then render the pages' \
 	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
 	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
 	  '  make docs-reference                 Regenerate the reference pages from the action-risk closure' \
+	  '  make docs-mcp                       Regenerate the MCP tools page from the pinned odoo-mcp catalogue' \
 	  '  make docs-check                     Check documentation structure and links' \
 	  '' \
 	  'Migration and cutover use migration/manage exclusively.' \
@@ -243,7 +244,7 @@ docs-journeys:
 		--test-tags=usl_docs_journey --stop-after-init --log-level=test
 
 docs-render:
-	@python3 scripts/docs-generate render
+	@scripts/docs generate render
 
 # The reference pages come from the registry of the full product closure,
 # the same database make action-risk-db builds, so a page never describes a
@@ -254,10 +255,16 @@ docs-reference:
 		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
 		odoo odoo shell --config=/etc/odoo/odoo.conf --database=$(ACTION_RISK_DB) --log-level=error \
 		< scripts/odoo/docs_reference.py | tail -n 1 > artifacts/usl-docs/reference.json
-	@python3 scripts/docs-reference render
+	@scripts/docs reference render
+
+# The MCP page is the pinned odoo-mcp commit's own catalogue; point
+# ODOO_MCP_REPOSITORY at a checkout that has it, or unset it to read GitHub.
+ODOO_MCP_REPOSITORY ?= ../odoo-mcp
+docs-mcp:
+	@scripts/docs mcp render --repository $(ODOO_MCP_REPOSITORY)
 
 docs-check:
-	@python3 scripts/check-docs
+	@scripts/docs check
 
 action-helpers:
 	@python3 scripts/check_action_helpers.py custom-addons

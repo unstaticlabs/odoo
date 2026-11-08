@@ -124,6 +124,9 @@ jobs:
       - name: Verify external contracts and private package access
         run: |
           scripts/odoo-mcp verify --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
+          # The guide's MCP page is that same commit's tool catalogue; a pin
+          # bumped without `make docs-mcp` fails here, not in front of a reader.
+          scripts/docs mcp check --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
           mcp_image="$(jq -r .image_digest deploy/odoo-mcp/release.json)"
           renderer_image="$(jq -r .image_digest deploy/document-renderer/release.json)"
           docker pull "$mcp_image"
@@ -408,10 +411,10 @@ jobs:
           if [ -n "$QUALIFICATION_RUN_ID" ]; then
             gh run download "$QUALIFICATION_RUN_ID" --repo "$GITHUB_REPOSITORY" \
               --name "docs-evidence-$QUALIFICATION_RUN_ID" --dir .release/docs-evidence
-            scripts/docs-evidence verify .release/docs-evidence/docs-evidence.json \
+            scripts/docs evidence verify .release/docs-evidence/docs-evidence.json \
               --qualified-commit "$GITHUB_SHA" --workflow-run-id "$QUALIFICATION_RUN_ID"
           else
-            scripts/docs-evidence recovery --repository "$GITHUB_REPOSITORY" \
+            scripts/docs evidence recovery --repository "$GITHUB_REPOSITORY" \
               --commit "$GITHUB_SHA" --output .release/docs-evidence/docs-evidence.json
           fi
       - name: Create release manifest from published components

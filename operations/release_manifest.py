@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from operations.mcp_release import load_release
-from operations import docs_evidence
+from operations.docs import evidence as docs_evidence
 from operations.module_release import build_inventory, validate_inventory
 
 ROOT = Path(__file__).resolve().parents[1]

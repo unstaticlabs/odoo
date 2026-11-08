@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from operations import docs_reference
+from operations.docs import reference as docs_reference
 
 PAYLOAD = {
     "schema": "usl-docs-reference/v1",
