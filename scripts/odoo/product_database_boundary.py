@@ -110,8 +110,7 @@ module_states = dict(rows(
         list(
             MIGRATION_MODULES
             | PRODUCT_MODULES
-            | EXCLUDED_AUTO_INSTALL_MODULES
-            | {"usl_bootstrap"},
+            | EXCLUDED_AUTO_INSTALL_MODULES,
         ),
     ),
 ))
@@ -126,8 +125,6 @@ for module_name in sorted(PRODUCT_MODULES):
             f"Product module {module_name} is not installed "
             f"({module_states.get(module_name, 'missing')}).",
         )
-if module_states.get("usl_bootstrap") == "installed":
-    errors.append("Test-only usl_bootstrap is installed in the product target.")
 for module_name in sorted(EXCLUDED_AUTO_INSTALL_MODULES):
     if module_states.get(module_name) not in {None, "uninstalled", "uninstallable"}:
         errors.append(

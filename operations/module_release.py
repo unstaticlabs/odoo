@@ -51,8 +51,6 @@ def build_inventory(root: Path, *, require_dependencies: bool = False) -> dict[s
     modules: dict[str, Any] = {}
     for manifest_path in sorted(addons.glob("*/__manifest__.py")):
         name = manifest_path.parent.name
-        if name == "usl_bootstrap":
-            continue
         value = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
         if not value.get("installable", True):
             continue

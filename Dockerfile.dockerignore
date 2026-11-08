@@ -47,7 +47,3 @@ docs/*
 !**/i18n_extra/en*.po
 !**/i18n_extra/fr.po
 !**/i18n_extra/fr_*.po
-
-# usl_bootstrap is a test-only fixture. Keep this rule last so that no later
-# exception adds one of its files back.
-custom-addons/usl_bootstrap/
