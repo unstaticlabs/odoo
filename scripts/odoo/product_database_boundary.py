@@ -33,6 +33,10 @@ def received_product_modules():
 
 
 PRODUCT_MODULES = received_product_modules()
+# Synthetic fixtures under test-addons/. Their source never enters a product
+# image, but an existing database may still carry one, so the database itself
+# is checked.
+TEST_FIXTURE_MODULES = {"usl_bootstrap"}
 EXCLUDED_AUTO_INSTALL_MODULES = {
     "gamification",
     "hr_gamification",
@@ -107,7 +111,8 @@ module_states = dict(rows(
         list(
             MIGRATION_MODULES
             | PRODUCT_MODULES
-            | EXCLUDED_AUTO_INSTALL_MODULES,
+            | EXCLUDED_AUTO_INSTALL_MODULES
+            | TEST_FIXTURE_MODULES,
         ),
     ),
 ))
@@ -121,6 +126,11 @@ for module_name in sorted(PRODUCT_MODULES):
         errors.append(
             f"Product module {module_name} is not installed "
             f"({module_states.get(module_name, 'missing')}).",
+        )
+for module_name in sorted(TEST_FIXTURE_MODULES):
+    if module_states.get(module_name) == "installed":
+        errors.append(
+            f"Test-only {module_name} is installed in the product target.",
         )
 for module_name in sorted(EXCLUDED_AUTO_INSTALL_MODULES):
     if module_states.get(module_name) not in {None, "uninstalled", "uninstallable"}:
