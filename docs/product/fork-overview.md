@@ -175,8 +175,9 @@ commit is the one named.
   and the posted source bill, its reconciliation, manual tax amounts and
   analytic allocation are preserved; the CII commit applies the same contract
   to the upstream CII importer and adopts the corrected native billing-period
-  exporter. Tests: `addons/l10n_fr_pdp/tests/test_downpayment_import.py` and
-  the extended `test_cii_import_facturx_fr.py`.
+  exporter. Tests: `addons/l10n_fr_pdp/tests/test_downpayment_import.py`,
+  registered in `addons/l10n_fr_pdp/tests/__init__.py`, and the extended
+  `test_cii_import_facturx_fr.py`.
 
 ### Posted completion dates — `mrp_account`
 
@@ -221,9 +222,9 @@ tests named with their patches above.
 
 - `addons/sale_management/static/src/fields/sale_order_template_line_field/sale_order_template_line_field.js`:
   one line differs by trailing whitespace that upstream carries and the
-  catch-up reapply `9c030166` stripped. `scripts/commit` refuses to reintroduce
-  trailing whitespace, so the line stays; `git diff -w` against upstream is
-  empty.
+  catch-up merge `83a3be0e` stripped (reapplied by `9c030166`).
+  `scripts/commit` refuses to reintroduce trailing whitespace, so the line
+  stays; `git diff -w` against upstream is empty.
 
 ### Retired
 
