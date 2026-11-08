@@ -1645,11 +1645,11 @@
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
       ],
       "classification": "operational",
-      "consequence": "Correct an accessible activity in place without changing its identity or completion state.",
+      "consequence": "Correct an accessible activity in place under the authority that completes it; the task method keeps its identity and completion state.",
       "domain": "projects",
       "evidence_id": "agent-task-activity-edit",
       "id": "operational.projects.agent_activity_update",
-      "rationale": "Native activity writes by an Agent require write delegation on the activity's business model and write access to the linked record, checked again after relinking; the task method additionally limits the fields to deadline, summary, note and assignee.",
+      "rationale": "Native activity writes by an Agent require write delegation on the business model of the activity and write access to the linked record, checked again after relinking; the activity ACL stays closed to other Agent paths. The task method additionally limits the fields to deadline, summary, note and assignee.",
       "reviewed_digests": {
         "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1": "4f05d12123db583c7ba041b431831c45cbdf7006f228127a54cc055bd8bdfbef",

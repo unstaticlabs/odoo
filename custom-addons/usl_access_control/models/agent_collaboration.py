@@ -324,15 +324,10 @@ class HrExpense(models.Model):
 class MailActivity(models.Model):
     _inherit = "mail.activity"
 
-    @api.model
-    def _usl_agent_shared_model_access(self, operation, groups, access_rows):
-        """Reach the native write path; ``write`` authorizes each business record."""
-        if operation not in {"read", "write"}:
-            return False
-        internal = self.env.ref("base.group_user")
-        return internal in groups and any(
-            access.group_id == internal for access in access_rows
-        )
+    # The JSON-2 gate lets these methods reach ``write`` below, which authorizes
+    # each business record. The model ACL itself stays closed to Agents, so no
+    # other path (attachments, rules) gains activity write access.
+    _usl_agent_self_authorized_write_methods = frozenset({"write", "web_save", "web_save_multi"})
 
     def write(self, vals):
         # An Agent edits an activity under the authority it holds on the

@@ -1686,7 +1686,29 @@ class TestAutonomousAgents(TransactionCase):
             self._agent_web_save(agent, partner_activity, {"summary": "No contact delegation"})
         with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
             activity.with_user(agent.user_id).unlink()
-        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(group.ids)]})
+        contacts = self.env.ref("base.group_partner_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set((group | contacts).ids)],
+            "read_only_group_ids": [Command.set(group.ids)],
+        })
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            self._agent_web_save(agent, activity, {"summary": "Writable elsewhere only"})
+        self.assertNotEqual(activity.summary, "Writable elsewhere only")
+        owners = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self.env["ir.attachment"].with_user(agent.user_id).with_context(
+                allowed_company_ids=self.company.ids,
+            ).create({
+                "name": "[QA] Not on this activity.txt", "res_model": "mail.activity",
+                "res_id": owners.id, "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
+            })
+        self.assertFalse(self.env["ir.attachment"].search_count([
+            ("res_model", "=", "mail.activity"), ("res_id", "=", owners.id),
+        ]))
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.set(group.ids)],
+        })
         with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
             self._agent_web_save(agent, activity, {"summary": "Read-only Agent"})
         self.assertNotEqual(activity.summary, "Read-only Agent")

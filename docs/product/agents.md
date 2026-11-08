@@ -193,9 +193,11 @@ An Agent edits an existing activity natively (`mail.activity.write` or
 `web_save`, which is what the MCP's `odoo_update_records` calls) under the same
 authority as completion: write delegation on the activity's business model and
 write access to the linked record, company included. It works whoever created
-or is assigned the activity. Moving the activity to another record is checked
+or is assigned the activity, and it can change any field completion could
+(including archiving it). Moving the activity to another record is checked
 against that record too. A read-only Agent, or one without delegation for the
-business model, is refused; deleting an activity stays refused.
+business model, is refused, as is an activity linked to no record. Deleting an
+activity, or attaching files to it directly, stays refused.
 
 A Project Agent with write access can also correct one task activity through
 `project.task.mcp_update_activity(activity_id, values)`. The supported fields
