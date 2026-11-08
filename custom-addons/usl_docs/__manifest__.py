@@ -23,6 +23,9 @@
         "web.assets_tests": [
             "usl_docs/static/tests/journey_runner.js",
         ],
+        "web.assets_unit_tests": [
+            "usl_docs/static/tests/help_menu.test.js",
+        ],
     },
     "auto_install": True,
     "installable": True,

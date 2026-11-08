@@ -80,7 +80,7 @@
       "index": 6,
       "run": "",
       "screenshot": "02-preview.png",
-      "sha256": "0c16bec459c061412f94fe846b510d2b23cf459115e5c2a6b4defac1d6adfa3a",
+      "sha256": "478c772c3c0e48a327087eee3c682daf9f2f8935c2bc5d182241462a03f160f1",
       "text": "Check the preview: what the employee paid and what the company paid are totalled separately before anything changes.",
       "trigger": ".o_dialog .o_form_view:has(.o_field_widget[name='employee_paid_total']):has(.o_field_widget[name='company_paid_total'])"
     },

@@ -14,7 +14,7 @@ tour: usl_expense_batch_create_or_select
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
 screenshot_01-work_list_png: 268d0b2e5c18338ed4f12db6819df66107c9d86a2913d92ef14303b6b8bdee40
-screenshot_02-preview_png: 0c16bec459c061412f94fe846b510d2b23cf459115e5c2a6b4defac1d6adfa3a
+screenshot_02-preview_png: 478c772c3c0e48a327087eee3c682daf9f2f8935c2bc5d182241462a03f160f1
 screenshot_03-grouped_png: 9e143e18e2cb0edff169db4db121321d1e6a3bca5c2673a6579f03e48921731b
 generated: true
 ---
