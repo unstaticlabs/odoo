@@ -138,6 +138,165 @@ class CommandRunner:
         return process
 
 
+# Observation ------------------------------------------------------------
+#
+# `scripts/usl-stack-observe` runs the same handlers as `scripts/usl-stack`,
+# so "read-only" cannot rest on which subcommand was chosen: health and smoke
+# once reached `_with_mcp_runtime_authority`, which creates a directory and
+# writes an authority override on the host. Under `observation_only()` every
+# runner a target hands out refuses, before execution, any command outside a
+# short list of reads. A handler that tries to provision, pull, lock or write
+# fails with the refused verb instead of doing it.
+
+_OBSERVATION_ONLY = False
+
+_READ_ONLY_HOST_COMMANDS = frozenset({
+    "cat", "test", "ls", "stat", "df", "du", "findmnt", "sha256sum", "readlink",
+    "realpath", "hostname", "uname", "date", "id",
+})
+_READ_ONLY_DOCKER_VERBS = frozenset({"ps", "inspect", "logs", "version", "info", "images"})
+_READ_ONLY_DOCKER_OBJECT_VERBS = frozenset({"inspect", "ls"})
+_DOCKER_OBJECTS = frozenset({"image", "volume", "network", "container"})
+_COMPOSE_GLOBAL_OPTIONS = frozenset({
+    "--project-name", "--project-directory", "--env-file", "--file", "--profile",
+})
+_READ_ONLY_COMPOSE_VERBS = frozenset({"ps", "config", "images", "ls"})
+_CURL_WRITE_OPTIONS = (
+    "-X", "--request", "-d", "--data", "-F", "--form", "-T", "--upload-file",
+    "-o", "-O", "--remote-name", "--json", "-K", "--config", "-c", "--cookie-jar",
+)
+_READ_ONLY_SQL = re.compile(r"\s*(?:SELECT|WITH)\b", re.IGNORECASE)
+
+
+def _compose_problem(command: list[str]) -> str | None:
+    index = 2
+    while index < len(command) and command[index] in _COMPOSE_GLOBAL_OPTIONS:
+        index += 2
+    rest = command[index:]
+    if not rest:
+        return "docker compose without a subcommand"
+    verb = rest[0]
+    if verb in _READ_ONLY_COMPOSE_VERBS:
+        return None
+    if verb != "exec":
+        return f"docker compose {verb}"
+    arguments = rest[1:]
+    while arguments and arguments[0] in {"--no-TTY", "-T"}:
+        arguments = arguments[1:]
+    if len(arguments) < 2:
+        return "docker compose exec without a probe"
+    program = arguments[1:]
+    if program[0] == "psql":
+        if "--command" not in program or program.index("--command") + 1 >= len(program):
+            return "docker compose exec psql without a query"
+        query = program[program.index("--command") + 1]
+        if not _READ_ONLY_SQL.match(query) or ";" in query.strip().rstrip(";"):
+            return "docker compose exec psql with a non-SELECT query"
+        return None
+    if program[:2] == ["python", "-c"] and len(program) == 3:
+        # The probe programs are fixed in operations/stack.py and reviewed
+        # there; none of them writes. A shell or other entry point is refused.
+        return None
+    return f"docker compose exec {program[0]}"
+
+
+def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
+    """Return why ``command`` may write, or None when it is a known read."""
+    if input_text is not None:
+        return f"{command[0] if command else 'command'} with standard input"
+    if not command:
+        return "empty command"
+    head = command[0]
+    if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if command == ["containerd", "config", "dump"]:
+        return None
+    if head == "curl":
+        long_forms = tuple(option + "=" for option in _CURL_WRITE_OPTIONS if option.startswith("--"))
+        for argument in command[1:]:
+            if argument in _CURL_WRITE_OPTIONS or argument.startswith(long_forms):
+                return f"curl {argument.split('=', 1)[0]}"
+            if argument.startswith("--output=") and argument != "--output=/dev/null":
+                return "curl --output to a file"
+        if "--output" in command:
+            position = command.index("--output")
+            if position + 1 >= len(command) or command[position + 1] != "/dev/null":
+                return "curl --output to a file"
+        return None
+    if head != "docker" or len(command) < 2:
+        return head
+    verb = command[1]
+    if verb == "compose":
+        return _compose_problem(command)
+    if verb in _READ_ONLY_DOCKER_VERBS:
+        return None
+    if verb in _DOCKER_OBJECTS and len(command) > 2 and command[2] in _READ_ONLY_DOCKER_OBJECT_VERBS:
+        return None
+    if (
+        verb == "run"
+        and command[2:8] == ["--rm", "--network", "none", "--read-only", "--entrypoint", "cat"]
+        and len(command) == 10
+        and re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", command[8])
+    ):
+        # An ephemeral, networkless, read-only container that prints one file
+        # of an immutable image: how the cron policy shipped in a release is read.
+        return None
+    return f"docker {verb}" + (f" {command[2]}" if verb in _DOCKER_OBJECTS and len(command) > 2 else "")
+
+
+@dataclass
+class ReadOnlyRunner:
+    """A runner that executes only reads; anything else is refused unexecuted."""
+
+    inner: Runner
+    read_only: bool = True
+
+    def run(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        problem = read_only_command_problem(command, input_text)
+        if problem is not None:
+            raise RuntimeError(f"observation refused a write-capable command: {problem}")
+        return self.inner.run(command, check=check, input_text=input_text)
+
+    def run_reviewed_read(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        """Run one program that is a read by review, not by its shape.
+
+        The release-announcement audit is an ``odoo shell`` session: it can
+        write in principle, and reads in practice because its fixed program
+        never commits and the shell rolls back at exit. It is the only caller;
+        ``scripts/tests/test_usl_stack_observe.py`` fails if another appears.
+        """
+        return self.inner.run(command, check=check, input_text=input_text)
+
+    @contextmanager
+    def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
+        raise RuntimeError(f"observation refused a write-capable command: flock {path}")
+        yield  # pragma: no cover
+
+
+@contextmanager
+def observation_only():
+    """Make every target runner read-only for the duration of the block."""
+    global _OBSERVATION_ONLY
+    previous = _OBSERVATION_ONLY
+    _OBSERVATION_ONLY = True
+    try:
+        yield
+    finally:
+        _OBSERVATION_ONLY = previous
+
+
 def _exact(value: object, fields: set[str], label: str) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) != fields:
         actual = sorted(value) if isinstance(value, dict) else type(value).__name__
@@ -168,11 +327,13 @@ class Target:
     def protected(self) -> bool:
         return self.value["protected"]
 
-    def runner(self) -> CommandRunner:
+    def runner(self) -> CommandRunner | ReadOnlyRunner:
         transport = self.value["transport"]
         if transport["type"] == "local":
-            return CommandRunner()
-        return CommandRunner(("ssh", transport["host"], "--"))
+            runner = CommandRunner()
+        else:
+            runner = CommandRunner(("ssh", transport["host"], "--"))
+        return ReadOnlyRunner(runner) if _OBSERVATION_ONLY else runner
 
 
 def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:

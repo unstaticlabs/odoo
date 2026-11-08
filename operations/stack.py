@@ -2142,6 +2142,8 @@ def with_writers_paused(
 def _ensure_image(runner, image: str) -> None:
     present = runner.run(["docker", "image", "inspect", image], check=False)
     if present.returncode:
+        if getattr(runner, "read_only", False):
+            raise RuntimeError(f"image is not present on the host and observation never pulls: {image}")
         runner.run(["docker", "pull", image])
 
 
@@ -2240,10 +2242,20 @@ def _mcp_runtime_authority(target) -> dict | None:
     if target.value["environment"] == "local":
         return None
     root, gitops_commit = _gitops_root()
-    environment = target.value["environment"]
-    selected = _load_gitops_json(
-        root, f"komodo/releases/usl-odoo-{environment}-mcp.json",
+    return _mcp_authority_from_gitops(
+        target.value["environment"], gitops_commit,
+        lambda relative: _load_gitops_json(root, relative),
     )
+
+
+def _mcp_authority_from_gitops(environment: str, gitops_commit: str, load) -> dict:
+    """Derive the MCP authority from one GitOps commit's ledger and manifest.
+
+    ``load`` reads one GitOps document by its relative path. The launcher reads
+    its local pinned checkout; an observer reads the deployed run directory on
+    the host. Both reach the same digest for the same commit.
+    """
+    selected = load(f"komodo/releases/usl-odoo-{environment}-mcp.json")
     expected_fields = {
         "schema", "environment", "commit", "compatibility_sha256", "image",
         "oauth_vault_schema", "release_manifest",
@@ -2277,7 +2289,7 @@ def _mcp_runtime_authority(target) -> dict | None:
         or not re.fullmatch(r"[0-9a-f]{64}", str(compatibility_sha256))
     ):
         raise RuntimeError("GitOps MCP release identity is invalid")
-    manifest = _load_gitops_json(root, manifest_relative)
+    manifest = load(manifest_relative)
     source = manifest.get("source") or {}
     image = manifest.get("image") or {}
     compatibility = manifest.get("compatibility") or {}
@@ -2350,6 +2362,132 @@ def _candidate_mcp_authority(target, release: dict) -> dict | None:
         )
         _validate_candidate_mcp_support(release, manifest.get("compatibility") or {})
     return authority
+
+
+GITOPS_RUN_ROOT = re.compile(
+    r"(?P<root>/var/lib/usl-odoo/gitops-runs/(?P<commit>[0-9a-f]{40})\.[A-Za-z0-9._-]+)/",
+)
+
+
+def _deployed_gitops_run(target, runner, identity: dict) -> tuple[str, str]:
+    """Read which GitOps commit the running cohort was started from.
+
+    The launcher starts Compose from an immutable per-commit run directory,
+    and the running containers carry that working directory in their labels.
+    This reads it back; it never needs, and never sets, the launcher's
+    ``USL_RELEASE_GITOPS_*`` variables.
+    """
+    working = str(identity.get("working_directory") or "")
+    match = GITOPS_RUN_ROOT.match(working + "/")
+    if match is None:
+        raise RuntimeError(
+            "exact GitOps identity is missing: the running Compose project was not "
+            f"started from a pinned GitOps run ({working or 'no working directory'}); "
+            "observation reads the deployed identity and never provisions one",
+        )
+    root, commit = match["root"], match["commit"]
+    marker = runner.run(["cat", f"{root}/.usl-gitops-commit"], check=False)
+    if marker.returncode or marker.stdout.strip() != commit:
+        raise RuntimeError(f"deployed GitOps commit marker differs or is unavailable: {root}")
+    return root, commit
+
+
+def _load_deployed_gitops_json(runner, root: str, relative: str) -> dict:
+    process = runner.run(["cat", f"{root}/{relative}"], check=False)
+    if process.returncode:
+        raise RuntimeError(f"deployed GitOps release document is unavailable: {relative}")
+    try:
+        value = json.loads(process.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"deployed GitOps release document is invalid: {relative}") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"deployed GitOps release document is invalid: {relative}")
+    return value
+
+
+def _observed_mcp_authority(target, runner, identity: dict) -> tuple[dict | None, dict]:
+    """Prove the deployed MCP authority without creating or changing it.
+
+    The launcher path (``_with_mcp_runtime_authority``) writes the override and
+    appends it. An observer only checks that the running cohort was started
+    with exactly the override its GitOps commit implies, already in place as
+    the final Compose file.
+    """
+    if target.value["environment"] == "local":
+        return None, {"source": "local"}
+    if os.environ.get("USL_RELEASE_GITOPS_ROOT") or os.environ.get("USL_RELEASE_GITOPS_COMMIT"):
+        authority = _mcp_runtime_authority(target)
+        source = "launcher-gitops-checkout"
+    else:
+        root, commit = _deployed_gitops_run(target, runner, identity)
+        authority = _mcp_authority_from_gitops(
+            target.value["environment"], commit,
+            lambda relative: _load_deployed_gitops_json(runner, root, relative),
+        )
+        source = "deployed-gitops-run"
+    path = f"{target.value['state_directory']}/authorities/mcp-{authority['sha256']}.json"
+    files = identity.get("compose_files") or []
+    if not files or files[-1] != path:
+        raise RuntimeError(
+            "deployed MCP authority differs from GitOps "
+            f"{authority['gitops_commit'][:12]}: {path} is not the final Compose file",
+        )
+    process = runner.run(["cat", path], check=False)
+    try:
+        override = json.loads(process.stdout) if process.returncode == 0 else None
+    except json.JSONDecodeError:
+        override = None
+    services = override.get("services") if isinstance(override, dict) else None
+    mcp_service = target.value["services"]["mcp"]
+    if (
+        not isinstance(services, dict)
+        or set(override) != {"services"}
+        or mcp_service not in services
+        or set(services) - {mcp_service, "odoo-mcp-oauth-init"}
+        or any(value != {"image": authority["image"]} for value in services.values())
+    ):
+        raise RuntimeError(f"deployed MCP authority override is unreadable or differs: {path}")
+    return authority, {
+        "source": source,
+        "gitops_commit": authority["gitops_commit"],
+        "override": path,
+    }
+
+
+def _observed_admission_receipt(target, runner, runtime: dict) -> dict:
+    """Validate the immutable admission receipt of the running generation."""
+    generation = runtime.get("generation")
+    if target.value["environment"] == "local" or generation in {None, "adopted"}:
+        return {"status": "not-applicable", "generation": generation}
+    path = f"{target.value['state_directory']}/generations/{generation}/admission.json"
+    process = runner.run(["cat", path], check=False)
+    if process.returncode:
+        raise RuntimeError(f"generation admission receipt is unavailable: {path}")
+    try:
+        value = json.loads(process.stdout)
+    except json.JSONDecodeError as error:
+        raise RuntimeError(f"generation admission receipt is invalid: {path}") from error
+    release, _release_sha256, _release_raw = _release(target, runner, None)
+    receipt = _validate_release_boundary_receipt(
+        value,
+        schema="usl-release-admission/v1",
+        status="admitted",
+        target=target,
+        attempt=str(value.get("attempt", "")) if isinstance(value, dict) else "",
+        release=release["identity"],
+    )
+    if receipt["generation"] != generation:
+        raise RuntimeError("generation admission receipt names another generation")
+    return {
+        "status": "verified",
+        "path": path,
+        "schema": receipt["schema"],
+        "attempt": receipt["attempt"],
+        "release": receipt["release"],
+        "generation": receipt["generation"],
+        "admitted_at": receipt["admitted_at"],
+        "sha256": receipt["sha256"],
+    }
 
 
 def _with_mcp_runtime_authority(target, runner, identity: dict, authority: dict | None) -> dict:
@@ -3903,8 +4041,12 @@ def _validate_sign_readiness(value: object) -> dict:
 
 
 def _runtime_admission_evidence(target, runner, identity) -> dict:
-    authority = _mcp_runtime_authority(target)
-    identity = _with_mcp_runtime_authority(target, runner, identity, authority)
+    observation = None
+    if getattr(runner, "read_only", False):
+        authority, observation = _observed_mcp_authority(target, runner, identity)
+    else:
+        authority = _mcp_runtime_authority(target)
+        identity = _with_mcp_runtime_authority(target, runner, identity, authority)
     images = _runtime_images(runner, identity)
     expected_mcp = _independent_mcp_image(target, images, authority)
     service = target.value["services"]["mcp"]
@@ -3926,6 +4068,7 @@ def _runtime_admission_evidence(target, runner, identity) -> dict:
         "mcp_runtime": {
             "image": expected_mcp,
             "authority_sha256": None if authority is None else authority["sha256"],
+            **({} if observation is None else {"observation": observation}),
         },
         "sign": sign,
     }
@@ -4409,6 +4552,15 @@ def smoke_command(arguments: argparse.Namespace) -> int:
     for role in ("archive", "thumbnails", "tantivy", "vectors"):
         if paperless_storage[role] < 1:
             failures.append(f"paperless:{role}-missing")
+    admission = None
+    if getattr(runner, "read_only", False):
+        # A release runs smoke before it writes the receipt, so only an
+        # observer of a deployed generation can ask for it.
+        try:
+            admission = _observed_admission_receipt(target, runner, status)
+        except RuntimeError as error:
+            admission = {"status": "failed", "error": str(error)}
+            failures.append("release:admission-receipt")
     result = {
         "schema": "usl-runtime-smoke/v1",
         "target": target.name,
@@ -4419,6 +4571,7 @@ def smoke_command(arguments: argparse.Namespace) -> int:
         "cron_policy": cron_status,
         "services": service_evidence,
         "storage": {"odoo": odoo_storage, "paperless": paperless_storage},
+        **({} if admission is None else {"admission": admission}),
     }
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0 if not failures else 2
@@ -7135,7 +7288,9 @@ def _audit_announcements(target, runner) -> dict:
     network = target.value["compose"]["default_network"]
     volumes = runtime["volumes"]
     database = target.value["databases"]["odoo"]
-    result = runner.run(
+    # A read by review, not by shape: see ReadOnlyRunner.run_reviewed_read.
+    run = getattr(runner, "run_reviewed_read", runner.run)
+    result = run(
         [
             "docker", "run", "--rm", "--interactive", "--network", network,
             "--env-file", target.value["secrets"]["env_file"],

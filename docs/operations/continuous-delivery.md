@@ -356,6 +356,42 @@ The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
 inside another application image.
 
+## Read-only observation
+
+`scripts/usl-stack-observe <target> <observation>` is the agent-safe view of a
+deployed runtime. It maps six observations (`runtime`, `release`, `health`,
+`smoke`, `storage`, `announcements`) to their read-only verbs, and it runs
+them under `observation_only()`: every runner a target hands out is a
+`ReadOnlyRunner`, which refuses before execution anything outside a short list
+of reads (`cat`, `docker ps`/`inspect`, `docker compose ps`/`config`, Compose
+`exec` probes limited to `psql` SELECTs and fixed `python -c` programs, GET-only
+`curl`). Directory creation, file writes, `docker pull`, locks, Compose
+lifecycle verbs and any command with standard input fail with
+`observation refused a write-capable command: <verb>`. The one exception is the
+announcement audit's `odoo shell`, routed through `run_reviewed_read` because
+its program never commits and the shell rolls back at exit;
+`scripts/tests/test_observation_read_only.py` fails if a second caller appears.
+
+Health and smoke share their MCP check with releases. A release provisions the
+authority override (`authorities/mcp-<sha256>.json`) from the launcher's
+pinned GitOps checkout. An observer does not have that checkout, which is why
+`smoke` used to stop with "exact GitOps identity is missing", and it must not
+provision anything. It reads the identity the running cohort was started from
+instead: the Compose working directory names the immutable
+`gitops-runs/<commit>.<id>` run, whose `.usl-gitops-commit` marker, MCP ledger
+and manifest it reads back to derive the authority digest. It then requires
+that exact override to be the final Compose file and to name the GitOps MCP
+image. A working directory outside a pinned run reports the missing identity
+and attempts nothing.
+
+`smoke` under observation also validates the immutable receipt of the running
+generation, `generations/<generation>/admission.json`: schema, `admitted`
+status, target, the active release identity, the generation and the receipt's
+own digest. A GitHub deployment marked `success` says the launcher reported a
+release; the receipt check is the independent proof that the host admitted
+that release in that generation. The retained `control-plane-execution.json`
+artifact lives with the GitOps pipeline, not on the host, and is not read here.
+
 ## Rollout of the production planner
 
 The native production planner rolled out on 2026-09-06 with release
