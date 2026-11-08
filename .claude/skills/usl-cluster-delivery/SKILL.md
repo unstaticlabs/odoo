@@ -214,12 +214,14 @@ invisible to a running container without a restart or `?debug=assets`. That has
 already cost one wasted before/after pair.
 
 Capture with the helper — headless, so no address bar, tab strip or local path
-reaches the image, and it rewrites the PNG to carry only IHDR, IDAT and IEND:
+reaches the image, and it rewrites the PNG to carry only IHDR, IDAT and IEND.
+Write it outside the worktree: captures are evidence for the pull request, not
+files of the repository.
 
 ```bash
 node ~/.claude/scheduled-tasks/usl-monday-feedback-burn/qa-screenshot.mjs \
   --url "http://localhost:$HTTP_PORT/odoo/<path>" \
-  --out "docs/product/screenshots/<area>/<name>-desktop.png" \
+  --out "$QA_CAPTURES/<area>/<name>-desktop.png" \
   --viewport desktop --login "<user>:<password>" --db "$DB" \
   --wait-for-selector "<selector that proves the page is ready>" \
   --scenario "<who is doing what>" --expected "<what the reader should see>"
@@ -229,10 +231,13 @@ Always pass `--wait-for-selector`. The helper verifies its own login now, but th
 selector is what proves the *page* is the one you meant.
 
 It writes a `.meta.json` sidecar with viewport, user, scenario and expected result
-— **quote it in your handoff, never commit it.** Commit the PNG under
-`docs/product/screenshots/<area>/` and follow that directory's README.
+— **quote it in your handoff, never commit it.** The PNG is not committed either:
+upload it into the pull request body (drag it into the description in the browser;
+GitHub returns a `https://github.com/user-attachments/assets/...` URL) and caption it
+there. Nothing is added under `docs/`; the capture folders that used to live there
+are archived under `docs/archive/product/`.
 
-Look at every image before committing it. No production records, contact details,
+Look at every image before uploading it. No production records, contact details,
 financial data, credentials or local paths.
 
 ### 7. Commit, push, open a draft PR
@@ -254,8 +259,8 @@ gh pr create --repo unstaticlabs/odoo --draft --base 19-usl-staging \
   --title "<conventional commit subject>" --body-file <path>
 ```
 
-Write the body per `.claude/skills/usl-lead-review/pr-body.md`. Embed screenshots as
-`https://github.com/unstaticlabs/odoo/blob/<commit sha>/<path>?raw=true`.
+Write the body per `.claude/skills/usl-lead-review/pr-body.md`. Upload the
+screenshots into the body; they are evidence of the PR and are not committed.
 
 **Never push to `19-usl` or `19-usl-staging`.** A pre-push hook refuses it, and it
 is right to.
@@ -268,7 +273,8 @@ is right to.
 4. **Test evidence** — failing before, passing after, failing again when reverted.
 5. **Action-risk** — digests moved, your classification for each, and any drift you
    refused to absorb.
-6. **Screenshots** — path, viewport, user, scenario, expected result for each.
+6. **Screenshots** — PR-body attachment URL, viewport, user, scenario, expected
+   result for each.
 7. **Risks, and what you deliberately did not do.**
 8. **Every place this brief was wrong**, unclear or missing a step. Be specific:
    the command, what it did, what the brief said it would do. The brief's defects

@@ -28,9 +28,11 @@ drive-by formatting all cost review attention and hide the real change.
 
 ## Screenshots, as journeys
 
-Each arrives with a viewport, a user, a scenario and an expected result. Read it as
-the person in that scenario, against `DESIGN.md` and
-`.agents/skills/odoo-ui-product-quality`.
+Each arrives with a viewport, a user, a scenario and an expected result, as an
+image uploaded into the pull request body. Captures are no longer committed under
+`docs/`; a PNG added there is a leftover of the old convention, so ask for it to be
+moved into the body. Read each one as the person in that scenario, against
+`DESIGN.md` and `.agents/skills/odoo-ui-product-quality`.
 
 - Does the image actually show the scenario it claims? A screenshot of a login page
   captioned as a signed-in journey is fabricated evidence, and it has nearly
