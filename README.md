@@ -30,7 +30,7 @@ make rebuild                       # rebuild after image or dependency changes
 make logs SERVICE=odoo
 make stop                          # stop containers and preserve data
 make accounting-addon-tests
-make user-docs-build
+make docs-check                    # front matter, links and sources of the user guide
 make product-migration-boundary    # a finalized database carries no migration module
 ```
 
@@ -45,6 +45,8 @@ local artifacts and must never be committed.
 
 - [`AGENTS.md`](AGENTS.md): repository boundaries, invariants, development and
   delivery conventions.
+- [`docs/README.md`](docs/README.md): the four documentation areas, the page
+  schema and the commands that generate and check the user guide.
 - [Product specifications](docs/product/README.md)
 - [Accounting specifications](docs/accounting/README.md)
 - [Operations](docs/operations/README.md): production, releases, backup and

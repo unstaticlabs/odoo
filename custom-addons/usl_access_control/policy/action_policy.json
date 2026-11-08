@@ -5763,6 +5763,7 @@
         "route:http:ANY:/usl/user-docs",
         "route:http:ANY:/usl/user-docs/",
         "route:http:ANY:/usl/user-docs/<path:doc_path>",
+        "route:http:ANY:/usl/user-docs/evidence/<string:journey>",
         "route:http:GET,POST:/my/journal/<int:journal_id>/unsubscribe",
         "route:http:GET:/my/invoices/overdue",
         "route:http:GET:/payment/pay",
@@ -12183,9 +12184,10 @@
         "route:http:ANY:/my/invoices/<int:invoice_id>": "e42613684f6770934255b11f70f6285b36168b1e0d5b69914ab8dd5062db48d9",
         "route:http:ANY:/my/invoices/page/<int:page>": "dddf4d7e599c38c6de7d96392f74a5c95797f293d450775b32e837c521876160",
         "route:http:ANY:/terms": "67ff9f3d780f6ae5b4a2f97b92bd45d8e4b0e1a5d0186370b604107bb7126d61",
-        "route:http:ANY:/usl/user-docs": "e6964c12f0f339ff4d3c833b73090c3328993d60abfef4d8d6fa26ea0575cc4b",
-        "route:http:ANY:/usl/user-docs/": "95f5ff1557e13bc987ca7ca7ad082bbc30c10ee8179db76130e12948a7c18a2b",
-        "route:http:ANY:/usl/user-docs/<path:doc_path>": "c6833b6cd47e0dc02ad189f69a122359e4e72ed52a3a4d0f7795c1603d9e51ab",
+        "route:http:ANY:/usl/user-docs": "a24b05e8d770ddbdab5f83f7e87b9b7e5f5721cf951c5305fef4bc74011dd3de",
+        "route:http:ANY:/usl/user-docs/": "4b64b6bf2bd8776f22a8d92cab20d3e6d166cccb878ef9f136b7c074642c70f3",
+        "route:http:ANY:/usl/user-docs/<path:doc_path>": "5ccaf9a7fc3aed58706708ba287776ed48ba5fb14378e510f65f7f77e9764700",
+        "route:http:ANY:/usl/user-docs/evidence/<string:journey>": "c6af04f6e062f3a6c8500d8af239ec6b517e14b0f889a3dc60a4eab21c537a2b",
         "route:http:GET,POST:/my/journal/<int:journal_id>/unsubscribe": "f54a3c59ef385797cb8e5123181f8a8948bb8c7bef2229f01372e5717cb2f8da",
         "route:http:GET:/my/invoices/overdue": "c2721dc25abb1ae979c214510a312754be1ecc41243f289ff60fd8b40fac1e35",
         "route:http:GET:/payment/pay": "94057d46455c16e5778de00a461db6edb3528f5ad7c54e978d564e85d43e03f9",
@@ -33064,6 +33066,8 @@
         "rpc:update.product.attribute.value.mail_get_partner_fields",
         "rpc:usl.audit.event.mail_allowed_qweb_expressions",
         "rpc:usl.audit.event.mail_get_partner_fields",
+        "rpc:usl.docs.guide.mail_allowed_qweb_expressions",
+        "rpc:usl.docs.guide.mail_get_partner_fields",
         "rpc:usl.document.action_open_links",
         "rpc:usl.document.action_reschedule_my_next_nextweek",
         "rpc:usl.document.action_reschedule_my_next_today",
@@ -36915,6 +36919,8 @@
         "rpc:update.product.attribute.value.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.audit.event.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.audit.event.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.docs.guide.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.docs.guide.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.document.action_open_links": "5f8b56ef3b092156669e7a521f5b3309ff276b90b1bd1f99dc5d4a6f33f55f41",
         "rpc:usl.document.action_reschedule_my_next_nextweek": "1f8b565136e347fa9e15542d23e050e09462ec69985f610715ed95b84dcef46f",
         "rpc:usl.document.action_reschedule_my_next_today": "62336990f6e0800dc3d5955fc8a573fc20ef2c3a47c7bbe0e75645730322f206",
@@ -55149,6 +55155,41 @@
         "rpc:usl.audit.event.view_header_get",
         "rpc:usl.audit.event.web_name_search",
         "rpc:usl.audit.event.web_read",
+        "rpc:usl.docs.guide.action_archive",
+        "rpc:usl.docs.guide.action_unarchive",
+        "rpc:usl.docs.guide.check_field_access",
+        "rpc:usl.docs.guide.copy_translations",
+        "rpc:usl.docs.guide.default_get",
+        "rpc:usl.docs.guide.export_data",
+        "rpc:usl.docs.guide.fields_get",
+        "rpc:usl.docs.guide.formatted_read_group",
+        "rpc:usl.docs.guide.get_base_url",
+        "rpc:usl.docs.guide.get_empty_list_help",
+        "rpc:usl.docs.guide.get_external_id",
+        "rpc:usl.docs.guide.get_field_translations",
+        "rpc:usl.docs.guide.get_formview_action",
+        "rpc:usl.docs.guide.get_formview_id",
+        "rpc:usl.docs.guide.get_import_templates",
+        "rpc:usl.docs.guide.get_metadata",
+        "rpc:usl.docs.guide.get_property_definition",
+        "rpc:usl.docs.guide.has_access",
+        "rpc:usl.docs.guide.has_field_access",
+        "rpc:usl.docs.guide.hierarchy_read",
+        "rpc:usl.docs.guide.list_pages",
+        "rpc:usl.docs.guide.load",
+        "rpc:usl.docs.guide.name_search",
+        "rpc:usl.docs.guide.read",
+        "rpc:usl.docs.guide.read_page",
+        "rpc:usl.docs.guide.read_progress_bar",
+        "rpc:usl.docs.guide.search",
+        "rpc:usl.docs.guide.search_count",
+        "rpc:usl.docs.guide.search_pages",
+        "rpc:usl.docs.guide.search_panel_select_multi_range",
+        "rpc:usl.docs.guide.search_panel_select_range",
+        "rpc:usl.docs.guide.search_read",
+        "rpc:usl.docs.guide.view_header_get",
+        "rpc:usl.docs.guide.web_name_search",
+        "rpc:usl.docs.guide.web_read",
         "rpc:usl.document.action_archive",
         "rpc:usl.document.action_unarchive",
         "rpc:usl.document.check_field_access",
@@ -57227,6 +57268,18 @@
         "rpc:ir.actions.report.barcode": {
           "evidence_id": "upstream-sync-20261015",
           "rationale": "Reviewed attachment writable reuse, shared-filter context sanitization, imported-module upgrade exclusion, partner-merge cross-company linked-user check, barcode transaction-local cache and fixed translation-language metadata. Lifecycle/protected root guards remain at their existing exact boundaries. New AST sink nodes have no separate RPC/controller entry; their reviewed parent owns authority."
+        },
+        "rpc:usl.docs.guide.list_pages": {
+          "evidence_id": "read-only-no-sink-v1",
+          "rationale": "Reads the committed user guide (docs/users) for internal users only: search_pages ranks pages for a query, read_page returns one page's front matter, Markdown and journey facts, list_pages returns the index with the release's test evidence. usl.docs.guide is an abstract model with no table; nothing is written."
+        },
+        "rpc:usl.docs.guide.read_page": {
+          "evidence_id": "read-only-no-sink-v1",
+          "rationale": "Reads the committed user guide (docs/users) for internal users only: search_pages ranks pages for a query, read_page returns one page's front matter, Markdown and journey facts, list_pages returns the index with the release's test evidence. usl.docs.guide is an abstract model with no table; nothing is written."
+        },
+        "rpc:usl.docs.guide.search_pages": {
+          "evidence_id": "read-only-no-sink-v1",
+          "rationale": "Reads the committed user guide (docs/users) for internal users only: search_pages ranks pages for a query, read_page returns one page's front matter, Markdown and journey facts, list_pages returns the index with the release's test evidence. usl.docs.guide is an abstract model with no table; nothing is written."
         }
       },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
@@ -65392,6 +65445,41 @@
         "rpc:usl.audit.event.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:usl.audit.event.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:usl.audit.event.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.docs.guide.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.docs.guide.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.docs.guide.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.docs.guide.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.docs.guide.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.docs.guide.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.docs.guide.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.docs.guide.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.docs.guide.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.docs.guide.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.docs.guide.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.docs.guide.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.docs.guide.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.docs.guide.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.docs.guide.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.docs.guide.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.docs.guide.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.docs.guide.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.docs.guide.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.docs.guide.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+        "rpc:usl.docs.guide.list_pages": "a784e22d256b81d3721a9980cfcd46a86e084a0859c82cfc63ede488876ac7ba",
+        "rpc:usl.docs.guide.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.docs.guide.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.docs.guide.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.docs.guide.read_page": "85ef2dfc738526f67ede860634b1ad9095dd73896ebeb6d49847f97b75ce97be",
+        "rpc:usl.docs.guide.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.docs.guide.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.docs.guide.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.docs.guide.search_pages": "5c839d7936e666f5123633ff345ecca50dd5b950677d93748c3273a36a5253f3",
+        "rpc:usl.docs.guide.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.docs.guide.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.docs.guide.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.docs.guide.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.docs.guide.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.docs.guide.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.document.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.document.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.document.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
@@ -113422,6 +113510,10 @@
         "rpc:update.product.attribute.value.write",
         "rpc:usl.audit.event.create",
         "rpc:usl.audit.event.get_view",
+        "rpc:usl.docs.guide.create",
+        "rpc:usl.docs.guide.get_view",
+        "rpc:usl.docs.guide.unlink",
+        "rpc:usl.docs.guide.write",
         "rpc:usl.document.create",
         "rpc:usl.document.download.grant.audit.create",
         "rpc:usl.document.download.grant.audit.get_view",
@@ -120114,6 +120206,18 @@
         "rpc:usl.audit.event.get_view": {
           "reversal_action": "rpc:usl.audit.event.write"
         },
+        "rpc:usl.docs.guide.create": {
+          "reversal_action": "rpc:usl.docs.guide.unlink"
+        },
+        "rpc:usl.docs.guide.get_view": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.unlink": {
+          "reversal_action": "rpc:usl.docs.guide.create"
+        },
+        "rpc:usl.docs.guide.write": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
         "rpc:usl.document.create": {
           "reversal_action": "rpc:usl.document.unlink"
         },
@@ -122857,6 +122961,10 @@
         "rpc:update.product.attribute.value.write": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
         "rpc:usl.audit.event.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
         "rpc:usl.audit.event.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.docs.guide.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+        "rpc:usl.docs.guide.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.docs.guide.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+        "rpc:usl.docs.guide.write": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
         "rpc:usl.document.create": "c466498a5e52b647f40db0556d73324afafb33e0fca6b893c5f718f755093aaa",
         "rpc:usl.document.download.grant.audit.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
         "rpc:usl.document.download.grant.audit.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -126589,6 +126697,19 @@
         "rpc:usl.audit.event.web_save",
         "rpc:usl.audit.event.web_save_multi",
         "rpc:usl.audit.event.web_search_read",
+        "rpc:usl.docs.guide.copy",
+        "rpc:usl.docs.guide.copy_data",
+        "rpc:usl.docs.guide.get_views",
+        "rpc:usl.docs.guide.name_create",
+        "rpc:usl.docs.guide.onchange",
+        "rpc:usl.docs.guide.onchange_batch",
+        "rpc:usl.docs.guide.update_field_translations",
+        "rpc:usl.docs.guide.web_override_translations",
+        "rpc:usl.docs.guide.web_read_group",
+        "rpc:usl.docs.guide.web_resequence",
+        "rpc:usl.docs.guide.web_save",
+        "rpc:usl.docs.guide.web_save_multi",
+        "rpc:usl.docs.guide.web_search_read",
         "rpc:usl.document.copy",
         "rpc:usl.document.copy_data",
         "rpc:usl.document.download.grant.audit.copy",
@@ -137368,6 +137489,46 @@
         "rpc:usl.audit.event.web_search_read": {
           "reversal_action": "rpc:usl.audit.event.write"
         },
+        "rpc:usl.docs.guide.copy": {
+          "reversal_action": "rpc:usl.docs.guide.unlink"
+        },
+        "rpc:usl.docs.guide.copy_data": {
+          "reversal_action": "rpc:usl.docs.guide.unlink"
+        },
+        "rpc:usl.docs.guide.get_views": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.name_create": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.onchange": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.onchange_batch": {
+          "rationale": "Upstream f19b0477d200 adds the @api.model onchange_batch helper on the base model. It asserts an empty recordset and loops the exact same model's onchange over each value dictionary; it persists nothing of its own. Classified identically to that model's reviewed onchange action, whose access check and reversal it inherits unchanged.",
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.update_field_translations": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_override_translations": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_read_group": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_resequence": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_save": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_save_multi": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
+        "rpc:usl.docs.guide.web_search_read": {
+          "reversal_action": "rpc:usl.docs.guide.write"
+        },
         "rpc:usl.document.copy": {
           "reversal_action": "rpc:usl.document.unlink"
         },
@@ -143197,6 +143358,19 @@
         "rpc:usl.audit.event.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:usl.audit.event.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:usl.audit.event.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:usl.docs.guide.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.docs.guide.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.docs.guide.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.docs.guide.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.docs.guide.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.docs.guide.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:usl.docs.guide.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.docs.guide.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.docs.guide.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.docs.guide.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.docs.guide.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.docs.guide.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.docs.guide.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.document.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.document.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:usl.document.download.grant.audit.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -185642,6 +185816,30 @@
     },
     {
       "action_keys": [
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:load_evidence:sudo:1",
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:release_commit:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Runs only as an internal helper, detected sink, or scheduler-owned job rather than an ordinary actor entry point.",
+      "domain": "system_framework",
+      "evidence_id": "internal-reachability-v1",
+      "id": "system_internal.system_framework.sink.usl_docs",
+      "overrides": {
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:load_evidence:sudo:1": {
+          "reachability_proof": "This private helper reads the docs evidence the deployment injects, or the usl.docs.evidence parameter with sudo, so the guide can show when a page's journey last passed; it writes nothing. It is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: route:http:ANY:/usl/user-docs, route:http:ANY:/usl/user-docs/, route:http:ANY:/usl/user-docs/<path:doc_path>, route:http:ANY:/usl/user-docs/evidence/<string:journey>, rpc:usl.docs.guide.read_page, rpc:usl.docs.guide.list_pages"
+        },
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:release_commit:sudo:1": {
+          "reachability_proof": "This private helper reads the usl.release.commit parameter with sudo so the guide can link sources and the test record at the running release; it writes nothing. It is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: route:http:ANY:/usl/user-docs, route:http:ANY:/usl/user-docs/, route:http:ANY:/usl/user-docs/<path:doc_path>, route:http:ANY:/usl/user-docs/evidence/<string:journey>, rpc:usl.docs.guide.read_page, rpc:usl.docs.guide.list_pages"
+        }
+      },
+      "rationale": "Runtime registry and source reachability facts provide no direct ordinary RPC/controller access; any reviewed parent or manual scheduler entry is classified separately.",
+      "reviewed_digests": {
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:load_evidence:sudo:1": "4a6bcaf7a8cd709753ce5fa6b43e11d00bc75dba78b54a09bcdff2864c761bf3",
+        "sink:usl_docs:custom-addons/usl_docs/tools/guide.py:release_commit:sudo:1": "dd6329fb8aa171e55b7669bd1901027d6a622c561acea1ad2bdc0fcc4d1728a7"
+      }
+    },
+    {
+      "action_keys": [
         "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:orm_write:1",
         "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:sudo:1",
         "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1",
@@ -201707,7 +201905,6 @@
       "domain": "security_and_administration",
       "evidence_id": "notification-productivity-20261014",
       "id": "notifications.1",
-      "overrides": {},
       "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
       "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
       "reviewed_digests": {
@@ -201723,7 +201920,6 @@
       "domain": "security_and_administration",
       "evidence_id": "notification-productivity-20261014",
       "id": "notifications.2",
-      "overrides": {},
       "rationale": "Private native recipient helper reads identity metadata; it grants no business access and changes no stored groups or existing mail queue.",
       "reachability_proof": "Private mail.thread._notify_get_recipients is not RPC-callable. Native message delivery invokes it after source-record access and follower/explicit-recipient selection; sudo reads only identity metadata, does not expose new recipients or grant source access.",
       "reviewed_digests": {
@@ -202477,6 +202673,7 @@
         "rpc:usl.agent.key.wizard.formatted_read_grouping_sets",
         "rpc:usl.agent.transfer.wizard.formatted_read_grouping_sets",
         "rpc:usl.audit.event.formatted_read_grouping_sets",
+        "rpc:usl.docs.guide.formatted_read_grouping_sets",
         "rpc:usl.document.context.tag.formatted_read_grouping_sets",
         "rpc:usl.document.download.grant.audit.formatted_read_grouping_sets",
         "rpc:usl.document.download.grant.formatted_read_grouping_sets",
@@ -203278,6 +203475,7 @@
         "rpc:usl.agent.key.wizard.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:usl.agent.transfer.wizard.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:usl.audit.event.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+        "rpc:usl.docs.guide.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:usl.document.context.tag.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:usl.document.download.grant.audit.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:usl.document.download.grant.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",

@@ -386,6 +386,45 @@ class ReleaseManifestTests(unittest.TestCase):
         }
         self.assertEqual(validate(value)["schema"], "usl-release/v2")
 
+    def test_carries_and_validates_the_user_guide_evidence(self) -> None:
+        from operations.docs import evidence as docs_evidence
+
+        release = manifest()
+        commit = release["source"]["commit"]
+        evidence = docs_evidence.recovery(repository="unstaticlabs/odoo", commit=commit)
+        release["qualification"]["docs_evidence"] = evidence
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        validate(release, commit=commit)
+        tampered = json.loads(json.dumps(release))
+        tampered["qualification"]["docs_evidence"]["mode"] = "qualification"
+        del tampered["identity"]
+        tampered["identity"] = hashlib.sha256(json.dumps(tampered, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "docs evidence is invalid"):
+            validate(tampered, commit=commit)
+        other = docs_evidence.recovery(repository="unstaticlabs/odoo", commit="f" * 40)
+        release["qualification"]["docs_evidence"] = other
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
+            validate(release, commit=commit)
+
+    def test_accepts_the_evidence_a_production_release_adopted_by_tree(self) -> None:
+        from operations.docs import evidence as docs_evidence
+
+        release = manifest()
+        commit = release["source"]["commit"]
+        qualified_elsewhere = docs_evidence.recovery(repository="unstaticlabs/odoo", commit="f" * 40)
+        release["qualification"]["docs_evidence"] = docs_evidence.stamp_release(qualified_elsewhere, commit)
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        self.assertEqual(validate(release, commit=commit)["source"]["commit"], commit)
+        release["qualification"]["docs_evidence"] = docs_evidence.stamp_release(qualified_elsewhere, "e" * 40)
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
+            validate(release, commit=commit)
+
     def test_rejects_release_from_non_release_branch(self) -> None:
         value = manifest()
         value["source"]["ref"] = "refs/heads/feature"
