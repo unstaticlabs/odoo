@@ -1,0 +1,69 @@
+{
+  "journey": "run-the-electronic-invoice-reception-self-check",
+  "lang": "en",
+  "login": "einvoice.manager@example.invalid",
+  "persona": "administrator",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.rebuild_account_migration.tests.test_einvoice_journeys.TestEinvoiceJourneys.test_run_the_electronic_invoice_reception_self_check",
+  "source_test_file": {
+    "line": 24,
+    "path": "custom-addons/rebuild_account_migration/tests/test_einvoice_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 3,
+    "path": "custom-addons/rebuild_account_migration/static/tests/tours/einvoice_reception_tours.js",
+    "steps": {
+      "companies": 6,
+      "passed": 23,
+      "run_check": 17,
+      "setup": 12
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Open the company's electronic-invoice setup",
+      "id": "companies",
+      "index": 1,
+      "run": "click",
+      "screenshot": "01-companies.png",
+      "sha256": "c92e41a3aef6a277a2fc9bd1d4e3d78d9c1c92cf61e6acc493534609746271a2",
+      "text": "Open **Accounting > Configuration > Electronic Invoicing**. Each company you may act in is listed with its reception status. Choose the company.",
+      "trigger": ".o_list_view .o_data_row td[name='name']"
+    },
+    {
+      "assertion": "The focused setup screen is open",
+      "id": "setup",
+      "index": 2,
+      "run": "",
+      "screenshot": "02-setup.png",
+      "sha256": "c92e41a3aef6a277a2fc9bd1d4e3d78d9c1c92cf61e6acc493534609746271a2",
+      "text": "The setup screen gathers what reception needs: the journals, the accounts, the approved platform and the last self-check.",
+      "trigger": "button[name='action_rebuild_run_einvoice_acceptance_test']"
+    },
+    {
+      "assertion": "Run the safe reception self-check",
+      "id": "run_check",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Run self-check**. Odoo receives a representative electronic invoice through the whole reception path, then discards every record it created.",
+      "trigger": "button[name='action_rebuild_run_einvoice_acceptance_test']"
+    },
+    {
+      "assertion": "The self-check passed without retaining test accounting",
+      "id": "passed",
+      "index": 4,
+      "run": "",
+      "screenshot": "03-passed.png",
+      "sha256": "42537a6f5ff68e3a0155c706c1dd3f93fe371711adec309da9c58c7aba76504b",
+      "text": "**Reception is ready** confirms the check passed; the setup screen shows when it last passed and that nothing was kept. Run it again after any change to the journals, the accounts or the platform.",
+      "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test passed')"
+    }
+  ],
+  "title": "Run the electronic-invoice reception self-check",
+  "tour": "usl_einvoice_manager_reception",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

@@ -1,0 +1,100 @@
+{
+  "journey": "review-a-batch-before-submitting",
+  "lang": "en",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_review_a_batch_before_submitting",
+  "source_test_file": {
+    "line": 50,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 125,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "analytics": 134,
+      "approved": 200,
+      "batch": 128,
+      "check-the-receipt-on-an-expense": 255,
+      "context_action": 140,
+      "entries": 218,
+      "evidence": 228,
+      "exception": 146,
+      "history": 240,
+      "no_actions": 234,
+      "no_trash": 152,
+      "post": 205,
+      "post_entries": 211,
+      "reconciliation": 246,
+      "remove": 158
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The Batch opens on the focused review surface",
+      "id": "batch",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-batch.png",
+      "sha256": "8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7",
+      "text": "Open **Expenses > Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
+      "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link:contains('Expenses'))"
+    },
+    {
+      "assertion": "Shared analytics stay editable while the Batch is open",
+      "id": "analytics",
+      "index": 2,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "The analytic distribution of the Batch is shared by its lines. Change it here and every line that follows the Batch follows the change.",
+      "trigger": ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)"
+    },
+    {
+      "assertion": "The context action explains its safe preview behavior",
+      "id": "context_action",
+      "index": 3,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**Apply context** previews what would change before it changes anything; a line with its own explicit choice is left alone.",
+      "trigger": "button[name='action_open_context_wizard'][data-tooltip*='Line-specific choices remain unchanged']"
+    },
+    {
+      "assertion": "A real line exception has a compact, specific helper",
+      "id": "exception",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-exception.png",
+      "sha256": "8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7",
+      "text": "A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.",
+      "trigger": ".o_usl_batch_attention[title*='differ from Batch analytics']"
+    },
+    {
+      "assertion": "The expense list has no destructive trash control",
+      "id": "no_trash",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Nothing in the list deletes an expense.",
+      "trigger": ".o_field_widget[name='expense_ids'] .o_list_table:not(:has(.o_list_record_remove))"
+    },
+    {
+      "assertion": "Removal is the single explicit line action",
+      "id": "remove",
+      "index": 6,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**Remove from Batch** is the only line action: the expense goes back to your work list unchanged, ready for another Batch.",
+      "trigger": ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']:contains('Remove from Batch')"
+    }
+  ],
+  "title": "Review a Batch before submitting it",
+  "tour": "usl_expense_batch_focused_review",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

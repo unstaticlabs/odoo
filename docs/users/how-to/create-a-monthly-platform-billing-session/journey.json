@@ -1,0 +1,166 @@
+{
+  "journey": "create-a-monthly-platform-billing-session",
+  "lang": "en",
+  "login": "platform_billing_browser_operator",
+  "persona": "finance_operator",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_platform_billing.tests.test_platform_billing_journeys.TestPlatformBillingJourneys.test_create_a_monthly_platform_billing_session",
+  "source_test_file": {
+    "line": 26,
+    "path": "custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 3,
+    "path": "custom-addons/usl_platform_billing/static/tests/tours/platform_billing_tours.js",
+    "steps": {
+      "add_payout": 77,
+      "check": 150,
+      "confirm_coverage": 174,
+      "coverage": 168,
+      "create": 16,
+      "documents": 208,
+      "draft": 196,
+      "generate": 156,
+      "moves": 238,
+      "net_amount": 143,
+      "no_payment": 243,
+      "open_moves": 232,
+      "paid": 226,
+      "period": 52,
+      "post": 162,
+      "post_documents": 214,
+      "posted": 180,
+      "preflight": 202,
+      "reconcile": 220,
+      "reconcile_later": 186,
+      "sessions": 6
+    }
+  },
+  "steps": [
+    {
+      "assertion": "No session filter is selected by default",
+      "id": "sessions",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-sessions.png",
+      "sha256": "3b215c1a13142880706b704277e60012aee8511fbf0887c2b4f302d082a3514e",
+      "text": "Open **Platform billing > Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
+      "trigger": ".o_control_panel:not(:has(.o_searchview_facet))"
+    },
+    {
+      "assertion": "Create a monthly platform billing session",
+      "id": "create",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **New**.",
+      "trigger": ".o_list_button_add"
+    },
+    {
+      "assertion": "The historical French session name is suggested",
+      "id": "period",
+      "index": 3,
+      "run": "",
+      "screenshot": "02-period.png",
+      "sha256": "1de9e4486682bb9980debff62f2b9df5b78fb3eaf542eba70be1a91013e1beeb",
+      "text": "Pick the **billing period**: the first day of the month you are closing. Odoo names the session after the month, in French as the history always has, and proposes the month-end as invoice date.",
+      "trigger": ".o_field_widget[name='name'] input:value('Août 2026')"
+    },
+    {
+      "assertion": "Add the platform payout",
+      "id": "add_payout",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Under **Payouts**, choose **Add a line** for each platform that reported a payout this month.",
+      "trigger": "div[name='payout_ids'] .o_field_x2many_list_row_add button"
+    },
+    {
+      "assertion": "Enter the platform net amount",
+      "id": "net_amount",
+      "index": 5,
+      "run": "edit 80",
+      "screenshot": "03-net_amount.png",
+      "sha256": "80f086a8e006ed9ad1afe16bdfe48e823908550876322e0db3dbcc5670a3fb3f",
+      "text": "Pick the platform, the payout date and the platform's own reference, then enter the **net amount** the platform reported. The gross revenue and the commission are derived from the platform's rate.",
+      "trigger": ".o_selected_row .o_field_widget[name='net_platform_amount'] input"
+    },
+    {
+      "assertion": "Save through the real form and run the accounting checks",
+      "id": "check",
+      "index": 6,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Check**. The session is saved and the accounting checks run: platforms, journals, products and amounts must all be in place before anything is generated.",
+      "trigger": "button[name='action_check']"
+    },
+    {
+      "assertion": "Generate customer invoice and commission bill drafts",
+      "id": "generate",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Generate documents**: one customer invoice for the revenue and one bill for the commission, per payout, in draft.",
+      "trigger": "button[name='action_generate_documents']"
+    },
+    {
+      "assertion": "Post the monthly accounting documents",
+      "id": "post",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Post documents**.",
+      "trigger": "button[name='action_post_documents']"
+    },
+    {
+      "assertion": "Incomplete active-platform coverage is clearly identified",
+      "id": "coverage",
+      "index": 9,
+      "run": "",
+      "screenshot": "04-coverage.png",
+      "sha256": "37beacc99239759cd133d4baf5186ff8e0696272cbca6cdacfbd813e374376b5",
+      "text": "When an active platform has no payout this month, Odoo says which one before posting. This is the moment to add a forgotten line.",
+      "trigger": ".modal .alert:contains('Browser platform without August payout')"
+    },
+    {
+      "assertion": "Confirm the deliberate monthly coverage exception",
+      "id": "confirm_coverage",
+      "index": 10,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Confirm when the gap is deliberate, for example a platform that pays quarterly.",
+      "trigger": ".modal button[name='action_confirm']"
+    },
+    {
+      "assertion": "The delayed payout stays posted and open",
+      "id": "posted",
+      "index": 11,
+      "run": "",
+      "screenshot": "05-posted.png",
+      "sha256": "2b7fd99cdfab79c64d92a52c1fe637a7af9161841cb52e104c5d7f586385d80e",
+      "text": "The session is **Posted**. A payout whose money has not arrived stays open; the invoice is posted and waits for the bank.",
+      "trigger": ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current"
+    },
+    {
+      "assertion": "Bank reconciliation remains available for the later receipt",
+      "id": "reconcile_later",
+      "index": 12,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**Reconcile bank** stays available: come back when the receipt shows on the bank statement.",
+      "trigger": "button[name='action_reconcile_bank']"
+    }
+  ],
+  "title": "Create and post a monthly platform billing session",
+  "tour": "usl_platform_billing_operator_creation_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

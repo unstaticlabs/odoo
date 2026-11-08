@@ -1,0 +1,134 @@
+{
+  "journey": "send-feedback-from-any-page",
+  "lang": "en",
+  "login": "feedback-tour-testfeedbackjourneys",
+  "persona": "everyone",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_feedback.tests.test_feedback_journeys.TestFeedbackJourneys.test_send_feedback_from_any_page",
+  "source_test_file": {
+    "line": 27,
+    "path": "custom-addons/usl_feedback/tests/test_feedback_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 139,
+    "path": "custom-addons/usl_feedback/static/tests/tours/feedback_tour.js",
+    "steps": {}
+  },
+  "steps": [
+    {
+      "assertion": "Open the native notifications drawer",
+      "id": "open_drawer",
+      "index": 1,
+      "run": "click",
+      "screenshot": "01-open_drawer.png",
+      "sha256": "f078fb8fc78cdd3cec29e26d13f0312029944f6be991317aa57e13dddf47a837",
+      "text": "Open the **Messages** drawer from the top bar. **Feedback** sits beside **New Message** in every tab.",
+      "trigger": ".o_menu_systray i[aria-label='Messages']"
+    },
+    {
+      "assertion": "Open Feedback",
+      "id": "open_feedback",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Feedback**.",
+      "trigger": ".o-usl-FeedbackButton"
+    },
+    {
+      "assertion": "The drawer closes and a native floating conversation opens",
+      "id": "conversation",
+      "index": 3,
+      "run": "",
+      "screenshot": "02-conversation.png",
+      "sha256": "7b96c4ca832900e2660cb2b588e7a8b72317fd54940e9dbe69311edd6b381c0a",
+      "text": "The drawer closes and a floating conversation opens, like a chat. Odoo prepares a preview of the page you are on; it stays on your computer until you decide to send it.",
+      "trigger": ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "Describe the issue",
+      "id": "describe",
+      "index": 4,
+      "run": "edit The desktop status is unclear after reload.",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Describe what you saw and what you expected, in your own words. One message is enough; the product team asks if it needs more.",
+      "trigger": ".o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "The page-details choice is explicit before sending",
+      "id": "context_off",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**Page details** is ticked when the screen you are on gives useful context: the action, the record you can read, the company and the release, never the address, form values or passwords. Untick it when the page does not matter.",
+      "trigger": ".o-usl-FeedbackPanel input#usl_feedback_context:not(:checked), .o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "Send the saved feedback",
+      "id": "send",
+      "index": 6,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Send feedback**.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)"
+    },
+    {
+      "assertion": "The task chatter replaces the initial prompt",
+      "id": "chatter",
+      "index": 7,
+      "run": "",
+      "screenshot": "03-chatter.png",
+      "sha256": "429428dfce95619f5efd390783238da4066bca7ec08b0314e3c0409a2f1bf8a7",
+      "text": "Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status changes appear here.",
+      "trigger": ".o-usl-FeedbackPanel-conversation .o-mail-Chatter"
+    },
+    {
+      "assertion": "Start another conversation without losing the saved card",
+      "id": "new_conversation",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**New** starts another conversation. The card you just sent is kept.",
+      "trigger": ".o-usl-FeedbackPanel-nav button:contains('New')"
+    },
+    {
+      "assertion": "Open the clear feedback tracker",
+      "id": "tracker",
+      "index": 9,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "**My feedback** lists every card you sent with its current status.",
+      "trigger": ".o-usl-FeedbackPanel-nav button:contains('My feedback')"
+    },
+    {
+      "assertion": "Resume the saved card after returning to the draft",
+      "id": "resume",
+      "index": 10,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose a card to reopen its conversation and reply.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('The desktop status is unclear after reload.')"
+    },
+    {
+      "assertion": "The recent list preserves the saved feedback card",
+      "id": "recent_list",
+      "index": 11,
+      "run": "",
+      "screenshot": "04-recent_list.png",
+      "sha256": "5ebd013bd0d01f69299a236a85e88658e67fd7e77a9efa84428467cfa2335c87",
+      "text": "Come back to **My feedback** at any time from the same drawer to see where each report stands.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('The desktop status is unclear after reload.')"
+    }
+  ],
+  "title": "Send feedback from any page",
+  "tour": "usl_feedback_desktop_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}
