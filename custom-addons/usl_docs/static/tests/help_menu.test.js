@@ -23,10 +23,10 @@ beforeEach(() => {
 async function helpHref(currentController) {
     mockService("action", { currentController });
     await mountWithCleanup(UserMenu);
-    await contains(".o_user_menu button").click();
-    const items = queryAllTexts(".o-dropdown--menu .dropdown-item");
+    await contains("button.dropdown-toggle").click();
+    const items = queryAllTexts(".dropdown-menu .dropdown-item");
     expect(items).toEqual(["Help"]);
-    return queryAllAttributes(".o-dropdown--menu .dropdown-item", "href")[0];
+    return queryAllAttributes(".dropdown-menu .dropdown-item", "href")[0];
 }
 
 test("Help opens the guide on the current screen", async () => {
