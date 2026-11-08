@@ -7870,14 +7870,14 @@
       ]
     },
     {
-      "digest": "a65ebac9f9e9de50a7b88527ad2033c8be4b245c1159df83a51575fa32191bb7",
+      "digest": "a24b05e8d770ddbdab5f83f7e87b9b7e5f5721cf951c5305fef4bc74011dd3de",
       "key": "route:http:ANY:/usl/user-docs",
       "kind": "route",
       "modules": [
         "usl_docs"
       ],
       "route": "/usl/user-docs",
-      "runtime_digest": "a65ebac9f9e9de50a7b88527ad2033c8be4b245c1159df83a51575fa32191bb7",
+      "runtime_digest": "a24b05e8d770ddbdab5f83f7e87b9b7e5f5721cf951c5305fef4bc74011dd3de",
       "sources": [
         {
           "path": "custom-addons/usl_docs/controllers/user_docs.py"
@@ -7885,14 +7885,14 @@
       ]
     },
     {
-      "digest": "599eecfc0128d672b429901b9ae292d0b1354b150a283dfb7783f3f9de1ca285",
+      "digest": "4b64b6bf2bd8776f22a8d92cab20d3e6d166cccb878ef9f136b7c074642c70f3",
       "key": "route:http:ANY:/usl/user-docs/",
       "kind": "route",
       "modules": [
         "usl_docs"
       ],
       "route": "/usl/user-docs/",
-      "runtime_digest": "599eecfc0128d672b429901b9ae292d0b1354b150a283dfb7783f3f9de1ca285",
+      "runtime_digest": "4b64b6bf2bd8776f22a8d92cab20d3e6d166cccb878ef9f136b7c074642c70f3",
       "sources": [
         {
           "path": "custom-addons/usl_docs/controllers/user_docs.py"
@@ -7900,14 +7900,14 @@
       ]
     },
     {
-      "digest": "9259c4aae12e3d91aca18bbc1b3d8d44cbac34ee26e15618beda35c56d24db0f",
+      "digest": "5ccaf9a7fc3aed58706708ba287776ed48ba5fb14378e510f65f7f77e9764700",
       "key": "route:http:ANY:/usl/user-docs/<path:doc_path>",
       "kind": "route",
       "modules": [
         "usl_docs"
       ],
       "route": "/usl/user-docs/<path:doc_path>",
-      "runtime_digest": "9259c4aae12e3d91aca18bbc1b3d8d44cbac34ee26e15618beda35c56d24db0f",
+      "runtime_digest": "5ccaf9a7fc3aed58706708ba287776ed48ba5fb14378e510f65f7f77e9764700",
       "sources": [
         {
           "path": "custom-addons/usl_docs/controllers/user_docs.py"
@@ -1638923,7 +1638923,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 414,
+          "line": 415,
           "path": "custom-addons/usl_docs/tools/guide.py"
         }
       ]
@@ -1638938,7 +1638938,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 507,
+          "line": 508,
           "path": "custom-addons/usl_docs/tools/guide.py"
         }
       ]
@@ -1721528,7 +1721528,7 @@
       "manifest_sha256": "966138d5a3b1d477c972dbdc20f3adf32bf9effc1c64748e211e805bb9392a11",
       "name": "usl_docs",
       "origin": "custom",
-      "source_sha256": "f4d47885cc1a3d5fd7fc2e363664f94139c27b37dbe300bef62810c94c249040",
+      "source_sha256": "6d537b922af5ffeeafcfb14c4c909f94f5fffeffe057db7e997df3faa456a088",
       "version": "saas~19.3.1.1.0"
     },
     {
