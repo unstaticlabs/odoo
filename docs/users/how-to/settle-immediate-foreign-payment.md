@@ -1,3 +1,18 @@
+---
+title: Match a foreign bill to a company-currency bank transaction
+type: how-to
+description: Settle a foreign-currency bill paid by card from the EUR debit the bank reports.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - account.bank.statement.line
+  - account.move
+source:
+  - custom-addons/usl_accounting/static/tests/tours/immediate_settlement_tour.js
+generated: false
+---
+
 # Match a foreign bill to a company-currency bank transaction
 
 When the bank reports only an EUR card debit, Odoo estimates its foreign

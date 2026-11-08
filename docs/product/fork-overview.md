@@ -130,7 +130,7 @@ commit is the one named.
 - `addons/mail/tools/link_preview.py` (`7868e87e`): unknown remote charset
   names go through the existing UTF-8 fallback, so optional previews do not
   fail after a message is sent. Upgrade cost and removal condition are in
-  [`DECISIONS/0002-link-preview-unknown-charsets.md`](../../DECISIONS/0002-link-preview-unknown-charsets.md).
+  [`docs/product/decisions/0002-link-preview-unknown-charsets.md`](decisions/0002-link-preview-unknown-charsets.md).
 
 ### Navigation — `web`
 
