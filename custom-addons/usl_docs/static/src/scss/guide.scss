@@ -125,11 +125,11 @@ a.pill-tested:hover { border-color: var(--ok); }
 .pill-lang:hover { border-color: var(--accent); color: var(--accent); }
 
 .doc-actions { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; color: var(--muted); font-size: 13px; }
-.button {
+.content a.button {
     display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px;
     background: var(--accent); color: var(--accent-ink); text-decoration: none; font-weight: 600; font-size: 13px;
 }
-.button:hover { filter: brightness(1.08); }
+.content a.button:hover { filter: brightness(1.08); }
 .doc-sources a { color: var(--muted); }
 
 .outline { float: right; max-width: 240px; margin: 0 0 16px 24px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); font-size: 13px; }
