@@ -183,6 +183,8 @@ class TestUserDocsViewer(GuideFixture, HttpCase):
         self.assertNotIn("A comment that must not print", response.text, "HTML comments must not print")
         self.assertNotIn("<style", response.text, "the page carries no inline style")
         self.assertIn("usl_docs.assets_guide", response.text + " ", "the stylesheet comes from the asset bundle")
+        # The script is in <head>; deferred, it runs after the body it wires up is parsed.
+        self.assertRegex(response.text, r'<script[^>]*\bdefer\b[^>]*usl_docs\.assets_guide', "the guide script loads deferred")
         self.assertLess(response.text.index("How-to guides"), response.text.index("Explanation"))
         self.assertIn("Do the example", response.text)
         self.assertIn('<span class="doc-lang">FR</span>', response.text)
