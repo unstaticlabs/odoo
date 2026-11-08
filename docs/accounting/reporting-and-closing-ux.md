@@ -190,7 +190,7 @@ Verified implementation notes:
   exports.
 - The annual-package parity control for `10/01/2024`–`30/09/2025`, including
   disclosed semantic differences, is recorded in
-  `accountant-plaquette-parity-2025-09-30.md`.
+  `docs/archive/accounting/accountant-plaquette-parity-2025-09-30.md`.
 
 ## PDF and XLSX report target
 

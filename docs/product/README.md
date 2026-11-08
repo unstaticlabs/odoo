@@ -33,5 +33,13 @@ Numbered decision records live in [`decisions/`](decisions/README.md).
 - [Autonomous Agents](agents.md)
 - [Paperless-backed Documents](documents-paperless.md)
 - [Documents and Paperless architecture](documents-paperless-architecture.md)
+- [Home cockpit](home-cockpit.md)
+- [Bill terms and internal accounting notes](bill-terms-and-internal-notes.md)
+- [European date presentation](european-date-presentation.md)
+- [Interaction affordances](interaction-affordances.md)
+- [Governed LaTeX document system](latex-document-system.md)
+
+Readiness matrices, proposals and the capture folders of past deliveries live
+in [`docs/archive/product/`](../archive/product/).
 
 Current priorities and release gates live in [`ROADMAP.md`](../../ROADMAP.md).

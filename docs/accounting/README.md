@@ -5,7 +5,6 @@ and releases must preserve.
 
 - [Accounting invariants](accounting-invariants.md)
 - [Parity standard](parity-standard.md)
-- [Previous-accountant plaquette parity, 30 September 2025](accountant-plaquette-parity-2025-09-30.md)
 - [Configurable Accounting Controls](configurable-accounting-controls.md)
 - [Configurable Accounting Framework](configurable-accounting-framework.md)
 - [Accounting report presentation](accounting-report-presentation.md)
@@ -25,6 +24,10 @@ and releases must preserve.
 - [Accounting configuration capability](accounting-configuration-capability.md)
 - [Reporting and closing experience](reporting-and-closing-ux.md)
 - [Declarations and closing](declarations-and-closing.md)
+- [Cash position on Accounting Overview](cash-position.md)
+- [Accounting evidence in the document archive](paperless-evidence-policy.md)
+
+Dated parity records and audits live in [`docs/archive/accounting/`](../archive/accounting/).
 
 Current release priorities and acceptance gates live in
 [`ROADMAP.md`](../../ROADMAP.md) and the
