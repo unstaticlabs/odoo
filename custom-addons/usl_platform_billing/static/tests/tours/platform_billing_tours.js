@@ -518,7 +518,7 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_operator_creati
     models: ["usl.platform.billing.session", "usl.platform.billing.payout"],
     steps: {
         sessions: {
-            text: "Open **Platform billing > Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
+            text: "Open **Platform Billing > Billing Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
             screenshot: true,
         },
         create: { text: "Choose **New**." },
@@ -534,7 +534,7 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_operator_creati
         check: {
             text: "Choose **Check**. The session is saved and the accounting checks run: platforms, journals, products and amounts must all be in place before anything is generated.",
         },
-        generate: { text: "Choose **Generate documents**: one customer invoice for the revenue and one bill for the commission, per payout, in draft." },
+        generate: { text: "Choose **Generate drafts**: one customer invoice for the revenue and one bill for the commission, per payout, in draft." },
         post: { text: "Choose **Post documents**." },
         coverage: {
             text: "When an active platform has no payout this month, Odoo says which one before posting. This is the moment to add a forgotten line.",
@@ -560,11 +560,11 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_manager_journey
     models: ["usl.platform.billing.session", "account.move"],
     steps: {
         draft: {
-            text: "Open **Platform billing > Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
+            text: "Open **Platform Billing > Billing Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
             screenshot: true,
         },
         preflight: { text: "Choose **Check** to run the accounting preflight." },
-        documents: { text: "Choose **Generate documents**: the customer invoices and the commission bills are created in draft." },
+        documents: { text: "Choose **Generate drafts**: the customer invoices and the commission bills are created in draft." },
         post_documents: {
             text: "Choose **Post documents**. The documents are posted and the commission is compensated against the revenue, so only the net amount is expected from the bank.",
         },
@@ -573,7 +573,7 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_manager_journey
             text: "The session is **Paid**: the invoice, the bill and the bank line agree.",
             screenshot: true,
         },
-        open_moves: { text: "Choose **Journal entries** to see what was posted." },
+        open_moves: { text: "Choose **Journal Entries** to see what was posted." },
         moves: {
             text: "Every document is a native Odoo journal entry, open to the usual accounting views and reports.",
             screenshot: true,

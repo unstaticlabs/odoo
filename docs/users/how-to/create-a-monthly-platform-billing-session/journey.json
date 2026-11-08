@@ -44,7 +44,7 @@
       "run": "",
       "screenshot": "01-sessions.png",
       "sha256": "3b215c1a13142880706b704277e60012aee8511fbf0887c2b4f302d082a3514e",
-      "text": "Open **Platform billing > Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
+      "text": "Open **Platform Billing > Billing Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
       "trigger": ".o_control_panel:not(:has(.o_searchview_facet))"
     },
     {
@@ -104,7 +104,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Choose **Generate documents**: one customer invoice for the revenue and one bill for the commission, per payout, in draft.",
+      "text": "Choose **Generate drafts**: one customer invoice for the revenue and one bill for the commission, per payout, in draft.",
       "trigger": "button[name='action_generate_documents']"
     },
     {
@@ -123,7 +123,7 @@
       "index": 9,
       "run": "",
       "screenshot": "04-coverage.png",
-      "sha256": "37beacc99239759cd133d4baf5186ff8e0696272cbca6cdacfbd813e374376b5",
+      "sha256": "ca0817b3e6dde6f24f5a9575540c63aa04a84232c3d749d3a3a11c5a9e3ab01c",
       "text": "When an active platform has no payout this month, Odoo says which one before posting. This is the moment to add a forgotten line.",
       "trigger": ".modal .alert:contains('Browser platform without August payout')"
     },
@@ -143,7 +143,7 @@
       "index": 11,
       "run": "",
       "screenshot": "05-posted.png",
-      "sha256": "2b7fd99cdfab79c64d92a52c1fe637a7af9161841cb52e104c5d7f586385d80e",
+      "sha256": "3c9d1cce3b29e91534ed78ce758bdae335362557bf72fa6703beebeb31dbc528",
       "text": "The session is **Posted**. A payout whose money has not arrived stays open; the invoice is posted and waits for the bank.",
       "trigger": ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current"
     },

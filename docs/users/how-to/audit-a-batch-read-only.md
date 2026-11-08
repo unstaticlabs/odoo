@@ -23,9 +23,9 @@ generated: true
 
 Read everything about a Batch, its lines, its receipts and its accounting, without being able to change any of it.
 
-1. Open **Expenses > Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts exactly as the employee and the manager do.
+1. Open **Expenses > Expense Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts.
 
-   ![Open Expenses Batches and choose the Batch](audit-a-batch-read-only/01-evidence.png)
+   ![Open Expenses Expense Batches and choose the Batch](audit-a-batch-read-only/01-evidence.png)
 
 2. No lifecycle button and no line action is shown: nothing you do here can submit, approve, post or move an expense.
 

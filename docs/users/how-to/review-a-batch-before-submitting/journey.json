@@ -37,8 +37,8 @@
       "index": 1,
       "run": "",
       "screenshot": "01-batch.png",
-      "sha256": "8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7",
-      "text": "Open **Expenses > Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
+      "sha256": "fbfd6aad0177afff8bd9443cd9ff01077a73f36b70b19649d5429f252f961cec",
+      "text": "Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link:contains('Expenses'))"
     },
     {
@@ -67,7 +67,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-exception.png",
-      "sha256": "8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7",
+      "sha256": "e4f7c3c7ab627f0d3e508572ac4b7605f05c94002b312136af65d19a393c0363",
       "text": "A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.",
       "trigger": ".o_usl_batch_attention[title*='differ from Batch analytics']"
     },

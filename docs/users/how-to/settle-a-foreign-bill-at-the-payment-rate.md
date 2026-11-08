@@ -14,8 +14,8 @@ tour: usl_immediate_settlement
 source:
   - custom-addons/usl_accounting/tests/test_accounting_journeys.py
 screenshot_01-actions_png: 430756c591104b2683ac59285aa45a6689dfbc3be8fe9e01fbee03cb5814a775
-screenshot_02-trace_png: b19cfb4cbae048bbe3aeaa8795370c247680d5c8d93f0ea51c31af247ac53218
-screenshot_03-detail_png: a11d2ee057e25880d2f1fbb85fb71b353d22dec9a68131aad8aa503e3648845b
+screenshot_02-trace_png: 33527bd84d55f761c26180fd07149f0ccbc47d26f3278dd309f2edd0a95eb59f
+screenshot_03-detail_png: 151ea1c085afb785bbb2a507e5093f35a562a50058f9b3b7eb70e5c6cce40894
 generated: true
 ---
 

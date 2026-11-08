@@ -17,9 +17,9 @@
       "evidence": 228,
       "history": 240,
       "no_actions": 234,
-      "post-an-approved-batch": 314,
+      "post-an-approved-batch": 316,
       "reconciliation": 246,
-      "review-a-batch-before-submitting": 283
+      "review-a-batch-before-submitting": 284
     }
   },
   "steps": [
@@ -30,7 +30,7 @@
       "run": "",
       "screenshot": "01-evidence.png",
       "sha256": "d7fbc5561dc77d4e90ce53029f19e1e8a65d6feb7cb675d813af2df391c3bbe1",
-      "text": "Open **Expenses > Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts exactly as the employee and the manager do.",
+      "text": "Open **Expenses > Expense Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids'])"
     },
     {

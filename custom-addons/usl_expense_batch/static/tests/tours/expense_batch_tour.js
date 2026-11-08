@@ -291,7 +291,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
     models: ["usl.expense.batch", "hr.expense"],
     steps: {
         batch: {
-            text: "Open **Expenses > Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
+            text: "Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
             screenshot: true,
         },
         analytics: {
@@ -303,6 +303,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
         exception: {
             text: "A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.",
             screenshot: true,
+            scrollTo: ".o_usl_batch_attention",
         },
         no_trash: { text: "Nothing in the list deletes an expense." },
         remove: {
@@ -322,7 +323,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_accountant_handoff
     models: ["usl.expense.batch", "hr.expense", "account.move"],
     steps: {
         approved: {
-            text: "Open **Expenses > Batches** and choose an approved Batch. **Post batch** is the primary action; the summary says how much is company-paid and how much is owed to the employee.",
+            text: "Open **Expenses > Expense Batches** and choose an approved Batch. **Post batch** is the primary action; the summary says how much is company-paid and how much is owed to the employee.",
             screenshot: true,
         },
         post: {
@@ -349,7 +350,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_readonly_audit", {
     models: ["usl.expense.batch"],
     steps: {
         evidence: {
-            text: "Open **Expenses > Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts exactly as the employee and the manager do.",
+            text: "Open **Expenses > Expense Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts.",
             screenshot: true,
         },
         no_actions: {

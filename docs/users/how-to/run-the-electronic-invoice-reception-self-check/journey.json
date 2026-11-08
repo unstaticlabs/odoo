@@ -25,8 +25,8 @@
       "id": "companies",
       "index": 1,
       "run": "click",
-      "screenshot": "01-companies.png",
-      "sha256": "c92e41a3aef6a277a2fc9bd1d4e3d78d9c1c92cf61e6acc493534609746271a2",
+      "screenshot": null,
+      "sha256": null,
       "text": "Open **Accounting > Configuration > Electronic Invoicing**. Each company you may act in is listed with its reception status. Choose the company.",
       "trigger": ".o_list_view .o_data_row td[name='name']"
     },
@@ -35,7 +35,7 @@
       "id": "setup",
       "index": 2,
       "run": "",
-      "screenshot": "02-setup.png",
+      "screenshot": "01-setup.png",
       "sha256": "c92e41a3aef6a277a2fc9bd1d4e3d78d9c1c92cf61e6acc493534609746271a2",
       "text": "The setup screen gathers what reception needs: the journals, the accounts, the approved platform and the last self-check.",
       "trigger": "button[name='action_rebuild_run_einvoice_acceptance_test']"
@@ -55,9 +55,9 @@
       "id": "passed",
       "index": 4,
       "run": "",
-      "screenshot": "03-passed.png",
-      "sha256": "42537a6f5ff68e3a0155c706c1dd3f93fe371711adec309da9c58c7aba76504b",
-      "text": "**Reception is ready** confirms the check passed; the setup screen shows when it last passed and that nothing was kept. Run it again after any change to the journals, the accounts or the platform.",
+      "screenshot": "02-passed.png",
+      "sha256": "fdc7e60740a4fbf1178570221b314b193c6499884f4b26bb25b4413f31d4e4db",
+      "text": "The self-check reads **Test passed**, with when it ran and the confirmation that no test bill was kept. Run it again after any change to the journals, the accounts or the platform.",
       "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test passed')"
     }
   ],

@@ -13,8 +13,8 @@ journey: review-a-batch-before-submitting
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: 8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7
-screenshot_02-exception_png: 8b65bfd471a7f21246385bb398df33bd9b1af5caf75009333175f5e4ea6117f7
+screenshot_01-batch_png: fbfd6aad0177afff8bd9443cd9ff01077a73f36b70b19649d5429f252f961cec
+screenshot_02-exception_png: e4f7c3c7ab627f0d3e508572ac4b7605f05c94002b312136af65d19a393c0363
 generated: true
 ---
 
@@ -24,9 +24,9 @@ generated: true
 
 Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.
 
-1. Open **Expenses > Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.
+1. Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.
 
-   ![Open Expenses Batches and choose your Batch](review-a-batch-before-submitting/01-batch.png)
+   ![Open Expenses Expense Batches and choose your Batch](review-a-batch-before-submitting/01-batch.png)
 
 2. The analytic distribution of the Batch is shared by its lines. Change it here and every line that follows the Batch follows the change.
 

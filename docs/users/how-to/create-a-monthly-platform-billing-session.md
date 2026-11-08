@@ -16,8 +16,8 @@ source:
 screenshot_01-sessions_png: 3b215c1a13142880706b704277e60012aee8511fbf0887c2b4f302d082a3514e
 screenshot_02-period_png: 1de9e4486682bb9980debff62f2b9df5b78fb3eaf542eba70be1a91013e1beeb
 screenshot_03-net_amount_png: 80f086a8e006ed9ad1afe16bdfe48e823908550876322e0db3dbcc5670a3fb3f
-screenshot_04-coverage_png: 37beacc99239759cd133d4baf5186ff8e0696272cbca6cdacfbd813e374376b5
-screenshot_05-posted_png: 2b7fd99cdfab79c64d92a52c1fe637a7af9161841cb52e104c5d7f586385d80e
+screenshot_04-coverage_png: ca0817b3e6dde6f24f5a9575540c63aa04a84232c3d749d3a3a11c5a9e3ab01c
+screenshot_05-posted_png: 3c9d1cce3b29e91534ed78ce758bdae335362557bf72fa6703beebeb31dbc528
 generated: true
 ---
 
@@ -27,9 +27,9 @@ generated: true
 
 Open the month, enter the payout each platform reported, run the checks, generate the invoices and bills and post them, even when a platform has not paid yet.
 
-1. Open **Platform billing > Sessions**. The list shows every month, closed ones included, so you can see what was done before.
+1. Open **Platform Billing > Billing Sessions**. The list shows every month, closed ones included, so you can see what was done before.
 
-   ![Open Platform billing Sessions](create-a-monthly-platform-billing-session/01-sessions.png)
+   ![Open Platform Billing Billing Sessions](create-a-monthly-platform-billing-session/01-sessions.png)
 
 2. Choose **New**.
 
@@ -45,7 +45,7 @@ Open the month, enter the payout each platform reported, run the checks, generat
 
 6. Choose **Check**. The session is saved and the accounting checks run: platforms, journals, products and amounts must all be in place before anything is generated.
 
-7. Choose **Generate documents**: one customer invoice for the revenue and one bill for the commission, per payout, in draft.
+7. Choose **Generate drafts**: one customer invoice for the revenue and one bill for the commission, per payout, in draft.
 
 8. Choose **Post documents**.
 

@@ -33,7 +33,7 @@
       "run": "",
       "screenshot": "01-draft.png",
       "sha256": "9494ebc1038c316cd3a031e0be4968fb2afe2c6d11d59a254e6bcdfdeb05edbb",
-      "text": "Open **Platform billing > Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
+      "text": "Open **Platform Billing > Billing Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
       "trigger": ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)"
     },
     {
@@ -53,7 +53,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Choose **Generate documents**: the customer invoices and the commission bills are created in draft.",
+      "text": "Choose **Generate drafts**: the customer invoices and the commission bills are created in draft.",
       "trigger": "button[name='action_generate_documents']"
     },
     {
@@ -82,7 +82,7 @@
       "index": 6,
       "run": "",
       "screenshot": "02-paid.png",
-      "sha256": "d92c7fa41553873a21f0adef0f2ee66c69bce9cbaa6bff53e2e65f646b81e18d",
+      "sha256": "32a09f825feb678ccf15e01d4c1e25c2961a71e314ab1d486948513177777467",
       "text": "The session is **Paid**: the invoice, the bill and the bank line agree.",
       "trigger": ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current"
     },
@@ -93,7 +93,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Choose **Journal entries** to see what was posted.",
+      "text": "Choose **Journal Entries** to see what was posted.",
       "trigger": "button[name='action_open_generated_moves']"
     },
     {

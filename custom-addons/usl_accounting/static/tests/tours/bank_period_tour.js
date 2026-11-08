@@ -41,7 +41,7 @@ registry.category("usl_docs.journeys").add("usl_bank_period_correction", {
     models: ["account.bank.ingestion"],
     steps: {
         correct: {
-            text: "Open **Accounting > Bank > Imports** and choose the import that needs attention. Choose **Correct period**.",
+            text: "Open **Accounting > Configuration > Bank Statement Email Setup**, choose the bank, and open the received export that reads **Needs attention** in its list; the activity on the bank journal points to the same record. Choose **Correct period**.",
             screenshot: true,
         },
         dialog: { text: "Set the **start** and **end** of the period the statement really covers." },
@@ -49,7 +49,7 @@ registry.category("usl_docs.journeys").add("usl_bank_period_correction", {
             text: "Write the **reason**, for example what the official statement says. It is posted in the import's history with your name.",
             screenshot: true,
         },
-        apply: { text: "Choose **Apply**." },
+        apply: { text: "Choose **Apply correction**." },
         corrected: {
             text: "The import shows the corrected period and continues from there.",
             screenshot: true,

@@ -6,7 +6,7 @@ from odoo.addons.usl_docs.tests.journey import JourneyCase
 from .test_immediate_settlement_tour import TestImmediateSettlementBrowser
 
 BILLS = "/odoo/action-account.action_move_in_invoice_type"
-IMPORTS = "/odoo/action-usl_accounting.action_bank_ingestion"
+IMPORTS = "/odoo/action-usl_accounting.action_bank_ingestion_config"
 
 
 @tagged("post_install", "-at_install", "usl_docs_journey")

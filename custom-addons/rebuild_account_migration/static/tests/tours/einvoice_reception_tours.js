@@ -73,7 +73,6 @@ registry.category("usl_docs.journeys").add("usl_einvoice_manager_reception", {
     steps: {
         companies: {
             text: "Open **Accounting > Configuration > Electronic Invoicing**. Each company you may act in is listed with its reception status. Choose the company.",
-            screenshot: true,
         },
         setup: {
             text: "The setup screen gathers what reception needs: the journals, the accounts, the approved platform and the last self-check.",
@@ -83,7 +82,7 @@ registry.category("usl_docs.journeys").add("usl_einvoice_manager_reception", {
             text: "Choose **Run self-check**. Odoo receives a representative electronic invoice through the whole reception path, then discards every record it created.",
         },
         passed: {
-            text: "**Reception is ready** confirms the check passed; the setup screen shows when it last passed and that nothing was kept. Run it again after any change to the journals, the accounts or the platform.",
+            text: "The self-check reads **Test passed**, with when it ran and the confirmation that no test bill was kept. Run it again after any change to the journals, the accounts or the platform.",
             screenshot: true,
         },
     },

@@ -21,7 +21,7 @@
       "index": 1,
       "run": "click",
       "screenshot": "01-open_drawer.png",
-      "sha256": "f078fb8fc78cdd3cec29e26d13f0312029944f6be991317aa57e13dddf47a837",
+      "sha256": "de5104017e8ca04ee9c37bb6ecdc904c07359dc2e2a2b3d37521f1f593092ef4",
       "text": "Open the **Messages** drawer from the top bar. **Feedback** sits beside **New Message** in every tab.",
       "trigger": ".o_menu_systray i[aria-label='Messages']"
     },
@@ -41,7 +41,7 @@
       "index": 3,
       "run": "",
       "screenshot": "02-conversation.png",
-      "sha256": "7b96c4ca832900e2660cb2b588e7a8b72317fd54940e9dbe69311edd6b381c0a",
+      "sha256": "e0f5359fbb0539167df171ca61d246a31cb5aa8a5b282837d792a22c57d181d8",
       "text": "The drawer closes and a floating conversation opens, like a chat. Odoo prepares a preview of the page you are on; it stays on your computer until you decide to send it.",
       "trigger": ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel textarea"
     },
@@ -81,7 +81,7 @@
       "index": 7,
       "run": "",
       "screenshot": "03-chatter.png",
-      "sha256": "429428dfce95619f5efd390783238da4066bca7ec08b0314e3c0409a2f1bf8a7",
+      "sha256": "4a0b4dad78de8b853d185e1d1f1a893dfc8523c699c4a5849f54f1e490bd47bc",
       "text": "Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status changes appear here.",
       "trigger": ".o-usl-FeedbackPanel-conversation .o-mail-Chatter"
     },
@@ -121,7 +121,7 @@
       "index": 11,
       "run": "",
       "screenshot": "04-recent_list.png",
-      "sha256": "5ebd013bd0d01f69299a236a85e88658e67fd7e77a9efa84428467cfa2335c87",
+      "sha256": "3916564a34e6b7f610981552aaa6a456b4bcbda649c5849eba4e3ed7b367e237",
       "text": "Come back to **My feedback** at any time from the same drawer to see where each report stands.",
       "trigger": ".o-usl-FeedbackPanel button:contains('The desktop status is unclear after reload.')"
     }

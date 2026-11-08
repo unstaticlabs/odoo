@@ -22,7 +22,7 @@
       "post": 205,
       "post_entries": 211,
       "reconciliation": 246,
-      "review-a-batch-before-submitting": 283
+      "review-a-batch-before-submitting": 284
     }
   },
   "steps": [
@@ -33,7 +33,7 @@
       "run": "",
       "screenshot": "01-approved.png",
       "sha256": "80482bf56282e311293e6309c67053c5b67c6af1bb8fa20334d9f2d9db853261",
-      "text": "Open **Expenses > Batches** and choose an approved Batch. **Post batch** is the primary action; the summary says how much is company-paid and how much is owed to the employee.",
+      "text": "Open **Expenses > Expense Batches** and choose an approved Batch. **Post batch** is the primary action; the summary says how much is company-paid and how much is owed to the employee.",
       "trigger": "button[name='action_post']:contains('Post batch')"
     },
     {
@@ -62,7 +62,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-entries.png",
-      "sha256": "5dc8e69289ffb7feac2226d9cf1be8f016f6f5d181d418db6ce5c6c1c9e3f832",
+      "sha256": "b04ae3efce502505c341ba84ebf110eeef65a49100f620c0c94581fa757d6dcc",
       "text": "Both journal entries are listed: one for the company-paid side, one for the reimbursement owed to the employee. Each links back to the Batch.",
       "trigger": ".o_list_view .o_list_table tbody:has(tr:nth-child(2))"
     }
