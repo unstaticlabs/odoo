@@ -288,6 +288,8 @@ class TestUserDocsViewer(GuideFixture, HttpCase):
         self.assertTrue(by_model.headers["Location"].endswith("/usl/user-docs/how-to/example.md"))
         by_action = self._get("?action=hr_expense.action_my_expenses&model=res.partner")
         self.assertTrue(by_action.headers["Location"].endswith("/usl/user-docs/how-to/example.md"), "the action wins over the model")
+        by_xmlid = self._get("?action=expenses&xmlid=hr_expense.action_my_expenses&model=res.partner")
+        self.assertTrue(by_xmlid.headers["Location"].endswith("/usl/user-docs/how-to/example.md"), "the XML id matches when the path does not")
         by_other = self._get("?model=sign.request")
         self.assertTrue(by_other.headers["Location"].endswith("/usl/user-docs/how-to/other.md"))
         unknown = self._get("?model=res.partner&action=contacts.action_contacts")

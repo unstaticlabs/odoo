@@ -131,7 +131,7 @@ class UserDocsController(http.Controller):
         return request.render("usl_docs.test_record", values)
 
     @http.route([DOCS_ROUTE, DOCS_ROUTE + "/", DOCS_ROUTE + "/<path:doc_path>"], type="http", auth="user")
-    def user_docs(self, doc_path=None, model=None, action=None, q=None, **kwargs):
+    def user_docs(self, doc_path=None, model=None, action=None, xmlid=None, q=None, **kwargs):
         root, error = self._root()
         if error:
             return error
@@ -166,10 +166,10 @@ class UserDocsController(http.Controller):
             # page about it, or say plainly that none exists yet.
             page_records = guide.records(root)
             lang = (request.env.user.lang or "en")[:2]
-            match = guide.page_for_context(page_records, model=model, action=action, lang=lang)
+            match = guide.page_for_context(page_records, model=model, action=[action, xmlid], lang=lang)
             if match:
                 return request.redirect(guide.page_url(match["path"]), code=303)
-            what = action or model
+            what = xmlid or action or model
             notice = f"No guide page is written for this screen yet ({what}). The pages below cover the rest of the product."
         path = guide.safe_doc_path(root, doc_path)
         if not path:

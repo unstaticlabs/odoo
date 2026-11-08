@@ -34,7 +34,7 @@ test("Help opens the guide on the current screen", async () => {
         action: { id: 42, path: "expenses", xml_id: "hr_expense.action_x", res_model: "hr.expense" },
         props: { resModel: "hr.expense" },
     });
-    expect(href).toBe("/usl/user-docs?action=expenses&model=hr.expense");
+    expect(href).toBe("/usl/user-docs?action=expenses&xmlid=hr_expense.action_x&model=hr.expense");
 });
 
 test("Help falls back to the action's XML id, then its id", async () => {

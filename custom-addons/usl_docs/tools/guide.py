@@ -286,17 +286,18 @@ def translations(page_records, page):
 def page_for_context(page_records, model=None, action=None, lang=None):
     """The page the Help menu should open for a screen, or ``None``.
 
-    A page matches when it names the screen's action (``actions``) or the
-    model of the records on it (``models``). Action matches win over model
-    matches, how-to guides win over other types, and the reader's language
-    wins over the other one.
+    A page matches when it names the screen's action (``actions``, by path or
+    XML id; ``action`` may be one key or several) or the model of the records
+    on it (``models``). Action matches win over model matches, how-to guides
+    win over other types, and the reader's language wins over the other one.
     """
+    actions = {key for key in ([action] if isinstance(action, str) else (action or [])) if key}
     candidates = []
     for record in page_records:
         if record["type"] == "home":
             continue
         rank = None
-        if action and action in record["actions"]:
+        if actions and actions & set(record["actions"]):
             rank = 0
         elif model and model in record["models"]:
             rank = 1

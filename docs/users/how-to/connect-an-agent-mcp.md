@@ -29,7 +29,8 @@ that identity.
 
 ## 1. Create the Agent
 
-1. Open **Settings → Users & Companies → Agents** and choose **New**.
+1. Open **My Agents** from the user menu (administrators also reach every
+   Agent under **Settings → Users & Companies → Agents**) and choose **New**.
 2. Name the Agent after the assistant and its purpose, for example
    *Claude, accounting review*. You are its owner.
 3. Choose the companies it may work in and, per application, **No access**,

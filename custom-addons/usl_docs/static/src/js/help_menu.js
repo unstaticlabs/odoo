@@ -24,6 +24,9 @@ function helpUrl(env) {
         if (key) {
             params.set("action", key);
         }
+        if (action.xml_id && action.xml_id !== key) {
+            params.set("xmlid", action.xml_id);
+        }
         const model = controller.props?.resModel || action.res_model;
         if (model) {
             params.set("model", model);
