@@ -542,23 +542,9 @@ class TestPocketIDDevEnvironment(unittest.TestCase):
         self.assertIn("action_sync_permissions", apply_script)
         self.assertIn("USL_PAPERLESS_FORCE_PERMISSION_SYNC", apply_script)
         self.assertIn("stale_mappings_disabled", apply_script)
-        product_modules = {
-            "rebuild_account_migration",
-            "usl_accounting",
-            "usl_documents",
-            "usl_documents_accounting",
-            "usl_expense_batch",
-            "usl_locale",
-            "usl_platform_billing",
-            "usl_platform_billing_pocketid",
-            "usl_pocketid",
-            "usl_project",
-            "usl_tese_accounting",
-            "usl_tese_payroll",
-        }
-        for module_name in product_modules:
-            with self.subTest(module_name=module_name):
-                self.assertIn(module_name, finalizer)
+        # The finalizer updates the one derived product registry, never a
+        # list of its own.
+        self.assertIn('product_modules_csv="$(scripts/product-modules)"', finalizer)
         self.assertNotIn("--update=all", finalizer)
 
     def test_existing_pocket_environment_file_is_guarded(self):

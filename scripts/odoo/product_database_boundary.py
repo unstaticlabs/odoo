@@ -14,28 +14,25 @@ MIGRATION_MODULES = {
     "usl_tese_restore",
     "usl_collaboration_restore",
 }
-PRODUCT_MODULES = {
-    "rebuild_account_migration",
-    "usl_access_control",
-    "usl_accounting",
-    "usl_b2c",
-    "usl_b2c_ingest",
-    "usl_documents",
-    "usl_documents_accounting",
-    "usl_documents_b2c",
-    "usl_expense_batch",
-    "usl_feedback",
-    "usl_home",
-    "usl_locale",
-    "usl_mattermost",
-    "usl_platform_billing",
-    "usl_platform_billing_pocketid",
-    "usl_pocketid",
-    "usl_project",
-    "usl_sign",
-    "usl_tese_accounting",
-    "usl_tese_payroll",
-}
+
+def received_product_modules():
+    """The product-module set the host derived and passed in.
+
+    This script runs on stdin inside the Odoo container and cannot import
+    operations.module_release, so scripts/product-modules computes the set and
+    the caller passes it through USL_PRODUCT_MODULES.
+    """
+    raw = os.environ.get("USL_PRODUCT_MODULES", "")
+    modules = {name.strip() for name in raw.split(",") if name.strip()}
+    if not modules:
+        raise RuntimeError(
+            "USL_PRODUCT_MODULES is required: pass the output of "
+            "scripts/product-modules.",
+        )
+    return modules
+
+
+PRODUCT_MODULES = received_product_modules()
 EXCLUDED_AUTO_INSTALL_MODULES = {
     "gamification",
     "hr_gamification",
