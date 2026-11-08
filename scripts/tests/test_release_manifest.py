@@ -409,6 +409,22 @@ class ReleaseManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
             validate(release, commit=commit)
 
+    def test_accepts_the_evidence_a_production_release_adopted_by_tree(self) -> None:
+        from operations.docs import evidence as docs_evidence
+
+        release = manifest()
+        commit = release["source"]["commit"]
+        qualified_elsewhere = docs_evidence.recovery(repository="unstaticlabs/odoo", commit="f" * 40)
+        release["qualification"]["docs_evidence"] = docs_evidence.stamp_release(qualified_elsewhere, commit)
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        self.assertEqual(validate(release, commit=commit)["source"]["commit"], commit)
+        release["qualification"]["docs_evidence"] = docs_evidence.stamp_release(qualified_elsewhere, "e" * 40)
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
+            validate(release, commit=commit)
+
     def test_rejects_release_from_non_release_branch(self) -> None:
         value = manifest()
         value["source"]["ref"] = "refs/heads/feature"

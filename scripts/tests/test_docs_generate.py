@@ -193,6 +193,12 @@ class DocsEvidenceTests(unittest.TestCase):
         self.assertNotEqual(adopted["sha256"], payload["sha256"])
         with self.assertRaises(docs_evidence.DocsEvidenceError):
             docs_evidence.validate({**adopted, "release_commit": "d" * 40})
+        # The release checks its own evidence by its commit, an adopted one by its stamp.
+        docs_evidence.validate_release(payload, COMMIT)
+        docs_evidence.validate_release(adopted, "c" * 40)
+        for evidence, commit in ((payload, "c" * 40), (adopted, COMMIT)):
+            with self.assertRaisesRegex(docs_evidence.DocsEvidenceError, "different commit"):
+                docs_evidence.validate_release(evidence, commit)
 
     def test_a_recovery_release_proves_nothing_and_says_so(self):
         payload = docs_evidence.recovery(repository="unstaticlabs/odoo", commit=COMMIT)

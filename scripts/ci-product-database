@@ -31,6 +31,11 @@ PY
 )"
 test -n "$modules"
 
+# The test service bind-mounts ./artifacts/usl-docs; create it before the
+# first container does, or Docker creates it as root and nothing else can
+# write the journey records into it.
+mkdir -p artifacts/usl-docs
+chmod 777 artifacts/usl-docs
 "${compose[@]}" up -d --wait db
 if [[ "${USL_USE_PREBUILT_TEST_IMAGE:-0}" == "1" ]]; then
   test -n "${ODOO_TEST_IMAGE:-}"
@@ -151,8 +156,6 @@ ACTION_RISK_MODE=check odoo_shell < scripts/odoo/action_risk_inventory.py
 # plan selected: the pages they generate are the release's user guide, and
 # the evidence they produce is what the viewer shows as "last tested". The
 # records leave the container through the mounted artifacts directory.
-mkdir -p artifacts/usl-docs
-chmod 777 artifacts/usl-docs
 printf 'Running the documented journeys\n'
 "${compose[@]}" --profile test run --rm -T \
   -e ODOO_INIT_DB="$database" \

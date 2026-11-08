@@ -106,6 +106,20 @@ def stamp_release(payload, release_commit):
     return {**body, "sha256": _digest(body)}
 
 
+def validate_release(payload, release_commit):
+    """Validate the evidence a release at ``release_commit`` carries.
+
+    A staging release carries its own run's evidence, bound by
+    ``qualified_commit``. A production release adopts the evidence of the run
+    that qualified the merged pull request's tree, stamped with
+    ``release_commit`` by :func:`stamp_release`; that stamp is then the binding.
+    """
+    validate(payload)
+    if payload.get("release_commit", payload["qualified_commit"]) != release_commit:
+        raise DocsEvidenceError("docs evidence is for a different commit")
+    return payload
+
+
 def recovery(*, repository, commit):
     """Evidence for a release rebuilt from a recovery tag: it proves nothing."""
     body = {

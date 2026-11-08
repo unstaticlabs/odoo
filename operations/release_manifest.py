@@ -316,9 +316,10 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         qualification = _object(qualification, {"evidence", "docs_evidence"}, "qualification")
         # The user guide's evidence rides with the release so the running
         # product can say when each generated page last passed. It is
-        # validated as its own artifact, pinned to this commit.
+        # validated as its own artifact, pinned to this commit: its own run
+        # for a staging release, the adoption stamp for a production one.
         try:
-            docs_evidence.validate(qualification["docs_evidence"], qualified_commit=commit)
+            docs_evidence.validate_release(qualification["docs_evidence"], commit)
         except docs_evidence.DocsEvidenceError as error:
             raise ReleaseManifestError(f"docs evidence is invalid: {error}") from error
     else:
