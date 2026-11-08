@@ -1640,16 +1640,20 @@
     {
       "action_keys": [
         "rpc:project.task.mcp_update_activity",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:2",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1"
       ],
       "classification": "operational",
-      "consequence": "Correct one accessible task activity without changing its identity or completion state.",
+      "consequence": "Correct an accessible activity in place without changing its identity or completion state.",
       "domain": "projects",
       "evidence_id": "agent-task-activity-edit",
       "id": "operational.projects.agent_activity_update",
-      "rationale": "Task write access and activity ownership are checked before updating only the deadline, summary, note and assignee.",
+      "rationale": "Native activity writes by an Agent require write delegation on the activity's business model and write access to the linked record, checked again after relinking; the task method additionally limits the fields to deadline, summary, note and assignee.",
       "reviewed_digests": {
         "rpc:project.task.mcp_update_activity": "618d451891f6496de1e68e6191de2634c28986b9851780483722b839c8c07e9f",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1": "4f05d12123db583c7ba041b431831c45cbdf7006f228127a54cc055bd8bdfbef",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:2": "42415044f529e3724182a2171c8b6df52eed8d7129ad598311d5e323e62daf44",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:project.task.mcp_update_activity:orm_write:1": "907e56efc327e0d9b65d1cc0a1bb81ee1e6751d42cb5d6e9ee92ef21d9aac625"
       }
     },
@@ -111245,7 +111249,7 @@
       "rationale": "Reviewed feedback workflow; see docs/operations/feedback-action-risk-review.md and exact per-action rationale.",
       "reviewed_digests": {
         "rpc:mail.activity.create": "b8ffb279b6220831982315f4baef8e153ce840b0e6f67774944f89df2acebc40",
-        "rpc:mail.activity.write": "3cfa7dd03c58a2b059d263e4c627828998f20aa7e25cf3d50fa4f4c296c3a2c9",
+        "rpc:mail.activity.write": "4013372cb80fd06b15d87b50f24ca55371034c8bd68c16a42436637f88bb1cdd",
         "rpc:project.project.action_view_tasks": "905758f2da62ea6ed0be8cbd04133fd7de57470a3e242e4e105f743401210e56",
         "rpc:project.project.create": "9c20025abf8574f9074efc63a976aa193bbbb6fe98ed76f3673e258edd35d1fc",
         "rpc:project.project.write": "7174e4d72308bfb44027252a9e85c1599b95c68bd44b9cf822e2a8e1eed19c4c",

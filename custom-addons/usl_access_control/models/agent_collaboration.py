@@ -324,6 +324,33 @@ class HrExpense(models.Model):
 class MailActivity(models.Model):
     _inherit = "mail.activity"
 
+    @api.model
+    def _usl_agent_shared_model_access(self, operation, groups, access_rows):
+        """Reach the native write path; ``write`` authorizes each business record."""
+        if operation not in {"read", "write"}:
+            return False
+        internal = self.env.ref("base.group_user")
+        return internal in groups and any(
+            access.group_id == internal for access in access_rows
+        )
+
+    def write(self, vals):
+        # An Agent edits an activity under the authority it holds on the
+        # activity's business record, as for completion. A flow that already
+        # authorized the business record carries the collaboration token, and a
+        # superuser write keeps the native refusal of the Agent policy.
+        if (
+            self.env.su
+            or not self._usl_managed_agent()
+            or has_agent_collaboration_token(self.env.context)
+        ):
+            return super().write(vals)
+        activities = self._usl_agent_complete_activity()
+        result = super(MailActivity, activities).write(vals)
+        if {"res_model", "res_model_id", "res_id"} & set(vals):
+            self._usl_agent_complete_activity()
+        return result
+
     def unlink(self):
         # Native unlink queues notifications before reaching Base.unlink.
         # Reject an unapproved caller before it registers deferred work.

@@ -613532,7 +613532,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 369,
+          "line": 396,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -613575,7 +613575,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 361,
+          "line": 388,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -613624,7 +613624,7 @@
       ],
       "sources": [
         {
-          "line": 365,
+          "line": 392,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -627284,7 +627284,7 @@
       ],
       "sources": [
         {
-          "line": 327,
+          "line": 354,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -627677,11 +627677,13 @@
       "delegates": [
         "rpc:ir.model.sudo",
         "rpc:mail.activity.filtered",
+        "rpc:mail.activity.grouped",
+        "rpc:mail.activity.with_context",
         "rpc:project.task.sudo",
         "rpc:res.users.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "3cfa7dd03c58a2b059d263e4c627828998f20aa7e25cf3d50fa4f4c296c3a2c9",
+      "digest": "4013372cb80fd06b15d87b50f24ca55371034c8bd68c16a42436637f88bb1cdd",
       "guards": [],
       "key": "rpc:mail.activity.write",
       "kind": "rpc",
@@ -627695,7 +627697,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "b7ea834d983ff77c1e8ca2a6e2dfb6155ac8cd0ff122db0f75a5863d9e697584",
+      "runtime_digest": "8368635eef2904e027be1be07cebef1b0daa5f9c10d1983fc0e4ca1f7b96d166",
       "sinks": [
         "orm_write",
         "sudo"
@@ -627704,6 +627706,10 @@
         {
           "line": 309,
           "path": "addons/mail/models/mail_activity.py"
+        },
+        {
+          "line": 337,
+          "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
           "line": 3696,
@@ -627716,6 +627722,9 @@
         {
           "line": 608,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -627734,6 +627743,8 @@
       "unresolved_delegates": [
         "rpc:ir.model.sudo",
         "rpc:mail.activity.filtered",
+        "rpc:mail.activity.grouped",
+        "rpc:mail.activity.with_context",
         "rpc:project.task.sudo",
         "rpc:res.users.browse",
         "rpc:usl.agent.sudo"
@@ -1347042,7 +1347053,7 @@
           "path": "custom-addons/usl_documents/models/download_grant.py"
         },
         {
-          "line": 394,
+          "line": 421,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -1347421,7 +1347432,7 @@
       ],
       "sources": [
         {
-          "line": 398,
+          "line": 425,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
@@ -1623951,7 +1623962,43 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 327,
+          "line": 354,
+          "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
+        }
+      ]
+    },
+    {
+      "digest": "4f05d12123db583c7ba041b431831c45cbdf7006f228127a54cc055bd8bdfbef",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.activity.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 337,
+          "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
+        }
+      ]
+    },
+    {
+      "digest": "42415044f529e3724182a2171c8b6df52eed8d7129ad598311d5e323e62daf44",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent_collaboration.py:mail.activity.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.activity.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 337,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         }
       ]
@@ -1624086,7 +1624133,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 398,
+          "line": 425,
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         }
       ]
@@ -1719673,7 +1719720,7 @@
       "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "62550f28839a3802a2fb478db5a0d0be610bf5ba846399349ccada3829eef069",
+      "source_sha256": "e7dad6055fb0903f109d1a294916d33d7cf7c54fb672a57bcd54e9a82894b2d9",
       "version": "saas~19.3.1.8.12"
     },
     {
