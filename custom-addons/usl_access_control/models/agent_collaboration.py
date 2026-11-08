@@ -340,6 +340,22 @@ class MailActivity(models.Model):
             or has_agent_collaboration_token(self.env.context)
         ):
             return super().write(vals)
+        # The token must not reach other models: x2many commands and writable
+        # related fields would write their comodel records under it.
+        for name in vals:
+            field = self._fields.get(name)
+            if field and (
+                field.type in {"one2many", "many2many"}
+                or (field.related and not field.readonly)
+            ):
+                raise AgentPolicyAccessError(
+                    self.env._(
+                        "An Agent cannot change %(field)s of an activity; "
+                        "linked records are changed through their own models.",
+                        field=name,
+                    ),
+                    "agent_read_only_action_denied",
+                )
         activities = self._usl_agent_complete_activity()
         result = super(MailActivity, activities).write(vals)
         if {"res_model", "res_model_id", "res_id"} & set(vals):

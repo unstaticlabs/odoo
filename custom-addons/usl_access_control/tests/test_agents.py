@@ -1686,6 +1686,22 @@ class TestAutonomousAgents(TransactionCase):
             self._agent_web_save(agent, partner_activity, {"summary": "No contact delegation"})
         with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
             activity.with_user(agent.user_id).unlink()
+        evidence = self.env["ir.attachment"].create({
+            "name": "[QA] Other app evidence.txt", "res_model": "res.partner",
+            "res_id": self.owner.partner_id.id, "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
+        })
+        for values in (
+            {"attachment_ids": [Command.update(evidence.id, {"public": True, "raw": b"FORGED\n"})]},
+            {"attachment_ids": [Command.create({"name": "[QA] Nested.txt", "raw": b"X"})]},
+            {"attachment_ids": [Command.link(evidence.id)]},
+        ):
+            with self.subTest(values=list(values)), self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+                self._agent_web_save(agent, activity, {"summary": "Nested write", **values})
+        evidence.invalidate_recordset(["public", "raw"])
+        self.assertFalse(evidence.public)
+        self.assertEqual(evidence.raw.content, b"SYNTHETIC\n")
+        self.assertFalse(activity.attachment_ids)
+        self.assertNotEqual(activity.summary, "Nested write")
         contacts = self.env.ref("base.group_partner_manager")
         agent.with_user(self.owner).write({
             "delegated_group_ids": [Command.set((group | contacts).ids)],
