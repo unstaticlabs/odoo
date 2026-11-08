@@ -172,7 +172,7 @@ live sending/reporting stays disabled. Browser smoke is focused and does not
 claim every application or history path was exercised. The fresh reviewer audited
 USL adaptations and critical overlaps, not every line of all 499 upstream commits.
 
-Safe [corrected-source browser captures](../product/qa/upstream-sync-20261031/README.md)
+Safe [corrected-source browser captures](../archive/product/qa/upstream-sync-20261031/README.md)
 show invented data only. Screenshots establish layout; functional outcomes were
 verified separately. No backup values, private identities, filenames, credentials
 or private logs are included in this public record.
