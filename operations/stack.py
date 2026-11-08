@@ -2415,16 +2415,14 @@ def _observed_mcp_authority(target, runner, identity: dict) -> tuple[dict | None
     """
     if target.value["environment"] == "local":
         return None, {"source": "local"}
-    if os.environ.get("USL_RELEASE_GITOPS_ROOT") or os.environ.get("USL_RELEASE_GITOPS_COMMIT"):
-        authority = _mcp_runtime_authority(target)
-        source = "launcher-gitops-checkout"
-    else:
-        root, commit = _deployed_gitops_run(target, runner, identity)
-        authority = _mcp_authority_from_gitops(
-            target.value["environment"], commit,
-            lambda relative: _load_deployed_gitops_json(runner, root, relative),
-        )
-        source = "deployed-gitops-run"
+    # Always the deployed run, even where launcher variables happen to be set:
+    # a launcher checkout can be newer than what runs.
+    root, commit = _deployed_gitops_run(target, runner, identity)
+    authority = _mcp_authority_from_gitops(
+        target.value["environment"], commit,
+        lambda relative: _load_deployed_gitops_json(runner, root, relative),
+    )
+    source = "deployed-gitops-run"
     path = f"{target.value['state_directory']}/authorities/mcp-{authority['sha256']}.json"
     files = identity.get("compose_files") or []
     if not files or files[-1] != path:
@@ -2457,8 +2455,12 @@ def _observed_mcp_authority(target, runner, identity: dict) -> tuple[dict | None
 def _observed_admission_receipt(target, runner, runtime: dict) -> dict:
     """Validate the immutable admission receipt of the running generation."""
     generation = runtime.get("generation")
-    if target.value["environment"] == "local" or generation in {None, "adopted"}:
+    if target.value["environment"] == "local":
         return {"status": "not-applicable", "generation": generation}
+    if generation in {None, "adopted"}:
+        # An adopted cohort predates generation receipts: nothing on the host
+        # proves its admission, so the observer must not report it as proven.
+        raise RuntimeError("the running cohort is adopted and has no generation admission receipt")
     path = f"{target.value['state_directory']}/generations/{generation}/admission.json"
     process = runner.run(["cat", path], check=False)
     if process.returncode:
@@ -2478,6 +2480,9 @@ def _observed_admission_receipt(target, runner, runtime: dict) -> dict:
     )
     if receipt["generation"] != generation:
         raise RuntimeError("generation admission receipt names another generation")
+    snapshot = (runtime.get("active_state") or {}).get("snapshot")
+    if snapshot is not None and receipt["snapshot"] != snapshot:
+        raise RuntimeError("generation admission receipt names another snapshot than the active state")
     return {
         "status": "verified",
         "path": path,
@@ -4520,7 +4525,9 @@ def smoke_command(arguments: argparse.Namespace) -> int:
             active=cron_inventory["active"],
             invalid_identity_count=cron_inventory["invalid_identity_count"],
         )
-    except (CronPolicyError, KeyError, TypeError) as error:
+    except (CronPolicyError, KeyError, TypeError, RuntimeError) as error:
+        if isinstance(error, RuntimeError) and not getattr(runner, "read_only", False):
+            raise
         cron_status = {"status": "failed", "error": str(error)}
         failures.append("odoo:cron-policy")
     if float(odoo["ledger_delta"]) != 0:

@@ -182,6 +182,35 @@ class CommandClassificationTests(unittest.TestCase):
         ["curl", "--output", "/etc/passwd", "http://127.0.0.1/"],
         ["curl", "--output=/tmp/x", "http://127.0.0.1/"],
         ["systemctl", "restart", "docker"],
+        # Forms a looser guard once let through.
+        ["curl", "-XPOST", "http://127.0.0.1/"],
+        ["curl", "-sd", "x", "http://127.0.0.1/"],
+        ["curl", "-o/tmp/x", "http://127.0.0.1/"],
+        ["curl", "--data-raw", "x", "http://127.0.0.1/"],
+        ["curl", "--data-binary", "@f", "http://127.0.0.1/"],
+        ["curl", "-D", "/tmp/h", "http://127.0.0.1/"],
+        ["curl", "--dump-header", "/tmp/h", "http://127.0.0.1/"],
+        ["curl", "--create-dirs", "--output-dir", "/tmp", "http://127.0.0.1/"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "db", "psql", "--username", "u",
+         "--dbname", "d", "--tuples-only", "--no-align", "--command",
+         "WITH d AS (DELETE FROM res_users RETURNING id) SELECT 1"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "db", "psql", "--username", "u",
+         "--dbname", "d", "--tuples-only", "--no-align", "--command", "SELECT pg_terminate_backend(42)"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "db", "psql", "--username", "u",
+         "--dbname", "d", "--tuples-only", "--no-align", "--command", "SELECT 1", "--file", "/tmp/x.sql"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "import os;os.remove('/x')"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "import pathlib;pathlib.Path('/x').write_text('y')"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "open('/x', 'w').close()"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "import subprocess;subprocess.run(['true'])"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "import httpx;httpx.post('http://x')"],
+        ["date", "-s", "2020-01-01"],
+        ["hostname", "evil"],
+        ["docker", "compose", "--project-name", "p", "config", "--output", "/etc/x"],
     )
 
     READS = (
@@ -199,11 +228,28 @@ class CommandClassificationTests(unittest.TestCase):
         ["docker", "run", "--rm", "--network", "none", "--read-only", "--entrypoint", "cat", MCP_IMAGE, "/p"],
         ["docker", "compose", "--project-name", "p", "--file", "/c.yaml", "ps", "--all", "--format", "json"],
         ["docker", "compose", "--project-name", "p", "config", "--services"],
-        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "db", "psql", "--command",
-         "\nSELECT json_build_object('a', 1)::text\n"],
-        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c", "print(1)"],
+        ["docker", "compose", "--project-name", "p", "exec", "--no-TTY", "odoo", "python", "-c",
+         "import json,pathlib;print(json.dumps(pathlib.Path('/x').read_text().replace('a','b')))"],
         ["curl", "--silent", "--output", "/dev/null", "--write-out", "%{http_code}", "http://127.0.0.1/"],
     )
+
+    def test_the_stack_sql_probes_are_reads(self) -> None:
+        from operations import control_manifest
+        from operations import stack
+
+        for name, query in (
+            ("ODOO_CONTROL_SQL", control_manifest.ODOO_CONTROL_SQL),
+            ("PAPERLESS_CONTROL_SQL", control_manifest.PAPERLESS_CONTROL_SQL),
+            ("RELEASE_DEFINITIONS_SQL", control_manifest.RELEASE_DEFINITIONS_SQL),
+            ("CRON_INVENTORY_SQL", stack.CRON_INVENTORY_SQL),
+        ):
+            with self.subTest(query=name):
+                command = [
+                    "docker", "compose", "--project-name", "p", "exec", "--no-TTY", "db",
+                    "psql", "--username", "u", "--dbname", "d", "--tuples-only", "--no-align",
+                    "--command", query,
+                ]
+                self.assertIsNone(read_only_command_problem(command))
 
     def test_writes_are_refused(self) -> None:
         for command in self.WRITES:
@@ -237,14 +283,31 @@ class CommandClassificationTests(unittest.TestCase):
 
     def test_reviewed_read_has_exactly_one_caller(self) -> None:
         # The escape hatch for the announcement audit must stay a single,
-        # reviewed call site; a second one needs its own review.
-        callers = []
+        # reviewed call site; a second one needs its own review. Code only:
+        # comments and docstrings do not count, any reference in code does.
+        import ast
+
+        references = []
         for path in (ROOT / "operations").rglob("*.py"):
-            for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if "run_reviewed_read" in line and "def run_reviewed_read" not in line:
-                    callers.append(f"{path.relative_to(ROOT)}:{number}")
-        self.assertEqual(len(callers), 2, callers)  # the getattr site and its comment
-        self.assertTrue(all(caller.startswith("operations/stack.py:") for caller in callers), callers)
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name == "run_reviewed_read":
+                    continue
+                if (
+                    (isinstance(node, ast.Attribute) and node.attr == "run_reviewed_read")
+                    or (isinstance(node, ast.Constant) and node.value == "run_reviewed_read")
+                ):
+                    function = next(
+                        (
+                            parent.name for parent in ast.walk(tree)
+                            if isinstance(parent, ast.FunctionDef)
+                            and any(child is node for child in ast.walk(parent))
+                            and parent.name != "run_reviewed_read"
+                        ),
+                        None,
+                    )
+                    references.append((path.relative_to(ROOT).as_posix(), function))
+        self.assertEqual(references, [("operations/stack.py", "_audit_announcements")])
 
 
 class ObservationModeTests(unittest.TestCase):
@@ -324,6 +387,22 @@ class ObservedAuthorityTests(unittest.TestCase):
             self.evidence(target, host, identity)
         self.assertEqual(host.commands, [])
 
+    def test_launcher_variables_do_not_replace_the_deployed_identity(self) -> None:
+        # A launcher checkout can be newer than what runs; the observer must
+        # judge the running cohort by the run it was started from.
+        target, host, identity, override = deployed_production()
+        with (
+            mock.patch.dict(os.environ, {
+                "USL_RELEASE_GITOPS_ROOT": "/nonexistent", "USL_RELEASE_GITOPS_COMMIT": "6" * 40,
+            }),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority",
+                side_effect=AssertionError("observation provisioned MCP authority"),
+            ),
+        ):
+            evidence = _runtime_admission_evidence(target, ReadOnlyRunner(host), identity)
+        self.assertEqual(evidence["mcp_runtime"]["observation"]["gitops_commit"], GITOPS_COMMIT)
+
     def test_launcher_path_keeps_provisioning_authority(self) -> None:
         # A release still writes and appends the override; only observers
         # stopped doing so.
@@ -382,16 +461,25 @@ def admission_receipt(**changes) -> dict:
 
 
 class AdmissionReceiptTests(unittest.TestCase):
-    def observe(self, receipt: dict | None, *, generation: str = GENERATION):
+    def observe(self, receipt: dict | None, *, generation: str = GENERATION, snapshot: str | None = None):
         target = load_target("production", TARGETS)
         path = f"{target.value['state_directory']}/generations/{generation}/admission.json"
         files = {} if receipt is None else {path: json.dumps(receipt)}
         host = Host(target, files, {})
+        runtime_value = {"generation": generation, "active_state": {"snapshot": snapshot or "2" * 64}}
         with mock.patch(
             "operations.stack._release", return_value=({"identity": RELEASE_IDENTITY}, "0" * 64, "{}"),
         ):
-            result = _observed_admission_receipt(target, ReadOnlyRunner(host), {"generation": generation})
+            result = _observed_admission_receipt(target, ReadOnlyRunner(host), runtime_value)
         return result, host
+
+    def test_receipt_for_another_snapshot_fails_closed(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "another snapshot"):
+            self.observe(admission_receipt(), snapshot="9" * 64)
+
+    def test_adopted_cohort_is_not_reported_as_admitted(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "adopted and has no generation admission receipt"):
+            self.observe(None, generation="adopted")
 
     def test_exact_receipt_is_verified(self) -> None:
         receipt = admission_receipt()
@@ -419,6 +507,137 @@ class AdmissionReceiptTests(unittest.TestCase):
     def test_missing_receipt_is_reported(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "admission receipt is unavailable"):
             self.observe(None)
+
+
+class ObservationCommandTests(unittest.TestCase):
+    """Drive the real smoke and health handlers through the read-only runner."""
+
+    def deployed(self):
+        target, host, identity, override = deployed_production()
+        state = target.value["state_directory"]
+        host.files[f"{state}/generations/{GENERATION}/admission.json"] = json.dumps(admission_receipt())
+        containers = []
+        project = target.project
+        for service in target.value["services"].values():
+            networks = f"{project}_default"
+            if service == target.value["services"]["receipt_fetcher"]:
+                networks = f"{project}_receipt-proxy"
+            elif service == target.value["services"]["receipt_egress"]:
+                networks = f"{project}_receipt-proxy,{project}_receipt-public"
+            containers.append({"Service": service, "State": "running", "Health": "healthy", "Networks": networks})
+        status = {
+            "containers": containers, "compose": identity, "generation": GENERATION,
+            "active_state": {"snapshot": "2" * 64},
+        }
+        release = {
+            "identity": RELEASE_IDENTITY,
+            "components": {
+                "receipt-fetcher": {}, "receipt-egress": {},
+                "backup-tool": {"digest_reference": "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "7" * 64},
+            },
+        }
+        return target, host, status, release
+
+    def recording_host(self, target, host):
+        from operations import control_manifest
+        from scripts.tests.test_usl_stack_health import HealthRunner
+
+        health = HealthRunner(target)
+        answers = {
+            control_manifest.ODOO_CONTROL_SQL: {
+                "ledger_delta": 0, "companies": 1, "users": 2, "moves": 3, "attachments": 4,
+                "stored_attachments": 4, "failed_mail": 0, "failed_documents": 0, "bank_failed": 0,
+                "payment_failed": 0, "sign_archive_failed": 0, "cron_failures": 0, "cron_lag": [],
+            },
+            control_manifest.PAPERLESS_CONTROL_SQL: {"documents": 1, "with_ocr": 1, "missing_original_name": 0},
+            control_manifest.RELEASE_DEFINITIONS_SQL: {"acl": [], "rules": [], "crons": [], "groups": []},
+        }
+
+        class Recording(Host):
+            def run(self, command, *, check=True, input_text=None):
+                if command[:2] == ["docker", "compose"] and "psql" in command:
+                    self.commands.append(command)
+                    query = command[-1]
+                    value = answers.get(query, {"installed": [], "active": [], "invalid_identity_count": 0})
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+                if command[:2] == ["docker", "compose"] and "python" in command:
+                    program = command[-1]
+                    if "filestore" in program:
+                        self.commands.append(command)
+                        return subprocess.CompletedProcess(command, 0, json.dumps({"files": 9}), "")
+                    if "originals" in program:
+                        self.commands.append(command)
+                        return subprocess.CompletedProcess(command, 0, json.dumps(
+                            {"originals": 1, "archive": 1, "thumbnails": 1, "tantivy": 1, "vectors": 1},
+                        ), "")
+                if command[:3] == ["docker", "image", "inspect"]:
+                    self.commands.append(command)
+                    return subprocess.CompletedProcess(command, 0, "[]", "")
+                if command[:2] == ["docker", "run"]:
+                    self.commands.append(command)
+                    return subprocess.CompletedProcess(command, 0, "{}", "")
+                # Health's own probes (endpoints, config, mTLS, containment,
+                # Ollama) are answered by the existing health fixture.
+                compose_probe = (
+                    command[:2] == ["docker", "compose"]
+                    and "usl-sign-readiness/v1" not in command[-1]
+                    and command[-3:] != ["config", "--format", "json"]
+                )
+                endpoint_probe = command[0] == "curl" and "--fail" not in command
+                if compose_probe or endpoint_probe:
+                    self.commands.append(command)
+                    return health.run(command, check=check)
+                return super().run(command, check=check, input_text=input_text)
+
+        return Recording(target, host.files, host.identity)
+
+    def run_command(self, handler):
+        import argparse
+        import io
+        from contextlib import redirect_stdout
+
+        target, host, status, release = self.deployed()
+        host = self.recording_host(target, host)
+        output = io.StringIO()
+        with (
+            observation_only(),
+            launcher_environment_absent(),
+            mock.patch.object(type(target), "runner", lambda _self: ReadOnlyRunner(host)),
+            mock.patch("operations.stack.load_target", return_value=target),
+            mock.patch("operations.stack.inspect_runtime", return_value=status),
+            mock.patch("operations.stack._release", return_value=(release, "0" * 64, "{}")),
+            mock.patch("operations.stack.parse_cron_policy", return_value={}),
+            mock.patch("operations.stack.validate_cron_runtime", return_value={"status": "passed"}),
+            mock.patch(
+                "operations.stack._with_mcp_runtime_authority",
+                side_effect=AssertionError("observation provisioned MCP authority"),
+            ),
+            redirect_stdout(output),
+        ):
+            code = handler(argparse.Namespace(target="production", targets=TARGETS, json=True))
+        return code, json.loads(output.getvalue()), host
+
+    def assert_only_reads(self, host) -> None:
+        self.assertTrue(host.commands)
+        for command in host.commands:
+            self.assertIsNone(read_only_command_problem(command), command)
+
+    def test_smoke_observes_authority_and_admission_with_reads_only(self) -> None:
+        from operations.stack import smoke_command
+
+        code, report, host = self.run_command(smoke_command)
+        self.assertEqual((code, report["status"], report["failures"]), (0, "passed", []))
+        self.assertEqual(report["admission"]["status"], "verified")
+        self.assertEqual(report["services"]["mcp_runtime"]["observation"]["source"], "deployed-gitops-run")
+        self.assert_only_reads(host)
+
+    def test_health_observes_authority_with_reads_only(self) -> None:
+        from operations.stack import health_command
+
+        code, report, host = self.run_command(health_command)
+        self.assertEqual((code, report["status"], report["failures"]), (0, "passed", []))
+        self.assertEqual(report["services"]["mcp_runtime"]["observation"]["gitops_commit"], GITOPS_COMMIT)
+        self.assert_only_reads(host)
 
 
 if __name__ == "__main__":

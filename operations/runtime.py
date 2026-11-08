@@ -151,21 +151,109 @@ class CommandRunner:
 _OBSERVATION_ONLY = False
 
 _READ_ONLY_HOST_COMMANDS = frozenset({
-    "cat", "test", "ls", "stat", "df", "du", "findmnt", "sha256sum", "readlink",
-    "realpath", "hostname", "uname", "date", "id",
+    "cat", "test", "stat", "df", "du", "findmnt", "sha256sum", "readlink",
 })
-_READ_ONLY_DOCKER_VERBS = frozenset({"ps", "inspect", "logs", "version", "info", "images"})
+_READ_ONLY_DOCKER_VERBS = frozenset({"ps", "inspect", "logs", "info"})
 _READ_ONLY_DOCKER_OBJECT_VERBS = frozenset({"inspect", "ls"})
 _DOCKER_OBJECTS = frozenset({"image", "volume", "network", "container"})
 _COMPOSE_GLOBAL_OPTIONS = frozenset({
     "--project-name", "--project-directory", "--env-file", "--file", "--profile",
 })
-_READ_ONLY_COMPOSE_VERBS = frozenset({"ps", "config", "images", "ls"})
-_CURL_WRITE_OPTIONS = (
-    "-X", "--request", "-d", "--data", "-F", "--form", "-T", "--upload-file",
-    "-o", "-O", "--remote-name", "--json", "-K", "--config", "-c", "--cookie-jar",
-)
+_COMPOSE_CONFIG_ARGUMENTS = frozenset({"--services", "--format", "json", "--images", "--quiet"})
+# Exactly the options the stack's curl probes use; anything else, including
+# every short or joined form, is refused rather than interpreted.
+_CURL_FLAGS = frozenset({
+    "--silent", "--show-error", "--fail", "--include", "--no-buffer", "--http1.1",
+})
+_CURL_VALUED = frozenset({"--write-out", "--max-time", "--header", "--output"})
 _READ_ONLY_SQL = re.compile(r"\s*(?:SELECT|WITH)\b", re.IGNORECASE)
+_SQL_WRITE = re.compile(
+    r"\b(?:INSERT|UPDATE|DELETE|MERGE|TRUNCATE|ALTER|DROP|CREATE|GRANT|REVOKE|COPY|"
+    r"VACUUM|REINDEX|CLUSTER|LOCK|NOTIFY|LISTEN|CALL|DO|SET|RESET|COMMENT|REFRESH|"
+    r"PREPARE|EXECUTE|DISCARD|IMPORT|SECURITY|INTO)\b"
+    r"|\b(?:pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|"
+    r"pg_switch_wal|pg_promote|pg_file_\w+|pg_advisory\w*|pg_create\w*|pg_drop\w*|"
+    r"set_config|nextval|setval|lo_\w+|dblink\w*)\s*\(",
+    re.IGNORECASE,
+)
+# Calls a probe program must not make: file-system, process and HTTP writes.
+_PYTHON_WRITE_CALLS = frozenset({
+    "remove", "unlink", "rmdir", "removedirs", "mkdir", "makedirs", "rename",
+    "renames", "write", "writelines", "write_text", "write_bytes", "chmod", "chown",
+    "lchown", "symlink", "symlink_to", "link", "hardlink_to", "truncate", "ftruncate",
+    "rmtree", "move", "copy", "copy2", "copyfile", "copytree", "system", "popen",
+    "execv", "execve", "execl", "execlp", "execvp", "spawnv", "kill", "fork", "touch",
+    "mkfifo", "mknod", "utime", "post", "put", "patch", "delete", "exec", "eval",
+    "compile", "__import__", "setattr", "dup2",
+})
+_PYTHON_WRITE_MODULES = frozenset({
+    "subprocess", "shutil", "ctypes", "multiprocessing", "pty", "tempfile", "sqlite3",
+    "psycopg2", "importlib",
+})
+
+
+def _python_probe_problem(program: str) -> str | None:
+    """Refuse a probe program that could write, judged from its syntax tree."""
+    import ast
+
+    try:
+        tree = ast.parse(program)
+    except SyntaxError:
+        return "python -c program that does not parse"
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names = [alias.name for alias in node.names]
+            if isinstance(node, ast.ImportFrom) and node.module:
+                names = [node.module]
+            for name in names:
+                if name.split(".")[0] in _PYTHON_WRITE_MODULES:
+                    return f"python -c importing {name}"
+        if not isinstance(node, ast.Call):
+            continue
+        function = node.func
+        name = function.attr if isinstance(function, ast.Attribute) else getattr(function, "id", None)
+        if name == "replace" and isinstance(function, ast.Attribute):
+            # str.replace is a read; os.replace and Path.replace move files.
+            if isinstance(function.value, ast.Name) and function.value.id == "os":
+                return "python -c calling os.replace"
+            continue
+        if name in _PYTHON_WRITE_CALLS:
+            return f"python -c calling {name}"
+        if name == "open":
+            mode = node.args[1] if len(node.args) > 1 else next(
+                (keyword.value for keyword in node.keywords if keyword.arg == "mode"), None,
+            )
+            if mode is not None and not (
+                isinstance(mode, ast.Constant)
+                and isinstance(mode.value, str)
+                and not set(mode.value) & set("wax+")
+            ):
+                return "python -c opening a file for writing"
+        if name == "Request" and any(
+            keyword.arg == "method"
+            and not (isinstance(keyword.value, ast.Constant) and keyword.value.value in {"GET", "HEAD"})
+            for keyword in node.keywords
+        ):
+            return "python -c sending a non-GET request"
+    return None
+
+
+def _psql_problem(program: list[str]) -> str | None:
+    if (
+        len(program) != 9
+        or program[1] != "--username"
+        or program[3] != "--dbname"
+        or program[5:8] != ["--tuples-only", "--no-align", "--command"]
+    ):
+        return "psql with arguments outside the stack's probe shape"
+    query = program[8]
+    if not _READ_ONLY_SQL.match(query) or ";" in query.strip().rstrip(";"):
+        return "psql with a query that is not a single SELECT"
+    # String literals are data ('create' as an ACL label), not statements.
+    match = _SQL_WRITE.search(re.sub(r"'(?:[^']|'')*'", "''", query))
+    if match:
+        return f"psql with a query containing {match.group(0).strip().rstrip('(').strip()}"
+    return None
 
 
 def _compose_problem(command: list[str]) -> str | None:
@@ -176,28 +264,48 @@ def _compose_problem(command: list[str]) -> str | None:
     if not rest:
         return "docker compose without a subcommand"
     verb = rest[0]
-    if verb in _READ_ONLY_COMPOSE_VERBS:
+    if verb in {"ps", "images", "ls"}:
         return None
+    if verb == "config":
+        unexpected = [argument for argument in rest[1:] if argument not in _COMPOSE_CONFIG_ARGUMENTS]
+        return f"docker compose config {unexpected[0]}" if unexpected else None
     if verb != "exec":
         return f"docker compose {verb}"
     arguments = rest[1:]
     while arguments and arguments[0] in {"--no-TTY", "-T"}:
         arguments = arguments[1:]
-    if len(arguments) < 2:
-        return "docker compose exec without a probe"
+    if len(arguments) < 2 or arguments[0].startswith("-"):
+        return "docker compose exec without a service and a probe"
     program = arguments[1:]
     if program[0] == "psql":
-        if "--command" not in program or program.index("--command") + 1 >= len(program):
-            return "docker compose exec psql without a query"
-        query = program[program.index("--command") + 1]
-        if not _READ_ONLY_SQL.match(query) or ";" in query.strip().rstrip(";"):
-            return "docker compose exec psql with a non-SELECT query"
-        return None
+        return _psql_problem(program)
     if program[:2] == ["python", "-c"] and len(program) == 3:
-        # The probe programs are fixed in operations/stack.py and reviewed
-        # there; none of them writes. A shell or other entry point is refused.
-        return None
+        return _python_probe_problem(program[2])
     return f"docker compose exec {program[0]}"
+
+
+def _curl_problem(command: list[str]) -> str | None:
+    arguments = command[1:]
+    urls = 0
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        if argument in _CURL_FLAGS:
+            index += 1
+            continue
+        if argument in _CURL_VALUED:
+            if index + 1 >= len(arguments):
+                return f"curl {argument} without a value"
+            if argument == "--output" and arguments[index + 1] != "/dev/null":
+                return "curl --output to a file"
+            index += 2
+            continue
+        if re.fullmatch(r"https?://[^\s]+", argument):
+            urls += 1
+            index += 1
+            continue
+        return f"curl {argument.split('=', 1)[0]}"
+    return None if urls == 1 else "curl without exactly one URL"
 
 
 def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
@@ -212,17 +320,7 @@ def read_only_command_problem(command: list[str], input_text: str | None = None)
     if command == ["containerd", "config", "dump"]:
         return None
     if head == "curl":
-        long_forms = tuple(option + "=" for option in _CURL_WRITE_OPTIONS if option.startswith("--"))
-        for argument in command[1:]:
-            if argument in _CURL_WRITE_OPTIONS or argument.startswith(long_forms):
-                return f"curl {argument.split('=', 1)[0]}"
-            if argument.startswith("--output=") and argument != "--output=/dev/null":
-                return "curl --output to a file"
-        if "--output" in command:
-            position = command.index("--output")
-            if position + 1 >= len(command) or command[position + 1] != "/dev/null":
-                return "curl --output to a file"
-        return None
+        return _curl_problem(command)
     if head != "docker" or len(command) < 2:
         return head
     verb = command[1]
@@ -275,7 +373,7 @@ class ReadOnlyRunner:
         The release-announcement audit is an ``odoo shell`` session: it can
         write in principle, and reads in practice because its fixed program
         never commits and the shell rolls back at exit. It is the only caller;
-        ``scripts/tests/test_usl_stack_observe.py`` fails if another appears.
+        ``scripts/tests/test_observation_read_only.py`` fails if another appears.
         """
         return self.inner.run(command, check=check, input_text=input_text)
 

@@ -363,11 +363,18 @@ deployed runtime. It maps six observations (`runtime`, `release`, `health`,
 `smoke`, `storage`, `announcements`) to their read-only verbs, and it runs
 them under `observation_only()`: every runner a target hands out is a
 `ReadOnlyRunner`, which refuses before execution anything outside a short list
-of reads (`cat`, `docker ps`/`inspect`, `docker compose ps`/`config`, Compose
-`exec` probes limited to `psql` SELECTs and fixed `python -c` programs, GET-only
-`curl`). Directory creation, file writes, `docker pull`, locks, Compose
-lifecycle verbs and any command with standard input fail with
-`observation refused a write-capable command: <verb>`. The one exception is the
+of reads: `cat`, `test`, `stat`, `df`, `du`, `findmnt`, `sha256sum`,
+`readlink`; `docker ps`/`inspect`/`logs`/`info`; `docker compose ps` and
+`config --services|--format json`; `curl` with only the options the probes
+use; and Compose `exec` probes. A `psql` probe must have the exact shape
+`_psql` sends and a single SELECT with no data-modifying keyword or function
+outside string literals. A `python -c` probe must parse, and its syntax tree
+must contain no file, process or HTTP write and no import of `subprocess`,
+`shutil` or similar. Directory creation, file writes, `docker pull`, locks,
+Compose lifecycle verbs and any command with standard input fail with
+`observation refused a write-capable command: <verb>`. The embedding request
+the health probe sends to the shared Ollama is a computation, not a write, and
+is allowed. The one exception is the
 announcement audit's `odoo shell`, routed through `run_reviewed_read` because
 its program never commits and the shell rolls back at exit;
 `scripts/tests/test_observation_read_only.py` fails if a second caller appears.
@@ -387,7 +394,9 @@ and attempts nothing.
 `smoke` under observation also validates the immutable receipt of the running
 generation, `generations/<generation>/admission.json`: schema, `admitted`
 status, target, the active release identity, the generation and the receipt's
-own digest. A GitHub deployment marked `success` says the launcher reported a
+own digest, and the snapshot named by the active state. An adopted cohort has
+no receipt, so smoke fails with `release:admission-receipt` rather than report
+an admission it cannot prove. A GitHub deployment marked `success` says the launcher reported a
 release; the receipt check is the independent proof that the host admitted
 that release in that generation. The retained `control-plane-execution.json`
 artifact lives with the GitOps pipeline, not on the host, and is not read here.
