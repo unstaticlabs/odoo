@@ -1721686,6 +1721686,7 @@
     "usl_b2c",
     "usl_b2c_ingest",
     "usl_docs",
+    "usl_document_templates",
     "usl_documents",
     "usl_documents_accounting",
     "usl_documents_b2c",

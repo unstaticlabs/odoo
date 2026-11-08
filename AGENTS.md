@@ -15,7 +15,7 @@ before you finish the change — not after CI disagrees.
 | an app icon, or anything writing `ir_attachment`, `mail_message`, `project_project`, `res_groups_users_rel` | `operations/upgrade_preservation.py` | a release refuses any change to a row that already existed; the rollback restores the cause, so every retry fails identically |
 | `custom-addons/*/security/*.xml` | `docs/operations/distribution-access-control-runbook.md` | the file is `noupdate=1`, so an `implied_ids` edit reaches a fresh install and no existing database; it needs a `migrations/` post script |
 | any `custom-addons/` source | `docs/operations/action-risk-inventory.md` | the sealed action surface is invalidated; the refresh needs a *runtime* discovery, since static-only discovery drops routes and server actions |
-| a new addon directory | `operations/release_identity.py` | no pull-request gate sees a new module; it merges green and fails on the release branch unless it is named in all four product registries |
+| a new addon directory | `operations/module_release.py` (`product_modules`) | the product-module set is derived from `custom-addons/` and the external pin, so the module is in every gate at once; the sealed action surface is not derived, and `scripts/tests/test_product_modules.py` fails until its `root_modules` are resealed from a runtime discovery and its actions classified |
 | a release or promotion gate | `operations/source_policy.py` | production accepts `19-usl-staging` **or** `urgent/**`; an urgent fix reaches staging *after* production, so a gate demanding staging evidence welds the emergency path shut |
 
 Before adding a gate, enumerate every input class it will judge and prove one

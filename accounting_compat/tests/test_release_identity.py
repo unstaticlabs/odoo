@@ -19,8 +19,9 @@ SPEC.loader.exec_module(RELEASE_IDENTITY)
 class ReleaseIdentityTest(unittest.TestCase):
     def test_product_perimeter_has_versioned_runtime_modules_only(self):
         versions = RELEASE_IDENTITY.product_module_versions()
-        self.assertEqual(set(versions), RELEASE_IDENTITY.PRODUCT_MODULES)
+        self.assertEqual(set(versions), RELEASE_IDENTITY.product_modules(RELEASE_IDENTITY.ROOT))
         self.assertNotIn("usl_bootstrap", versions)
+        self.assertIn("usl_document_templates", versions)
         self.assertTrue(all(version.startswith("saas~19.3.") for version in versions.values()))
 
     def test_distribution_image_embeds_runtime_inputs(self):
