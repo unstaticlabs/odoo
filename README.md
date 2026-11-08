@@ -36,6 +36,11 @@ make product-migration-boundary    # a finalized database carries no migration m
 
 `make help` lists the complete routine development surface.
 
+`private/` holds ignored runtime state and evidence. Keep the directory mode
+`0700` and files containing secrets or identity state at `0600`. The source
+dump, filestore, runtime state, credentials and generated evidence are private
+local artifacts and must never be committed.
+
 ## Documentation
 
 - [`AGENTS.md`](AGENTS.md): repository boundaries, invariants, development and

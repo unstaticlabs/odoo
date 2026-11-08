@@ -28,10 +28,12 @@ drive-by formatting all cost review attention and hide the real change.
 
 ## Screenshots, as journeys
 
-Each arrives with a viewport, a user, a scenario and an expected result, as an
-image uploaded into the pull request body. Captures are no longer committed under
-`docs/`; a PNG added there is a leftover of the old convention, so ask for it to be
-moved into the body. Read each one as the person in that scenario, against
+Each arrives with a viewport, a user, a scenario and an expected result, embedded
+in the pull request body from the orphan branch `captures/<branch>`. Check that the
+branch exists on `usl` (`git ls-remote --heads usl 'captures/*'`) and that every
+image renders in the body. Captures are no longer committed under `docs/`; a PNG
+added there is a leftover of the old convention, so ask for it to be moved to the
+captures branch. Read each image as the person in that scenario, against
 `DESIGN.md` and `.agents/skills/odoo-ui-product-quality`.
 
 - Does the image actually show the scenario it claims? A screenshot of a login page

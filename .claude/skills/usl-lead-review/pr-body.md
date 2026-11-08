@@ -62,12 +62,12 @@ named in the PR is a decision; the same problem found later is a defect.
 and the failure again with the fix reverted. That third one is the part that proves
 the test is real.
 
-**Screenshots inline**, uploaded into the body (not committed under `docs/`), each
-with one line saying who is on screen, on what viewport, doing what, and what to
-look at:
+**Screenshots inline**, served from the orphan branch `captures/<branch>` (never
+committed under `docs/`), each with one line saying who is on screen, on what
+viewport, doing what, and what to look at:
 
 ```markdown
-![Collaborator opens Home on a phone](https://github.com/user-attachments/assets/<id>)
+![Collaborator opens Home on a phone](https://github.com/unstaticlabs/odoo/blob/captures/<branch>/<name>-mobile.png?raw=true)
 *390×844, signed in as a project collaborator. After tapping through to Projects,
 Back returns to the previous app instead of Home.*
 ```

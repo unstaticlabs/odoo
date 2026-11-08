@@ -215,13 +215,15 @@ already cost one wasted before/after pair.
 
 Capture with the helper — headless, so no address bar, tab strip or local path
 reaches the image, and it rewrites the PNG to carry only IHDR, IDAT and IEND.
-Write it outside the worktree: captures are evidence for the pull request, not
-files of the repository.
+Write it into a local capture folder outside the worktree: captures are evidence
+for the pull request, not files of the repository.
 
 ```bash
+QA_CAPTURES="$HOME/.cache/usl-captures/${BRANCH//\//-}"   # local, outside the worktree
+mkdir -p "$QA_CAPTURES"
 node ~/.claude/scheduled-tasks/usl-monday-feedback-burn/qa-screenshot.mjs \
   --url "http://localhost:$HTTP_PORT/odoo/<path>" \
-  --out "$QA_CAPTURES/<area>/<name>-desktop.png" \
+  --out "$QA_CAPTURES/<name>-desktop.png" \
   --viewport desktop --login "<user>:<password>" --db "$DB" \
   --wait-for-selector "<selector that proves the page is ready>" \
   --scenario "<who is doing what>" --expected "<what the reader should see>"
@@ -231,14 +233,28 @@ Always pass `--wait-for-selector`. The helper verifies its own login now, but th
 selector is what proves the *page* is the one you meant.
 
 It writes a `.meta.json` sidecar with viewport, user, scenario and expected result
-— **quote it in your handoff, never commit it.** The PNG is not committed either:
-upload it into the pull request body (drag it into the description in the browser;
-GitHub returns a `https://github.com/user-attachments/assets/...` URL) and caption it
-there. Nothing is added under `docs/`; the capture folders that used to live there
-are archived under `docs/archive/product/`.
+— **quote it in your handoff, never commit it.**
 
-Look at every image before uploading it. No production records, contact details,
+Look at every image before publishing it. No production records, contact details,
 financial data, credentials or local paths.
+
+The PNGs are published on an orphan branch named after yours, `captures/<branch>`
+with the slashes of your branch name turned into dashes. It carries only the
+images, is pushed to `usl` and is never merged. Nothing is added under `docs/`; the
+capture folders that used to live there are archived under `docs/archive/product/`.
+
+```bash
+CAPTURES_BRANCH="captures/${BRANCH//\//-}"
+git worktree add --orphan -b "$CAPTURES_BRANCH" "$QA_CAPTURES/.publish"
+cp "$QA_CAPTURES"/*.png "$QA_CAPTURES/.publish/"
+git -C "$QA_CAPTURES/.publish" add -- '*.png'
+git -C "$QA_CAPTURES/.publish" commit -q -m "captures: $BRANCH"
+git -C "$QA_CAPTURES/.publish" push usl "$CAPTURES_BRANCH"
+git worktree remove --force "$QA_CAPTURES/.publish"
+```
+
+Embed each image in the pull request body as
+`https://github.com/unstaticlabs/odoo/blob/captures/<branch>/<name>-desktop.png?raw=true`.
 
 ### 7. Commit, push, open a draft PR
 
@@ -259,8 +275,10 @@ gh pr create --repo unstaticlabs/odoo --draft --base 19-usl-staging \
   --title "<conventional commit subject>" --body-file <path>
 ```
 
-Write the body per `.claude/skills/usl-lead-review/pr-body.md`. Upload the
-screenshots into the body; they are evidence of the PR and are not committed.
+Write the body per `.claude/skills/usl-lead-review/pr-body.md`. Embed the
+screenshots from `captures/<branch>` as
+`https://github.com/unstaticlabs/odoo/blob/captures/<branch>/<file>.png?raw=true`;
+they are evidence of the PR and are never committed to its branch.
 
 **Never push to `19-usl` or `19-usl-staging`.** A pre-push hook refuses it, and it
 is right to.
@@ -273,8 +291,8 @@ is right to.
 4. **Test evidence** — failing before, passing after, failing again when reverted.
 5. **Action-risk** — digests moved, your classification for each, and any drift you
    refused to absorb.
-6. **Screenshots** — PR-body attachment URL, viewport, user, scenario, expected
-   result for each.
+6. **Screenshots** — the `captures/<branch>` branch, then for each image its file
+   name, viewport, user, scenario and expected result.
 7. **Risks, and what you deliberately did not do.**
 8. **Every place this brief was wrong**, unclear or missing a step. Be specific:
    the command, what it did, what the brief said it would do. The brief's defects
