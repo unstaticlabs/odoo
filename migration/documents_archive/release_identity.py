@@ -19,22 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 from migration.mcp_release import McpReleaseError, resolve_release as resolve_mcp_release  # noqa: E402
-PRODUCT_MODULES = (
-    "rebuild_account_migration",
-    "usl_accounting",
-    "usl_documents",
-    "usl_documents_accounting",
-    "usl_expense_batch",
-    "usl_feedback",
-    "usl_home",
-    "usl_locale",
-    "usl_platform_billing",
-    "usl_platform_billing_pocketid",
-    "usl_pocketid",
-    "usl_project",
-    "usl_tese_accounting",
-    "usl_tese_payroll",
-)
+from operations.module_release import product_modules  # noqa: E402
 
 
 class IdentityError(ValueError):
@@ -87,7 +72,7 @@ def sha256_file(path: Path) -> str:
 
 def module_versions() -> dict[str, str]:
     result = {}
-    for name in PRODUCT_MODULES:
+    for name in sorted(product_modules(ROOT)):
         path = ROOT / "custom-addons" / name / "__manifest__.py"
         try:
             value = ast.literal_eval(path.read_text(encoding="utf-8"))

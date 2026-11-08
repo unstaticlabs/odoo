@@ -22,13 +22,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 scripts/sync-oca-addons
-modules="$(PYTHONPATH=. python3 - <<'PY'
-from pathlib import Path
-from operations.module_release import build_inventory
-
-print(",".join(sorted(build_inventory(Path.cwd(), require_dependencies=True)["modules"])))
-PY
-)"
+modules="$(scripts/product-modules)"
 test -n "$modules"
 
 "${compose[@]}" up -d --wait db
@@ -62,6 +56,7 @@ odoo_shell() {
     -e ODOO_INIT_DB="$database" \
     -e ODOO_DB_FILTER="^${database}$" \
     -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e USL_PRODUCT_MODULES="$modules" \
     -e ACTION_RISK_MODE="${ACTION_RISK_MODE:-check}" \
     test odoo shell \
     --config=/etc/odoo/odoo.conf \
