@@ -156699,7 +156699,7 @@
         "rpc:account.move.line.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "6f1662414d0e5de8f16d172f58d70c07c4b1b140d7db13dd28561acb896d4405",
+      "digest": "a80484bb2d5eb0b26564cac2f07953cf534a9a8f853d0165a83dd2a9a735b1f3",
       "guards": [],
       "key": "rpc:account.partial.reconcile.create",
       "kind": "rpc",
@@ -156715,7 +156715,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "44ed526144f6e9f48e7b6d9b1eae9621c4f4ad2e9916833ded5f32abaa865071",
+      "runtime_digest": "faf586b34d17f6b92d4fc98367105e3451331de7963b341f1daa99d3e085838c",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -156723,12 +156723,12 @@
       ],
       "sources": [
         {
-          "line": 13,
-          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
-        },
-        {
           "line": 175,
           "path": "addons/account/models/account_partial_reconcile.py"
+        },
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         },
         {
           "line": 275,
@@ -157781,7 +157781,7 @@
         "rpc:mail.activity.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "968430f432d583b2719995cdea182371b324cda5e77c36eea62cad4e3f9ccacc",
+      "digest": "be38b0a583ef6c781181790a90ea869caa9355bf61bed18e3de0e9b524dd346c",
       "guards": [],
       "key": "rpc:account.partial.reconcile.unlink",
       "kind": "rpc",
@@ -157798,7 +157798,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "275f84407a861cdfc5029a96806caa477269df73eed17d66102384f61f9d72e8",
+      "runtime_digest": "415f3f3080a517ed77abdab75e6de629645b11be7add6495bc238c715abedb9a",
       "sinks": [
         "orm_unlink",
         "orm_write",
@@ -157810,7 +157810,7 @@
           "path": "addons/account/models/account_partial_reconcile.py"
         },
         {
-          "line": 18,
+          "line": 25,
           "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         },
         {
@@ -1658630,7 +1658630,7 @@
       ]
     },
     {
-      "digest": "d6017093999bc478a289293859966e238fb0540b04910c362223afda398587bb",
+      "digest": "250cd1f5fd2d8e223aa93fb1160c11735aee1bb6cda09e91384715d75e6c7ca0",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1658642,13 +1658642,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 13,
+          "line": 20,
           "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         }
       ]
     },
     {
-      "digest": "41ad9c80ffa3d43f580f46d11ba0ef15e76e43fc59aac4c1a063c6c135da8a7f",
+      "digest": "f1dd9f2d1e3015751cfec5f7dd7e5475a5f331b75c1df592c3a6e0386728d7af",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1658660,13 +1658660,31 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 13,
+          "line": 20,
           "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         }
       ]
     },
     {
-      "digest": "482c9d4a18b6389007128f9463da72184cffe25a340b4880fb2d1d55e19afed1",
+      "digest": "3b10a5cd77f443fd2c032270616807329ac9e6dcc344e7e4bfb606b33a74d3e5",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.create"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "bb0ef8a9710ed4dff1be5503709dfb9cf5cbf8861f36bc25b73142f164348310",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1",
       "kind": "sink",
       "modules": [
@@ -1658678,13 +1658696,13 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 18,
+          "line": 25,
           "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         }
       ]
     },
     {
-      "digest": "480398adaae4ccf03be64a660f9186e445f19f3478aaba97140baf1374348ff4",
+      "digest": "3cdf2b75e8f7aa020a74aa62f5fb423a49211e2d2524ed10d553a09a7b5a89b5",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1658696,7 +1658714,25 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 18,
+          "line": 25,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "d6a12be59ef1826abb396627bfc91421e01640542fb6552f6dbbae031d0716d1",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.unlink"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 25,
           "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         }
       ]
@@ -1721756,7 +1721792,7 @@
       "manifest_sha256": "fd46b750b1ff118b99d3d3c72cf9b74cad5dde636e1d46d0dd9104f641975c28",
       "name": "usl_tese_payroll",
       "origin": "custom",
-      "source_sha256": "bcd77cfd6fff58b6c3aaa671ef203b7bb6b315d03bf43b1d36b7a2f12470dc74",
+      "source_sha256": "65d987b77459505541ded1b5d00d097605a95475fda8464578a74931860407ca",
       "version": "saas~19.3.1.4.10"
     },
     {
