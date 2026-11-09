@@ -198,6 +198,13 @@ _PYTHON_WRITE_MODULES = frozenset({
 })
 
 
+_PYTHON_OPEN_CALLS = frozenset({"open", "GzipFile", "BZ2File", "LZMAFile", "TarFile", "ZipFile"})
+
+
+def _is_process_call(name: str) -> bool:
+    return name.startswith(("exec", "spawn", "posix_spawn", "fork"))
+
+
 def _python_probe_problem(program: str) -> str | None:
     """Refuse a probe program that could write, judged from its syntax tree."""
     import ast
@@ -211,7 +218,10 @@ def _python_probe_problem(program: str) -> str | None:
             names = [alias.name for alias in node.names]
             if isinstance(node, ast.ImportFrom):
                 # `from os import remove as r` would hide the call name.
-                if any(name in _PYTHON_WRITE_CALLS or name == "*" for name in names):
+                if any(
+                    name in _PYTHON_WRITE_CALLS or name in {"*", "open", "replace"} or _is_process_call(name)
+                    for name in names
+                ):
                     return f"python -c importing {names[0]}"
                 names = [node.module or ""]
             for name in names:
@@ -220,10 +230,17 @@ def _python_probe_problem(program: str) -> str | None:
         # Naming a write function at all, called or not (`f = os.remove`),
         # and reaching around names (`os.__dict__[...]`) are refused.
         if isinstance(node, ast.Attribute) and (
-            node.attr in _PYTHON_WRITE_CALLS or node.attr.startswith("__")
-        ) and not (node.attr == "replace"):
+            node.attr in _PYTHON_WRITE_CALLS or node.attr.startswith("__") or _is_process_call(node.attr)
+        ):
             return f"python -c referencing {node.attr}"
-        if isinstance(node, ast.Name) and node.id in _PYTHON_WRITE_CALLS:
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "replace"
+            and isinstance(node.value, ast.Name)
+            and node.value.id in {"os", "shutil"}
+        ):
+            return "python -c referencing os.replace"
+        if isinstance(node, ast.Name) and (node.id in _PYTHON_WRITE_CALLS or _is_process_call(node.id)):
             return f"python -c referencing {node.id}"
         if isinstance(node, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
             targets = node.targets if isinstance(node, ast.Assign) else [node.target]
@@ -234,6 +251,25 @@ def _python_probe_problem(program: str) -> str | None:
             continue
         function = node.func
         name = function.attr if isinstance(function, ast.Attribute) else getattr(function, "id", None)
+        if name in _PYTHON_OPEN_CALLS:
+            # Judged without trusting the receiver's name (`import os as o`):
+            # a write mode in either of the first two positions or in mode=,
+            # or a second positional argument that is not a constant read
+            # mode (os.open flags), is refused.
+            candidates = list(node.args[:2]) + [
+                keyword.value for keyword in node.keywords if keyword.arg in {"mode", "flags"}
+            ]
+            for value in candidates:
+                if isinstance(value, ast.Constant) and isinstance(value.value, str) and set(value.value) & set("wax+"):
+                    return "python -c opening a file for writing"
+            second = node.args[1] if len(node.args) > 1 else None
+            if second is not None and not (
+                isinstance(second, ast.Constant)
+                and isinstance(second.value, str)
+                and not set(second.value) & set("wax+")
+            ):
+                return "python -c opening a file with a non-constant mode"
+            continue
         if name == "replace" and isinstance(function, ast.Attribute):
             # str.replace(old, new) is a read; os.replace(a, b) and
             # Path.replace(target) move files.
@@ -242,27 +278,6 @@ def _python_probe_problem(program: str) -> str | None:
             continue
         if name in _PYTHON_WRITE_CALLS:
             return f"python -c calling {name}"
-        if name == "open":
-            receiver = function.value if isinstance(function, ast.Attribute) else None
-            if isinstance(receiver, ast.Name) and receiver.id == "os":
-                return "python -c calling os.open"
-            # open(path, mode), io.open(path, mode), codecs.open(path, mode)
-            # and the archive modules take the path first; Path.open(mode)
-            # takes the mode first.
-            path_first = receiver is None or (
-                isinstance(receiver, ast.Name)
-                and receiver.id in {"io", "codecs", "gzip", "bz2", "lzma", "tarfile", "zipfile", "builtins"}
-            )
-            position = 1 if path_first else 0
-            mode = node.args[position] if len(node.args) > position else next(
-                (keyword.value for keyword in node.keywords if keyword.arg == "mode"), None,
-            )
-            if mode is not None and not (
-                isinstance(mode, ast.Constant)
-                and isinstance(mode.value, str)
-                and not set(mode.value) & set("wax+")
-            ):
-                return "python -c opening a file for writing"
         if name == "Request" and any(
             keyword.arg == "method"
             and not (isinstance(keyword.value, ast.Constant) and keyword.value.value in {"GET", "HEAD"})
