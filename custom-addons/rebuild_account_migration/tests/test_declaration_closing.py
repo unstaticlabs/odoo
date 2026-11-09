@@ -306,6 +306,94 @@ class TestDeclarationAndClosing(TransactionCase):
             ("period_start", "<", date(2027, 10, 1)),
         ]))
 
+    def _fiscal_year_ends(self, company, code="FR_2065"):
+        return sorted(self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", code),
+        ]).mapped("fiscalyear_end"))
+
+    def test_multi_year_lock_gap_is_filled_without_pre_first_year_rows(self):
+        # The declaration rules start with the 2025 version, so a gap of two
+        # years is visible from FY2025 onward.
+        company = self._company("Old lock gap fill")
+        company.write({
+            "rebuild_first_fiscalyear_start": "2023-01-10",
+            "rebuild_first_fiscalyear_end": "2024-09-30",
+            "fiscalyear_lock_date": "2024-09-30",
+        })
+        with patch.object(fields.Date, "context_today", return_value=date(2027, 10, 17)):
+            self.env["rebuild.account.declaration"].sync_for_company(company)
+
+        # FY2025 and FY2026 sit between the lock and the year just completed
+        # (FY2027); the current year (FY2028) has no governed rule yet.
+        self.assertEqual(
+            self._fiscal_year_ends(company),
+            [date(2025, 9, 30), date(2026, 9, 30), date(2027, 9, 30)],
+        )
+        declarations = self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("rule_id.period_basis", "=", "fiscal_year"),
+        ])
+        self.assertFalse(declarations.filtered(lambda d: d.period_start < date(2024, 10, 1)))
+        self.assertFalse(declarations.filtered(lambda d: d.status == "not_applicable"))
+
+    def test_lock_gap_fill_never_goes_before_the_first_fiscal_year(self):
+        company = self._company("Lock before first year")
+        company.write({
+            "rebuild_first_fiscalyear_start": "2026-01-10",
+            "rebuild_first_fiscalyear_end": "2026-09-30",
+            "fiscalyear_lock_date": "2024-09-30",
+        })
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            self.env["rebuild.account.declaration"].sync_for_company(company)
+
+        self.assertEqual(
+            self._fiscal_year_ends(company),
+            [date(2026, 9, 30), date(2027, 9, 30)],
+        )
+        self.assertFalse(self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("period_start", "<", date(2026, 1, 10)),
+            ("rule_id.period_basis", "=", "fiscal_year"),
+        ]))
+
+    def test_sync_does_not_reopen_unreviewed_rows_of_a_locked_year(self):
+        company = self._company("Locked year stays closed")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        fy2026 = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
+        ])
+        self.assertEqual(len(fy2026), 2)
+        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
+        company.fiscalyear_lock_date = "2026-09-30"
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+        fy2026.invalidate_recordset()
+        self.assertEqual(set(fy2026.mapped("status")), {"not_applicable"})
+
+    def test_unreviewed_not_applicable_row_returns_to_preparation(self):
+        company = self._company("Manual N/A without review")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        row = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "=", "FR_2065"),
+        ])
+        row.write({"status": "not_applicable"})
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        row.invalidate_recordset()
+        # The preparation refresh then recomputes the working status.
+        self.assertNotEqual(row.status, "not_applicable")
+        self.assertEqual(row.applicability, "applicable")
+
     def test_long_first_year_and_vat_transition_schedule(self):
         company = self._company("USL MEDIA schedule")
         company.write({
