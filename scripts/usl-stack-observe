@@ -9,7 +9,8 @@ change it.
 This wrapper closes that gap by construction rather than by string matching. It
 accepts a target and one of five observations, builds its own argument list, and
 passes nothing else through. There is no argument by which a caller can reach a
-mutating verb.
+mutating verb, and every command an observation sends to the host goes through
+a runner that refuses anything outside a list of reads (`ReadOnlyRunner`).
 
     scripts/usl-stack-observe <target> <observation>
 
@@ -26,6 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from operations.runtime import observation_only  # noqa: E402
 from operations.stack import main  # noqa: E402
 
 TARGETS = ("staging", "production", "local")
@@ -67,7 +69,12 @@ def run(argv: list[str]) -> int:
         )
 
     sys.argv = ["usl-stack", "--target", target, *OBSERVATIONS[observation], "--json"]
-    return main()
+    # Choosing a read-only verb is not enough: health and smoke share code
+    # with releases. Under observation_only() every runner refuses any command
+    # that could write, before it runs, and the MCP authority is read from the
+    # deployed GitOps run instead of being provisioned.
+    with observation_only():
+        return main()
 
 
 if __name__ == "__main__":
