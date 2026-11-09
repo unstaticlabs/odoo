@@ -1,3 +1,15 @@
+---
+title: Analyze analytic performance
+type: how-to
+description: Read margin and cost by activity, brand or project from the analytic analysis report.
+lang: en
+persona: ceo
+app: Accounting
+models:
+  - account.analytic.line
+generated: false
+---
+
 # Analyze Analytic Performance
 
 1. Open **Accounting > Reporting > Pilotage > Analyse analytique**.

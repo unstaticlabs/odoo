@@ -80,12 +80,12 @@ usl-online-dump
 /accounting_compat/private/
 /artifacts/accounting-compat/private/
 /artifacts/action-risk/
+/artifacts/usl-docs/
 /artifacts/usl-document-templates/
 /artifacts/b2c-restore/
 /artifacts/migration/private/
 /artifacts/platform-billing-restore/
 /artifacts/release/
-/artifacts/user-docs/site/
 /output/
 /tmp/
 /.pocket-id.env

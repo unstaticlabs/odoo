@@ -1,1 +1,1 @@
-from . import test_platform_billing, test_platform_billing_browser
+from . import test_platform_billing, test_platform_billing_browser, test_platform_billing_journeys
