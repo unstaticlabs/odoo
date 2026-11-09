@@ -234908,7 +234908,7 @@
       ],
       "sources": [
         {
-          "line": 561,
+          "line": 659,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -234967,7 +234967,7 @@
       ],
       "sources": [
         {
-          "line": 552,
+          "line": 650,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -235120,12 +235120,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 575,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 579,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 673,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "decorators.py"
@@ -236186,12 +236186,12 @@
           "path": "addons/mail/models/models.py"
         },
         {
-          "line": 601,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 639,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 699,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -236580,12 +236580,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 589,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 608,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 687,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -236687,7 +236687,7 @@
       ],
       "sources": [
         {
-          "line": 306,
+          "line": 404,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236716,7 +236716,7 @@
       ],
       "sources": [
         {
-          "line": 294,
+          "line": 392,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236790,7 +236790,7 @@
       ],
       "sources": [
         {
-          "line": 183,
+          "line": 281,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236957,7 +236957,7 @@
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 318,
+          "line": 416,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -239309,16 +239309,16 @@
           "path": "addons/rating/models/mail_thread.py"
         },
         {
-          "line": 332,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 3550,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 421,
           "path": "addons/mail/models/mail_thread.py"
+        },
+        {
+          "line": 430,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "line": 46,
@@ -239732,16 +239732,16 @@
           "path": "custom-addons/usl_documents/models/business_record.py"
         },
         {
-          "line": 325,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 3696,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 406,
           "path": "addons/mail/models/mail_thread.py"
+        },
+        {
+          "line": 423,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "line": 608,
@@ -1635029,7 +1635029,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 561,
+          "line": 659,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635047,7 +1635047,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 552,
+          "line": 650,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635065,7 +1635065,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 575,
+          "line": 673,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635083,7 +1635083,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 601,
+          "line": 699,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635101,7 +1635101,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 589,
+          "line": 687,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635119,7 +1635119,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 306,
+          "line": 404,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635137,7 +1635137,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 294,
+          "line": 392,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635155,7 +1635155,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 183,
+          "line": 281,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635176,7 +1635176,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 318,
+          "line": 416,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635194,7 +1635194,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 332,
+          "line": 430,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635212,7 +1635212,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 325,
+          "line": 423,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1721666,7 +1721666,7 @@
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
       "name": "usl_b2c",
       "origin": "custom",
-      "source_sha256": "130af239dd657ae125b0bfb1b7b28104919277dfe5ccc7109edb197e932663cb",
+      "source_sha256": "c8d72755c0edc4eb3c6aaa5fd1aef09ae15f38ebc76f378acc031021e4f03287",
       "version": "saas~19.3.1.5.1"
     },
     {
