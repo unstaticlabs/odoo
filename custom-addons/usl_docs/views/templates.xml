@@ -15,7 +15,7 @@
                 <link rel="alternate" type="text/markdown" t-att-href="markdown_href"/>
                 <link rel="alternate" type="application/json" t-att-href="json_href"/>
                 <title><t t-out="page['title']"/> - USL User Guide</title>
-                <t t-call-assets="usl_docs.assets_guide" t-js="true" t-css="true"/>
+                <t t-call-assets="usl_docs.assets_guide" t-js="true" t-css="true" defer_load="true"/>
             </head>
             <body class="usl-guide">
                 <a class="skip" href="#content">Skip to the content</a>

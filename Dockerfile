@@ -134,7 +134,7 @@ RUN cp -rL /srv/oca-addons /srv/resolved \
 # Self-contained product image for QA/production deployments. It embeds the
 # custom add-ons, resolved OCA add-ons and user documentation that Compose
 # bind-mounts in development, so a deployment host needs no repository
-# checkout. The test-only usl_bootstrap fixture is excluded by .dockerignore.
+# checkout. Test-only fixtures live under test-addons/, outside this payload.
 FROM base AS product
 
 COPY --link --chown=1000:1000 --from=oca-resolve /srv/resolved ./oca-addons

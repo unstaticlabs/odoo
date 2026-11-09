@@ -2,7 +2,9 @@
 // The guide's only script: filter the navigation as you type, ask the
 // server for full-text matches, open screenshots in a lightbox, copy the
 // replay command. Nothing here runs without the reader doing something.
-(() => {
+// The bundle is loaded deferred, and this guard keeps the handlers installed
+// even when a browser runs the script before the body is parsed.
+function uslGuide() {
     "use strict";
 
     // --- Search ------------------------------------------------------
@@ -151,4 +153,10 @@
             }, 1500);
         });
     }
-})();
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", uslGuide);
+} else {
+    uslGuide();
+}

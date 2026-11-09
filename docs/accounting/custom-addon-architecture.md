@@ -34,7 +34,7 @@ The verified production add-on dependency direction is:
  native/OCA Accounting -> usl_platform_billing
  usl_pocketid + usl_platform_billing -> usl_platform_billing_pocketid
 
-usl_bootstrap ---> native modules only (disposable test fixture)
+test-addons/usl_bootstrap ---> native modules only (disposable test fixture, outside custom-addons/)
 
 migration/accounting_restore/usl_accounting_restore
   ---> rebuild_account_migration (temporary import-time dependency only)
@@ -122,7 +122,7 @@ identifiers. It is explicitly rejected for this increment.
 | Pocket ID accountant-reviewer profile | compatibility extension over `usl_pocketid` | the stable reviewer group XML ID is still owned here; the base SSO module has no reverse Accounting dependency | clean `usl_pocketid` install plus product-profile integration test |
 | Platform Billing Pocket ID profile bridge | `usl_platform_billing_pocketid` | auto-installed integration over two independent product modules | only governed administrator and break-glass profiles receive the app administrator group |
 | Canonical reconstruction orchestration | `migration/`, `accounting_compat/` and repository scripts | versioned migration deliverable outside normal runtime | source parity, Project and Platform Billing finalization, product-boundary guard and target-finalization order tests |
-| `usl_bootstrap` | isolated test/bootstrap fixture | testing only | no production reverse dependency; synthetic `.test` data |
+| `test-addons/usl_bootstrap` | isolated test/bootstrap fixture | testing only; outside `custom-addons/`, so no product registry or image sees it | no production reverse dependency; synthetic `.test` data |
 | `usl_custom_placeholder` | removed | obsolete | uninstallable, no reverse dependency, addon path needs no placeholder |
 
 Overview and user-document delivery are deliberately not forced into a module

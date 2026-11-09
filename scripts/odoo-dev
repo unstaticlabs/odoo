@@ -335,7 +335,8 @@ deploy() {
   local settings_step="${3:-2/2}"
   local update_modules="$module"
   if [[ "$module" == "rebuild_account_migration" ]]; then
-    update_modules="usl_accounting,rebuild_account_migration,usl_access_control,usl_documents,usl_documents_accounting,usl_tese_payroll,usl_tese_accounting"
+    # The compatibility umbrella stands for the whole delivered product set.
+    update_modules="$("$ROOT/scripts/product-modules")"
   fi
   usl_cli_step "$update_step" "Update Odoo modules: $update_modules"
   if is_canonical_target; then

@@ -64,7 +64,6 @@ COMPONENTS = {
                 "deploy/mattermost-odoo/release.json",
                 "scripts/sync-external-addons",
             ),
-            ("custom-addons/usl_bootstrap/**",),
         ),
         Component(
             "backup-tool",

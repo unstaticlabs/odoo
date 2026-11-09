@@ -18,6 +18,8 @@ case "$target_database" in
     ;;
 esac
 
+product_modules="$("$ROOT/scripts/product-modules")"
+
 compose=(docker compose -p "$COMPOSE_PROJECT_NAME")
 if [[ "${USL_PRODUCT_BOUNDARY_PREPROD:-0}" == "1" ]]; then
   compose=(
@@ -34,6 +36,7 @@ if [[ -n "$("${compose[@]}" ps --status running -q odoo)" ]]; then
     -e USL_EINVOICE_LIVE_ENABLED=0 \
     -e USL_EREPORTING_LIVE_ENABLED=0 \
     -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e USL_PRODUCT_MODULES="$product_modules" \
     odoo odoo shell \
     --config=/etc/odoo/odoo.conf \
     --database="$target_database" \
@@ -45,6 +48,7 @@ else
     -e USL_EINVOICE_LIVE_ENABLED=0 \
     -e USL_EREPORTING_LIVE_ENABLED=0 \
     -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e USL_PRODUCT_MODULES="$product_modules" \
     init-db odoo shell \
     --config=/etc/odoo/odoo.conf \
     --database="$target_database" \

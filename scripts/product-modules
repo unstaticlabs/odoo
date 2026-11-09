@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Print the delivered product-module set as one comma-separated line.
+#
+# This is the shell view of operations.module_release.product_modules, the one
+# definition of the set: every installable custom-addons/ manifest plus the
+# external add-ons a pin exports there at build time. Odoo shell scripts that
+# run inside the container (scripts/odoo/product_database_boundary.py,
+# scripts/odoo/release_identity.py) cannot import operations/, so their callers
+# pass this output through USL_PRODUCT_MODULES.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+PYTHONPATH="$ROOT" exec python3 -c '
+from pathlib import Path
+
+from operations.module_release import product_modules
+
+print(",".join(sorted(product_modules(Path.cwd()))))
+'

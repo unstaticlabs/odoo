@@ -34,8 +34,8 @@ deploy/documents/*
 !setup/
 !setup/**
 
-# Product-stage payloads. usl_bootstrap is a test-only fixture and must never
-# ship in a product image; OCA vendor checkouts enter without their Git state.
+# Product-stage payloads. OCA vendor checkouts enter without their Git state;
+# the test-only fixtures under test-addons/ are never listed here.
 !custom-addons/
 !custom-addons/**
 !docs/
@@ -66,7 +66,3 @@ oca-src/**/.git/**
 !**/i18n_extra/en*.po
 !**/i18n_extra/fr.po
 !**/i18n_extra/fr_*.po
-
-# usl_bootstrap is a test-only fixture. Keep this rule last so that no later
-# exception adds one of its files back.
-custom-addons/usl_bootstrap/
