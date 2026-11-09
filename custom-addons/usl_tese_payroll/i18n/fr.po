@@ -1900,12 +1900,21 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_tese_payroll/models/tese_payslip.py:0
 msgid ""
-"Payroll remains open: salary residual %(salary).2f; TESE residual "
+"Payroll remains open: salary still open %(salary).2f; URSSAF still open "
 "%(tese).2f. Next: match a unique safe candidate or open Bank Matching."
 msgstr ""
-"La paie reste ouverte : solde du salaire %(salary).2f ; solde TESE "
+"La paie reste ouverte : salaire encore dû %(salary).2f ; URSSAF encore dû "
 "%(tese).2f. Étape suivante : rapprochez une transaction fiable et unique, "
 "ou ouvrez le Rapprochement bancaire."
+
+#. module: usl_tese_payroll
+#. odoo-python
+#: code:addons/usl_tese_payroll/models/tese_payslip.py:0
+msgid ""
+"The URSSAF carry-over of %(amount).2f on 431000 is not an open payment."
+msgstr ""
+"Le report URSSAF de %(amount).2f sur 431000 n’est pas un paiement en "
+"attente."
 
 #. module: usl_tese_payroll
 #. odoo-python
