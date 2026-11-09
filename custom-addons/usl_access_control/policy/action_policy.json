@@ -176185,6 +176185,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_project.py:project.project._usl_feedback_check_project_operator:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:message_send:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:orm_write:1",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_is_task:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._compute_feedback_connection_status:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._compute_feedback_secret_status:sudo:1",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._set_feedback_connection_status:sudo:1",
@@ -176350,6 +176351,10 @@
           "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
         },
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_is_task:sudo:1": {
+          "rationale": "Read-only classification: reads one boolean flag of the project of a task the caller can already read, under sudo, so that a task assignee who does not follow a followers-only project can still load the task's chatter. It returns a bool used for dispatch and reveals no project data. Not callable over RPC (underscore method).",
+          "reachability_proof": "Underscore method of project.task: not reachable as an RPC or controller entry point; invoked only by _creation_subtype, _creation_message and the feedback validation paths on a record the caller already holds."
+        },
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._compute_feedback_connection_status:sudo:1": {
           "rationale": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs.",
           "reachability_proof": "Exact underscore method or non-RPC GeminiClient helper is not directly callable over ordinary RPC; invoked by validated owner/maintainer workflow, configured settings, or the fixed cron. External provider sinks remain represented by operational caller classification and are disabled for neutralized runs."
@@ -176437,6 +176442,7 @@
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_project.py:project.project._usl_feedback_check_project_operator:sudo:1": "e17d656e72831a56392538a9107a00f8c782dd54166d25e0f324f8b572eb5cbc",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:message_send:1": "48f9ad50f291598c498feb2161a883764404403eaa759cde2c7ef2c39811ab99",
         "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_apply_agent_result:orm_write:1": "a88f6a1040f666b7793325ba7b213d4027eb331ff19f42ca37ddbacc066d7e6a",
+        "sink:usl_feedback:custom-addons/usl_feedback/models/project_task.py:project.task._usl_feedback_is_task:sudo:1": "b98819394ea7ac4d1609ec0f58d93d4cf47a04e73a6423413d68e6bb0340fcc8",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._compute_feedback_connection_status:sudo:1": "e2b4cb7e71f50d847d9597a7e83b8fe0295a9c9fe81a8b43cee5e1c0fa2e32cc",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._compute_feedback_secret_status:sudo:1": "33420aa88892729e10dc9b9b7b4a95d9bd4656e353f72e5694d95a2ade281050",
         "sink:usl_feedback:custom-addons/usl_feedback/models/res_config_settings.py:res.config.settings._set_feedback_connection_status:sudo:1": "237edfdda0401f512cb466dd8af8f24e528c8e88e4ef25c4659cbb1aed45fd65",

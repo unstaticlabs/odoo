@@ -151,7 +151,10 @@ class ProjectTask(models.Model):
 
     def _usl_feedback_is_task(self):
         self.ensure_one()
-        return bool(self.project_id.usl_feedback_project)
+        # sudo: only the project's feedback flag is read. A task assignee need not
+        # be able to read a followers-only project, and the chatter of the task
+        # asks this question for every reader.
+        return bool(self.project_id.sudo().usl_feedback_project)
 
     def _creation_subtype(self):
         self.ensure_one()
