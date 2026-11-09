@@ -60,7 +60,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-trace.png",
-      "sha256": "6a5d063d2092af0fe86f94519873e75a6281e59f2404d93813a81a9775b78372",
+      "sha256": "08f8321d27a2b8d03490563dfee3500d568d758bf000187d621c9fee85fb3870",
       "text": "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
       "trigger": ".o_form_view .o_payment_label:contains('Payment rate ·'):contains('no FX')"
     },
@@ -80,7 +80,7 @@
       "index": 6,
       "run": "",
       "screenshot": "03-detail.png",
-      "sha256": "d0c38bb8d29ab088e06b31fca04b69b22afb162b0f9de19840c5077baf1c3a6d",
+      "sha256": "4dc99dfa4dec6993f0b8725482546f69419c878c2a608f227d1b6bf7adf62706",
       "text": "The detail keeps the facts: what Odoo had estimated and discarded, the original value of the document, its value at the payment rate, and the entries involved.",
       "trigger": ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Original document value'):contains('Payment-rate document value')"
     },

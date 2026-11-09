@@ -79,11 +79,13 @@ registry.category("usl_docs.journeys").add("usl_immediate_settlement", {
         trace: {
             text: "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
             screenshot: true,
+            scrollTo: ".o_form_view .o_payment_label",
         },
         open_detail: { text: "Choose the info icon on the payment line." },
         detail: {
             text: "The detail keeps the facts: what Odoo had estimated and discarded, the original value of the document, its value at the payment rate, and the entries involved.",
             screenshot: true,
+            scrollTo: ".account_payment_popover",
         },
         unreconcile: {
             text: "**Unreconcile** reverses the whole settlement in one step when the match was wrong.",
