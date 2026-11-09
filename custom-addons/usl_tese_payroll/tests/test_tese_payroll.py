@@ -118,6 +118,13 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             groups="base.group_user,account.group_account_readonly",
             company_ids=company_commands,
         )
+        cls.accountant_no_hr_user = mail_new_test_user(
+            cls.env,
+            name="TESE accountant without HR",
+            login="tese_accountant_no_hr",
+            groups="base.group_user,account.group_account_user",
+            company_ids=company_commands,
+        )
         cls.readonly_user = mail_new_test_user(
             cls.env,
             name="TESE combined readonly",
@@ -1051,6 +1058,126 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         )
         self.assertEqual(len(rounding_lines), 1)
         self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
+
+    def _settle_natively(self, payslip, kind, user=None):
+        """Pay a liability the way Bank Matching does, with no payroll button."""
+        debt_lines = payslip._debt_lines(kind)
+        bank = self.bank_journal.default_account_id
+        amount = sum(debt_lines.mapped("amount_residual"))
+        move = self.env["account.move"].create({
+            "move_type": "entry",
+            "journal_id": self.bank_journal.id,
+            "date": payslip.payment_date,
+            "line_ids": [
+                Command.create({
+                    "account_id": line.account_id.id,
+                    "partner_id": line.partner_id.id,
+                    "debit": abs(line.amount_residual),
+                    "credit": 0.0,
+                })
+                for line in debt_lines
+            ] + [
+                Command.create({
+                    "account_id": bank.id,
+                    "debit": 0.0,
+                    "credit": abs(amount),
+                }),
+            ],
+        })
+        move.action_post()
+        for line in debt_lines:
+            counterpart = move.line_ids.filtered(
+                lambda item, line=line: (
+                    item.account_id == line.account_id and item.debit > 0
+                ),
+            )
+            (line + counterpart).with_user(user or self.env.user).reconcile()
+        return move
+
+    def _assert_state_matches_fields(self, payslip):
+        """The state, the check and the message must describe the same figures."""
+        shown = {
+            "salary": "%.2f" % payslip.salary_open_amount,
+            "urssaf": "%.2f" % payslip.tese_open_amount,
+        }
+        if payslip.state == "paid":
+            self.assertTrue(payslip.payment_check_ok)
+            self.assertEqual(payslip.salary_open_amount, 0.0)
+            self.assertEqual(payslip.tese_open_amount, 0.0)
+            self.assertNotIn("remains open", payslip.payment_check_message)
+        else:
+            self.assertFalse(payslip.payment_check_ok)
+            self.assertIn(
+                "salary still open %(salary)s; URSSAF still open %(urssaf)s"
+                % shown,
+                payslip.payment_check_message,
+            )
+
+    def test_native_bank_matching_moves_the_state_with_the_residuals(self):
+        payslip = self._posted_payslip()
+        payslip.action_finalize(notify=False)
+        self.assertEqual(payslip.state, "to_reconcile")
+
+        self._settle_natively(payslip, "salary")
+        self.assertEqual(payslip.salary_open_amount, 0.0)
+        self.assertEqual(payslip.state, "to_reconcile")
+        self.assertTrue(payslip.salary_payment_reconciled)
+        self._assert_state_matches_fields(payslip)
+        self.assertIn("URSSAF still open 1550.00", payslip.payment_check_message)
+
+        self._settle_natively(payslip, "tese")
+        self.assertEqual(payslip.payment_status, "paid")
+        self.assertEqual(payslip.state, "paid")
+        self.assertTrue(payslip.payment_check_ok)
+        self.assertTrue(payslip.tese_payment_reconciled)
+        self._assert_state_matches_fields(payslip)
+
+        tese_lines = payslip._debt_lines("tese")
+        tese_lines.remove_move_reconcile()
+        self.assertEqual(payslip.payment_status, "tese_open")
+        self.assertEqual(payslip.state, "to_reconcile")
+        self._assert_state_matches_fields(payslip)
+
+    def test_accountant_without_hr_role_can_reconcile_and_unreconcile(self):
+        """Bank Matching is an accounting right: the HR-only payslip rule
+        must not stop it, and must not be loosened to let it through."""
+        accountant = self.accountant_no_hr_user
+        payslip = self._posted_payslip()
+        payslip.action_finalize(notify=False)
+        with self.assertRaises(AccessError):
+            payslip.with_user(accountant).read(["state"])
+
+        self._settle_natively(payslip, "salary", user=accountant)
+        self.assertEqual(payslip.salary_open_amount, 0.0)
+        self.assertTrue(payslip.salary_payment_reconciled)
+        self._settle_natively(payslip, "tese", user=accountant)
+        self.assertEqual(payslip.state, "paid")
+        self._assert_state_matches_fields(payslip)
+
+        payslip._debt_lines("tese").with_user(accountant).remove_move_reconcile()
+        self.assertEqual(payslip.payment_status, "tese_open")
+        self.assertEqual(payslip.state, "to_reconcile")
+        self._assert_state_matches_fields(payslip)
+        with self.assertRaises(AccessError):
+            payslip.with_user(accountant).read(["state"])
+
+    def test_open_message_does_not_count_a_carryover_as_urssaf_open(self):
+        payslip = self._posted_payslip()
+        self._bank_line(
+            1550.55,
+            payslip.tese_payment_date,
+            self.collector,
+            "PRELEVEMENT URSSAF TESE",
+        )
+        payslip.action_refresh_candidates()
+        payslip.action_reconcile_tese()
+
+        self.assertEqual(payslip.state, "to_reconcile")
+        self.assertEqual(payslip.tese_open_amount, 0.0)
+        self.assertEqual(payslip.rounding_open_amount, 0.55)
+        self.assertEqual(payslip.salary_open_amount, 2300.0)
+        self._assert_state_matches_fields(payslip)
+        self.assertIn("carry-over", payslip.payment_check_message)
 
     def test_urssaf_rounding_above_five_euros_is_not_automatic(self):
         payslip = self._posted_payslip()

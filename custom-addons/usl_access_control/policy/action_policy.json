@@ -82942,7 +82942,7 @@
         "rpc:account.move.write": "dbec8708591b4f0b8bccc76c320401995cedebca58bfbd595b81b06cdbcda01f",
         "rpc:account.partial.reconcile.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:account.partial.reconcile.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:account.partial.reconcile.create": "55aeab707519bd7a5f3515f289a24f53a4939a4b4673cc5126504c650306d538",
+        "rpc:account.partial.reconcile.create": "a80484bb2d5eb0b26564cac2f07953cf534a9a8f853d0165a83dd2a9a735b1f3",
         "rpc:account.partial.reconcile.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:account.partial.reconcile.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:account.partial.reconcile.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
@@ -109447,12 +109447,12 @@
         "rpc:usl.tese.diagnostic.issue.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.tese.payslip.action_cancel": "1f538a68757b28a9f0bb1c534a68abc975f987d149315e8dff925331d063865f",
         "rpc:usl.tese.payslip.action_create_draft_entry": "bcb8c737ebdd3b70769bcc81f6e555b253f9b607edb41dbdf9aca0320182803b",
-        "rpc:usl.tese.payslip.action_finalize": "0dd5a22d01a693add878f5ed5e4cfe9cc86726b0284101a3cf23b31a6ca51331",
+        "rpc:usl.tese.payslip.action_finalize": "8d18f549abe845af39381bb0cd6ee56d6404b27398aeec3225bf7e7ef6751b1e",
         "rpc:usl.tese.payslip.action_post": "3ccd0581e003f261586ba00e8afc85c77bbae00876239f9e5f3f1a41959fb105",
         "rpc:usl.tese.payslip.action_prepare": "e691b8ceffb49177d9d065dadd967346afa3e29688611cb62ec19ad6fee5abd0",
         "rpc:usl.tese.payslip.action_reconcile_salary": "4974510c1e65923b8f0a5718e3221d01b9db78a0801214eaa2f752b2300eeae5",
         "rpc:usl.tese.payslip.action_reconcile_tese": "8113d5f2fb66aa4e21e7501f7ff8fdc77ce7c43c009c46fa76a3d10ae7aa7b23",
-        "rpc:usl.tese.payslip.action_refresh_candidates": "adc6b08d86a28da8ff31e2b7e9ab6141e836137e04b84ba803b744a332a26f8d",
+        "rpc:usl.tese.payslip.action_refresh_candidates": "8aee8b19258dad0d1d4d4a1a7e04ad2afbc8d580c006ef43c09df5eac2989a66",
         "rpc:usl.tese.payslip.action_reset_to_prepared": "a70955230d61477acf462e1786fef583582291e337f22113e0deb18b36d27ab9",
         "rpc:usl.tese.payslip.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.tese.payslip.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -146751,6 +146751,12 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_accounting_reconciliation:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_move.py:account.move.action_post:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_move.py:account.move.unlink:orm_unlink:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_create:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:sudo:1",
         "sink:web:addons/web/controllers/session.py:Session.account:sudo:1"
       ],
       "classification": "system_internal",
@@ -153355,6 +153361,24 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_move.py:account.move.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.move.unlink"
         },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_create:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_write:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
+        },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
+        },
         "sink:web:addons/web/controllers/session.py:Session.account:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         }
@@ -155463,6 +155487,12 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_accounting_reconciliation:sudo:1": "51e037d8916e88c9a9344f39cad58fc58b3a64c88760465bc6cfc02d02accaf9",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_move.py:account.move.action_post:orm_write:1": "c30f2aa6a536e0c58087e547833548bbc784f78ccea0eb2da17bc921175d7e64",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_move.py:account.move.unlink:orm_unlink:1": "87e51a7d52086783fb36ac0c01808e41ae09663e4f3f7927c7a3540f67e7ed13",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_create:1": "250cd1f5fd2d8e223aa93fb1160c11735aee1bb6cda09e91384715d75e6c7ca0",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_write:1": "f1dd9f2d1e3015751cfec5f7dd7e5475a5f331b75c1df592c3a6e0386728d7af",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1": "3b10a5cd77f443fd2c032270616807329ac9e6dcc344e7e4bfb606b33a74d3e5",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1": "bb0ef8a9710ed4dff1be5503709dfb9cf5cbf8861f36bc25b73142f164348310",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_write:1": "3cdf2b75e8f7aa020a74aa62f5fb423a49211e2d2524ed10d553a09a7b5a89b5",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:sudo:1": "d6a12be59ef1826abb396627bfc91421e01640542fb6552f6dbbae031d0716d1",
         "sink:web:addons/web/controllers/session.py:Session.account:sudo:1": "3f40e550da9675d99e6e08b3030e146eca24b98e64fef584dccbcfaaa0632138"
       }
     },
@@ -174562,6 +174592,7 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:message_send:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._sync_payment_state:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_reset_to_prepared:orm_write:1",
@@ -174592,7 +174623,7 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:2",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._refresh_payment_state:orm_write:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile._compute_payslip_count:sudo:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.action_load_french_defaults:orm_create:1",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.create:orm_create:1",
@@ -175265,6 +175296,9 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._sync_payment_state:sudo:1": {
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create, rpc:account.partial.reconcile.unlink"
+        },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_cancel"
         },
@@ -175355,7 +175389,7 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": {
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._refresh_payment_state:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.tese.payslip.action_refresh_candidates"
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile._compute_payslip_count:sudo:1": {
@@ -175616,8 +175650,9 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:message_send:1": "18c5e40b464d880995d1085983cc749bac76c0896390e28b5b487b7b821f715d",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:1": "5c4a4cc26cad7a04ec812c2709cdaba2dd005ed4427f03a8ae0cf3856df7b730",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._apply_revised_settings:orm_write:2": "9f37b356c624df03108d5e7a406fd74760db7dfa646e0247283d488a6fe662a0",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._sync_payment_state:sudo:1": "7ffb6d016ea8f4d1eaff275625676863714c7951df2411e4a8b9c70d81ac069c",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_cancel:orm_write:1": "90c58a5c3075ca9064f668f2ef6bbfd328e5dc8ad0e9d5fa184e54634f2980b0",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1": "30d54cce3f4b5ea00b16c4844b050c89bc1034e2816dbcbd03bdecec9b7aa943",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1": "0a1b9a89818fd0033b5c8ffa40746c76655d099890456652d3a29f4a2fa79f92",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_reset_to_prepared:orm_write:1": "1bf326d6b48ba2a8dd167af170844c95828059e76a961981d51aee8d5a51d73f",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.create:orm_create:1": "f9b3449c2619c97c2daaa6d50d06553c4aa621ee4ecb5337f7110a3c9fa5e57a",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.line.create:orm_create:1": "0e67ff92af85dc2cd46a63cdbc135f76325c70d369365f09c95bcff6dd85924a",
@@ -175646,7 +175681,7 @@
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:1": "a430b956d8e2df103726aa3a282f80560a8376e80d01c6110759590d83877eaf",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:2": "28becf0398866633ba17a1b0d3c1aead32efcbeef19b5ff725035ca265945e63",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._reconcile_candidate:orm_write:3": "0d4cc8de8bd98e2ba3f6f624805e0b667657c782292fc45d411e450e1f6b7bea",
-        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1": "fb72d84c9667a80e767d0571da23149ee39b0572df73d8397916688f61c7f31a",
+        "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._refresh_payment_state:orm_write:1": "40ff73530e5b9cda30305e4a23ce3921687fc744264de3e4ba7a55e462801253",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile._compute_payslip_count:sudo:1": "2dd9dd759cc7dca7b53c3e52cc3e5bcc26f21ddda9f1cbc39e72b8ebbc1e4198",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.action_load_french_defaults:orm_create:1": "55d960823e2a30bcf86aac183ffa4a897569c5cb9d9f9a0cf5ff195e1a0246c4",
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_profile.py:usl.tese.profile.create:orm_create:1": "304de9ae5aa97d8d5b22d69936e07d14fe12dc38c9ac7151085d01dd5779579f",
@@ -204270,7 +204305,7 @@
       "rationale": "The new code calculates payment links before unlink, then removes only invoices no longer reconciled through any remaining partial. Existing exchange/CABA reversal and native access checks remain. Preserve the exact native partial-reconcile creation reversal metadata.",
       "reversal_action": "rpc:account.partial.reconcile.create",
       "reviewed_digests": {
-        "rpc:account.partial.reconcile.unlink": "89ad9f8c33e522b09322a4df66d57c8d6f064790ae9307348676663a24b6edb1"
+        "rpc:account.partial.reconcile.unlink": "be38b0a583ef6c781181790a90ea869caa9355bf61bed18e3de0e9b524dd346c"
       }
     },
     {

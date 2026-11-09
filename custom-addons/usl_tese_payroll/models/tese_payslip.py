@@ -844,16 +844,19 @@ class UslTesePayslip(models.Model):
             },
         }
 
-    def action_finalize(self, notify=True):
+    def _payment_control_values(self):
+        """Derive state, check flag and control message from one residual reading.
+
+        Every field below is computed from the same liability residuals that
+        feed ``salary_open_amount`` and ``tese_open_amount``, so the control
+        message can never quote a figure the form does not show.
+        """
         self.ensure_one()
-        self._check_workflow_access()
-        if not self.move_id or self.move_id.state != "posted":
-            raise UserError(_("The payroll journal entry must be posted."))
         salary_ok, tese_ok, salary_open, tese_open = self._residual_status()
         carryover_only = self._is_tese_carryover_only(tese_open)
         tese_settled = tese_ok or carryover_only
-        if salary_ok and tese_settled:
-            state = "paid"
+        settled = salary_ok and tese_settled
+        if settled:
             message = (
                 self._tese_carryover_message()
                 if carryover_only
@@ -863,30 +866,68 @@ class UslTesePayslip(models.Model):
                 )
             )
         else:
-            state = "to_reconcile"
+            # A carry-over on 431000 is not an open URSSAF debit: show the
+            # same zero as the "URSSAF Open" field and name the carry-over.
+            shown_tese_open = 0.0 if carryover_only else tese_open
             message = _(
-                "Payroll remains open: salary residual %(salary).2f; TESE "
-                "residual %(tese).2f. Next: match a unique safe candidate or "
-                "open Bank Matching.",
+                "Payroll remains open: salary still open %(salary).2f; "
+                "URSSAF still open %(tese).2f. Next: match a unique safe "
+                "candidate or open Bank Matching.",
                 salary=salary_open,
-                tese=tese_open,
+                tese=shown_tese_open,
             )
-        self.with_context(
-            _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
-        ).write({
-            "state": state,
-            "payment_check_ok": salary_ok and tese_settled,
+            if carryover_only:
+                message = "%s %s" % (
+                    message,
+                    _(
+                        "The URSSAF carry-over of %(amount).2f on 431000 is "
+                        "not an open payment.",
+                        amount=abs(self.tese_bank_difference),
+                    ),
+                )
+        return {
+            "state": "paid" if settled else "to_reconcile",
+            "payment_check_ok": settled,
             "payment_check_message": message,
             "salary_payment_reconciled": salary_ok,
             "tese_payment_reconciled": tese_settled,
-            "bank_reconcile_message": message,
-        })
+        }
+
+    def action_finalize(self, notify=True):
+        self.ensure_one()
+        self._check_workflow_access()
+        if not self.move_id or self.move_id.state != "posted":
+            raise UserError(_("The payroll journal entry must be posted."))
+        values = self._payment_control_values()
+        values["bank_reconcile_message"] = values["payment_check_message"]
+        self.with_context(
+            _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
+        ).write(values)
         if notify:
             return self._notify(
-                message,
-                level="success" if salary_ok and tese_ok else "warning",
+                values["payment_check_message"],
+                level="success" if values["payment_check_ok"] else "warning",
             )
-        return salary_ok and tese_ok
+        return values["payment_check_ok"]
+
+    def _sync_payment_state(self):
+        """Keep the stored payment state in step with the ledger residuals.
+
+        The residual fields follow every reconciliation, including one done in
+        Bank Matching, but the state and the control message used to change only
+        when someone pressed a payroll button. Called after a reconciliation
+        changes, this rewrites them only when they disagree with the ledger.
+        """
+        for payslip in self.filtered(
+            lambda item: (
+                item.state in {"to_reconcile", "paid"}
+                and item.move_id.state == "posted"
+            ),
+        ):
+            control = payslip._payment_control_values()
+            if all(payslip[name] == value for name, value in control.items()):
+                continue
+            payslip.sudo()._refresh_payment_state()
 
     def action_cancel(self):
         self.ensure_one()

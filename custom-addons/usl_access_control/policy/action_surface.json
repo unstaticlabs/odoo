@@ -156699,7 +156699,7 @@
         "rpc:account.move.line.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "55aeab707519bd7a5f3515f289a24f53a4939a4b4673cc5126504c650306d538",
+      "digest": "a80484bb2d5eb0b26564cac2f07953cf534a9a8f853d0165a83dd2a9a735b1f3",
       "guards": [],
       "key": "rpc:account.partial.reconcile.create",
       "kind": "rpc",
@@ -156710,11 +156710,12 @@
         "base",
         "usl_access_control",
         "usl_accounting",
-        "usl_platform_billing"
+        "usl_platform_billing",
+        "usl_tese_payroll"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "93df66bd7bc37add2e13a6253b30c07740c49b631b7f03a7a06d9f1b488e182f",
+      "runtime_digest": "faf586b34d17f6b92d4fc98367105e3451331de7963b341f1daa99d3e085838c",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -156724,6 +156725,10 @@
         {
           "line": 175,
           "path": "addons/account/models/account_partial_reconcile.py"
+        },
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         },
         {
           "line": 275,
@@ -157776,7 +157781,7 @@
         "rpc:mail.activity.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "89ad9f8c33e522b09322a4df66d57c8d6f064790ae9307348676663a24b6edb1",
+      "digest": "be38b0a583ef6c781181790a90ea869caa9355bf61bed18e3de0e9b524dd346c",
       "guards": [],
       "key": "rpc:account.partial.reconcile.unlink",
       "kind": "rpc",
@@ -157788,11 +157793,12 @@
         "mail",
         "usl_access_control",
         "usl_accounting",
-        "usl_platform_billing"
+        "usl_platform_billing",
+        "usl_tese_payroll"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "21b53836853663f9530f85cee2d55bad2d6e3654fa80754f38237d0566c4c255",
+      "runtime_digest": "415f3f3080a517ed77abdab75e6de629645b11be7add6495bc238c715abedb9a",
       "sinks": [
         "orm_unlink",
         "orm_write",
@@ -157802,6 +157808,10 @@
         {
           "line": 105,
           "path": "addons/account/models/account_partial_reconcile.py"
+        },
+        {
+          "line": 25,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         },
         {
           "line": 283,
@@ -157831,6 +157841,9 @@
         },
         {
           "path": "custom-addons/usl_platform_billing/models/account_move.py"
+        },
+        {
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
         },
         {
           "path": "odoo/addons/account/models/account_partial_reconcile.py"
@@ -234895,7 +234908,7 @@
       ],
       "sources": [
         {
-          "line": 561,
+          "line": 659,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -234954,7 +234967,7 @@
       ],
       "sources": [
         {
-          "line": 552,
+          "line": 650,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -235107,12 +235120,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 575,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 579,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 673,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "decorators.py"
@@ -236173,12 +236186,12 @@
           "path": "addons/mail/models/models.py"
         },
         {
-          "line": 601,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 639,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 699,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -236567,12 +236580,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 589,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 608,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 687,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "path": "custom-addons/usl_access_control/models/base.py"
@@ -236674,7 +236687,7 @@
       ],
       "sources": [
         {
-          "line": 306,
+          "line": 404,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236703,7 +236716,7 @@
       ],
       "sources": [
         {
-          "line": 294,
+          "line": 392,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236777,7 +236790,7 @@
       ],
       "sources": [
         {
-          "line": 183,
+          "line": 281,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -236944,7 +236957,7 @@
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 318,
+          "line": 416,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -239296,16 +239309,16 @@
           "path": "addons/rating/models/mail_thread.py"
         },
         {
-          "line": 332,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 3550,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 421,
           "path": "addons/mail/models/mail_thread.py"
+        },
+        {
+          "line": 430,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "line": 46,
@@ -239719,16 +239732,16 @@
           "path": "custom-addons/usl_documents/models/business_record.py"
         },
         {
-          "line": 325,
-          "path": "custom-addons/usl_b2c/models/accounting.py"
-        },
-        {
           "line": 3696,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 406,
           "path": "addons/mail/models/mail_thread.py"
+        },
+        {
+          "line": 423,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
           "line": 608,
@@ -1479412,7 +1479425,7 @@
       ],
       "sources": [
         {
-          "line": 891,
+          "line": 932,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479505,7 +1479518,7 @@
         "rpc:usl.tese.payslip.ensure_one",
         "rpc:usl.tese.payslip.with_context"
       ],
-      "digest": "0dd5a22d01a693add878f5ed5e4cfe9cc86726b0284101a3cf23b31a6ca51331",
+      "digest": "8d18f549abe845af39381bb0cd6ee56d6404b27398aeec3225bf7e7ef6751b1e",
       "guards": [],
       "key": "rpc:usl.tese.payslip.action_finalize",
       "kind": "rpc",
@@ -1479516,13 +1479529,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "67df329625fd8582cf97a92a4eab232cf85301533917d4cfe11926d1b04bc3e8",
+      "runtime_digest": "bab2a04f375848942d48fb9df57a96fb9aea070c928097205128354dc881bdff",
       "sinks": [
         "orm_write"
       ],
       "sources": [
         {
-          "line": 847,
+          "line": 896,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479556,7 +1479569,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 495,
+          "line": 499,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         },
         {
@@ -1479628,7 +1479641,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1009,
+          "line": 1050,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479661,7 +1479674,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 477,
+          "line": 481,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         },
         {
@@ -1479694,7 +1479707,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 995,
+          "line": 1036,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479727,7 +1479740,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1021,
+          "line": 1062,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479760,7 +1479773,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 935,
+          "line": 976,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1479879,7 +1479892,7 @@
       ],
       "sources": [
         {
-          "line": 471,
+          "line": 475,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         },
         {
@@ -1479921,7 +1479934,7 @@
       ],
       "sources": [
         {
-          "line": 474,
+          "line": 478,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         },
         {
@@ -1479942,7 +1479955,7 @@
         "rpc:usl.tese.payslip.ensure_one",
         "rpc:usl.tese.payslip.with_context"
       ],
-      "digest": "adc6b08d86a28da8ff31e2b7e9ab6141e836137e04b84ba803b744a332a26f8d",
+      "digest": "8aee8b19258dad0d1d4d4a1a7e04ad2afbc8d580c006ef43c09df5eac2989a66",
       "guards": [],
       "key": "rpc:usl.tese.payslip.action_refresh_candidates",
       "kind": "rpc",
@@ -1479953,13 +1479966,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6e03a7262c8a32e5d15495d8537c2ca601e7fa82029a0e7982dd297d89687cfb",
+      "runtime_digest": "45c911b14901eac421e0055d8310bcb8c5e8445dbe850fa577713da076a1ff6b",
       "sinks": [
         "orm_write"
       ],
       "sources": [
         {
-          "line": 233,
+          "line": 266,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         },
         {
@@ -1480095,7 +1480108,7 @@
       ],
       "sources": [
         {
-          "line": 914,
+          "line": 955,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1481408,7 +1481421,7 @@
       ],
       "sources": [
         {
-          "line": 1095,
+          "line": 1136,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1482471,7 +1482484,7 @@
       ],
       "sources": [
         {
-          "line": 1119,
+          "line": 1160,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1482869,7 +1482882,7 @@
       ],
       "sources": [
         {
-          "line": 1110,
+          "line": 1151,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         },
         {
@@ -1635046,7 +1635059,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 561,
+          "line": 659,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635064,7 +1635077,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 552,
+          "line": 650,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635082,7 +1635095,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 575,
+          "line": 673,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635100,7 +1635113,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 601,
+          "line": 699,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635118,7 +1635131,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 589,
+          "line": 687,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635136,7 +1635149,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 306,
+          "line": 404,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635154,7 +1635167,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 294,
+          "line": 392,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635172,7 +1635185,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 183,
+          "line": 281,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635193,7 +1635206,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 318,
+          "line": 416,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635211,7 +1635224,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 332,
+          "line": 430,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1635229,7 +1635242,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 325,
+          "line": 423,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1658647,6 +1658660,114 @@
       ]
     },
     {
+      "digest": "250cd1f5fd2d8e223aa93fb1160c11735aee1bb6cda09e91384715d75e6c7ca0",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "f1dd9f2d1e3015751cfec5f7dd7e5475a5f331b75c1df592c3a6e0386728d7af",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.create"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "3b10a5cd77f443fd2c032270616807329ac9e6dcc344e7e4bfb606b33a74d3e5",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.create"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "bb0ef8a9710ed4dff1be5503709dfb9cf5cbf8861f36bc25b73142f164348310",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 25,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "3cdf2b75e8f7aa020a74aa62f5fb423a49211e2d2524ed10d553a09a7b5a89b5",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.unlink"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 25,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
+      "digest": "d6a12be59ef1826abb396627bfc91421e01640542fb6552f6dbbae031d0716d1",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "parents": [
+        "rpc:account.partial.reconcile.unlink"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 25,
+          "path": "custom-addons/usl_tese_payroll/models/account_partial_reconcile.py"
+        }
+      ]
+    },
+    {
       "digest": "55fd953b550c80a204d230cf9a8cbdc6de65609636a2fc9f5fe69609321b8e3a",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/documents.py:usl.document.operation.write:orm_write:1",
       "kind": "sink",
@@ -1658968,7 +1659089,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 958,
+          "line": 999,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1658983,7 +1659104,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 958,
+          "line": 999,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1658998,7 +1659119,22 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 958,
+          "line": 999,
+          "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
+        }
+      ]
+    },
+    {
+      "digest": "7ffb6d016ea8f4d1eaff275625676863714c7951df2411e4a8b9c70d81ac069c",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip._sync_payment_state:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_tese_payroll"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 913,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659016,13 +1659152,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 891,
+          "line": 932,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
     },
     {
-      "digest": "30d54cce3f4b5ea00b16c4844b050c89bc1034e2816dbcbd03bdecec9b7aa943",
+      "digest": "0a1b9a89818fd0033b5c8ffa40746c76655d099890456652d3a29f4a2fa79f92",
       "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip.py:usl.tese.payslip.action_finalize:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1659034,7 +1659170,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 847,
+          "line": 896,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659052,7 +1659188,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 914,
+          "line": 955,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659088,7 +1659224,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1095,
+          "line": 1136,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659106,7 +1659242,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 1119,
+          "line": 1160,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659124,7 +1659260,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1110,
+          "line": 1151,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip.py"
         }
       ]
@@ -1659415,7 +1659551,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 300,
+          "line": 304,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659430,7 +1659566,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 300,
+          "line": 304,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659445,7 +1659581,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 300,
+          "line": 304,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659460,7 +1659596,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 300,
+          "line": 304,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659475,7 +1659611,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 406,
+          "line": 410,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659490,7 +1659626,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 406,
+          "line": 410,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
@@ -1659505,20 +1659641,17 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 406,
+          "line": 410,
           "path": "custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py"
         }
       ]
     },
     {
-      "digest": "fb72d84c9667a80e767d0571da23149ee39b0572df73d8397916688f61c7f31a",
-      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip.action_refresh_candidates:orm_write:1",
+      "digest": "40ff73530e5b9cda30305e4a23ce3921687fc744264de3e4ba7a55e462801253",
+      "key": "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/tese_payslip_settlement.py:usl.tese.payslip._refresh_payment_state:orm_write:1",
       "kind": "sink",
       "modules": [
         "usl_tese_payroll"
-      ],
-      "parents": [
-        "rpc:usl.tese.payslip.action_refresh_candidates"
       ],
       "sink_kind": "orm_write",
       "sources": [
@@ -1721563,7 +1721696,7 @@
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
       "name": "usl_b2c",
       "origin": "custom",
-      "source_sha256": "130af239dd657ae125b0bfb1b7b28104919277dfe5ccc7109edb197e932663cb",
+      "source_sha256": "c8d72755c0edc4eb3c6aaa5fd1aef09ae15f38ebc76f378acc031021e4f03287",
       "version": "saas~19.3.1.5.1"
     },
     {
@@ -1721686,11 +1721819,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "358602853789145927958abe26c9c1951b8aef5221ef31d320dd9c0e96fb11d7",
+      "manifest_sha256": "fd46b750b1ff118b99d3d3c72cf9b74cad5dde636e1d46d0dd9104f641975c28",
       "name": "usl_tese_payroll",
       "origin": "custom",
-      "source_sha256": "790156f32bb728ec9d06b975a191c62cc1663fcdb3f3e5c3409f3a0ae5bdc027",
-      "version": "saas~19.3.1.4.9"
+      "source_sha256": "65d987b77459505541ded1b5d00d097605a95475fda8464578a74931860407ca",
+      "version": "saas~19.3.1.4.10"
     },
     {
       "manifest_sha256": "a5d22feb1675ae82707c6ba3a7c89684af8425acc639962d1715faa1f4ba180e",
