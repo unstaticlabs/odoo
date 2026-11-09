@@ -1,3 +1,18 @@
+---
+title: French declarations
+type: reference
+description: The obligations the Declarations workspace tracks and where each figure comes from.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - rebuild.account.declaration
+  - rebuild.account.declaration.rule
+source:
+  - custom-addons/rebuild_account_migration/models/declaration.py
+generated: false
+---
+
 # French Declarations
 
 The Declarations workspace records applicable obligations and keeps calculated ledger values separate from external confirmations.

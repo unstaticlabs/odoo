@@ -60,11 +60,13 @@ RULES: list[tuple[str, tuple[str, ...], str | None, str]] = [
         "new-module",
         ("custom-addons/*/__manifest__.py",),
         None,  # additionally gated on the manifest being untracked
-        "A new addon ships in the image immediately but NO pull-request gate sees it, "
-        "so the branch merges green and the release branch then fails at 'Clean install "
-        "and repeated upgrade'. Name the module in all four hard-coded product "
-        "registries (operations/release_identity.py, scripts/odoo/release_identity.py "
-        "and the two others) and classify its actions.",
+        "A new addon is a product module as soon as its manifest exists: "
+        "operations.module_release.product_modules derives the set from custom-addons/ "
+        "and the external pin, and every gate reads it. The sealed action surface is "
+        "NOT derived: scripts/tests/test_product_modules.py fails until its "
+        "root_modules equal that set, so refresh it from a RUNTIME discovery "
+        "(docs/operations/action-risk-inventory.md) and classify the module's actions "
+        "in the same pull request.",
     ),
     (
         "branch-contract",

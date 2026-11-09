@@ -1,3 +1,15 @@
+---
+title: Run a monthly review
+type: how-to
+description: Clear queues, check hygiene, reconcile, review reports and prepare the closing in one pass.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - rebuild.account.overview
+generated: false
+---
+
 # Run a Monthly Review
 
 1. Open **Overview** and clear urgent document and bank queues.

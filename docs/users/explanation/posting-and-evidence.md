@@ -1,3 +1,15 @@
+---
+title: Posting and evidence
+type: explanation
+description: Why posting turns preparation into ledger truth and what evidence must travel with it.
+lang: en
+persona: everyone
+app: Accounting
+models:
+  - account.move
+generated: false
+---
+
 # Posting and Evidence
 
 A draft invoice, bill, expense or entry is preparation work. Posting turns it into journal items and makes it part of the legal and management ledgers.

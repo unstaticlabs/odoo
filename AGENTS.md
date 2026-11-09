@@ -139,6 +139,7 @@ friends. Nothing else depends on that, and the paths below always work.
 | building or qualifying forms, lists, dialogs, dashboards, OWL components or navigation | `.agents/skills/odoo-ui-product-quality/SKILL.md` |
 | designing, critiquing or polishing any interface | `.agents/skills/impeccable/SKILL.md` |
 | writing user-facing copy, documentation, reports, comments or commit messages | `.agents/skills/writing-clearly-and-concisely/SKILL.md` |
+| adding or changing a page of the user guide, a journey, a reference source or a decision record | `.agents/skills/usl-docs-authoring/SKILL.md`, with the schema and commands in `docs/README.md` |
 | testing a parser, a normalization, a roundtrip, a validator or a state invariant | `.agents/skills/designing-property-based-tests/SKILL.md` |
 | hunting other instances of a defect whose root cause you already know | `.agents/skills/finding-bug-variants/SKILL.md` |
 | asked for trust boundaries, abuse paths or AppSec design risk | `.agents/skills/threat-modeling-repositories/SKILL.md` |
@@ -149,7 +150,7 @@ selected in `.usl/agent-skills.json` and pinned in `.usl/agent-skills.lock.json`
 Do not edit them by hand; the qualification check verifies them.
 
 The five delivery skills score and choose work against `VALUES.md`, `ROADMAP.md`
-and `DECISIONS/0001-weekly-delivery-protocol.md`. Read those before deciding what
+and `docs/product/decisions/0001-weekly-delivery-protocol.md`. Read those before deciding what
 is worth building; read the skill before building it.
 
 ## References

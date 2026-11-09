@@ -20,3 +20,4 @@ from . import (
 from . import test_native_agent_chatter
 
 from . import test_native_action_dispatch
+from . import test_agent_docs_guide

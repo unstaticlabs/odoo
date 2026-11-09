@@ -1,3 +1,19 @@
+---
+title: Prepare a French declaration
+type: how-to
+description: Open the next obligation, compare ledger values with external confirmations and record the filing.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - rebuild.account.declaration
+actions:
+  - rebuild_account_migration.action_rebuild_account_declaration
+source:
+  - custom-addons/rebuild_account_migration/models/declaration.py
+generated: false
+---
+
 # Prepare a French Declaration
 
 1. Open **Declarations** and choose the obligation by deadline.
