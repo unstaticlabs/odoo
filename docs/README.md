@@ -53,7 +53,7 @@ that add pages never touch the same file.
 
 ```bash
 make docs            # run the journeys in the test container, then render pages and screenshots
-make docs-journeys   # only run the journeys (MODULE=name limits the installed modules); records land in artifacts/usl-docs
+make docs-journeys   # only run the journeys on the product module set, as the qualification run does (MODULE=name narrows it for a quick look, but only the full set yields captures CI accepts); records land in artifacts/usl-docs
 make docs-render     # only render from recorded journeys (scripts/docs generate render)
 make docs-reference  # extract the registry from the action-risk closure and render reference/generated/
 make docs-mcp        # render reference/mcp-tools.md from the pinned odoo-mcp commit (ODOO_MCP_REPOSITORY=../odoo-mcp)

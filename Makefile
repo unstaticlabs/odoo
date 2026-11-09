@@ -232,8 +232,11 @@ docs: docs-journeys docs-render
 # Chromium as CI. MODULE limits the installed modules; the default is the
 # module set the journeys need.
 DOCS_JOURNEY_DB ?= odoo_docs_journeys
-# Every module that documents a journey; MODULE=name narrows the run.
-DOCS_JOURNEY_ALL_MODULES := usl_accounting,usl_expense_batch,usl_feedback,usl_platform_billing,rebuild_account_migration
+# The qualification run captures the journeys on the whole product set, and
+# the committed screenshots must match its pixels: a smaller database draws
+# other smart buttons, columns and home screens. MODULE=name narrows the run
+# for a quick iteration; only the default produces captures CI accepts.
+DOCS_JOURNEY_ALL_MODULES := $(shell scripts/product-modules)
 DOCS_JOURNEY_MODULES ?= $(or $(MODULE),$(DOCS_JOURNEY_ALL_MODULES))
 docs-journeys:
 	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
