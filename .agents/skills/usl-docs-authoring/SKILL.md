@@ -49,8 +49,10 @@ steps is a how-to that will go stale.
 4. Run `make docs MODULE=<module>` in the isolated stack. It runs the journey
    inside the test container (`make docs-journeys`), writes the page and its
    screenshots (`make docs-render`). Commit the page, the screenshots, the
-   sidecar and the tour together; there is no index to refresh. Without
-   `MODULE`, every module that has journeys runs.
+   sidecar and the tour together; there is no index to refresh. Commit the
+   captures of a run without `MODULE`: it installs the whole product set, as
+   the qualification run does, and a smaller database draws other smart
+   buttons, columns and home screens that CI then rejects as changed.
 5. Prove it: `make docs-check` passes; edit one step's `text`, run
    `scripts/docs generate check --records artifacts/usl-docs` and watch it
    fail; regenerate.

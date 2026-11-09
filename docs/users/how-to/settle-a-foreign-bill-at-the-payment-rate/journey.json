@@ -30,7 +30,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-actions.png",
-      "sha256": "430756c591104b2683ac59285aa45a6689dfbc3be8fe9e01fbee03cb5814a775",
+      "sha256": "7792f5af16285474a140b59520dbd5aff08699bd8e6a3d22ce88665fc9b3d272",
       "text": "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },
@@ -60,7 +60,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-trace.png",
-      "sha256": "33527bd84d55f761c26180fd07149f0ccbc47d26f3278dd309f2edd0a95eb59f",
+      "sha256": "6a5d063d2092af0fe86f94519873e75a6281e59f2404d93813a81a9775b78372",
       "text": "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
       "trigger": ".o_form_view .o_payment_label:contains('Payment rate ·'):contains('no FX')"
     },
@@ -80,7 +80,7 @@
       "index": 6,
       "run": "",
       "screenshot": "03-detail.png",
-      "sha256": "151ea1c085afb785bbb2a507e5093f35a562a50058f9b3b7eb70e5c6cce40894",
+      "sha256": "d0c38bb8d29ab088e06b31fca04b69b22afb162b0f9de19840c5077baf1c3a6d",
       "text": "The detail keeps the facts: what Odoo had estimated and discarded, the original value of the document, its value at the payment rate, and the entries involved.",
       "trigger": ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Original document value'):contains('Payment-rate document value')"
     },
