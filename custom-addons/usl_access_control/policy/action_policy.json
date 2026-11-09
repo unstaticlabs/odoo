@@ -153368,7 +153368,7 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.create:sudo:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
+          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.create"
         },
         "sink:usl_tese_payroll:custom-addons/usl_tese_payroll/models/account_partial_reconcile.py:account.partial.reconcile.unlink:orm_unlink:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:account.partial.reconcile.unlink"
