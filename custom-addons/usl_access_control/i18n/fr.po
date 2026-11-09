@@ -307,3 +307,12 @@ msgstr ""
 #: code:addons/usl_access_control/models/agent_collaboration.py:0
 msgid "That activity does not belong to this task."
 msgstr "Cette activité n’appartient pas à cette tâche."
+
+#. module: usl_access_control
+#: code:addons/usl_access_control/models/agent.py:0
+msgid ""
+"The Agent picture must be a PNG, JPEG, GIF or WebP image. SVG and other "
+"formats are not accepted."
+msgstr ""
+"L’image de l’agent doit être au format PNG, JPEG, GIF ou WebP. Le format SVG "
+"et les autres formats ne sont pas acceptés."

@@ -1320916,7 +1320916,7 @@
       ],
       "sources": [
         {
-          "line": 816,
+          "line": 851,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1320975,7 +1320975,7 @@
       ],
       "sources": [
         {
-          "line": 888,
+          "line": 923,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321004,7 +1321004,7 @@
       ],
       "sources": [
         {
-          "line": 898,
+          "line": 933,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321031,7 +1321031,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 934,
+          "line": 969,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321061,7 +1321061,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 906,
+          "line": 941,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321098,7 +1321098,7 @@
       ],
       "sources": [
         {
-          "line": 810,
+          "line": 845,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321133,7 +1321133,7 @@
       ],
       "sources": [
         {
-          "line": 805,
+          "line": 840,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321163,7 +1321163,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 920,
+          "line": 955,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1321349,12 +1321349,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 549,
-          "path": "custom-addons/usl_access_control/models/agent.py"
-        },
-        {
           "line": 579,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 584,
+          "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
           "path": "decorators.py"
@@ -1323145,7 +1323145,7 @@
       ],
       "sources": [
         {
-          "line": 942,
+          "line": 977,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1327642,7 +1327642,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 701,
+          "line": 736,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1328036,7 +1328036,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         },
         {
@@ -1625299,7 +1625299,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 464,
+          "line": 499,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625314,13 +1625314,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 188,
+          "line": 196,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
     },
     {
-      "digest": "e9a6712da6d4c17d04ede88228560774350f315bb70f4c49d40b0da570738fbd",
+      "digest": "b6fb9e784476f635b85a95eefaf94cf75c1f548a5aa58f5d08a85a6dc39645f8",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625329,7 +1625329,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 197,
+          "line": 230,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625344,7 +1625344,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 796,
+          "line": 831,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625359,7 +1625359,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 739,
+          "line": 774,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625374,7 +1625374,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 739,
+          "line": 774,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625389,7 +1625389,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 739,
+          "line": 774,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625404,7 +1625404,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 739,
+          "line": 774,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625419,7 +1625419,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 800,
+          "line": 835,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625434,7 +1625434,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 859,
+          "line": 894,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625449,7 +1625449,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 274,
+          "line": 309,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625464,7 +1625464,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 274,
+          "line": 309,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625479,7 +1625479,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 704,
+          "line": 739,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625494,7 +1625494,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 704,
+          "line": 739,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625512,7 +1625512,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 816,
+          "line": 851,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625530,7 +1625530,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 898,
+          "line": 933,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625548,7 +1625548,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 810,
+          "line": 845,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625566,7 +1625566,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 805,
+          "line": 840,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625584,7 +1625584,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 549,
+          "line": 584,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625602,7 +1625602,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 549,
+          "line": 584,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625620,7 +1625620,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 942,
+          "line": 977,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625638,7 +1625638,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 942,
+          "line": 977,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625656,7 +1625656,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625674,7 +1625674,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625692,7 +1625692,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625710,7 +1625710,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1625728,7 +1625728,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 633,
+          "line": 668,
           "path": "custom-addons/usl_access_control/models/agent.py"
         }
       ]
@@ -1721549,7 +1721549,7 @@
       "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "c1a6544e0508f33dc3c0a36318b5600f4b169a1c87cefe209808bd9424688ea0",
+      "source_sha256": "4f2148d8d428499ef670e09d2a62fa27922e706ccea686f56e5652093d8d7f58",
       "version": "saas~19.3.1.8.12"
     },
     {
