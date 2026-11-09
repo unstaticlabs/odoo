@@ -179,15 +179,32 @@ class TestAgentAvatarActiveContent(_AvatarCase):
         before = self._backing_picture()
         with self.assertRaises(UserError), self.cr.savepoint():
             self.agent.write({"image_1920": _b64(_SVG)})
-        attachments = self.env["ir.attachment"].sudo().search(
+        # res.users.image_1920 is related to the backing partner, so that is
+        # where the attachment lives. Every user already carries Odoo's own
+        # generated initials picture, so assert the stored row is untouched
+        # rather than absent.
+        partner = self.agent.user_id.partner_id
+        rows_before = self._partner_attachments(partner)
+        self.assertTrue(rows_before)
+        checksums_before = rows_before.mapped("checksum")
+        with self.assertRaises(UserError), self.cr.savepoint():
+            self.agent.write({"image_1920": _b64(_SVG)})
+        rows_after = self._partner_attachments(partner)
+        self.assertEqual(rows_after.ids, rows_before.ids)
+        self.assertEqual(rows_after.mapped("checksum"), checksums_before)
+        for row in rows_after:
+            self.assertNotIn(b"<script", bytes(row.raw or b""))
+            self.assertNotEqual(row.mimetype, "image/svg+xml")
+        self._unchanged(before)
+
+    def _partner_attachments(self, partner):
+        return self.env["ir.attachment"].sudo().search(
             [
-                ("res_model", "=", "res.users"),
-                ("res_id", "=", self.agent.user_id.id),
+                ("res_model", "=", "res.partner"),
+                ("res_id", "=", partner.id),
                 ("res_field", "=", "image_1920"),
             ],
         )
-        self.assertFalse(attachments.filtered(lambda a: a.mimetype == "image/svg+xml"))
-        self._unchanged(before)
 
     def test_owner_still_sets_every_accepted_raster_format(self):
         for fmt, mimetype in (
@@ -224,4 +241,4 @@ class TestAgentAvatarActiveContent(_AvatarCase):
             usl_identity_classification="active",
         )
         self.agent.with_user(admin).write({"image_1920": _b64(_SVG)})
-        self.assertTrue(self._backing_picture())
+        self.assertEqual(bytes(self._backing_picture().content), _SVG)

@@ -178016,7 +178016,8 @@
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1": {
-          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+          "rationale": "Writes the Agent's backing user picture as the service identity, only for the image_1920 field. The manager of an Agent has no right to write its backing user, so the elevation is the feature; it is bounded by the two checks that run before it in the same method: the caller must be allowed to manage this Agent, then the picture must be a raster image.",
+          "reachability_proof": "Underscore inverse of usl.agent.image_1920, not itself an RPC, controller or scheduled entry point, but reached from the My agents form through the public usl.agent create, write and web_save whenever image_1920 is submitted. _inverse_avatar first calls _check_caller_can_manage, which refuses anyone who does not own or administer the Agent, then _check_avatar_is_raster, which refuses SVG and any non-raster payload; only then does it write image_1920 (and no other field) on the backing user. A caller who fails either check never reaches the write."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
