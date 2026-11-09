@@ -50,8 +50,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
-"PO-Revision-Date: 2026-10-20 09:42+0000\n"
+"POT-Creation-Date: 2026-11-06 17:38+0000\n"
+"PO-Revision-Date: 2026-11-05 14:18+0000\n"
 "Last-Translator: Saara Hakanen <sahak@odoo.com>\n"
 "Language-Team: Finnish <https://translate.odoo.com/projects/odoo-s19-3/"
 "account/fi/>\n"
@@ -5351,13 +5351,13 @@ msgstr "Rakennukset"
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
 msgid "Business ID"
-msgstr "Yritystunnus"
+msgstr "Y-tunnus"
 
 #. module: account
 #. odoo-python
 #: code:addons/account/tools/partner_identifiers.py:0
 msgid "Business ID (Y-tunnus)."
-msgstr "Yritystunnus (Y-tunnus)."
+msgstr "Y-tunnus."
 
 #. module: account
 #: model:ir.model,name:account.model_account_document_import_mixin
@@ -8793,11 +8793,9 @@ msgstr "Sähköpostipohja"
 #. module: account
 #: model:ir.model.fields,help:account.field_account_journal__incoming_einvoice_notification_email
 msgid ""
-"Email addresses that will receive copy for sent and received invoices. "
-"Separate entries with ';'."
+"Email addresses that should receive invoices copy/return reminders. Separate "
+"entries with ';'."
 msgstr ""
-"Sähköpostiosoitteet, jotka saavat kopion lähetetyistä ja vastaanotetuista "
-"laskuista. Erota kirjaukset toisistaan ';'-merkillä."
 
 #. module: account
 #. odoo-javascript
@@ -12028,7 +12026,7 @@ msgstr "Kirjauksen tiedot"
 #. module: account
 #: model:ir.model,name:account.model_account_move_reversal
 msgid "Journal Entry Reversal"
-msgstr "Kirjauksen kumoaminen"
+msgstr "Päiväkirjan kirjauksen kumoaminen"
 
 #. module: account
 #: model:ir.model,name:account.model_account_move_line
@@ -17997,7 +17995,7 @@ msgstr "Aihe..."
 #: model:ir.model.fields.selection,name:account.selection__account_move_line__display_type__line_subsection
 #: model_terms:ir.ui.view,arch_db:account.view_move_form
 msgid "Subsection"
-msgstr "Alakohta"
+msgstr "Alaosio"
 
 #. module: account
 #: model:ir.model.fields,field_description:account.field_account_move_line__price_subtotal
@@ -19348,6 +19346,12 @@ msgid ""
 "The entry is using accounts (%(accounts_codes_names)s) from a different "
 "company."
 msgstr "Kirjaus käyttää toisen yrityksen tilejä (%(accounts_codes_names)s)."
+
+#. module: account
+#. odoo-python
+#: code:addons/account/models/account_move.py:0
+msgid "The entry is using taxes (%(tax_names)s) from a different company."
+msgstr ""
 
 #. module: account
 #: model:ir.model.fields,help:account.field_product_category__property_account_expense_categ_id
@@ -23321,6 +23325,13 @@ msgid ""
 msgstr ""
 "{{ object.company_id.name }} Itselaskutettu lasku (viite {{ object.name or "
 "'n/a' }})"
+
+#~ msgid ""
+#~ "Email addresses that will receive copy for sent and received invoices. "
+#~ "Separate entries with ';'."
+#~ msgstr ""
+#~ "Sähköpostiosoitteet, jotka saavat kopion lähetetyistä ja vastaanotetuista "
+#~ "laskuista. Erota kirjaukset toisistaan ';'-merkillä."
 
 #~ msgid "<span class=\"o_stat_text\">Journal Entries</span>"
 #~ msgstr "<span class=\"o_stat_text\">Päiväkirjan kirjaukset</span>"

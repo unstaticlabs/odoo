@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OLLAMA_IMAGE: ollama/ollama@sha256:dea72d1e22270fe095b68fdf756d2b489d615643c5a2eaebbc5f569181e322d8
+  OLLAMA_IMAGE: ollama/ollama@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429
   OLLAMA_MODEL: bge-m3:latest
   OLLAMA_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
   OLLAMA_DIMENSION: "1024"

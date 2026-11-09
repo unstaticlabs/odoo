@@ -6,7 +6,7 @@ from markupsafe import Markup
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.fields import Command, Domain
-from odoo.tools import float_compare, float_is_zero, format_date, groupby
+from odoo.tools import float_compare, float_is_zero, float_round, format_date, groupby
 from odoo.tools.translate import _
 
 
@@ -228,7 +228,7 @@ class SaleOrderLine(models.Model):
     discount = fields.Float(
         string="Discount (%)",
         compute="_compute_discount",
-        digits="Discount",
+        min_display_digits="Discount",
         store=True,
         readonly=False,
         precompute=True,
@@ -894,6 +894,7 @@ class SaleOrderLine(models.Model):
     @api.depends("product_id", "product_uom_id", "product_uom_qty")
     def _compute_discount(self):
         discount_enabled = self.env["product.pricelist.item"]._is_discount_feature_enabled()
+        discount_precision = self.env["decimal.precision"].precision_get("Discount")
         for line in self:
             if not line.product_id or line.display_type:
                 line.discount = 0.0
@@ -922,7 +923,7 @@ class SaleOrderLine(models.Model):
                 if (discount > 0 and base_price > 0) or (discount < 0 and base_price < 0):
                     # only show negative discounts if price is negative
                     # otherwise it's a surcharge which shouldn't be shown to the customer
-                    line.discount = discount
+                    line.discount = float_round(discount, precision_digits=discount_precision)
 
     def _prepare_base_line_for_taxes_computation(self, **kwargs):
         """Convert the current record to a dictionary in order to use the generic taxes computation
@@ -1150,19 +1151,19 @@ class SaleOrderLine(models.Model):
         invoiced_qties = defaultdict(float)
         for line in self:
             invoice_lines = line._get_invoice_lines()
+            if line.is_downpayment:
+                if not line.currency_id.is_zero(sum(invoice_lines.filtered(lambda l: l.move_id.state != 'cancel' or l.move_id.payment_state == 'invoicing_legacy').mapped('balance'))):
+                    invoiced_qties[line] = 1
+                    line.qty_invoiced = 1
+                else:
+                    invoiced_qties[line] = 0
+                    line.qty_invoiced = 0
+                continue
             for invoice_line in invoice_lines:
                 if (
                     invoice_line.move_id.state != "cancel"
                     or invoice_line.move_id.payment_state == "invoicing_legacy"
                 ):
-                    if line.is_downpayment:
-                        if not line.currency_id.is_zero(sum(invoice_lines.filtered(lambda l: l.move_id.state != 'cancel').mapped('balance'))):
-                            invoiced_qties[line] = 1
-                            line.qty_invoiced = 1
-                        else:
-                            invoiced_qties[line] = 0
-                            line.qty_invoiced = 0
-                        continue
                     invoice_qty = invoice_line.product_uom_id._compute_quantity(
                         invoice_line.quantity, line.product_uom_id, round=False,
                     )
