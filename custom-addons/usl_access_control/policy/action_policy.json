@@ -43413,7 +43413,7 @@
           "rationale": "Explicit native read access and bounded state/board payload; no queue or provider processing."
         },
         "rpc:project.task.feedback_recent": {
-          "rationale": "Explicit native read access and bounded state/board payload; no queue or provider processing."
+          "rationale": "Explicit native read access and bounded state/board payload (at most 100 own cards); progress is derived from stage and state with read-only lookups; no queue or provider processing."
         },
         "rpc:usl.feedback.agent.run.action_archive": {
           "rationale": "Identical non-archiveable native helper; no active field to mutate. Equivalent rpc:_unknown.action_archive"
@@ -43624,7 +43624,7 @@
       "reviewed_digests": {
         "rpc:project.project.feedback_open_board": "3d5def6ed3651bd7409f4d9a831274fb764420e16c90a5c9a27b3800bc60ad7d",
         "rpc:project.task.feedback_conversation_state": "5f42f79b49d15b7d95fb660eaaffb9f30d6a9ae42acc204c793299def5347fd3",
-        "rpc:project.task.feedback_recent": "0346ad81758eb1aac8c2db8d3734506b4f510d9e4f643441e36ca7d476a37555",
+        "rpc:project.task.feedback_recent": "1cb52056a3b9b0ff212463168f2573bdc8d8040b3f26e95ef2c642d32b86d6a5",
         "rpc:usl.feedback.agent.run.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.feedback.agent.run.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.feedback.agent.run.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
