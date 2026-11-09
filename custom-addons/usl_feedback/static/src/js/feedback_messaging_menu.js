@@ -533,6 +533,20 @@ export class FeedbackPanel extends Component {
         if (task.withdrawn) {
             return [_t("Withdrawn"), _t("No further action"), "text-bg-secondary"];
         }
+        // Once the product team has moved the card out of Inbox, its board progress
+        // is the truth; the assistant state only describes the draft conversation.
+        const progress = {
+            received: [_t("With product team"), _t("Waiting to be planned"), "text-bg-primary"],
+            planning: [_t("Being shaped"), _t("The team is scoping it"), "text-bg-primary"],
+            in_progress: [_t("In progress"), _t("The team is building it"), "text-bg-info"],
+            review: [_t("In review"), _t("Being checked before release"), "text-bg-warning"],
+            released: [_t("Released"), _t("Rolling out"), "text-bg-success"],
+            done: [_t("Done"), _t("Completed"), "text-bg-success"],
+            declined: [_t("Not planned"), _t("Kept for reference"), "text-bg-secondary"],
+        };
+        if (progress[task.progress]) {
+            return progress[task.progress];
+        }
         const statuses = {
             queued: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],
             processing: [_t("Agent working"), _t("Preparing a draft"), "text-bg-info"],

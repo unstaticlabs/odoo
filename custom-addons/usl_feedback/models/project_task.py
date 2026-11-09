@@ -18,6 +18,19 @@ FEEDBACK_CATEGORIES = [
     ("question", "Question"),
     ("ux", "UX"),
 ]
+# Where a card stands on the board, in the reporter's words. Keyed by the stage
+# records the module ships, so a renamed stage keeps its meaning.
+FEEDBACK_PROGRESS_BY_STAGE = {
+    "stage_feedback_new": "inbox",
+    "stage_feedback_triaged": "received",
+    "stage_feedback_planned": "planning",
+    "stage_feedback_in_progress": "in_progress",
+    "stage_feedback_ready_to_verify": "review",
+    "stage_feedback_done": "released",
+    "stage_feedback_declined": "declined",
+}
+# Plenty for one person, and still a single bounded query.
+FEEDBACK_RECENT_LIMIT = 50
 DIRECT_CREATE_CONTEXT = "usl_feedback_direct_create"
 DIRECT_CREATE_CATEGORY = "improvement"
 AGENT_STATES = [
@@ -485,6 +498,19 @@ class ProjectTask(models.Model):
             return True
         return super()._notify_thread_by_email(message, recipients_data, **kwargs)
 
+    def _usl_feedback_progress(self):
+        """Board progress of one card: what the product team did, not the assistant."""
+        self.ensure_one()
+        if self.state == "1_canceled":
+            return "withdrawn"
+        if self.state == "1_done":
+            return "done"
+        for xmlid, progress in FEEDBACK_PROGRESS_BY_STAGE.items():
+            stage = self.env.ref(f"usl_feedback.{xmlid}", raise_if_not_found=False)
+            if stage and stage == self.stage_id:
+                return progress
+        return "received"
+
     def _usl_feedback_state_payload(self):
         self.ensure_one()
         self.check_access("read")
@@ -501,6 +527,8 @@ class ProjectTask(models.Model):
             ),
             "priority": self.priority,
             "stage": self.stage_id.name,
+            "state": self.state,
+            "progress": self._usl_feedback_progress(),
             "agent_state": self.usl_feedback_agent_state,
             "agent_error": self.usl_feedback_agent_error or False,
             "reporter_id": self.usl_feedback_reporter_id.id,
@@ -518,8 +546,8 @@ class ProjectTask(models.Model):
         }
 
     @api.model
-    def feedback_recent(self, limit=8):
-        limit = min(max(int(limit), 1), 20)
+    def feedback_recent(self, limit=FEEDBACK_RECENT_LIMIT):
+        limit = min(max(int(limit), 1), 100)
         tasks = self.search(
             [
                 ("project_id.usl_feedback_project", "=", True),

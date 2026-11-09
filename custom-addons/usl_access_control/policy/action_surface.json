@@ -2984,7 +2984,7 @@
       ],
       "sources": [
         {
-          "line": 680,
+          "line": 694,
           "path": "custom-addons/usl_feedback/static/src/js/feedback_messaging_menu.js"
         }
       ]
@@ -877073,7 +877073,7 @@
           "path": "addons/project_sms/models/project_task.py"
         },
         {
-          "line": 283,
+          "line": 296,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877142,7 +877142,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 264,
+          "line": 277,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877223,7 +877223,7 @@
       ],
       "sources": [
         {
-          "line": 611,
+          "line": 639,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877260,7 +877260,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 533,
+          "line": 561,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877300,7 +877300,7 @@
       ],
       "sources": [
         {
-          "line": 566,
+          "line": 594,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877344,7 +877344,7 @@
       ],
       "sources": [
         {
-          "line": 539,
+          "line": 567,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877366,7 +877366,7 @@
       "delegates": [
         "rpc:project.task.search"
       ],
-      "digest": "0346ad81758eb1aac8c2db8d3734506b4f510d9e4f643441e36ca7d476a37555",
+      "digest": "1cb52056a3b9b0ff212463168f2573bdc8d8040b3f26e95ef2c642d32b86d6a5",
       "guards": [],
       "key": "rpc:project.task.feedback_recent",
       "kind": "rpc",
@@ -877377,11 +877377,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "22bbddfcd1ef4fd9e9c42a983b73938dde2c0cdbefdecadba8d27b4e85b51586",
+      "runtime_digest": "8bdf7d5a97deed32127604a63d40c79199d6e783a8655ac39482cd6338f8c545",
       "sinks": [],
       "sources": [
         {
-          "line": 521,
+          "line": 549,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877418,7 +877418,7 @@
       ],
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -877463,7 +877463,7 @@
       ],
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -878886,7 +878886,7 @@
           "path": "custom-addons/usl_accounting/models/readonly_evidence.py"
         },
         {
-          "line": 453,
+          "line": 466,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -879145,7 +879145,7 @@
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
-          "line": 439,
+          "line": 452,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -879211,7 +879211,7 @@
           "path": "custom-addons/usl_access_control/models/agent_collaboration.py"
         },
         {
-          "line": 446,
+          "line": 459,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -886823,7 +886823,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 432,
+          "line": 445,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -887319,7 +887319,7 @@
           "path": "custom-addons/usl_documents/models/business_record.py"
         },
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
         {
@@ -1646381,7 +1646381,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 673,
+          "line": 701,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646396,7 +1646396,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 673,
+          "line": 701,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646414,7 +1646414,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 283,
+          "line": 296,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646432,7 +1646432,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 283,
+          "line": 296,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646450,7 +1646450,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 611,
+          "line": 639,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646468,7 +1646468,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 611,
+          "line": 639,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646486,7 +1646486,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 611,
+          "line": 639,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646504,7 +1646504,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 566,
+          "line": 594,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646522,7 +1646522,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 566,
+          "line": 594,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646540,7 +1646540,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 539,
+          "line": 567,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646558,7 +1646558,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 539,
+          "line": 567,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646576,7 +1646576,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 539,
+          "line": 567,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646594,7 +1646594,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646612,7 +1646612,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646630,7 +1646630,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646648,7 +1646648,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646666,7 +1646666,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 578,
+          "line": 606,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646684,7 +1646684,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646702,7 +1646702,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646720,7 +1646720,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646738,7 +1646738,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646756,7 +1646756,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 636,
+          "line": 664,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646774,7 +1646774,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 453,
+          "line": 466,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646792,7 +1646792,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 453,
+          "line": 466,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646810,7 +1646810,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 453,
+          "line": 466,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646828,7 +1646828,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 453,
+          "line": 466,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646846,7 +1646846,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 432,
+          "line": 445,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646864,7 +1646864,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 432,
+          "line": 445,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646882,7 +1646882,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646900,7 +1646900,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646918,7 +1646918,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646936,7 +1646936,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1646954,7 +1646954,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 311,
+          "line": 324,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         }
       ]
@@ -1719783,7 +1719783,7 @@
       "manifest_sha256": "d1cf03490ecebcc778007d3e3f59e7e0f48f58d911df8b4696be6d86d4cf7251",
       "name": "usl_feedback",
       "origin": "custom",
-      "source_sha256": "368d5669a81640a6ede8231a5b68110e2ff6b921bb55d4cb6a5d6142a7878fe7",
+      "source_sha256": "87db8e04e6fb841cd16b8ad4fcd532475cfbc2462c3d7a3239e8d2460ce9098c",
       "version": "saas~19.3.2.0.19"
     },
     {
