@@ -655,7 +655,7 @@ class TestB2cFoundation(TransactionCase):
         # The list cell is a short label, not the sentence.
         self.assertEqual(session.review_status, "Awaiting review")
         french.invalidate_recordset(["review_status", "review_next_step"])
-        self.assertEqual(french.review_status, "En attente de vérification")
+        self.assertEqual(french.review_status, "À vérifier")
 
         order.accounting_link_state = "pending"
         session.action_refresh()
