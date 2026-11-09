@@ -60,6 +60,9 @@ body.usl-docs-journey .o-mail-Message-date,
 body.usl-docs-journey .o-mail-Message-header time,
 body.usl-docs-journey .o-mail-Chatter time { visibility: hidden !important; }
 body.usl-docs-journey .o_navbar .o_user_menu img { visibility: hidden !important; }
+body.usl-docs-journey .o-mail-Message-avatarContainer,
+body.usl-docs-journey .o-mail-Chatter .o_avatar,
+body.usl-docs-journey .o-mail-Chatter .o-mail-Message-avatar { visibility: hidden !important; }
 `;
 
 let inFlight = 0;
