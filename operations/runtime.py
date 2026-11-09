@@ -174,7 +174,9 @@ _SQL_WRITE = re.compile(
     r"|\b(?:pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|"
     r"pg_switch_wal|pg_promote|pg_file_\w+|pg_advisory\w*|pg_create\w*|pg_drop\w*|"
     r"set_config|nextval|setval|lo_\w+|dblink\w*|pg_stat_reset\w*|pg_logical_emit_message|"
-    r"pg_replication_slot_advance|pg_notify)\s*\(",
+    r"pg_replication_slot_advance|pg_notify|pg_logical_slot_\w+|pg_replication_origin_\w+|"
+    r"pg_backup_\w+|pg_wal_replay_\w+|pg_start_backup|pg_stop_backup|pg_import_system_collations|"
+    r"pg_sequence\w*|txid_\w+|pg_current_xact_id\w*)\s*\(",
     re.IGNORECASE,
 )
 # Calls a probe program must not make: file-system, process and HTTP writes.
@@ -192,7 +194,7 @@ _PYTHON_WRITE_CALLS = frozenset({
 _PYTHON_POST_PATHS = frozenset({"/v1/health", "/api/embed"})
 _PYTHON_WRITE_MODULES = frozenset({
     "subprocess", "shutil", "ctypes", "multiprocessing", "pty", "tempfile", "sqlite3",
-    "psycopg2", "importlib", "http",
+    "psycopg2", "importlib", "http", "requests",
 })
 
 
@@ -207,11 +209,27 @@ def _python_probe_problem(program: str) -> str | None:
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             names = [alias.name for alias in node.names]
-            if isinstance(node, ast.ImportFrom) and node.module:
-                names = [node.module]
+            if isinstance(node, ast.ImportFrom):
+                # `from os import remove as r` would hide the call name.
+                if any(name in _PYTHON_WRITE_CALLS or name == "*" for name in names):
+                    return f"python -c importing {names[0]}"
+                names = [node.module or ""]
             for name in names:
                 if name.split(".")[0] in _PYTHON_WRITE_MODULES:
                     return f"python -c importing {name}"
+        # Naming a write function at all, called or not (`f = os.remove`),
+        # and reaching around names (`os.__dict__[...]`) are refused.
+        if isinstance(node, ast.Attribute) and (
+            node.attr in _PYTHON_WRITE_CALLS or node.attr.startswith("__")
+        ) and not (node.attr == "replace"):
+            return f"python -c referencing {node.attr}"
+        if isinstance(node, ast.Name) and node.id in _PYTHON_WRITE_CALLS:
+            return f"python -c referencing {node.id}"
+        if isinstance(node, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(isinstance(target, ast.Attribute) for target in targets):
+                # `request.data = ...` or `request.method = ...` after the fact.
+                return "python -c assigning an attribute"
         if not isinstance(node, ast.Call):
             continue
         function = node.func
@@ -225,8 +243,17 @@ def _python_probe_problem(program: str) -> str | None:
         if name in _PYTHON_WRITE_CALLS:
             return f"python -c calling {name}"
         if name == "open":
-            # open(path, mode) and Path.open(mode).
-            position = 0 if isinstance(function, ast.Attribute) else 1
+            receiver = function.value if isinstance(function, ast.Attribute) else None
+            if isinstance(receiver, ast.Name) and receiver.id == "os":
+                return "python -c calling os.open"
+            # open(path, mode), io.open(path, mode), codecs.open(path, mode)
+            # and the archive modules take the path first; Path.open(mode)
+            # takes the mode first.
+            path_first = receiver is None or (
+                isinstance(receiver, ast.Name)
+                and receiver.id in {"io", "codecs", "gzip", "bz2", "lzma", "tarfile", "zipfile", "builtins"}
+            )
+            position = 1 if path_first else 0
             mode = node.args[position] if len(node.args) > position else next(
                 (keyword.value for keyword in node.keywords if keyword.arg == "mode"), None,
             )
@@ -245,10 +272,20 @@ def _python_probe_problem(program: str) -> str | None:
         sends_body = len(node.args) > 1 or any(keyword.arg == "data" for keyword in node.keywords)
         if name == "urlopen" and sends_body:
             return "python -c posting through urlopen"
+        if name == "request":
+            # requests.request / httpx.request / client.request(method, ...)
+            return "python -c sending a request by method name"
         if name == "Request" and sends_body:
+            # The URL must be `<origin variable> + '<reviewed path>'`, so no
+            # other path can be prefixed onto a reviewed suffix.
             url = node.args[0] if node.args else None
-            suffix = url.right if isinstance(url, ast.BinOp) else url
-            if not (isinstance(suffix, ast.Constant) and suffix.value in _PYTHON_POST_PATHS):
+            if not (
+                isinstance(url, ast.BinOp)
+                and isinstance(url.op, ast.Add)
+                and isinstance(url.left, ast.Name)
+                and isinstance(url.right, ast.Constant)
+                and url.right.value in _PYTHON_POST_PATHS
+            ):
                 return "python -c posting to an unreviewed endpoint"
     return None
 
