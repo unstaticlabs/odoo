@@ -232,7 +232,9 @@ docs: docs-journeys docs-render
 # Chromium as CI. MODULE limits the installed modules; the default is the
 # module set the journeys need.
 DOCS_JOURNEY_DB ?= odoo_docs_journeys
-DOCS_JOURNEY_MODULES ?= $(or $(MODULE),usl_expense_batch)
+# Every module that documents a journey; MODULE=name narrows the run.
+DOCS_JOURNEY_ALL_MODULES := usl_accounting,usl_expense_batch,usl_feedback,usl_platform_billing,rebuild_account_migration
+DOCS_JOURNEY_MODULES ?= $(or $(MODULE),$(DOCS_JOURNEY_ALL_MODULES))
 docs-journeys:
 	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
 	@docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -T \
@@ -240,7 +242,7 @@ docs-journeys:
 		-e ODOO_INIT_DB=$(DOCS_JOURNEY_DB) -e ODOO_DB_FILTER='^$(DOCS_JOURNEY_DB)$$' \
 		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
 		test odoo --config=/etc/odoo/odoo.conf --database=$(DOCS_JOURNEY_DB) \
-		--init=$(DOCS_JOURNEY_MODULES) --without-demo=true --test-enable \
+		--init=usl_docs,$(DOCS_JOURNEY_MODULES) --without-demo=true --test-enable \
 		--test-tags=usl_docs_journey --stop-after-init --log-level=test
 
 docs-render:

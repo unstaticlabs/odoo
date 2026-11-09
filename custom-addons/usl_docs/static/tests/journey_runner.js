@@ -9,6 +9,8 @@
  * the ``models`` it is about, which place it in the guide and let the Help
  * menu find it) and, per step ``id``, the sentence the reader follows and
  * whether the screen at that moment belongs on the page.
+ * ``mask`` lists selectors to hide while capturing; ``scrollTo`` names the
+ * element to bring into view first, for a detail below the fold.
  *
  * Tours stay exactly as ``web_tour`` wants them: the tour service validates
  * every step against a closed schema and reports any other key with
@@ -149,6 +151,14 @@ function screenshotStep(name, id, meta) {
         timeout: 60000,
         async run() {
             await settle();
+            if (meta.scrollTo) {
+                const target = document.querySelector(meta.scrollTo);
+                if (!target) {
+                    throw new Error(`usl_docs: nothing matches scrollTo ${meta.scrollTo} at step ${id}`);
+                }
+                target.scrollIntoView({ block: "center", behavior: "instant" });
+                await nextFrame();
+            }
             const masked = [];
             for (const selector of meta.mask || []) {
                 for (const element of document.querySelectorAll(selector)) {

@@ -3,6 +3,7 @@ import { registry } from "@web/core/registry";
 
 const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {}) => [
     {
+        id: "open_drawer",
         content: "Open the native notifications drawer",
         trigger: ".o_menu_systray i[aria-label='Messages']",
         run: "click",
@@ -37,11 +38,13 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
           ]
         : []),
     {
+        id: "open_feedback",
         content: "Open Feedback",
         trigger: ".o-usl-FeedbackButton",
         run: "click",
     },
     {
+        id: "conversation",
         content: "The drawer closes and a native floating conversation opens",
         trigger: ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel textarea",
     },
@@ -55,6 +58,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
         },
     },
     {
+        id: "describe",
         content: "Describe the issue",
         trigger: ".o-usl-FeedbackPanel textarea",
         run: `edit ${message}`,
@@ -83,29 +87,35 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
           ]
         : []),
     {
-        content: "Page context remains off by default",
+        id: "context_off",
+        content: "The page-details choice is explicit before sending",
         trigger: ".o-usl-FeedbackPanel input#usl_feedback_context:not(:checked), .o-usl-FeedbackPanel textarea",
     },
     {
+        id: "send",
         content: "Send the saved feedback",
         trigger: ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)",
         run: "click",
     },
     {
+        id: "chatter",
         content: "The task chatter replaces the initial prompt",
         trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
     },
     {
+        id: "new_conversation",
         content: "Start another conversation without losing the saved card",
         trigger: ".o-usl-FeedbackPanel-nav button:contains('New')",
         run: "click",
     },
     {
+        id: "tracker",
         content: "Open the clear feedback tracker",
         trigger: ".o-usl-FeedbackPanel-nav button:contains('My feedback')",
         run: "click",
     },
     {
+        id: "resume",
         content: "Resume the saved card after returning to the draft",
         trigger: `.o-usl-FeedbackPanel button:contains('${message}')`,
         run: "click",
@@ -120,6 +130,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
         run: "click",
     },
     {
+        id: "recent_list",
         content: "The recent list preserves the saved feedback card",
         trigger: `.o-usl-FeedbackPanel button:contains('${message}')`,
     },
@@ -131,6 +142,46 @@ registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
             foldWindow: true,
             verifyDrawerTabs: true,
         }),
+});
+
+registry.category("usl_docs.journeys").add("usl_feedback_desktop_journey", {
+    id: "send-feedback-from-any-page",
+    type: "how-to",
+    title: "Send feedback from any page",
+    description: "Report a problem, suggest an improvement or ask a question without leaving the screen you are on, then follow the answer in My feedback.",
+    persona: "everyone",
+    lang: "en",
+    app: "Feedback",
+    models: ["project.task"],
+    steps: {
+        open_drawer: {
+            text: "Open the **Messages** drawer from the top bar. **Feedback** sits beside **New Message** in every tab.",
+            screenshot: true,
+        },
+        open_feedback: { text: "Choose **Feedback**." },
+        conversation: {
+            text: "The drawer closes and a floating conversation opens, like a chat. Odoo prepares a preview of the page you are on; it stays on your computer until you decide to send it.",
+            screenshot: true,
+        },
+        describe: {
+            text: "Describe what you saw and what you expected, in your own words. One message is enough; the product team asks if it needs more.",
+        },
+        context_off: {
+            text: "**Page details** is ticked when the screen you are on gives useful context: the action, the record you can read, the company and the release, never the address, form values or passwords. Untick it when the page does not matter.",
+        },
+        send: { text: "Choose **Send feedback**." },
+        chatter: {
+            text: "Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status changes appear here.",
+            screenshot: true,
+        },
+        new_conversation: { text: "**New** starts another conversation. The card you just sent is kept." },
+        tracker: { text: "**My feedback** lists every card you sent with its current status." },
+        resume: { text: "Choose a card to reopen its conversation and reply." },
+        recent_list: {
+            text: "Come back to **My feedback** at any time from the same drawer to see where each report stands.",
+            screenshot: true,
+        },
+    },
 });
 
 registry.category("web_tour.tours").add("usl_feedback_mobile_journey", {

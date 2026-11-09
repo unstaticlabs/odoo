@@ -1,0 +1,125 @@
+{
+  "journey": "settle-a-platform-billing-session",
+  "lang": "en",
+  "login": "platform_billing_browser_manager",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_platform_billing.tests.test_platform_billing_journeys.TestPlatformBillingJourneys.test_settle_a_platform_billing_session",
+  "source_test_file": {
+    "line": 51,
+    "path": "custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 193,
+    "path": "custom-addons/usl_platform_billing/static/tests/tours/platform_billing_tours.js",
+    "steps": {
+      "create-a-monthly-platform-billing-session": 511,
+      "documents": 208,
+      "draft": 196,
+      "moves": 238,
+      "no_payment": 243,
+      "open_moves": 232,
+      "paid": 226,
+      "post_documents": 214,
+      "preflight": 202,
+      "reconcile": 220
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Open a prepared platform billing session",
+      "id": "draft",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-draft.png",
+      "sha256": "9494ebc1038c316cd3a031e0be4968fb2afe2c6d11d59a254e6bcdfdeb05edbb",
+      "text": "Open **Platform Billing > Billing Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
+      "trigger": ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)"
+    },
+    {
+      "assertion": "Run the accounting preflight",
+      "id": "preflight",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Check** to run the accounting preflight.",
+      "trigger": "button[name='action_check']"
+    },
+    {
+      "assertion": "Generate customer invoices and commission bills",
+      "id": "documents",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Generate drafts**: the customer invoices and the commission bills are created in draft.",
+      "trigger": "button[name='action_generate_documents']"
+    },
+    {
+      "assertion": "Post the documents and compensate commission",
+      "id": "post_documents",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Post documents**. The documents are posted and the commission is compensated against the revenue, so only the net amount is expected from the bank.",
+      "trigger": "button[name='action_post_documents']"
+    },
+    {
+      "assertion": "Reconcile the selected bank receipt through OCA",
+      "id": "reconcile",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Reconcile bank**. The receipt matched to the payout settles the net amount through the bank reconciliation.",
+      "trigger": "button[name='action_reconcile_bank']"
+    },
+    {
+      "assertion": "The complete session is paid",
+      "id": "paid",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-paid.png",
+      "sha256": "32a09f825feb678ccf15e01d4c1e25c2961a71e314ab1d486948513177777467",
+      "text": "The session is **Paid**: the invoice, the bill and the bank line agree.",
+      "trigger": ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current"
+    },
+    {
+      "assertion": "Open the generated native accounting documents",
+      "id": "open_moves",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Journal Entries** to see what was posted.",
+      "trigger": "button[name='action_open_generated_moves']"
+    },
+    {
+      "assertion": "Native posted accounting documents remain available",
+      "id": "moves",
+      "index": 8,
+      "run": "",
+      "screenshot": "03-moves.png",
+      "sha256": "9becbf2e0fc6e1cf653d29b64f12a8c5fe95d72499f9777417f20be51409061c",
+      "text": "Every document is a native Odoo journal entry, open to the usual accounting views and reports.",
+      "trigger": ".o_list_view .o_data_row td[name='name']"
+    },
+    {
+      "assertion": "Miscellaneous entries clearly require no payment",
+      "id": "no_payment",
+      "index": 9,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "The compensation entries read **No Payment Required**: they move the commission, they do not expect money.",
+      "trigger": ".o_list_view td[name='platform_billing_payment_state']:contains('No Payment Required')"
+    }
+  ],
+  "title": "Generate, post and reconcile a platform billing session",
+  "tour": "usl_platform_billing_manager_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

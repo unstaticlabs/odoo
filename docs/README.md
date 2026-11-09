@@ -84,12 +84,14 @@ of them at once, and that is a normal, one-off pull request.
    page (`id` slug, `type`, `title`, `description`, `persona`, `lang`, `app`,
    `models`) and, per step id, the `text` the reader follows and
    `screenshot: true` where a screen helps (`mask: [selectors]` hides volatile
-   elements).
+   elements, `scrollTo: selector` brings a detail below the fold into view).
 3. A `JourneyCase` test (`custom-addons/usl_docs/tests/journey.py`) tagged
    `usl_docs_journey` runs it with `run_journey(tour, url, login)`. The URL is
-   the page's `screen`, so use an XML id (`/odoo/action-<module>.<action>`),
-   never a database id. The test is skipped unless `USL_DOCS_JOURNEYS=1`, so
-   ordinary module suites never pay for it.
+   the page's `screen`, so use an XML id (`/odoo/action-<module>.<action>`);
+   a journey that opens one record starts on `/odoo/action-<xml_id>/<id>` and
+   passes `screen="/odoo/action-<xml_id>"` so the page never carries a
+   database id. The test is skipped unless `USL_DOCS_JOURNEYS=1` and
+   `usl_docs` is installed, so ordinary module suites never pay for it.
 4. `make docs` writes `docs/users/how-to/<slug>.md` (or `TUTORIAL.md`), its
    `<slug>/NN-step.png` screenshots, and `<slug>/journey.json`: the committed
    facts of the journey (steps, assertions, triggers, where the tour and the
