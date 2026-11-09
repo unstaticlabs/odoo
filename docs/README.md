@@ -53,7 +53,7 @@ that add pages never touch the same file.
 
 ```bash
 make docs            # run the journeys in the test container, then render pages and screenshots
-make docs-journeys   # only run the journeys (MODULE=name limits the installed modules); records land in artifacts/usl-docs
+make docs-journeys   # only run the journeys on the product module set, as the qualification run does (MODULE=name narrows it for a quick look, but only the full set yields captures CI accepts); records land in artifacts/usl-docs
 make docs-render     # only render from recorded journeys (scripts/docs generate render)
 make docs-reference  # extract the registry from the action-risk closure and render reference/generated/
 make docs-mcp        # render reference/mcp-tools.md from the pinned odoo-mcp commit (ODOO_MCP_REPOSITORY=../odoo-mcp)
@@ -84,12 +84,14 @@ of them at once, and that is a normal, one-off pull request.
    page (`id` slug, `type`, `title`, `description`, `persona`, `lang`, `app`,
    `models`) and, per step id, the `text` the reader follows and
    `screenshot: true` where a screen helps (`mask: [selectors]` hides volatile
-   elements).
+   elements, `scrollTo: selector` brings a detail below the fold into view).
 3. A `JourneyCase` test (`custom-addons/usl_docs/tests/journey.py`) tagged
    `usl_docs_journey` runs it with `run_journey(tour, url, login)`. The URL is
-   the page's `screen`, so use an XML id (`/odoo/action-<module>.<action>`),
-   never a database id. The test is skipped unless `USL_DOCS_JOURNEYS=1`, so
-   ordinary module suites never pay for it.
+   the page's `screen`, so use an XML id (`/odoo/action-<module>.<action>`);
+   a journey that opens one record starts on `/odoo/action-<xml_id>/<id>` and
+   passes `screen="/odoo/action-<xml_id>"` so the page never carries a
+   database id. The test is skipped unless `USL_DOCS_JOURNEYS=1` and
+   `usl_docs` is installed, so ordinary module suites never pay for it.
 4. `make docs` writes `docs/users/how-to/<slug>.md` (or `TUTORIAL.md`), its
    `<slug>/NN-step.png` screenshots, and `<slug>/journey.json`: the committed
    facts of the journey (steps, assertions, triggers, where the tour and the

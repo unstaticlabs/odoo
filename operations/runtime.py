@@ -138,6 +138,341 @@ class CommandRunner:
         return process
 
 
+# Observation ------------------------------------------------------------
+#
+# `scripts/usl-stack-observe` runs the same handlers as `scripts/usl-stack`,
+# so "read-only" cannot rest on which subcommand was chosen: health and smoke
+# once reached `_with_mcp_runtime_authority`, which creates a directory and
+# writes an authority override on the host. Under `observation_only()` every
+# runner a target hands out refuses, before execution, any command outside a
+# short list of reads. A handler that tries to provision, pull, lock or write
+# fails with the refused verb instead of doing it.
+
+_OBSERVATION_ONLY = False
+
+_READ_ONLY_HOST_COMMANDS = frozenset({
+    "cat", "test", "stat", "df", "du", "findmnt", "sha256sum", "readlink",
+})
+_READ_ONLY_DOCKER_VERBS = frozenset({"ps", "inspect", "logs", "info"})
+_READ_ONLY_DOCKER_OBJECT_VERBS = frozenset({"inspect", "ls"})
+_DOCKER_OBJECTS = frozenset({"image", "volume", "network", "container"})
+_COMPOSE_GLOBAL_OPTIONS = frozenset({
+    "--project-name", "--project-directory", "--env-file", "--file", "--profile",
+})
+_COMPOSE_CONFIG_ARGUMENTS = frozenset({"--services", "--format", "json", "--images", "--quiet"})
+# Exactly the options the stack's curl probes use; anything else, including
+# every short or joined form, is refused rather than interpreted.
+_CURL_FLAGS = frozenset({
+    "--silent", "--show-error", "--fail", "--include", "--no-buffer", "--http1.1",
+})
+_CURL_VALUED = frozenset({"--write-out", "--max-time", "--header", "--output"})
+_READ_ONLY_SQL = re.compile(r"\s*(?:SELECT|WITH)\b", re.IGNORECASE)
+_SQL_WRITE = re.compile(
+    r"\b(?:INSERT|UPDATE|DELETE|MERGE|TRUNCATE|ALTER|DROP|CREATE|GRANT|REVOKE|COPY|"
+    r"VACUUM|REINDEX|CLUSTER|LOCK|NOTIFY|LISTEN|CALL|DO|SET|RESET|COMMENT|REFRESH|"
+    r"PREPARE|EXECUTE|DISCARD|IMPORT|SECURITY|INTO)\b"
+    r"|\b(?:pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|"
+    r"pg_switch_wal|pg_promote|pg_file_\w+|pg_advisory\w*|pg_create\w*|pg_drop\w*|"
+    r"set_config|nextval|setval|lo_\w+|dblink\w*|pg_stat_reset\w*|pg_logical_emit_message|"
+    r"pg_replication_slot_advance|pg_notify|pg_logical_slot_\w+|pg_replication_origin_\w+|"
+    r"pg_backup_\w+|pg_wal_replay_\w+|pg_start_backup|pg_stop_backup|pg_import_system_collations|"
+    r"pg_sequence\w*|txid_\w+|pg_current_xact_id\w*)\s*\(",
+    re.IGNORECASE,
+)
+# Calls a probe program must not make: file-system, process and HTTP writes.
+_PYTHON_WRITE_CALLS = frozenset({
+    "remove", "unlink", "rmdir", "removedirs", "mkdir", "makedirs", "rename",
+    "renames", "write", "writelines", "write_text", "write_bytes", "chmod", "chown",
+    "lchown", "symlink", "symlink_to", "link", "hardlink_to", "truncate", "ftruncate",
+    "rmtree", "move", "copy", "copy2", "copyfile", "copytree", "system", "popen",
+    "execv", "execve", "execl", "execlp", "execvp", "spawnv", "kill", "fork", "touch",
+    "mkfifo", "mknod", "utime", "post", "put", "patch", "delete", "exec", "eval",
+    "compile", "__import__", "setattr", "getattr", "dup2", "FileIO",
+})
+# The only POST bodies a probe may send: the Sign DSS health check and the
+# shared Ollama embedding. Both compute an answer and store nothing.
+_PYTHON_POST_PATHS = frozenset({"/v1/health", "/api/embed"})
+_PYTHON_WRITE_MODULES = frozenset({
+    "subprocess", "shutil", "ctypes", "multiprocessing", "pty", "tempfile", "sqlite3",
+    "psycopg2", "importlib", "http", "requests",
+})
+
+
+_PYTHON_OPEN_CALLS = frozenset({"open", "GzipFile", "BZ2File", "LZMAFile", "TarFile", "ZipFile"})
+
+
+def _is_process_call(name: str) -> bool:
+    return name.startswith(("exec", "spawn", "posix_spawn", "fork"))
+
+
+def _python_probe_problem(program: str) -> str | None:
+    """Refuse a probe program that could write, judged from its syntax tree."""
+    import ast
+
+    try:
+        tree = ast.parse(program)
+    except SyntaxError:
+        return "python -c program that does not parse"
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            names = [alias.name for alias in node.names]
+            if isinstance(node, ast.ImportFrom):
+                # `from os import remove as r` would hide the call name.
+                if any(
+                    name in _PYTHON_WRITE_CALLS or name in {"*", "open", "replace"} or _is_process_call(name)
+                    for name in names
+                ):
+                    return f"python -c importing {names[0]}"
+                names = [node.module or ""]
+            for name in names:
+                if name.split(".")[0] in _PYTHON_WRITE_MODULES:
+                    return f"python -c importing {name}"
+        # Naming a write function at all, called or not (`f = os.remove`),
+        # and reaching around names (`os.__dict__[...]`) are refused.
+        if isinstance(node, ast.Attribute) and (
+            node.attr in _PYTHON_WRITE_CALLS or node.attr.startswith("__") or _is_process_call(node.attr)
+        ):
+            return f"python -c referencing {node.attr}"
+        if (
+            isinstance(node, ast.Attribute)
+            and node.attr == "replace"
+            and isinstance(node.value, ast.Name)
+            and node.value.id in {"os", "shutil"}
+        ):
+            return "python -c referencing os.replace"
+        if isinstance(node, ast.Name) and (node.id in _PYTHON_WRITE_CALLS or _is_process_call(node.id)):
+            return f"python -c referencing {node.id}"
+        if isinstance(node, (ast.Assign, ast.AugAssign, ast.AnnAssign)):
+            targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+            if any(isinstance(target, ast.Attribute) for target in targets):
+                # `request.data = ...` or `request.method = ...` after the fact.
+                return "python -c assigning an attribute"
+        if not isinstance(node, ast.Call):
+            continue
+        function = node.func
+        name = function.attr if isinstance(function, ast.Attribute) else getattr(function, "id", None)
+        if name in _PYTHON_OPEN_CALLS:
+            # Judged without trusting the receiver's name (`import os as o`):
+            # a write mode in either of the first two positions or in mode=,
+            # or a second positional argument that is not a constant read
+            # mode (os.open flags), is refused.
+            candidates = list(node.args[:2]) + [
+                keyword.value for keyword in node.keywords if keyword.arg in {"mode", "flags"}
+            ]
+            if any(keyword.arg is None for keyword in node.keywords):
+                return "python -c opening a file with unpacked arguments"
+            for value in candidates:
+                # A first argument is a mode only when it looks like one;
+                # otherwise it is a path ('/var/lib/odoo/x' is a read).
+                if (
+                    isinstance(value, ast.Constant)
+                    and isinstance(value.value, str)
+                    and re.fullmatch(r"[rwaxbtU+]{1,4}", value.value)
+                    and set(value.value) & set("wax+")
+                ):
+                    return "python -c opening a file for writing"
+            second = node.args[1] if len(node.args) > 1 else None
+            if second is not None and not (
+                isinstance(second, ast.Constant)
+                and isinstance(second.value, str)
+                and not set(second.value) & set("wax+")
+            ):
+                return "python -c opening a file with a non-constant mode"
+            continue
+        if name == "replace" and isinstance(function, ast.Attribute):
+            # str.replace(old, new) is a read; os.replace(a, b) and
+            # Path.replace(target) move files.
+            if (isinstance(function.value, ast.Name) and function.value.id == "os") or len(node.args) < 2:
+                return "python -c calling a file replace"
+            continue
+        if name in _PYTHON_WRITE_CALLS:
+            return f"python -c calling {name}"
+        if name == "Request" and any(
+            keyword.arg == "method"
+            and not (isinstance(keyword.value, ast.Constant) and keyword.value.value in {"GET", "HEAD"})
+            for keyword in node.keywords
+        ):
+            return "python -c sending a non-GET request"
+        sends_body = len(node.args) > 1 or any(keyword.arg == "data" for keyword in node.keywords)
+        if name == "urlopen" and sends_body:
+            return "python -c posting through urlopen"
+        if name == "request":
+            # requests.request / httpx.request / client.request(method, ...)
+            return "python -c sending a request by method name"
+        if name == "Request" and sends_body:
+            # The URL must be `<origin variable> + '<reviewed path>'`, so no
+            # other path can be prefixed onto a reviewed suffix.
+            url = node.args[0] if node.args else None
+            if not (
+                isinstance(url, ast.BinOp)
+                and isinstance(url.op, ast.Add)
+                and isinstance(url.left, ast.Name)
+                and isinstance(url.right, ast.Constant)
+                and url.right.value in _PYTHON_POST_PATHS
+            ):
+                return "python -c posting to an unreviewed endpoint"
+    return None
+
+
+def _psql_problem(program: list[str]) -> str | None:
+    if (
+        len(program) != 9
+        or program[1] != "--username"
+        or program[3] != "--dbname"
+        or program[5:8] != ["--tuples-only", "--no-align", "--command"]
+    ):
+        return "psql with arguments outside the stack's probe shape"
+    query = program[8]
+    if not _READ_ONLY_SQL.match(query) or ";" in query.strip().rstrip(";"):
+        return "psql with a query that is not a single SELECT"
+    # String literals are data ('create' as an ACL label), not statements.
+    match = _SQL_WRITE.search(re.sub(r"'(?:[^']|'')*'", "''", query))
+    if match:
+        return f"psql with a query containing {match.group(0).strip().rstrip('(').strip()}"
+    return None
+
+
+def _compose_problem(command: list[str]) -> str | None:
+    index = 2
+    while index < len(command) and command[index] in _COMPOSE_GLOBAL_OPTIONS:
+        index += 2
+    rest = command[index:]
+    if not rest:
+        return "docker compose without a subcommand"
+    verb = rest[0]
+    if verb in {"ps", "images", "ls"}:
+        return None
+    if verb == "config":
+        unexpected = [argument for argument in rest[1:] if argument not in _COMPOSE_CONFIG_ARGUMENTS]
+        return f"docker compose config {unexpected[0]}" if unexpected else None
+    if verb != "exec":
+        return f"docker compose {verb}"
+    arguments = rest[1:]
+    while arguments and arguments[0] in {"--no-TTY", "-T"}:
+        arguments = arguments[1:]
+    if len(arguments) < 2 or arguments[0].startswith("-"):
+        return "docker compose exec without a service and a probe"
+    program = arguments[1:]
+    if program[0] == "psql":
+        return _psql_problem(program)
+    if program[:2] == ["python", "-c"] and len(program) == 3:
+        return _python_probe_problem(program[2])
+    return f"docker compose exec {program[0]}"
+
+
+def _curl_problem(command: list[str]) -> str | None:
+    arguments = command[1:]
+    urls = 0
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        if argument in _CURL_FLAGS:
+            index += 1
+            continue
+        if argument in _CURL_VALUED:
+            if index + 1 >= len(arguments):
+                return f"curl {argument} without a value"
+            if argument == "--output" and arguments[index + 1] != "/dev/null":
+                return "curl --output to a file"
+            if argument == "--write-out" and "%output" in arguments[index + 1]:
+                return "curl --write-out to a file"
+            index += 2
+            continue
+        if re.fullmatch(r"https?://[^\s]+", argument):
+            urls += 1
+            index += 1
+            continue
+        return f"curl {argument.split('=', 1)[0]}"
+    return None if urls == 1 else "curl without exactly one URL"
+
+
+def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
+    """Return why ``command`` may write, or None when it is a known read."""
+    if input_text is not None:
+        return f"{command[0] if command else 'command'} with standard input"
+    if not command:
+        return "empty command"
+    head = command[0]
+    if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if command == ["containerd", "config", "dump"]:
+        return None
+    if head == "curl":
+        return _curl_problem(command)
+    if head != "docker" or len(command) < 2:
+        return head
+    verb = command[1]
+    if verb == "compose":
+        return _compose_problem(command)
+    if verb in _READ_ONLY_DOCKER_VERBS:
+        return None
+    if verb in _DOCKER_OBJECTS and len(command) > 2 and command[2] in _READ_ONLY_DOCKER_OBJECT_VERBS:
+        return None
+    if (
+        verb == "run"
+        and command[2:8] == ["--rm", "--network", "none", "--read-only", "--entrypoint", "cat"]
+        and len(command) == 10
+        and re.fullmatch(r"[^\s@]+@sha256:[0-9a-f]{64}", command[8])
+    ):
+        # An ephemeral, networkless, read-only container that prints one file
+        # of an immutable image: how the cron policy shipped in a release is read.
+        return None
+    return f"docker {verb}" + (f" {command[2]}" if verb in _DOCKER_OBJECTS and len(command) > 2 else "")
+
+
+@dataclass
+class ReadOnlyRunner:
+    """A runner that executes only reads; anything else is refused unexecuted."""
+
+    inner: Runner
+    read_only: bool = True
+
+    def run(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        problem = read_only_command_problem(command, input_text)
+        if problem is not None:
+            raise RuntimeError(f"observation refused a write-capable command: {problem}")
+        return self.inner.run(command, check=check, input_text=input_text)
+
+    def run_reviewed_read(
+        self,
+        command: list[str],
+        *,
+        check: bool = True,
+        input_text: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        """Run one program that is a read by review, not by its shape.
+
+        The release-announcement audit is an ``odoo shell`` session: it can
+        write in principle, and reads in practice because its fixed program
+        never commits and the shell rolls back at exit. It is the only caller;
+        ``scripts/tests/test_observation_read_only.py`` fails if another appears.
+        """
+        return self.inner.run(command, check=check, input_text=input_text)
+
+    @contextmanager
+    def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
+        raise RuntimeError(f"observation refused a write-capable command: flock {path}")
+        yield  # pragma: no cover
+
+
+@contextmanager
+def observation_only():
+    """Make every target runner read-only for the duration of the block."""
+    global _OBSERVATION_ONLY
+    previous = _OBSERVATION_ONLY
+    _OBSERVATION_ONLY = True
+    try:
+        yield
+    finally:
+        _OBSERVATION_ONLY = previous
+
+
 def _exact(value: object, fields: set[str], label: str) -> dict[str, Any]:
     if not isinstance(value, dict) or set(value) != fields:
         actual = sorted(value) if isinstance(value, dict) else type(value).__name__
@@ -168,11 +503,13 @@ class Target:
     def protected(self) -> bool:
         return self.value["protected"]
 
-    def runner(self) -> CommandRunner:
+    def runner(self) -> CommandRunner | ReadOnlyRunner:
         transport = self.value["transport"]
         if transport["type"] == "local":
-            return CommandRunner()
-        return CommandRunner(("ssh", transport["host"], "--"))
+            runner = CommandRunner()
+        else:
+            runner = CommandRunner(("ssh", transport["host"], "--"))
+        return ReadOnlyRunner(runner) if _OBSERVATION_ONLY else runner
 
 
 def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:

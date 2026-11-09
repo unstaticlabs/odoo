@@ -1406,6 +1406,39 @@ class TestProductFeedback(TransactionCase):
         with self.assertRaises(UserError):
             task.with_user(self.reporter).feedback_confirm_triage()
 
+    def test_my_feedback_lists_every_own_submission_with_its_real_progress(self):
+        stages = {
+            key: self.env.ref(f"usl_feedback.stage_feedback_{key}")
+            for key in ("new", "triaged", "planned", "in_progress", "ready_to_verify", "done")
+        }
+        cards = [self._submit(message=f"Own submission number {i}")[0] for i in range(12)]
+        foreign = self._submit(user=self.other, message="Someone else's submission")[0]
+        # The product team moves cards on the board while the reporter never pressed
+        # "send": the stored assistant state is left behind in Inbox wording.
+        for card, key in zip(cards[:5], ("triaged", "planned", "in_progress", "ready_to_verify", "done")):
+            card.write({"stage_id": stages[key].id, "usl_feedback_category": "bug"})
+        # Triage often reassigns the card; authorship must not follow the assignee.
+        cards[2].write({"user_ids": [Command.set(self.other.ids)]})
+        cards[4].write({"state": "1_done"})
+        self.env.flush_all()
+
+        listed = self.env["project.task"].with_user(self.reporter).feedback_recent()
+
+        self.assertEqual({item["id"] for item in listed}, set(cards_ids := [c.id for c in cards]))
+        self.assertNotIn(foreign.id, [item["id"] for item in listed])
+        self.assertEqual(len(listed), len(cards_ids))
+        progress = {item["id"]: item["progress"] for item in listed}
+        self.assertEqual(progress[cards[0].id], "received")
+        self.assertEqual(progress[cards[1].id], "planning")
+        self.assertEqual(progress[cards[2].id], "in_progress")
+        self.assertEqual(progress[cards[3].id], "review")
+        self.assertEqual(progress[cards[4].id], "done")
+        self.assertEqual(progress[cards[5].id], "inbox")
+        self.assertEqual(
+            {item["id"]: item["state"] for item in listed}[cards[4].id],
+            "1_done",
+        )
+
     def test_gemini_runs_without_projects_mcp(self):
         task, _payload = self._submit(message="The assistant should work without MCP.")
         params = self.env["ir.config_parameter"].sudo()

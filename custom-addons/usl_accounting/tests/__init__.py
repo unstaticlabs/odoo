@@ -19,6 +19,8 @@ from . import (
 
 from . import test_vendor_bill_merge
 
+from . import test_accounting_journeys
+
 from . import test_taxed_payment_rate
 
 from . import test_bill_terms

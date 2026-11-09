@@ -215,15 +215,26 @@ class JourneyCase(HttpCase):
         super().setUp()
         if not journeys_enabled():
             self.skipTest(f"journeys run only with {ENABLE_ENV_VAR}=1")
+        if self.env["ir.module.module"].sudo().search_count([("name", "=", "usl_docs"), ("state", "=", "installed")]) == 0:
+            # The runner (journey_runner.js) ships with usl_docs' test assets;
+            # a module need not depend on the guide to document a journey.
+            self.skipTest("journeys need usl_docs installed; `make docs-journeys` installs it")
 
-    def run_journey(self, tour_name, url_path, login, viewports=("desktop",), timeout=180):
-        """Run ``tour_name`` on each viewport and write its records. Returns them."""
+    def run_journey(self, tour_name, url_path, login, viewports=("desktop",), timeout=180, screen=None):
+        """Run ``tour_name`` on each viewport and write its records. Returns them.
+
+        ``url_path`` is where the browser starts. ``screen`` is what the page
+        offers as "Open this screen in Odoo" when the start URL names a
+        record: a journey that opens one Batch starts on
+        ``/odoo/action-<xml id>/<database id>`` but the reader is sent to the
+        action, since the id differs on every database.
+        """
         records = []
         for viewport in viewports:
-            records.append(self._run_on_viewport(tour_name, url_path, login, viewport, timeout))
+            records.append(self._run_on_viewport(tour_name, url_path, login, viewport, timeout, screen or url_path))
         return records
 
-    def _run_on_viewport(self, tour_name, url_path, login, viewport, timeout):
+    def _run_on_viewport(self, tour_name, url_path, login, viewport, timeout, screen):
         settings = VIEWPORTS[viewport]
         directory = output_directory() / tour_name / viewport
         capture = _Capture(self, viewport, directory)
@@ -276,7 +287,7 @@ class JourneyCase(HttpCase):
             "lang": journey["lang"],
             "app": journey.get("app") or "",
             "models": journey.get("models") or [],
-            "url_path": url_path,
+            "url_path": screen,
             "viewport": viewport,
             "viewport_size": settings["size"],
             "source_test": f"{type(self).__module__}.{type(self).__name__}.{self._testMethodName}",

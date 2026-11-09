@@ -3,6 +3,7 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_journey", {
     steps: () => [
         {
+            id: "sessions",
             content: "No session filter is selected by default",
             trigger: ".o_control_panel:not(:has(.o_searchview_facet))",
         },
@@ -12,6 +13,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
                 ".o_list_view .o_data_row td[name='name']:contains('Browser closed session')",
         },
         {
+            id: "create",
             content: "Create a monthly platform billing session",
             trigger: ".o_list_button_add",
             run: "click",
@@ -47,6 +49,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
             },
         },
         {
+            id: "period",
             content: "The historical French session name is suggested",
             trigger: ".o_field_widget[name='name'] input:value('Août 2026')",
         },
@@ -71,6 +74,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
             run: "click",
         },
         {
+            id: "add_payout",
             content: "Add the platform payout",
             trigger: "div[name='payout_ids'] .o_field_x2many_list_row_add button",
             run: "click",
@@ -136,42 +140,50 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
             run: "edit BROWSER-NEW-2026-08-001",
         },
         {
+            id: "net_amount",
             content: "Enter the platform net amount",
             trigger:
                 ".o_selected_row .o_field_widget[name='net_platform_amount'] input",
             run: "edit 80",
         },
         {
+            id: "check",
             content: "Save through the real form and run the accounting checks",
             trigger: "button[name='action_check']",
             run: "click",
         },
         {
+            id: "generate",
             content: "Generate customer invoice and commission bill drafts",
             trigger: "button[name='action_generate_documents']",
             run: "click",
         },
         {
+            id: "post",
             content: "Post the monthly accounting documents",
             trigger: "button[name='action_post_documents']",
             run: "click",
         },
         {
+            id: "coverage",
             content: "Incomplete active-platform coverage is clearly identified",
             trigger:
                 ".modal .alert:contains('Browser platform without August payout')",
         },
         {
+            id: "confirm_coverage",
             content: "Confirm the deliberate monthly coverage exception",
             trigger: ".modal button[name='action_confirm']",
             run: "click",
         },
         {
+            id: "posted",
             content: "The delayed payout stays posted and open",
             trigger:
                 ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current",
         },
         {
+            id: "reconcile_later",
             content: "Bank reconciliation remains available for the later receipt",
             trigger: "button[name='action_reconcile_bank']",
         },
@@ -181,45 +193,54 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
 registry.category("web_tour.tours").add("usl_platform_billing_manager_journey", {
     steps: () => [
         {
+            id: "draft",
             content: "Open a prepared platform billing session",
             trigger:
                 ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)",
         },
         {
+            id: "preflight",
             content: "Run the accounting preflight",
             trigger: "button[name='action_check']",
             run: "click",
         },
         {
+            id: "documents",
             content: "Generate customer invoices and commission bills",
             trigger: "button[name='action_generate_documents']",
             run: "click",
         },
         {
+            id: "post_documents",
             content: "Post the documents and compensate commission",
             trigger: "button[name='action_post_documents']",
             run: "click",
         },
         {
+            id: "reconcile",
             content: "Reconcile the selected bank receipt through OCA",
             trigger: "button[name='action_reconcile_bank']",
             run: "click",
         },
         {
+            id: "paid",
             content: "The complete session is paid",
             trigger:
                 ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current",
         },
         {
+            id: "open_moves",
             content: "Open the generated native accounting documents",
             trigger: "button[name='action_open_generated_moves']",
             run: "click",
         },
         {
+            id: "moves",
             content: "Native posted accounting documents remain available",
             trigger: ".o_list_view .o_data_row td[name='name']",
         },
         {
+            id: "no_payment",
             content: "Miscellaneous entries clearly require no payment",
             trigger:
                 ".o_list_view td[name='platform_billing_payment_state']:contains('No Payment Required')",
@@ -484,4 +505,79 @@ registry.category("web_tour.tours").add("usl_platform_billing_reviewer_journey",
             trigger: ".o_control_panel:not(:has(button.o_list_button_add))",
         },
     ],
+});
+
+registry.category("usl_docs.journeys").add("usl_platform_billing_operator_creation_journey", {
+    id: "create-a-monthly-platform-billing-session",
+    type: "how-to",
+    title: "Create and post a monthly platform billing session",
+    description: "Open the month, enter the payout each platform reported, run the checks, generate the invoices and bills and post them, even when a platform has not paid yet.",
+    persona: "finance_operator",
+    lang: "en",
+    app: "Platform billing",
+    models: ["usl.platform.billing.session", "usl.platform.billing.payout"],
+    steps: {
+        sessions: {
+            text: "Open **Platform Billing > Billing Sessions**. The list shows every month, closed ones included, so you can see what was done before.",
+            screenshot: true,
+        },
+        create: { text: "Choose **New**." },
+        period: {
+            text: "Pick the **billing period**: the first day of the month you are closing. Odoo names the session after the month, in French as the history always has, and proposes the month-end as invoice date.",
+            screenshot: true,
+        },
+        add_payout: { text: "Under **Payouts**, choose **Add a line** for each platform that reported a payout this month." },
+        net_amount: {
+            text: "Pick the platform, the payout date and the platform's own reference, then enter the **net amount** the platform reported. The gross revenue and the commission are derived from the platform's rate.",
+            screenshot: true,
+        },
+        check: {
+            text: "Choose **Check**. The session is saved and the accounting checks run: platforms, journals, products and amounts must all be in place before anything is generated.",
+        },
+        generate: { text: "Choose **Generate drafts**: one customer invoice for the revenue and one bill for the commission, per payout, in draft." },
+        post: { text: "Choose **Post documents**." },
+        coverage: {
+            text: "When an active platform has no payout this month, Odoo says which one before posting. This is the moment to add a forgotten line.",
+            screenshot: true,
+        },
+        confirm_coverage: { text: "Confirm when the gap is deliberate, for example a platform that pays quarterly." },
+        posted: {
+            text: "The session is **Posted**. A payout whose money has not arrived stays open; the invoice is posted and waits for the bank.",
+            screenshot: true,
+        },
+        reconcile_later: { text: "**Reconcile bank** stays available: come back when the receipt shows on the bank statement." },
+    },
+});
+
+registry.category("usl_docs.journeys").add("usl_platform_billing_manager_journey", {
+    id: "settle-a-platform-billing-session",
+    type: "how-to",
+    title: "Generate, post and reconcile a platform billing session",
+    description: "Take a prepared session from draft to paid: run the preflight, generate and post the documents, and reconcile the bank receipt already matched to the payout.",
+    persona: "accountant",
+    lang: "en",
+    app: "Platform billing",
+    models: ["usl.platform.billing.session", "account.move"],
+    steps: {
+        draft: {
+            text: "Open **Platform Billing > Billing Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
+            screenshot: true,
+        },
+        preflight: { text: "Choose **Check** to run the accounting preflight." },
+        documents: { text: "Choose **Generate drafts**: the customer invoices and the commission bills are created in draft." },
+        post_documents: {
+            text: "Choose **Post documents**. The documents are posted and the commission is compensated against the revenue, so only the net amount is expected from the bank.",
+        },
+        reconcile: { text: "Choose **Reconcile bank**. The receipt matched to the payout settles the net amount through the bank reconciliation." },
+        paid: {
+            text: "The session is **Paid**: the invoice, the bill and the bank line agree.",
+            screenshot: true,
+        },
+        open_moves: { text: "Choose **Journal Entries** to see what was posted." },
+        moves: {
+            text: "Every document is a native Odoo journal entry, open to the usual accounting views and reports.",
+            screenshot: true,
+        },
+        no_payment: { text: "The compensation entries read **No Payment Required**: they move the commission, they do not expect money." },
+    },
 });

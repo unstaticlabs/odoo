@@ -39,13 +39,20 @@ steps is a how-to that will go stale.
    screen helps. Steps without an entry run silently.
 3. Drive it from a `JourneyCase` test in `<module>/tests/`, as a non-admin
    fixture user with synthetic data. Start it on a stable URL
-   (`/odoo/action-<module>.<xml_id>`, never a database id): it becomes the
-   page's "Open this screen in Odoo" link. Never production records, prices,
-   identities or credentials: screenshots are committed to a public repository.
+   (`/odoo/action-<module>.<xml_id>`): it becomes the page's "Open this
+   screen in Odoo" link. When the journey must open one record, start on
+   `/odoo/action-<xml_id>/<record.id>` and pass `screen="/odoo/action-<xml_id>"`
+   to `run_journey`, so the page never carries a database id. Never
+   production records, prices, identities or credentials: screenshots are
+   committed to a public repository. The module need not depend on
+   `usl_docs`: `make docs-journeys` installs it beside the module.
 4. Run `make docs MODULE=<module>` in the isolated stack. It runs the journey
    inside the test container (`make docs-journeys`), writes the page and its
    screenshots (`make docs-render`). Commit the page, the screenshots, the
-   sidecar and the tour together; there is no index to refresh.
+   sidecar and the tour together; there is no index to refresh. Commit the
+   captures of a run without `MODULE`: it installs the whole product set, as
+   the qualification run does, and a smaller database draws other smart
+   buttons, columns and home screens that CI then rejects as changed.
 5. Prove it: `make docs-check` passes; edit one step's `text`, run
    `scripts/docs generate check --records artifacts/usl-docs` and watch it
    fail; regenerate.

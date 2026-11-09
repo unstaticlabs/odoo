@@ -1,0 +1,94 @@
+{
+  "journey": "check-the-receipt-on-an-expense",
+  "lang": "en",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_check_the_receipt_on_an_expense",
+  "source_test_file": {
+    "line": 42,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 91,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "analytics": 134,
+      "approved": 200,
+      "attachments": 106,
+      "batch": 128,
+      "context_action": 140,
+      "entries": 218,
+      "evidence": 228,
+      "exception": 146,
+      "history": 240,
+      "no_actions": 234,
+      "no_trash": 152,
+      "open_expense": 99,
+      "payer": 118,
+      "post": 205,
+      "post_entries": 211,
+      "receipt": 113,
+      "reconciliation": 246,
+      "remove": 158,
+      "upload": 94
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Native receipt upload remains available on the expense work list",
+      "id": "upload",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-upload.png",
+      "sha256": "268d0b2e5c18338ed4f12db6819df66107c9d86a2913d92ef14303b6b8bdee40",
+      "text": "Open **Expenses > My Expenses**. **Upload** adds a receipt and creates its expense in one go; expenses that already have a receipt are listed with it.",
+      "trigger": ".o_list_view .o_button_upload_expense"
+    },
+    {
+      "assertion": "Open the captured expense evidence",
+      "id": "open_expense",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Open the expense you want to check.",
+      "trigger": ".o_list_table tbody tr.o_data_row td[name='name']:contains('Browser receipt evidence')"
+    },
+    {
+      "assertion": "The captured receipt count is available on its expense",
+      "id": "attachments",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "The paper-clip counter in the chatter says how many files the expense carries. Choose it.",
+      "trigger": ".o_form_view:has(.o_field_widget[name='product_id']) button[aria-label='Attach files']:contains('1')"
+    },
+    {
+      "assertion": "The receipt evidence is inspectable from the expense",
+      "id": "receipt",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-receipt.png",
+      "sha256": "bd596c941b5e842f19408c99d1c18df5004d7e84f6b47c6659ee9b71788ef5e8",
+      "text": "The receipt is listed under **Files**, below the expense. Open it and check that it is the right document and that it is readable.",
+      "trigger": ".o-mail-AttachmentBox:contains('browser-receipt.pdf')"
+    },
+    {
+      "assertion": "The payer choice remains explicit after receipt capture",
+      "id": "payer",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Check **Paid by**: your own money is reimbursed to you, a company card is settled by the company. Change it here if the receipt says otherwise.",
+      "trigger": ".o_form_view .o_field_widget[name='payment_mode']"
+    }
+  ],
+  "title": "Check the receipt attached to an expense",
+  "tour": "usl_expense_batch_receipt_capture",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}
