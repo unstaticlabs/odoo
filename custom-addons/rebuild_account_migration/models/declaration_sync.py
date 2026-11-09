@@ -27,7 +27,12 @@ class RebuildAccountDeclaration(models.Model):
         previous_start, previous_end = company.rebuild_compute_fiscalyear_dates(
             current_start - timedelta(days=1)
         )
-        if (previous_start, previous_end) not in periods:
+        # A company's first fiscal year can be long. The standard year that
+        # would precede or overlap it never existed for this company.
+        first_start, _first_end = company._rebuild_first_fiscalyear_dates()
+        if (previous_start, previous_end) not in periods and not (
+            first_start and previous_start < first_start
+        ):
             periods.append((previous_start, previous_end))
         if company.fiscalyear_lock_date:
             locked_start, locked_end = company.rebuild_compute_fiscalyear_dates(
