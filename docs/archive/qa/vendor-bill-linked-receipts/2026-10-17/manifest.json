@@ -1,0 +1,114 @@
+[
+  {
+    "file": "03-retained-original-preview-desktop.jpg",
+    "sha256": "912fe2fdefe3a68af0afcb74f261180b41cef3cf5b5774018caab3acaa9e9762",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "d3bf34a2af9c252dbf5c930bd670354802eb0dbf",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "04-authentication-recovery-desktop.jpg",
+    "sha256": "d2dd20b745a3233820f846d52464860c39a6a873521e11770b9fb4f0616d2c5e",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "d3bf34a2af9c252dbf5c930bd670354802eb0dbf",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "05-upload-recovery-retained-file.jpg",
+    "sha256": "511d611b31d10150f4b7a0e3cdca8ac9adf01a795bb6652c2365212b4495a410",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "d3bf34a2af9c252dbf5c930bd670354802eb0dbf",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "06-source-changed-recovery-desktop.jpg",
+    "sha256": "5c0970d0ffc8a373ec49bc70b607cb9786bce47b7ec0da68d9f44aa00675d0fc",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "d3bf34a2af9c252dbf5c930bd670354802eb0dbf",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "07-source-changed-recovery-mobile.jpg",
+    "sha256": "0ba8907a94cd225752277f7d7108fc684c8e10e3ced834f8c67bb8f205d04cc0",
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "d3bf34a2af9c252dbf5c930bd670354802eb0dbf",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "10-final-responsive-choice-desktop.jpg",
+    "sha256": "dcbe504305e3dde7f92caa6a5493b4447c8f791ff0bd57396001c67011d87e31",
+    "dimensions": [
+      1280,
+      720
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "b042599bacbfbbf9f23fdfe1e0e1ba33ca65ea66",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "11-final-native-choice-cards-mobile.jpg",
+    "sha256": "4b3e1af942a5fde88cbc8f4641881c73e2e003c8b73eaa1c59ecef431aa59ab8",
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "b042599bacbfbbf9f23fdfe1e0e1ba33ca65ea66",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  },
+  {
+    "file": "12-final-paused-retrieval-mobile.jpg",
+    "sha256": "2d90b4909d7a17aafc0fd345684912ac287bb91b236d55a5e3c044cedafebdfa",
+    "dimensions": [
+      390,
+      844
+    ],
+    "capture_date": "2026-10-17",
+    "source_revision": "b042599bacbfbbf9f23fdfe1e0e1ba33ca65ea66",
+    "metadata": [
+      "standard 14-byte JFIF APP0"
+    ],
+    "review": "Lead and implementation owner personally inspected pixels and metadata: synthetic QA only; no private business data, credentials, real contacts, browser address bars or local paths."
+  }
+]

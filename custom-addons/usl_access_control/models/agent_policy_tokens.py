@@ -1,6 +1,14 @@
-"""Unforgeable in-process markers for governed Agent operations."""
+"""Unforgeable in-process provenance for governed server operations."""
 
 from dataclasses import dataclass, field
+
+# Issued only by the existing document actions after irreversible authority checks.
+DOCUMENT_DELETION_APPROVAL_GUARD_TOKEN = object()
+DOCUMENT_PERMANENT_DELETE_GUARD_TOKEN = object()
+
+# Passed only after the closing workflow checks irreversible authority.
+# Ordinary Agent operation scopes never authorize accounting lock changes.
+ACCOUNTING_LOCK_GUARD_TOKEN = object()
 
 AGENT_COLLABORATION_TOKEN = object()
 AGENT_COLLABORATION_CONTEXT_KEY = "usl_agent_collaboration_token"

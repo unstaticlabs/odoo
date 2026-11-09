@@ -538,7 +538,7 @@ class AccountImmediateSettlement(models.Model):
                 )
             current_snapshot = document._payment_rate_document_snapshot()
             if document._payment_rate_snapshot_accounting_values(
-                current_snapshot,
+                current_snapshot, reference=settlement.repriced_document_line_snapshot or [],
             ) != document._payment_rate_snapshot_accounting_values(
                 settlement.repriced_document_line_snapshot or [],
             ):
@@ -571,7 +571,7 @@ class AccountImmediateSettlement(models.Model):
                 or document.date != original_date
                 or document.currency_id != original_currency
                 or document._payment_rate_snapshot_accounting_values(
-                    restored_snapshot,
+                    restored_snapshot, reference=settlement.original_document_line_snapshot or [],
                 )
                 != document._payment_rate_snapshot_accounting_values(
                     settlement.original_document_line_snapshot or [],

@@ -1,6 +1,5 @@
 """Prepare a disposable, network-free Expense Batch browser QA database."""
 
-import base64
 import os
 
 from odoo import Command, fields
@@ -165,7 +164,7 @@ def _expense(
         attachment = env["ir.attachment"].sudo().create({
             "name": f"{name}.pdf",
             "type": "binary",
-            "datas": base64.b64encode(f"QA receipt: {name}".encode()),
+            "raw": f"QA receipt: {name}".encode(),
             "res_model": "hr.expense",
             "res_id": expense.id,
         })

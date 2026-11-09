@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from operations.mcp_release import load_release
+from operations.docs import evidence as docs_evidence
 from operations.module_release import build_inventory, validate_inventory
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -310,7 +311,23 @@ def validate(payload: object, *, commit: str | None = None) -> dict[str, Any]:
         raise ReleaseManifestError("foundation component digest is invalid")
     if foundation["digest"] != _sha256({key: value for key, value in foundation.items() if key != "digest"}):
         raise ReleaseManifestError("foundation digest differs")
-    evidence = _object(root["qualification"], {"evidence"}, "qualification")["evidence"]
+    qualification = root["qualification"]
+    if isinstance(qualification, dict) and "docs_evidence" in qualification:
+        qualification = _object(qualification, {"evidence", "docs_evidence"}, "qualification")
+        # The user guide's evidence rides with the release so the running
+        # product can say when each generated page last passed. It is
+        # validated as its own artifact, pinned to this commit: its own run
+        # for a staging release, the adoption stamp for a production one. The
+        # manifest cannot tell whether the evidence's tree is this commit's
+        # tree; operations/docs/release_evidence.py checks that before it
+        # stamps, and the stamp is covered by the evidence digest.
+        try:
+            docs_evidence.validate_release(qualification["docs_evidence"], commit)
+        except docs_evidence.DocsEvidenceError as error:
+            raise ReleaseManifestError(f"docs evidence is invalid: {error}") from error
+    else:
+        qualification = _object(qualification, {"evidence"}, "qualification")
+    evidence = qualification["evidence"]
     if not isinstance(evidence, dict) or not evidence or not all(
         isinstance(name, str) and name and SHA256.fullmatch(str(digest))
         for name, digest in evidence.items()
@@ -352,6 +369,18 @@ def _parse_component(raw: str) -> tuple[str, dict[str, Any]]:
     }
 
 
+def _qualification(arguments: argparse.Namespace) -> dict[str, Any]:
+    qualification: dict[str, Any] = {"evidence": _parse_evidence(arguments.evidence)}
+    path = getattr(arguments, "docs_evidence", None)
+    if path:
+        try:
+            payload = docs_evidence.load(path)
+        except (OSError, ValueError, docs_evidence.DocsEvidenceError) as error:
+            raise ReleaseManifestError(f"docs evidence is invalid: {error}") from error
+        qualification["docs_evidence"] = payload
+    return qualification
+
+
 def _parse_evidence(values: list[str]) -> dict[str, str]:
     evidence: dict[str, str] = {}
     for raw in values:
@@ -362,19 +391,28 @@ def _parse_evidence(values: list[str]) -> dict[str, str]:
     return dict(sorted(evidence.items()))
 
 
-def _mcp_public_methods(identity_contract: dict[str, Any]) -> list[str]:
-    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+def _mcp_actions() -> list[str]:
+    """Advertise the qualified backend RPC surface, independent of client pins."""
     surface = _read_json(
         ROOT / "custom-addons/usl_access_control/policy/action_surface.json",
         "qualified Odoo action surface",
     )
-    available = {
-        item.get("key")
+    return sorted({
+        item["key"].removeprefix("rpc:")
         for item in surface.get("actions", [])
         if isinstance(item, dict)
-    }
+        and isinstance(item.get("key"), str)
+        and item["key"].startswith("rpc:")
+    })
+
+
+def _mcp_public_methods(
+    identity_contract: dict[str, Any], available_actions: list[str] | None = None,
+) -> list[str]:
+    methods = sorted(MCP_PUBLIC_METHODS | {identity_contract["method"]})
+    available = set(_mcp_actions() if available_actions is None else available_actions)
     missing = sorted(
-        method for method in methods if f"rpc:{method}" not in available
+        method for method in methods if method not in available
     )
     if missing:
         raise ReleaseManifestError(
@@ -420,19 +458,14 @@ def create(arguments: argparse.Namespace) -> int:
     }
     legacy_contract = mcp["contract"]
     identity_contract = legacy_contract["required_agent_identity"]
+    actions = _mcp_actions()
     mcp_contract_body = {
         "schema": "usl-odoo-mcp-support/v1",
         "odoo_series": arguments.odoo_series,
         "supported_mcp_major": 1,
         "required_modules": legacy_contract["required_modules"],
-        "public_methods": _mcp_public_methods(identity_contract),
-        "actions": sorted(
-            action.removeprefix("rpc:")
-            for action in (
-                set(legacy_contract["source_rpc_actions"])
-                | set(legacy_contract["dynamic_rpc_actions"])
-            )
-        ),
+        "public_methods": _mcp_public_methods(identity_contract, actions),
+        "actions": actions,
         "agent_identity": identity_contract,
     }
     payload: dict[str, Any] = {
@@ -457,7 +490,7 @@ def create(arguments: argparse.Namespace) -> int:
         "renderer": {"repository": renderer["repository"], "commit": renderer["commit"], "image": renderer["image_digest"]},
         "ollama": {"model": arguments.ollama_model, "manifest_sha256": arguments.ollama_manifest, "dimension": arguments.ollama_dimension},
         "release_notes": release_notes,
-        "qualification": {"evidence": _parse_evidence(arguments.evidence)},
+        "qualification": _qualification(arguments),
         "build": build,
     }
     payload["identity"] = _sha256(payload)
@@ -500,6 +533,7 @@ def parser() -> argparse.ArgumentParser:
     create_command.add_argument("--ollama-manifest", required=True)
     create_command.add_argument("--ollama-dimension", type=int, default=1024)
     create_command.add_argument("--evidence", action="append", default=[], required=True)
+    create_command.add_argument("--docs-evidence", help="usl-docs-evidence/v1 file to carry with the release")
     create_command.add_argument("--workflow-run-id", type=int)
     create_command.add_argument("--workflow-run-attempt", type=int)
     create_command.add_argument("--workflow-url")

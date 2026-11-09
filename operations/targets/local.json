@@ -107,5 +107,6 @@
       "USL_BACKUP_CACHE_PASSWORD"
     ]
   },
-  "state_directory": "/tmp/usl-odoo-local/runtime"
+  "state_directory": "/tmp/usl-odoo-local/runtime",
+  "lifecycle": {"mode": "always_on"}
 }

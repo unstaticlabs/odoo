@@ -322,6 +322,74 @@ class TestFlows(PaymentHttpCommon):
         ):
             self._portal_transaction(**route_values)
 
+    def _assert_unavailable_provider_rejected_before_transaction(self, user, *, flow, state, published):
+        """A valid payment token must not bypass the provider's current availability."""
+        self.authenticate(user.login if user else None, user.login if user else None)
+        self.user = user or self.public_user
+        self.partner = user.partner_id if user else self.default_partner
+        self.provider.write({"state": "test", "is_published": True})
+        token = self._create_token() if flow == "token" else None
+        route_values = self._prepare_transaction_values(
+            self.payment_method_id if flow != "token" else None,
+            token.id if token else None,
+            flow,
+        )
+        # Build an otherwise valid request before the provider becomes unavailable,
+        # as happens when a customer keeps an old checkout page open.
+        self.provider.write({"state": state, "is_published": published})
+        transaction_model = type(self.env["payment.transaction"])
+        with (
+            patch.object(
+                transaction_model,
+                "create",
+                side_effect=AssertionError("Unavailable provider reached transaction creation"),
+            ) as create_transaction,
+            patch.object(transaction_model, "_charge_with_token") as charge_token,
+            mute_logger("odoo.http"),
+        ):
+            with self.assertRaisesRegex(JsonRpcException, "odoo.exceptions.ValidationError"):
+                self._portal_transaction(**route_values)
+            create_transaction.assert_not_called()
+            charge_token.assert_not_called()
+
+    def test_transaction_rejects_disabled_provider_before_create_or_charge(self):
+        for user, flow in (
+            (None, "direct"),
+            (self.portal_user, "direct"),
+            (self.portal_user, "token"),
+            (self.internal_user, "direct"),
+            (self.internal_user, "token"),
+        ):
+            with self.subTest(user=user.login if user else "public", flow=flow):
+                self._assert_unavailable_provider_rejected_before_transaction(
+                    user, flow=flow, state="disabled", published=True,
+                )
+
+    def test_transaction_rejects_unpublished_provider_before_create_or_charge(self):
+        for user, flow in (
+            (None, "direct"),
+            (self.portal_user, "direct"),
+            (self.portal_user, "token"),
+        ):
+            with self.subTest(user=user.login if user else "public", flow=flow):
+                self._assert_unavailable_provider_rejected_before_transaction(
+                    user, flow=flow, state="test", published=False,
+                )
+
+    def test_internal_direct_checkout_can_use_unpublished_provider(self):
+        self.authenticate(self.internal_user.login, self.internal_user.login)
+        self.user = self.internal_user
+        self.partner = self.internal_partner
+        self.provider.is_published = False
+        self._test_flow("direct")
+
+    def test_internal_token_checkout_can_use_unpublished_provider(self):
+        self.authenticate(self.internal_user.login, self.internal_user.login)
+        self.user = self.internal_user
+        self.partner = self.internal_partner
+        self.provider.is_published = False
+        self._test_flow("token")
+
     def test_access_disabled_providers_tokens(self):
         self.partner = self.portal_partner
 

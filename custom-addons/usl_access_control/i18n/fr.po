@@ -296,5 +296,14 @@ msgstr "Seuls la date limite, le résumé, la note et le responsable de l’acti
 
 #. module: usl_access_control
 #: code:addons/usl_access_control/models/agent_collaboration.py:0
+msgid ""
+"An Agent cannot change %(field)s of an activity; linked records are changed "
+"through their own models."
+msgstr ""
+"Un Agent ne peut pas modifier %(field)s d’une activité ; les enregistrements "
+"liés se modifient depuis leur propre modèle."
+
+#. module: usl_access_control
+#: code:addons/usl_access_control/models/agent_collaboration.py:0
 msgid "That activity does not belong to this task."
 msgstr "Cette activité n’appartient pas à cette tâche."

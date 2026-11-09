@@ -476,7 +476,7 @@ class TestTransfers(TestWallet):
                 "journal_id": self.transfer_journal.id,
                 # Dated when it reached the bank, not when Etsy sent it.
                 "date": "2026-04-03",
-                "ref": "etsy:payout:BNK1/25-26/0326",
+                "ref": "etsy:payout:INVENTED-BANK-0001",
                 "line_ids": [
                     (0, 0, {"account_id": bank.id, "balance": 104.00}),
                     (0, 0, {"account_id": self.clearing.id, "balance": -104.00}),
@@ -490,7 +490,7 @@ class TestTransfers(TestWallet):
             lambda issue: issue.kind == "transfer_already_posted",
         )
         self.assertTrue(finding)
-        self.assertIn("etsy:payout:BNK1/25-26/0326", finding[0].note)
+        self.assertIn("etsy:payout:INVENTED-BANK-0001", finding[0].note)
 
     def test_a_top_up_the_ledger_already_shows_is_not_posted_again(self):
         """Money leaves the account it was held in, whichever way it went.
@@ -504,7 +504,7 @@ class TestTransfers(TestWallet):
                 "company_id": self.company.id,
                 "journal_id": self.transfer_journal.id,
                 "date": "2026-03-02",
-                "ref": "printful:topup:BNK1/25-26/0159",
+                "ref": "printful:topup:INVENTED-BANK-0002",
                 "line_ids": [
                     (0, 0, {"account_id": self.wallet_account.id, "balance": 250.00}),
                     (0, 0, {"account_id": self.suspense.id, "balance": -250.00}),
@@ -518,6 +518,122 @@ class TestTransfers(TestWallet):
             batch.issue_ids.filtered(
                 lambda issue: issue.kind == "transfer_already_posted",
             ),
+        )
+
+    # -- which journal a movement is written in ----------------------------
+
+    def _holding_journal(self, name, code, channel=None):
+        """Return a bank journal with an account of its own, held by a channel."""
+        journal = self.env["account.journal"].create(
+            {
+                "name": name,
+                "code": code,
+                "type": "bank",
+                "company_id": self.company.id,
+                "default_account_id": self._account(f"{name} account", "asset_current").id,
+            },
+        )
+        if channel:
+            channel.clearing_journal_ids = [(6, 0, journal.ids)]
+        return journal
+
+    def test_a_stripe_payout_is_written_in_the_journal_that_holds_its_money(self):
+        stripe = self._holding_journal("Invented Stripe", "INVS", self.channels["medusa"])
+        batch = self._moved(**{"stripe.csv": fixtures.stripe_balance_history()})
+        self.assertEqual(batch.transfer_move_ids.journal_id, stripe)
+        self.assertAlmostEqual(self._balance(stripe.default_account_id), -58.66, places=2)
+
+    def test_an_etsy_payout_is_written_in_the_journal_that_holds_its_money(self):
+        etsy = self._holding_journal("Invented Etsy", "INVE", self.channels["etsy"])
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.assertEqual(batch.transfer_move_ids.journal_id, etsy)
+        self.assertAlmostEqual(self._balance(etsy.default_account_id), -104.00, places=2)
+
+    def test_each_channel_keeps_its_payouts_in_its_own_journal(self):
+        stripe = self._holding_journal("Invented Stripe", "INVS", self.channels["medusa"])
+        etsy = self._holding_journal("Invented Etsy", "INVE", self.channels["etsy"])
+        batch = self._moved(**STATEMENTS)
+        by_journal = {
+            move.journal_id: move for move in batch.transfer_move_ids
+        }
+        self.assertEqual(
+            set(by_journal),
+            {stripe, etsy, self.wallet_journal},
+        )
+        self.assertNotIn(self.transfer_journal, by_journal)
+
+    def test_a_top_up_is_written_in_the_wallet_journal(self):
+        batch = self._moved(**{"printful.csv": fixtures.printful_transactions()})
+        self.assertEqual(batch.transfer_move_ids.journal_id, self.wallet_journal)
+
+    def test_a_movement_nobody_owns_falls_back_to_the_transfer_journal(self):
+        """An archived wallet journal no longer owns the account it was set up for."""
+        self.wallet_journal.active = False
+        batch = self._moved(**{"printful.csv": fixtures.printful_transactions()})
+        self.assertEqual(batch.transfer_move_ids.journal_id, self.transfer_journal)
+        self.assertAlmostEqual(self._balance(self.wallet_account), 250.00, places=2)
+
+    def test_an_account_two_journals_claim_falls_back_to_the_transfer_journal(self):
+        """Choosing between two owners would be a guess about where it belongs."""
+        self.env["account.journal"].create(
+            {
+                "name": "Invented second claim",
+                "code": "INV2",
+                "type": "bank",
+                "company_id": self.company.id,
+                "default_account_id": self.clearing.id,
+            },
+        )
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.assertEqual(batch.transfer_move_ids.journal_id, self.transfer_journal)
+
+    def test_a_movement_written_in_the_fallback_is_not_written_again_in_the_owner(self):
+        """A rerun finds what is already there, whichever journal it sits in."""
+        claim = self.env["account.journal"].create(
+            {
+                "name": "Invented second claim",
+                "code": "INV2",
+                "type": "bank",
+                "company_id": self.company.id,
+                "default_account_id": self.clearing.id,
+            },
+        )
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        first = batch.transfer_move_ids
+        self.assertEqual(first.journal_id, self.transfer_journal)
+        # The claim goes away, so the next run would choose the clearing journal.
+        claim.active = False
+        batch.action_post_transfers()
+        again = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.assertEqual(batch.transfer_move_ids, first)
+        self.assertFalse(again.transfer_move_ids)
+        self.assertEqual(
+            self.env["account.move"].search_count(
+                [("company_id", "=", self.company.id), ("ref", "like", "etsy:payout:%")],
+            ),
+            1,
+        )
+        self.assertAlmostEqual(self._balance(self.clearing), -104.00, places=2)
+
+    def test_a_movement_standing_in_the_owning_journal_is_not_posted_again(self):
+        bank = self._account("Invented other bank", "asset_cash")
+        standing = self.env["account.move"].create(
+            {
+                "company_id": self.company.id,
+                "journal_id": self.journal.id,
+                "date": "2026-04-03",
+                "ref": "etsy:payout:INVENTED-BANK-0001",
+                "line_ids": [
+                    (0, 0, {"account_id": bank.id, "balance": 104.00}),
+                    (0, 0, {"account_id": self.clearing.id, "balance": -104.00}),
+                ],
+            },
+        )
+        standing.action_post()
+        batch = self._moved(**{"etsy-statement.csv": fixtures.etsy_statement()})
+        self.assertFalse(batch.transfer_move_ids)
+        self.assertTrue(
+            batch.issue_ids.filtered(lambda issue: issue.kind == "transfer_already_posted"),
         )
 
     def test_settling_the_drop_does_every_run_in_order(self):

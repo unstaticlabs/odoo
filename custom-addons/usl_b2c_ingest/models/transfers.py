@@ -99,8 +99,10 @@ class ResCompanyTransfers(models.Model):
         string="B2C transfers",
         domain="[('type', '=', 'general')]",
         ondelete="restrict",
-        help="Where the entries for payouts and top-ups are written, so they "
-             "read as one movement rather than as bookkeeping inside a bank.",
+        help="Where the entries for payouts and top-ups are written when no "
+             "single journal holds the account they move money out of or into. "
+             "Otherwise each is written in the journal of that account: the "
+             "channel's clearing journal, or the wallet.",
     )
 
 
@@ -298,7 +300,7 @@ class B2cImportBatchTransfers(models.Model):
             {
                 "move_type": "entry",
                 "company_id": self.company_id.id,
-                "journal_id": self.company_id.usl_b2c_transfer_journal_id.id,
+                "journal_id": self._transfer_journal(movement, held, met).id,
                 "date": date,
                 "ref": self._transfer_reference(movement),
                 "line_ids": [
@@ -382,6 +384,32 @@ class B2cImportBatchTransfers(models.Model):
         currency = movement["currency"] or company.currency_id
         journal = channel.clearing_journal(currency) if channel else False
         return (journal.default_account_id if journal else False), suspense
+
+    def _transfer_journal(self, movement, held, met):
+        """Return the journal a movement is written in.
+
+        A movement belongs to the journal of the account it concerns on the
+        channel's side: the clearing account a payout leaves, or the wallet a
+        top-up arrives in.  That is where the books already keep the rest of
+        that channel's money, and where the movements written by hand before
+        this tool existed were kept.
+
+        Only a journal that is the sole owner of the account is chosen.  When
+        none owns it, or two claim it, nothing says which one is right, so the
+        entry goes to the company's general journal rather than to a guess.
+        """
+        self.ensure_one()
+        company = self.company_id
+        account = met if movement["direction"] == "top_up" else held
+        owners = self.env["account.journal"].search(
+            [
+                ("company_id", "=", company.id),
+                ("type", "in", ("bank", "cash")),
+                ("default_account_id", "=", account.id),
+            ],
+            limit=2,
+        )
+        return owners if len(owners) == 1 else company.usl_b2c_transfer_journal_id
 
     def _transfer_line(self, movement, account, currency, date, *, debit):
         """Return one side of a movement, stated in both currencies."""

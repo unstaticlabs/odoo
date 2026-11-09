@@ -1,0 +1,101 @@
+{
+  "capture_date": "2026-10-17",
+  "timezone": "Europe/Paris",
+  "product_head": "0dd6e19cf7ef2880cd3d5a94479916c30fb76d89",
+  "module_version": "saas~19.3.1.13.37",
+  "context": "Disposable synthetic QA; ordinary non-admin accounting reader; French; desktop and browser-emulated mobile",
+  "privacy_review": "Lead personally inspected all nine complete images and full JPEG/EXIF metadata before approval. Implementation owner also inspected every copied image; exact approved hashes verified. No credentials, address bars, local paths or private business content. All visible company, declaration, reference, evidence and amount values are invented.",
+  "scope": "Final product revision captures only. Older before-state and unversioned captures excluded. Stills illustrate hierarchy; native interactions and tests establish behavior.",
+  "images": [
+    {
+      "file": "01-v37-open-schedule.jpg",
+      "sha256": "3c571c7cbc12e3150a62d22a8324e3417340a3c16d9eb9a94c98aa47bc8a34e1",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "The default Open filter shows only the remaining preparation obligation.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "02-v37-completed-and-open-history.jpg",
+      "sha256": "3f02cf7f65069abc41a47efec4e4341156b5845ff9011098853d2b29311476fe",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "Removing Open shows five lifecycle fixtures; completed outcomes stay green and open work or real rejection stays red.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "03-v37-filed-primary.jpg",
+      "sha256": "795ba050c84606deb665dc4ab5d1d4f4f422b11902ba4567e5f9662962e5b73a",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "A filed declaration prioritizes recorded filing and payment outcomes, with the corrected French lifecycle label.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "04-v37-current-checks-detail.jpg",
+      "sha256": "3880ff499c79de55de6f3daf5cbfc6b2db574c4c8009bd44320ee3904d22ffca",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "Data Checks retains missing inputs, blocked validation and the explanation that these are current recalculable checks.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "05-v37-filing-evidence.jpg",
+      "sha256": "1ed5aace05f4a349b1a1a1226e53a742108327f61168ce79bd2f3175b2d131e5",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "Review and Filing retains the fictional filing reference and synthetic evidence attachment.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "06-v37-mobile-paid-primary.jpg",
+      "sha256": "aa81ed7c5a13d0d12ad648a7e12f93eb4ae7f4ab553f6f26576ead9e0e137653",
+      "viewport": [
+        390,
+        844
+      ],
+      "caption": "On a 390 px viewport, the paid declaration prioritizes accepted filing and recorded payment.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "07-v37-mobile-current-checks.jpg",
+      "sha256": "27561662d29dd0c78458718412cbab81c7ed9d637a70f511ae85a5678b3e8937",
+      "viewport": [
+        390,
+        844
+      ],
+      "caption": "The same mobile declaration retains current missing-data and validation details with the explanatory copy.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "08-v37-external-rejection.jpg",
+      "sha256": "ee5662daa22518a0ee2be5fe2ca80ce6c21ace0b18c143a5ab71621ae9e9e62b",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "An actual external rejection remains prominent even when the lifecycle is filed.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    },
+    {
+      "file": "09-v37-empty-company.jpg",
+      "sha256": "cdedc5de166d494969b4cb74db14cc0621308b447cf47f6fe030cd20e64edeee",
+      "viewport": [
+        1280,
+        720
+      ],
+      "caption": "An empty synthetic company shows the native empty schedule with all filters removed.",
+      "embedded_metadata": "JFIF APP0 only; no EXIF/XMP/comment segments"
+    }
+  ]
+}

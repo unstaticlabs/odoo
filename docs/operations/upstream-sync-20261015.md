@@ -164,7 +164,7 @@ unperformed; no production backup was accessed or production promotion requested
 
 All 994 original synthetic predecessor filestore files also retain their exact
 SHA-256 bytes. Final screenshots and the separate functional journey context are
-recorded in `docs/product/screenshots/upstream-sync-20261015/README.md`. The lead
+recorded in `docs/archive/product/screenshots/upstream-sync-20261015/README.md`. The lead
 personally inspected all four images and independently checked embedded metadata
 before publication. The ordinary reviewer reaches the posted bill's two exact
 journal items; the desktop and mobile shell remain readable.

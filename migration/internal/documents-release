@@ -460,6 +460,9 @@ for name in ("USL_EINVOICE_LIVE_ENABLED","USL_EREPORTING_LIVE_ENABLED"):
   find "$bundle" -type f -exec chmod 600 {} +
 
   cp "$mcp_artifacts/source-identity.json" "$temporary/mcp.json"
+  # The identity versions every product module from its manifest, and the
+  # pinned external add-on only has one once it is exported into custom-addons/.
+  scripts/sync-external-addons
   identity_args=()
   [[ "$allow_partial" = 1 ]] && identity_args+=(--allow-partial)
   python3 migration/documents_archive/release_identity.py \

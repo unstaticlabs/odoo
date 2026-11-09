@@ -221,6 +221,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 or row.get("partner_name")
                 or ""
             )
+            if row.get("fiscal_result_kind") and row.get("source_description"):
+                row_label = f"{row_label} — {row['source_description']}"
             values = {"label": str(row_label).strip()}
             for sequence, (field_name, _label) in enumerate(value_columns, start=1):
                 values[f"value_{sequence}"] = display_value(row, field_name)
@@ -338,17 +340,27 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 else f"Millions de {currency_units.lower()}"
             ),
         }.get(self.display_unit, currency_units)
+        provisional = metadata["provisional"]
+        entries_line = (
+            f"Écritures comptabilisées et brouillons au {generated_on}"
+            if self.target_move == "all"
+            else f"Écritures comptabilisées au {generated_on}"
+        )
+        if provisional["required"]:
+            # One cell, not two: the notice qualifies the entries it sits with.
+            # The renderer turns "\n" into a line break inside the cell, so a
+            # long reason wraps there instead of overflowing.
+            entries_line = "\n".join([
+                entries_line,
+                "Document provisoire — " + " ".join(provisional["reasons"]),
+            ])
         context = [
             f"Société : {', '.join(companies.mapped('display_name'))}",
             (
                 f"Période : {self._display_export_date(metadata['date_from'])}"
                 f" – {self._display_export_date(metadata['date_to'])}"
             ),
-            (
-                f"Écritures comptabilisées et brouillons au {generated_on}"
-                if self.target_move == "all"
-                else f"Écritures comptabilisées au {generated_on}"
-            ),
+            entries_line,
             (
                 f"Unité : {document_unit_label}"
                 f" · Arrondi : {metadata['amount_rounding_label']}"
@@ -388,6 +400,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "primary_color": metadata["document"]["primary_color"],
             "footer_label": metadata["document"]["footer_label"],
         })
+        if provisional["required"]:
+            company_payload["footer_label"] = " · ".join(filter(None, [
+                company_payload["footer_label"], "Document provisoire",
+            ]))
         front_matter = None
         if self.report_type == "french_annual":
             front_matter = {

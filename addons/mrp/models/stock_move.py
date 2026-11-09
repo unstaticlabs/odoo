@@ -485,9 +485,12 @@ class StockMove(models.Model):
 
     def _prepare_procurement_origin(self):
         self.ensure_one()
-        if self.raw_material_production_id and self.raw_material_production_id.orderpoint_id:
+        if self.raw_material_production_id and self._should_use_production_origin():
             return self.origin
         return super()._prepare_procurement_origin()
+
+    def _should_use_production_origin(self):
+        return True
 
     def _prepare_phantom_move_values(self, bom_line, product_qty, quantity_done):
         return {
@@ -525,6 +528,12 @@ class StockMove(models.Model):
 
     def _is_consuming(self):
         return super()._is_consuming() or self.picking_type_id.code == 'mrp_operation'
+
+    def _get_quantity_to_assign(self):
+        res = super()._get_quantity_to_assign()
+        if self.raw_material_production_id and self.raw_material_production_id.qty_producing:
+            return self.uom_id._compute_quantity(self.should_consume_qty, self.product_id.uom_id)
+        return res
 
     def _get_backorder_move_vals(self):
         self.ensure_one()
@@ -570,7 +579,16 @@ class StockMove(models.Model):
 
     def _key_assign_picking(self):
         keys = super(StockMove, self)._key_assign_picking()
-        return keys + (self.created_production_id, self.production_group_id)
+        keys += (self.created_production_id,)
+        if self._feeds_raw_material_production():
+            keys += (self.production_group_id,)
+        return keys
+
+    def _feeds_raw_material_production(self):
+        """Whether this move directly or indirectly supplies components for a production
+        (i.e. ends up in a `raw_material_production_id`).
+        """
+        return bool(self.browse(self._rollup_move_dests()).raw_material_production_id)
 
     @api.model
     def _prepare_merge_moves_distinct_fields(self):
@@ -663,6 +681,8 @@ class StockMove(models.Model):
         return domain
 
     def _get_production_assignation_domain(self):
+        if not self._feeds_raw_material_production():
+            return []
         return [('production_group_id', '=', self.production_group_id.id)]
 
     def action_open_reference(self):

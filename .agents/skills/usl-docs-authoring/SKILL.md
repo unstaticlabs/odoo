@@ -1,0 +1,88 @@
+---
+name: usl-docs-authoring
+description: Add or change documentation in the USL Odoo distribution — a test-backed how-to or tutorial journey, a hand-written explanation, a reference source, or a decision record — and prove it with the docs check. Use when a change alters what a user sees or does, when a page is out of date, or when a decision needs recording.
+---
+
+# Documentation that a test proves
+
+Every user page opens with front matter; the directory is the Diátaxis type;
+`scripts/docs check` is the judge. `docs/README.md` holds the schema. Read the
+page you are changing and its neighbours first, then decide which of the four
+kinds of change you are making.
+
+## Which kind
+
+| The reader wants to… | Write a… | Where | Proof |
+| --- | --- | --- | --- |
+| learn the product from nothing | tutorial | `docs/users/TUTORIAL.md`, generated | its journey |
+| get a task done | how-to guide | `docs/users/how-to/<slug>.md`, generated | its journey |
+| look a fact up | reference | `docs/users/reference/`, generated from code | the generator |
+| understand why | explanation | `docs/users/explanation/`, hand-written | `source` links |
+| know why we chose this | decision | `docs/product/decisions/NNNN-title.md` | the check |
+
+Do not mix them. A how-to that explains is two pages; an explanation that gives
+steps is a how-to that will go stale.
+
+## A how-to or tutorial journey
+
+1. Write the tour under `<module>/static/tests/tours/`, registered in
+   `web_tour.tours`, with a stock `id` on every step the reader should see.
+   Only stock step keys (`id`, `content`, `trigger`, `run`, `timeout`); any other
+   key fails the test. No `expectUnloadPage`: journeys navigate inside the
+   web client.
+2. Register the journey in `usl_docs.journeys` under the same tour name: `id`
+   (the page slug), `type`, `title`, `description`, `persona`, `lang`, `app`
+   (the application that groups the navigation), `models` (what the page is
+   about, so the Help menu finds it from that screen), and one entry per
+   documented step with `text` (the sentence the reader follows,
+   Markdown allowed, in the page's language) and `screenshot: true` where a
+   screen helps. Steps without an entry run silently.
+3. Drive it from a `JourneyCase` test in `<module>/tests/`, as a non-admin
+   fixture user with synthetic data. Start it on a stable URL
+   (`/odoo/action-<module>.<xml_id>`, never a database id): it becomes the
+   page's "Open this screen in Odoo" link. Never production records, prices,
+   identities or credentials: screenshots are committed to a public repository.
+4. Run `make docs MODULE=<module>` in the isolated stack. It runs the journey
+   inside the test container (`make docs-journeys`), writes the page and its
+   screenshots (`make docs-render`). Commit the page, the screenshots, the
+   sidecar and the tour together; there is no index to refresh.
+5. Prove it: `make docs-check` passes; edit one step's `text`, run
+   `scripts/docs generate check --records artifacts/usl-docs` and watch it
+   fail; regenerate.
+
+## An explanation
+
+Front matter with `type: explanation`, `generated: false`, and `source`
+pointing at the code the page explains. Write with the repository's
+`writing-clearly-and-concisely` skill: reader first, result first, one idea per
+paragraph, no steps.
+
+## The MCP reference
+
+`reference/mcp-tools.md` is rendered from the pinned `odoo-mcp` commit
+(`deploy/odoo-mcp/release.json`) by `make docs-mcp`; bump the pin, then
+regenerate. Never edit it by hand.
+
+## A reference page
+
+Do not edit a page under `reference/generated/`. Add `help=` to the field,
+`_description` to the model, or the missing menu, then `make docs-reference`
+on a stack with the action-risk closure (`make action-risk-db`). The `help=`
+coverage per module is the page `reference/generated/help-coverage.md`; CI
+fails when a committed page no longer matches the registry.
+
+## A decision
+
+Next free number, `NNNN-kebab-title.md`, first line `# N. Title`, then
+`Date:` and `Status:` lines, then Context, Decision, Consequences, Alternatives
+considered. Say what was rejected and why. Superseding a decision edits the old
+record's status and links the new one; it never deletes. `make docs-check`
+proves the numbering.
+
+## Before handing back
+
+- `make docs-check` passes and `python3 -m unittest scripts.tests.test_docs_check` passes.
+- The page reads correctly in the product at `/usl/user-docs/<path>` as the
+  intended persona, desktop and mobile, with the right pills.
+- Any file change under `custom-addons/` needs the action-risk reseal
+  (`.claude/skills/usl-cluster-delivery`).

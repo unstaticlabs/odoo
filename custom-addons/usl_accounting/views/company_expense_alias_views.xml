@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="company_expense_alias_settings" model="ir.ui.view">
+        <field name="name">res.config.settings.company.expense.alias</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr_expense.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='create_expense_setting']" position="after">
+                <setting id="company_expense_alias_setting" string="Company Expense Inbox"
+                         company_dependent="1"
+                         help="Optional address for the active company. The global expense address remains available. Senders need an existing employee profile in this company.">
+                    <div class="d-flex flex-column gap-1" dir="ltr">
+                        <field name="company_expense_alias_name" placeholder="Leave empty to use the global address" class="w-100"/>
+                        <div class="text-break" invisible="not company_expense_alias_domain">
+                            <span>@</span><field name="company_expense_alias_domain" readonly="1" class="oe_inline text-break"/>
+                        </div>
+                    </div>
+                    <div class="content-group" invisible="company_expense_alias_domain">
+                        <a href="/odoo/settings#email-alias-setting" class="btn-link" role="button">Set up your alias domain</a>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

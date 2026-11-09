@@ -1,5 +1,17 @@
 # Changelog
 
+## saas~19.3.1.3.6
+
+- Add an **Already reconciled in Accounting** scope to the bank import wizard.
+  For the selected payouts it lists the incoming bank transactions that
+  Accounting reconciled against their invoices or compensation entries,
+  directly or through intermediate entries, and links them as bank evidence
+  only: no entry, payment or reconciliation is created or changed, and a paid
+  payout stays paid. A transaction reconciled against unrelated documents is
+  refused, and one refused row aborts the whole request. The search follows
+  reconciliations of receivable lines, within 4 steps: a transaction reconciled
+  through a payment's outstanding receipts account is not found.
+
 ## saas~19.3.1.2.1
 
 - Show a green **No Payment Required** status for generated miscellaneous

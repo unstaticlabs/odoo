@@ -112,19 +112,6 @@ export class PosData {
 
     reconnectWebSocket() {
         this.initializeWebsocket();
-        const channels = [...this.channels];
-        this.channels = [];
-        while (channels.length) {
-            const channel = channels.pop();
-            this.connectWebSocket(channel.channel, channel.method);
-
-            logPosMessage(
-                "DataService",
-                "reconnectWebSocket",
-                `Reconnecting to channe ${channel.channel}`,
-                CONSOLE_COLOR
-            );
-        }
     }
 
     connectWebSocket(channel, method) {
@@ -831,7 +818,10 @@ export class PosData {
             try {
                 if (["product.product", "product.template"].includes(model)) {
                     const domain = model === "product.product" ? "product_variant_ids.id" : "id";
-                    await this.loadProductFromPos([[domain, "in", Array.from(ids)]]);
+                    // Records already referenced locally (e.g. by a paid order) may be archived
+                    await this._loadProductFromPos([[domain, "in", Array.from(ids)]], 0, 0, {
+                        load_archived: true,
+                    });
                     continue;
                 }
 
@@ -852,16 +842,16 @@ export class PosData {
     }
 
     async loadProductFromPos(domain, offset = 0, limit = 0) {
+        return this._loadProductFromPos(domain, offset, limit, {});
+    }
+
+    async _loadProductFromPos(domain, offset, limit, context) {
         const result = {};
         const data = await this.call(
             "product.template",
             "load_product_from_pos",
             [odoo.pos_config_id, domain, offset, limit],
-            {
-                context: {
-                    load_archived: true,
-                },
-            }
+            { context }
         );
 
         // In case of scan unknown barcode, the backend may return an empty list

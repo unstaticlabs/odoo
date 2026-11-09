@@ -22,15 +22,14 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 scripts/sync-oca-addons
-modules="$(PYTHONPATH=. python3 - <<'PY'
-from pathlib import Path
-from operations.module_release import build_inventory
-
-print(",".join(sorted(build_inventory(Path.cwd(), require_dependencies=True)["modules"])))
-PY
-)"
+modules="$(scripts/product-modules)"
 test -n "$modules"
 
+# The test service bind-mounts ./artifacts/usl-docs; create it before the
+# first container does, or Docker creates it as root and nothing else can
+# write the journey records into it.
+mkdir -p artifacts/usl-docs
+chmod 777 artifacts/usl-docs
 "${compose[@]}" up -d --wait db
 if [[ "${USL_USE_PREBUILT_TEST_IMAGE:-0}" == "1" ]]; then
   test -n "${ODOO_TEST_IMAGE:-}"
@@ -62,6 +61,7 @@ odoo_shell() {
     -e ODOO_INIT_DB="$database" \
     -e ODOO_DB_FILTER="^${database}$" \
     -e USL_PRODUCT_BOUNDARY_PREPROD="${USL_PRODUCT_BOUNDARY_PREPROD:-0}" \
+    -e USL_PRODUCT_MODULES="$modules" \
     -e ACTION_RISK_MODE="${ACTION_RISK_MODE:-check}" \
     test odoo shell \
     --config=/etc/odoo/odoo.conf \
@@ -146,5 +146,43 @@ fi
 USL_PRODUCT_BOUNDARY_PREPROD=0 odoo_shell < scripts/odoo/product_database_boundary.py
 
 ACTION_RISK_MODE=check odoo_shell < scripts/odoo/action_risk_inventory.py
+
+# Every documented journey runs on every qualification, whatever the focused
+# plan selected: the pages they generate are the release's user guide, and
+# the evidence they produce is what the viewer shows as "last tested". The
+# records leave the container through the mounted artifacts directory.
+printf 'Running the documented journeys\n'
+"${compose[@]}" --profile test run --rm -T \
+  -e ODOO_INIT_DB="$database" \
+  -e ODOO_DB_FILTER="^${database}$" \
+  -e USL_EINVOICE_LIVE_ENABLED=0 \
+  -e USL_EREPORTING_LIVE_ENABLED=0 \
+  -e ACTION_RISK_MODE=check \
+  -e USL_DOCS_JOURNEYS=1 \
+  -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-artifacts \
+  -e USL_RELEASE_COMMIT="${GITHUB_SHA:-}" \
+  test odoo \
+  --config=/etc/odoo/odoo.conf \
+  --database="$database" \
+  --workers=0 \
+  --max-cron-threads=0 \
+  --stop-after-init \
+  --test-enable \
+  --test-tags=usl_docs_journey \
+  --update="$modules" \
+  --log-level=test
+python3 scripts/docs generate check --records artifacts/usl-docs
+# The reference pages are read from this database's registry and must match
+# what is committed; a field, group or menu change without a regenerate fails.
+odoo_shell < scripts/odoo/docs_reference.py | tail -n 1 > artifacts/usl-docs/reference.json
+python3 scripts/docs reference check --reference artifacts/usl-docs/reference.json
+python3 scripts/docs evidence create \
+  --records artifacts/usl-docs \
+  --repository "${GITHUB_REPOSITORY:-unstaticlabs/odoo}" \
+  --qualified-commit "${GITHUB_SHA:-$(git rev-parse HEAD)}" \
+  --qualified-tree "$(git rev-parse "${GITHUB_SHA:-HEAD}^{tree}")" \
+  --workflow-run-id "${GITHUB_RUN_ID:-1}" \
+  --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-unstaticlabs/odoo}/actions/runs/${GITHUB_RUN_ID:-1}" \
+  --output artifacts/usl-docs/docs-evidence.json
 
 printf 'Clean install, repeated upgrade, affected tests and runtime boundaries passed.\n'

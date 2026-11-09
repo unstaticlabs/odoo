@@ -38,6 +38,7 @@ from ..models.agent_policy_tokens import (
     get_agent_operation_scope,
 )
 from ..models.agent_secrets import is_agent_secret_field, sanitize_agent_payload
+from ..models.api_doc_scope import api_doc_index_lookup, api_doc_index_scope
 
 
 @tagged("post_install", "-at_install", "usl_access_control")
@@ -359,10 +360,10 @@ class TestAutonomousAgents(TransactionCase):
         )
         partner.with_user(agent.user_id).write({"name": "Agent-updated contact"})
 
-        with self.assertRaises(AgentPolicyAccessError):
-            self.env["mail.message"].with_user(agent.user_id).create(
-                {"body": "Direct internal message creation remains denied."},
-            )
+        message = self.env["mail.message"].with_user(agent.user_id).create(
+            {"body": "Native message creation follows delegated human access."},
+        )
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
 
         self.assertEqual(partner.name, "Agent-updated contact")
         audit_operations = self.env["usl.audit.event"].sudo().search(
@@ -1067,12 +1068,14 @@ class TestAutonomousAgents(TransactionCase):
             self.env["bus.bus"].with_user(agent.user_id).with_context(
                 **{AGENT_OPERATION_SCOPE_CONTEXT_KEY: "forged"},
             ).sudo().create(bus_values)
+        task = self.env["project.task"].create({"name": "[QA] Guarded sudo target"})
         with self.assertRaises(AgentPolicyAccessError):
-            self.env["project.task"].with_user(agent.user_id).sudo().write({})
-        with self.assertRaises(AgentPolicyAccessError):
-            self.env["mail.message"].with_user(agent.user_id).with_context(
-                operation_context,
-            ).create({"body": "A non-sudo cross-application mutation remains denied."})
+            task.with_user(agent.user_id).sudo().write({"name": "Forbidden"})
+        self.assertEqual(task.name, "[QA] Guarded sudo target")
+        message = self.env["mail.message"].with_user(agent.user_id).with_context(
+            operation_context,
+        ).create({"body": "Native non-sudo message creation keeps its actor."})
+        self.assertEqual(message.author_id, agent.user_id.partner_id)
 
         notification_message = self.env["mail.message"].sudo().create(
             {"body": "Direct technical mutation probe"},
@@ -1387,6 +1390,83 @@ class TestAutonomousAgents(TransactionCase):
             ),
         )
 
+    def test_project_agent_completes_owner_activity(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Delegated activities"})
+        task = self.env["project.task"].create({"name": "[QA] Owner follow-up", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        activity.with_user(agent.user_id).action_done()
+        self.assertFalse(activity.active)
+        self.assertTrue(activity.date_done)
+        completed = task.message_ids.filtered(lambda message: message.mail_activity_type_id)
+        self.assertEqual(completed.author_id, agent.user_id.partner_id)
+
+    def test_project_agent_completes_owner_and_own_activities_on_same_task(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Shared activity target"})
+        task = self.env["project.task"].create({"name": "[QA] Two owner follow-ups", "project_id": project.id})
+        activities = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        activities |= task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        activities.with_user(agent.user_id).action_done()
+        self.assertFalse(any(activities.mapped("active")))
+        self.assertTrue(all(activities.mapped("date_done")))
+        completed = task.message_ids.filtered(lambda message: message.mail_activity_type_id)
+        self.assertEqual(len(completed), 2)
+        self.assertEqual(completed.author_id, agent.user_id.partner_id)
+
+    def test_project_agent_activity_batch_checks_every_parent_before_completion(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+            "company_ids": [Command.set(self.company.ids)],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Activity boundaries", "company_id": self.company.id})
+        other_project = self.env["project.project"].create({"name": "[QA] Other company activities", "company_id": self.other_company.id})
+        task = self.env["project.task"].create({"name": "[QA] Allowed follow-up", "project_id": project.id})
+        other_task = self.env["project.task"].create({"name": "[QA] Outside delegation", "project_id": other_project.id})
+        allowed = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        denied = other_task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        original_messages = task.message_ids | other_task.message_ids
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            (allowed | denied).with_user(agent.user_id).with_context(allowed_company_ids=self.company.ids).action_done()
+        self.assertTrue(allowed.active and denied.active)
+        self.assertEqual(task.message_ids | other_task.message_ids, original_messages)
+        agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(group.ids)]})
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            allowed.with_user(agent.user_id).action_done()
+        self.assertTrue(allowed.active)
+
+    def test_project_agent_activity_completion_rejects_missing_parent(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        project = self.env["project.project"].create({"name": "[QA] Missing activity target"})
+        task = self.env["project.task"].create({"name": "[QA] Stale follow-up", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        # Deliberately seed a dangling pseudo-reference in this disposable fixture.
+        # Native writes would recompute the missing parent's display name first.
+        self.env.flush_all()
+        self.cr.execute("UPDATE mail_activity SET res_id = %s WHERE id = %s", [2147483647, activity.id])
+        activity.invalidate_recordset(["res_id"])
+        with self.assertRaisesRegex(AccessError, "business record is unavailable"), self.cr.savepoint():
+            activity.with_user(agent.user_id).action_done()
+        self.assertTrue(activity.active)
+
     def test_project_agent_edits_one_activity_without_completing_it(self):
         agent = self._create_agent()
         group = self.env.ref("project.group_project_manager")
@@ -1438,8 +1518,10 @@ class TestAutonomousAgents(TransactionCase):
         })
         attachment = self.env["ir.attachment"].create({
             "name": "[QA] Synthetic history.txt", "res_model": "project.task", "res_id": task.id,
-            "datas": "U1lOVEhFVElDCg==", "mimetype": "text/plain",
+            "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
         })
+        self.assertEqual(attachment.raw.content, b"SYNTHETIC\n")
+        self.assertTrue(attachment.checksum)
         checksum = attachment.checksum
         for record in (task, project):
             access = UslAgentJson2Controller._check_agent_call(
@@ -1454,7 +1536,9 @@ class TestAutonomousAgents(TransactionCase):
         child.with_user(agent.user_id).action_unarchive()
         self.assertTrue(child.active)
         self.assertTrue(attachment.exists())
+        attachment.invalidate_recordset(["raw", "checksum"])
         self.assertEqual(attachment.checksum, checksum)
+        self.assertEqual(attachment.raw.content, b"SYNTHETIC\n")
         self.assertEqual(attachment.res_id, task.id)
         self.assertEqual(task.message_ids.ids, messages)
 
@@ -1507,7 +1591,6 @@ class TestAutonomousAgents(TransactionCase):
         unrelated = other_task.activity_schedule("mail.mail_activity_data_call", user_id=agent.user_id.id)
         before = unrelated.date_deadline
         deadline = fields.Date.today() + datetime.timedelta(days=7)
-        self.assertFalse(agent._allows_model_operation("mail.activity", "write"))
         access = UslAgentJson2Controller._check_agent_call(
             agent=agent, model_name="project.task", method_name="activity_reschedule", kwargs={},
         )
@@ -1525,14 +1608,126 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(activity.user_id, self.owner)
         self.assertEqual(unrelated.date_deadline, before)
         self.assertEqual(unrelated.user_id, agent.user_id)
-        with self.assertRaises(AgentPolicyAccessError):
-            activity.with_user(agent.user_id).write({"summary": "Direct technical write remains denied"})
 
         agent.with_user(self.owner).write({"read_only_group_ids": [Command.set(project_manager.ids)]})
         with self.assertRaises(AgentPolicyAccessError):
             task.with_user(agent.user_id).activity_reschedule(
                 ["mail.mail_activity_data_call"], date_deadline=deadline,
             )
+
+    def _writable_project_agent(self):
+        agent = self._create_agent()
+        group = self.env.ref("project.group_project_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.clear()],
+        })
+        return agent, group
+
+    def _agent_web_save(self, agent, activity, values):
+        """Replay the MCP's odoo_update_records call: JSON-2 gate, then web_save."""
+        access = UslAgentJson2Controller._check_agent_call(
+            agent=agent, model_name="mail.activity", method_name="web_save", kwargs={},
+        )
+        context = UslAgentJson2Controller._agent_call_context(
+            context={"allowed_company_ids": self.company.ids},
+            agent=agent, model_name="mail.activity", method_name="web_save", access=access,
+        )
+        return activity.with_user(agent.user_id).with_context(context).web_save(
+            values,
+            specification={"summary": {}, "note": {}, "date_deadline": {}, "user_id": {}},
+        )
+
+    def test_agent_edits_its_own_and_its_owner_activities_natively(self):
+        agent, _group = self._writable_project_agent()
+        project = self.env["project.project"].create({"name": "[QA] Native activity edit"})
+        task = self.env["project.task"].create({"name": "[QA] Registre", "project_id": project.id})
+        own = task.with_user(agent.user_id).with_context(
+            allowed_company_ids=self.company.ids,
+        ).activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id, summary="Agent")
+        owners = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id, summary="Owner")
+        self.assertEqual(own.create_uid, agent.user_id)
+        deadline = fields.Date.today() + datetime.timedelta(days=3)
+        result = self._agent_web_save(agent, own, {
+            "date_deadline": str(deadline), "summary": "Moved earlier", "note": "<p>Relevé</p>",
+        })
+        self.assertEqual(result[0]["summary"], "Moved earlier")
+        self.assertEqual(own.date_deadline, deadline)
+        self.assertIn("Relevé", str(own.note))
+        self.assertTrue(own.active)
+        self.assertFalse(own.date_done)
+        self._agent_web_save(agent, owners, {"date_deadline": str(deadline), "user_id": agent.user_id.id})
+        self.assertEqual(owners.date_deadline, deadline)
+        self.assertEqual(owners.user_id, agent.user_id)
+        self.assertEqual(owners.create_uid, self.env.user)
+
+    def test_agent_native_activity_edit_keeps_business_record_authority(self):
+        agent, group = self._writable_project_agent()
+        project = self.env["project.project"].create({"name": "[QA] Activity authority"})
+        task = self.env["project.task"].create({"name": "[QA] Accessible", "project_id": project.id})
+        activity = task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        foreign_project = self.env["project.project"].with_company(self.other_company).create({
+            "name": "[QA] Other company", "company_id": self.other_company.id,
+        })
+        foreign_task = self.env["project.task"].with_company(self.other_company).create({
+            "name": "[QA] Other company task", "project_id": foreign_project.id,
+        })
+        foreign = foreign_task.activity_schedule("mail.mail_activity_data_todo", user_id=agent.user_id.id)
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self._agent_web_save(agent, foreign, {"summary": "Wrong company"})
+        self.assertNotEqual(foreign.summary, "Wrong company")
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self._agent_web_save(agent, activity, {"res_id": foreign_task.id})
+        self.assertEqual(activity.res_id, task.id)
+        partner_activity = self.owner.partner_id.activity_schedule(
+            "mail.mail_activity_data_todo", user_id=agent.user_id.id,
+        )
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            self._agent_web_save(agent, partner_activity, {"summary": "No contact delegation"})
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            activity.with_user(agent.user_id).unlink()
+        evidence = self.env["ir.attachment"].create({
+            "name": "[QA] Other app evidence.txt", "res_model": "res.partner",
+            "res_id": self.owner.partner_id.id, "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
+        })
+        for values in (
+            {"attachment_ids": [Command.update(evidence.id, {"public": True, "raw": b"FORGED\n"})]},
+            {"attachment_ids": [Command.create({"name": "[QA] Nested.txt", "raw": b"X"})]},
+            {"attachment_ids": [Command.link(evidence.id)]},
+        ):
+            with self.subTest(values=list(values)), self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+                self._agent_web_save(agent, activity, {"summary": "Nested write", **values})
+        evidence.invalidate_recordset(["public", "raw"])
+        self.assertFalse(evidence.public)
+        self.assertEqual(evidence.raw.content, b"SYNTHETIC\n")
+        self.assertFalse(activity.attachment_ids)
+        self.assertNotEqual(activity.summary, "Nested write")
+        contacts = self.env.ref("base.group_partner_manager")
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set((group | contacts).ids)],
+            "read_only_group_ids": [Command.set(group.ids)],
+        })
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            self._agent_web_save(agent, activity, {"summary": "Writable elsewhere only"})
+        self.assertNotEqual(activity.summary, "Writable elsewhere only")
+        owners = task.activity_schedule("mail.mail_activity_data_todo", user_id=self.owner.id)
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self.env["ir.attachment"].with_user(agent.user_id).with_context(
+                allowed_company_ids=self.company.ids,
+            ).create({
+                "name": "[QA] Not on this activity.txt", "res_model": "mail.activity",
+                "res_id": owners.id, "raw": b"SYNTHETIC\n", "mimetype": "text/plain",
+            })
+        self.assertFalse(self.env["ir.attachment"].search_count([
+            ("res_model", "=", "mail.activity"), ("res_id", "=", owners.id),
+        ]))
+        agent.with_user(self.owner).write({
+            "delegated_group_ids": [Command.set(group.ids)],
+            "read_only_group_ids": [Command.set(group.ids)],
+        })
+        with self.assertRaises(AgentPolicyAccessError), self.cr.savepoint():
+            self._agent_web_save(agent, activity, {"summary": "Read-only Agent"})
+        self.assertNotEqual(activity.summary, "Read-only Agent")
 
     def test_agent_activity_reschedule_requires_access_to_business_record(self):
         agent = self._create_agent()
@@ -1757,6 +1952,9 @@ class TestAutonomousAgents(TransactionCase):
                 "message_post",
                 "message_subscribe",
                 "message_unsubscribe",
+                "report_client_load",
+                "report_client_toggle_group",
+                "report_client_export",
                 "submit_mcp_feedback",
             },
         )
@@ -1845,6 +2043,43 @@ class TestAutonomousAgents(TransactionCase):
         self.assertFalse(access["unlink"])
         self.assertTrue(partner_model._api_doc_public_method_allowed("message_post"))
         self.assertFalse(partner_model._api_doc_public_method_allowed("write"))
+
+    def test_agent_api_index_scope_saves_queries_without_changing_decisions(self):
+        agent = self._create_agent()
+        agent.with_user(self.owner).action_grant_all_read()
+        partner_model = self.env["res.partner"].with_user(agent.user_id)
+        methods = ("message_post", "write") * 10
+        cr = self.env.cr
+        self.env.flush_all()
+        # Warm the ORM caches first, otherwise the second measured loop wins
+        # on cache hits alone and the comparison proves nothing.
+        for method in methods:
+            partner_model._api_doc_public_method_allowed(method)
+
+        before = cr.sql_log_count
+        unscoped = [partner_model._api_doc_public_method_allowed(m) for m in methods]
+        unscoped_queries = cr.sql_log_count - before
+
+        before = cr.sql_log_count
+        with api_doc_index_scope():
+            scoped = [partner_model._api_doc_public_method_allowed(m) for m in methods]
+        scoped_queries = cr.sql_log_count - before
+
+        self.assertEqual(scoped, unscoped)
+        self.assertLess(scoped_queries, unscoped_queries)
+
+    def test_agent_api_index_scope_does_not_outlive_the_build(self):
+        calls = []
+
+        def lookup():
+            calls.append(1)
+            return len(calls)
+
+        with api_doc_index_scope():
+            self.assertEqual(api_doc_index_lookup("key", lookup), 1)
+            self.assertEqual(api_doc_index_lookup("key", lookup), 1)
+        self.assertEqual(api_doc_index_lookup("key", lookup), 2)
+        self.assertEqual(api_doc_index_lookup("key", lookup), 3)
 
     def test_agent_api_document_cache_varies_by_access_and_company(self):
         agent = self._create_agent()

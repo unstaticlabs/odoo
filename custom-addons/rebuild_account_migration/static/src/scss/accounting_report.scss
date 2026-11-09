@@ -345,6 +345,12 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
             font-weight: 500;
         }
 
+        .o_usl_report_provisional_pill {
+            border-color: #b54708;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
         button {
             padding: 0;
             border: 0;
@@ -694,6 +700,10 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
 
         .o_usl_report_table_wrap {
             padding-inline: 0.35rem;
+        }
+
+        > .alert {
+            margin-inline: 0.65rem !important;
         }
 
         .o_usl_report_filters,

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_accounting.ReconciliationReviewGroupRow" t-inherit="web.ListRenderer.GroupRow" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('d-flex', 'align-items-center')]/span[hasclass('fw-normal')]" position="after">
+            <ReconciliationReviewMark t-if="this.supportsReview(group)"
+                status="this.groupReview(group)" loading="this.reviewState.loading"
+                error="this.reviewState.error"
+                onReview="() => this.changeReview(group, false)"
+                onDismiss="() => this.changeReview(group, true)"
+                onRetry="() => this.loadReviews()"/>
+        </xpath>
+    </t>
+    <t t-name="usl_accounting.ReconciliationReviewMark">
+        <button type="button" class="btn btn-link btn-sm ms-1 px-2 o_reconciliation_review_mark"
+                t-att-title="label" t-att-aria-label="label" t-att-aria-busy="props.loading"
+                t-att-disabled="props.loading" t-on-click.stop="open" t-on-keydown.stop="() => {}">
+            <i t-att-class="iconClass" aria-hidden="true"/>
+        </button>
+    </t>
+    <t t-name="usl_accounting.ReconciliationReviewDetails">
+        <section class="p-3 o_reconciliation_review_details" aria-label="Shared Remaining review">
+            <h6>Remaining balance review</h6>
+            <p t-if="props.status.state === 'unreviewed'" class="mb-2">Review this group for the current filters. The mark is shared with your accounting team.</p>
+            <p t-else="" class="mb-2">
+                Reviewed by <strong t-out="props.status.reviewer"/>
+                <span class="ms-1" t-out="formatTimestamp(props.status.reviewed_at)"/>
+            </p>
+            <p t-if="props.status.currency_changed" class="mb-2">The displayed currency changed. Review the current balance; amounts in different currencies are not subtracted.</p>
+            <p t-if="props.status.state === 'changed'" class="text-warning mb-2">Remaining differs from the reviewed balance.</p>
+            <p t-if="props.status.state === 'acknowledged'" class="mb-2">Change acknowledged by <strong t-out="props.status.acknowledged_by"/> <span class="ms-1" t-out="formatTimestamp(props.status.acknowledged_at)"/>. The reviewed balance has not been replaced.</p>
+            <table class="table table-sm mb-2">
+                <thead><tr><th>Currency</th><th>Reviewed</th><th>Current</th><th>Change</th></tr></thead>
+                <tbody><tr t-foreach="props.status.amounts" t-as="amount" t-key="amount.currency_id">
+                    <td t-out="amount.currency"/><td class="text-end" t-out="formatAmount(amount.baseline, amount.currency_id)"/><td class="text-end" t-out="formatAmount(amount.current, amount.currency_id)"/><td class="text-end" t-out="formatAmount(amount.delta, amount.currency_id)"/>
+                </tr></tbody>
+            </table>
+            <p class="small text-muted">Remaining uses the same currency and aggregation as the native group header.</p>
+            <p t-if="props.status.presentation.valuation_date" class="small text-muted">Mixed currencies use Odoo’s native rates on <t t-out="formatValuationDate(props.status.presentation.valuation_date)"/>.</p>
+            <p t-if="props.status.reviewed_context?.valuation_date &amp;&amp; props.status.reviewed_context.valuation_date !== props.status.presentation.valuation_date" class="small text-muted">The reviewed balance used native rates on <t t-out="formatValuationDate(props.status.reviewed_context.valuation_date)"/>.</p>
+            <details class="mb-3"><summary>Reviewed filters and group</summary>
+                <DomainSelector resModel="'account.move.line'" domain="domain"/>
+                <p class="small mb-0">Selected companies: <t t-out="props.status.companies.join(', ')"/></p>
+            </details>
+            <div class="d-flex flex-wrap gap-2" t-if="props.status.can_review">
+                <button class="btn btn-primary btn-sm" t-att-disabled="state.busy" t-on-click="review">
+                    <t t-if="props.status.state === 'unreviewed'">Mark reviewed</t><t t-else="">Review current balance</t>
+                </button>
+                <button t-if="props.status.state === 'changed'" class="btn btn-secondary btn-sm" t-att-disabled="state.busy" t-on-click="dismiss">Acknowledge change</button>
+            </div>
+        </section>
+    </t>
+</templates>

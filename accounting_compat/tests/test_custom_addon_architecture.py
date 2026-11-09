@@ -55,7 +55,10 @@ class CustomAddonArchitectureTest(unittest.TestCase):
         }
 
         self.assertEqual(reverse_dependencies, set())
-        self.assertNotIn("usl_bootstrap", manifests["rebuild_account_migration"]["depends"])
+        self.assertNotIn("usl_bootstrap", manifests)
+        self.assertTrue(
+            (REPOSITORY_ROOT / "test-addons" / "usl_bootstrap" / "__manifest__.py").is_file(),
+        )
 
     def test_compatibility_module_uses_integrated_product_features(self):
         manifests = _manifests()

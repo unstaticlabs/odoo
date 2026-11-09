@@ -227,18 +227,23 @@ class ResourceResource(models.Model):
         for calendar in (calendars or []):
             calendar_resources[calendar] |= self.env['resource.resource']
         for calendar, resources in calendar_resources.items():
-            # for fully flexible resource, return the whole interval
+            # Fully flexible resources (no calendar, no hours defined), return the whole interval
             if not calendar:
-                for resource in resources:
+                fully_flexible_resources = resources.filtered(lambda r: r._is_fully_flexible())
+                for resource in fully_flexible_resources:
                     resource_work_intervals[resource.id] |= Intervals([(start, end, self.env['resource.calendar.attendance'])])
-                continue
+                resources -= fully_flexible_resources
+                if not resources:
+                    continue
             # For each calendar used by the resources, retrieve the work intervals for every resources using it
             resources_per_tz = resources._get_resources_per_tz()
             work_intervals_batch = calendar._work_intervals_batch(start, end, resources_per_tz=resources_per_tz, compute_leaves=compute_leaves)
             for resource in resources:
                 # Make the conjunction between work intervals and calendar validity
                 resource_work_intervals[resource.id] |= work_intervals_batch[resource.id] & resource_calendar_validity_intervals[resource.id][calendar]
-            calendar_work_intervals[calendar.id] = work_intervals_batch[False]
+            if calendar:
+                # An empty calendar has no "no resource" entry in the batch result
+                calendar_work_intervals[calendar.id] = work_intervals_batch[False]
 
         return resource_work_intervals, calendar_work_intervals
 
@@ -324,7 +329,6 @@ class ResourceResource(models.Model):
         assert all(record._is_flexible() for record in self)
         assert start.tzinfo and end.tzinfo
 
-        start_day, end_day = start.date(), end.date()
         locale = babel_locale_parse(get_lang(self.env).code)
 
         week_start_day = int(get_lang(self.env).week_start) - 1
@@ -348,6 +352,11 @@ class ResourceResource(models.Model):
                 resource_work_intervals[resource.id] |= work_intervals
 
         resource_by_id = {resource.id: resource for resource in self}
+        # the days of the period must be computed in the timezone of the resource
+        period_days_per_resource = {}
+        for resource in self:
+            tz = ZoneInfo(resource.tz or self.env.user.tz)
+            period_days_per_resource[resource.id] = (start.astimezone(tz).date(), end.astimezone(tz).date())
 
         resource_hours_per_day = defaultdict(lambda: defaultdict(float))
         resource_hours_per_week = defaultdict(lambda: defaultdict(float))
@@ -366,6 +375,8 @@ class ResourceResource(models.Model):
 
             full_time_required_hours = resource.calendar_id.full_time_required_hours if resource.calendar_id else resource.company_id.resource_calendar_id.hours_per_week
             hours_per_day = resource.calendar_id.hours_per_day if resource.calendar_id else resource.hours_per_day
+
+            start_day, end_day = period_days_per_resource[resource.id]
             for day, hours in duration_per_day.items():
                 day_working_hours = min(hours, hours_per_day)
                 # only days inside the original period
@@ -389,6 +400,7 @@ class ResourceResource(models.Model):
                     continue
 
                 ranges_to_remove = []
+                start_day, end_day = period_days_per_resource[resource_id]
                 for leave in leaves._items:
                     resource_by_id[resource_id]._format_leave(leave, resource_hours_per_day, resource_hours_per_week, ranges_to_remove, start_day, end_day, locale)
 

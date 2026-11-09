@@ -219,6 +219,13 @@ class FeedbackAgentRun(models.Model):
         run._process_one()
         return run
 
+    def _next_provider_poll_at(self, *, first=False):
+        """Catch quick completions promptly, then bound polling for long calls."""
+        self.ensure_one()
+        now = fields.Datetime.now()
+        elapsed = (now - self.submitted_at).total_seconds() if self.submitted_at else 0
+        return now + timedelta(seconds=2 if first or elapsed < 30 else 10)
+
     @api.model
     def _cron_process_feedback(self, limit=10):
         now = fields.Datetime.now()
@@ -295,7 +302,7 @@ class FeedbackAgentRun(models.Model):
                     "submitted_at": started,
                     "attempts": self.attempts + 1,
                     "input_sha256": input_hash,
-                    "next_poll_at": fields.Datetime.now() + timedelta(seconds=10),
+                    "next_poll_at": self._next_provider_poll_at(first=True),
                 },
             )
             if response.get("status") == "completed":
@@ -421,7 +428,7 @@ class FeedbackAgentRun(models.Model):
             elif self.submitted_at and fields.Datetime.now() - self.submitted_at > timedelta(minutes=5):
                 raise GeminiError("provider_timeout", "The feedback lookup exceeded its time limit.")
             else:
-                self.write({"next_poll_at": fields.Datetime.now() + timedelta(seconds=10)})
+                self.write({"next_poll_at": self._next_provider_poll_at()})
             return True
         except GeminiError as error:
             if error.status_code in {404, 410} and not self.reconstructed_from_expiry:
@@ -618,7 +625,7 @@ class FeedbackAgentRun(models.Model):
             "provider_phase": phase,
             "provider_context": context,
             "external_interaction_id": self._interaction_id(next_response),
-            "next_poll_at": fields.Datetime.now() + timedelta(seconds=10),
+            "next_poll_at": self._next_provider_poll_at(first=True),
             **({"input_sha256": hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()}
                if phase == "draft" else {}),
         })
@@ -634,6 +641,8 @@ class FeedbackAgentRun(models.Model):
             f"Page context shared: {'yes' if task.usl_feedback_context_included else 'no'}",
         ]
         if task.usl_feedback_context_included:
+            if task.usl_feedback_navigation_context:
+                lines.append("Recent navigation (oldest first): " + json.dumps(task.usl_feedback_navigation_context))
             if task.usl_feedback_source_action_id:
                 lines.append(f"Action: {task.usl_feedback_source_action_id.display_name}")
             if task.usl_feedback_source_model_id:

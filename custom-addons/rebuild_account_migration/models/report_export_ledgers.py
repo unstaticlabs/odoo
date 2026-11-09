@@ -577,10 +577,12 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         return [dict(row) for row in self.env.cr.dictfetchall()]
 
     def _balance_sheet_rows(self):
+        trial_balance = self._trial_balance_rows()
+        partition = self._fiscal_result_partition(trial_balance)
         rows = []
-        for row in self._trial_balance_rows():
+        for row in trial_balance:
             account_type = row["account_type"] or ""
-            if account_type.startswith(("income", "expense")):
+            if account_type.startswith(("income", "expense")) or account_type == "equity_unaffected":
                 continue
             amount = _amount(row["closing_balance"])
             statement_key = self._french_balance_sheet_side(
@@ -604,21 +606,26 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "account_type": account_type,
                 "amount": _amount_text(amount if is_asset else -amount),
             })
-        result = sum(
-            -_amount(row["closing_balance"])
-            for row in self._trial_balance_rows()
-            if (row["account_type"] or "").startswith(("income", "expense"))
-        )
         rows.append({
             "statement": "Bilan",
             "statement_key": "bilan_passif",
             "statement_side": "Passif",
             "section": "Capitaux propres",
             "account_code": "RESULT",
-            "account_name": "Résultat de l’exercice",
+            "account_name": f"Résultat de l’exercice ({partition['date_from']} — {partition['date_to']})",
             "account_type": "equity_current_year_result",
-            "amount": _amount_text(result),
+            "amount": _amount_text(partition["current"]),
+            **self._fiscal_result_row_context(partition, "current"),
         })
+        if partition["carryforward"]:
+            rows.append({
+                "statement": "Bilan", "statement_key": "bilan_passif",
+                "statement_side": "Passif", "section": "Capitaux propres",
+                "line_code": "RESULT_CARRYFORWARD", "account_code": "",
+                "account_name": "Report et affectations du résultat",
+                "amount": _amount_text(partition["carryforward"]),
+                **self._fiscal_result_row_context(partition, "carryforward"),
+            })
         for side_key, label in (
             ("bilan_actif", "Total Actif"),
             ("bilan_passif", "Total Passif"),
@@ -645,6 +652,9 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                     and item.get("presentation_role") != "total"
                 )),
                 "presentation_role": "total",
+                **({key: value for key, value in self._fiscal_result_row_context(partition, "current").items()
+                    if key.startswith("source_fiscal_")}
+                   if side_key == "bilan_passif" else {}),
             })
         return rows
 

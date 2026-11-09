@@ -7,5 +7,8 @@ from . import (
     audit_event,
     base,
     protected_models,
+    queue_job,
+    notification_delivery,
     res_users,
+    readonly_accounting_report,
 )

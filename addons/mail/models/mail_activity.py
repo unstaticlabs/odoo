@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 from dateutil.relativedelta import MO, relativedelta
 
 from odoo import api, fields, models, _
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, UserError
 from odoo.fields import Domain
 from odoo.tools import OrderedSet, is_html_empty
 from odoo.tools.constants import PREFETCH_MAX
@@ -457,7 +457,7 @@ class MailActivity(models.Model):
             records = self.sudo().with_context(active_test=False).search_fetch(
                 domain, SECURITY_FIELDS, order='id', limit=MAX_SEARCH_LIMIT)
             if len(records) == MAX_SEARCH_LIMIT:  # avoid out of memory
-                raise ValueError(self.env._("Cannot search, too many activities"))
+                raise UserError(self.env._("Cannot search, too many activities"))
             records = records.sudo(False)._filtered_access(operation)
             # [('id', 'any!', query_with_ids)] is optimized in sec_domain
             return Domain('id', 'any!', records._as_query(ordered=False))
@@ -663,9 +663,9 @@ class MailActivity(models.Model):
                     activities_to_remove += activity
 
                 message_attachments = activity_attachments.get(activity.id) or self.env['ir.attachment']
-                attachment_ids = (attachment_ids or []) + message_attachments.ids
-                if attachment_ids:
-                    activity.attachment_ids = attachment_ids
+                activity_attachment_ids = (attachment_ids or []) + message_attachments.ids
+                if activity_attachment_ids:
+                    activity.attachment_ids = activity_attachment_ids
 
                 # Moving the attachments in the message
                 # TODO: Fix void res_id on attachment when you create an activity with an image

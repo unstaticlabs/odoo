@@ -131,10 +131,12 @@ class TestDeclarationAndClosing(TransactionCase):
                 field_name,
             )
         for field_name in ("acceptance_status", "payment_status"):
-            node = form_arch.xpath(
-                f"//sheet//field[@name='{field_name}']",
-            )[0]
-            self.assertEqual(node.get("widget"), "badges_selection")
+            # A readonly outcome summary does not replace the native input.
+            inputs = form_arch.xpath(
+                f"//sheet//field[@name='{field_name}'][not(@readonly='1')]",
+            )
+            self.assertTrue(inputs, field_name)
+            self.assertTrue(all(node.get("widget") == "badges_selection" for node in inputs))
         basis_sections = form_arch.xpath(
             "//section[contains(@class, 'o_usl_declaration_basis')]",
         )

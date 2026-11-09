@@ -9,7 +9,7 @@
                 <div class="alert alert-info" role="status">
                     Choose the link that downloads the receipt. Odoo will remember the sender, host, and link pattern across this instance. Signed URLs stay only in the source email.
                 </div>
-                <field name="candidate_ids" nolabel="1">
+                <field name="candidate_ids" nolabel="1" mode="list,kanban">
                     <list create="false" edit="false" delete="false">
                         <field name="label"/>
                         <field name="hostname"/>
@@ -22,6 +22,18 @@
                                 class="btn-primary"
                                 help="Teach this choice instance-wide and queue its safe PDF retrieval."/>
                     </list>
+                    <kanban class="o_kanban_mobile" create="false" delete="false" can_open="false">
+                        <templates>
+                            <t t-name="card">
+                                <field name="label" class="d-block fw-bold text-break"/>
+                                <field name="hostname" class="d-block text-muted text-break"/>
+                                <footer>
+                                    <button name="action_choose" type="object"
+                                            string="Use this link" class="btn btn-primary w-100"/>
+                                </footer>
+                            </t>
+                        </templates>
+                    </kanban>
                 </field>
                 <footer>
                     <button string="Cancel" special="cancel" class="btn-secondary" data-hotkey="x"/>

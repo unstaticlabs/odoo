@@ -8,7 +8,7 @@ import ssl
 
 import httpx
 
-from odoo import _, fields, models
+from odoo import SUPERUSER_ID, _, fields, models
 
 from .linked_receipt import (
     _LINKED_RECEIPT_INTERNAL,
@@ -267,8 +267,58 @@ class UslMailPdfRetrieval(models.Model):
                     ),
                 )
 
+    def _bill_worker_recordset(self):
+        """Recover this fixed worker's context from its actual stored job."""
+        self.ensure_one()
+        # Technical identity must remain inspectable after requester access
+        # changes; it is never returned and does not authorize the bill.
+        technical = self.with_user(SUPERUSER_ID)
+        if not technical.move_id:
+            return self
+        agent = getattr(self, "_usl_managed_agent", lambda: False)()
+        if not self.env.context.get("job_uuid"):
+            # Ordinary in-process calls keep the existing test/service path.
+            # An Agent receives no reconstructed authority without its job.
+            return self.browse() if agent else self
+        job = self.env["queue.job"].sudo().search([
+            ("uuid", "=", self.env.context.get("job_uuid") or ""),
+        ], limit=1)
+        snapshot = technical.bill_request_snapshot
+        if not isinstance(snapshot, list) or len(snapshot) != 7:
+            return self.browse()
+        expected = f"receipt-fetch:{self.id}:{technical.generation}"
+        if not (job and job.model_name == self._name
+                and job.method_name == "_job_fetch_receipt"
+                and job.records._name == self._name and job.records.ids == self.ids
+                and job.user_id.id == job.records.env.uid == self.env.uid == technical.bill_request_user_id.id
+                and job.company_id.id == snapshot[1]
+                and job.identity_key == expected):
+            return self.browse()
+        if not technical._bill_request_is_authorized():
+            # An inactive/revoked requester gets a visible technical outcome,
+            # never a scope or file. Do not elevate the returned recordset.
+            technical.write({
+                "state": "needs_attention", "failure_code": "target_access_changed",
+                "failure_message": _("The bill can no longer be edited by the person who requested this download. Ask an authorized collaborator to retry."),
+            })
+            return self.browse()
+        if not agent:
+            return self
+        from odoo.addons.usl_access_control.models.agent_policy_tokens import (
+            AGENT_OPERATION_SCOPE_CONTEXT_KEY, create_agent_operation_scope,
+        )
+        return self.with_context(**{
+            AGENT_OPERATION_SCOPE_CONTEXT_KEY: create_agent_operation_scope(
+                agent_user_id=self.env.uid, root_model=self._name,
+                root_method="_job_fetch_receipt", access="write",
+            ),
+        })
+
     def _job_fetch_receipt(self):
         self.ensure_one()
+        self = self._bill_worker_recordset()
+        if not self:
+            return
         generation = self._job_generation()
         retrieval = self.sudo().exists()
         if not retrieval or retrieval.generation != generation or retrieval.state in ("dismissed", "superseded", "succeeded"):
@@ -284,7 +334,7 @@ class UslMailPdfRetrieval(models.Model):
                 },
             )
             return
-        if not retrieval._expense_is_eligible(retrieval.expense_id):
+        if not retrieval._target_is_eligible():
             retrieval.write(
                 {
                     "state": "superseded",
@@ -334,6 +384,14 @@ class UslMailPdfRetrieval(models.Model):
                     ),
                 },
             )
+            return
+        bill_source = tuple(retrieval.bill_request_snapshot or ()) if retrieval.move_id else None
+        if retrieval.move_id and bill_source != retrieval._bill_source_snapshot():
+            retrieval.write({"state": "superseded", "generation": retrieval.generation + 1})
+            return
+        if not retrieval._bill_request_is_authorized():
+            retrieval.write({"state": "needs_attention", "failure_code": "target_access_changed",
+                             "failure_message": _("The bill can no longer be edited by the person who requested this download. Ask an authorized collaborator to retry.")})
             return
         attempt_number = retrieval._job_attempt_number()
         running_values = {
@@ -405,9 +463,11 @@ class UslMailPdfRetrieval(models.Model):
             retrieval = self.sudo().exists()
             if not retrieval:
                 return
+        target = retrieval._target_record()
+        # Both table names are fixed by the two typed target relations.
+        table = "account_move" if retrieval.move_id else "hr_expense"
         self.env.cr.execute(
-            "SELECT id FROM hr_expense WHERE id = %s FOR UPDATE",
-            (retrieval.expense_id.id,),
+            f"SELECT id FROM {table} WHERE id = %s FOR UPDATE", (target.id,),
         )
         if not self.env.cr.fetchone():
             return
@@ -418,14 +478,15 @@ class UslMailPdfRetrieval(models.Model):
         if not self.env.cr.fetchone():
             return
         retrieval.invalidate_recordset()
-        retrieval.expense_id.invalidate_recordset()
+        retrieval._target_record().invalidate_recordset()
+        retrieval.source_message_id.invalidate_recordset()
         # A late worker owns only its enqueue generation. A newer queued
         # request must stay eligible; superseding it here loses the retry.
         if retrieval.generation != generation:
             return
         if (
             retrieval.state in ("dismissed", "superseded", "succeeded")
-            or not retrieval._expense_is_eligible(retrieval.expense_id)
+            or not retrieval._target_is_eligible()
         ):
             if retrieval.state not in ("dismissed", "superseded", "succeeded"):
                 retrieval.write(
@@ -434,6 +495,18 @@ class UslMailPdfRetrieval(models.Model):
                         "generation": retrieval.generation + 1,
                     },
                 )
+            return
+        if bill_source and (
+            retrieval._bill_source_snapshot() != bill_source
+            or retrieval.source_message_id.model != "account.move"
+            or retrieval.source_message_id.res_id != retrieval.move_id.id
+            or not retrieval._candidate_by_fingerprint(retrieval.selected_fingerprint)
+        ):
+            retrieval.write({"state": "superseded", "generation": retrieval.generation + 1})
+            return
+        if not retrieval._bill_request_is_authorized():
+            retrieval.write({"state": "needs_attention", "failure_code": "target_access_changed",
+                             "failure_message": _("The bill can no longer be edited by the person who requested this download. Ask an authorized collaborator to retry.")})
             return
         # Serialize global governance with the final attachment decision.  A
         # manager block that commits first wins; a block waiting on these rows
@@ -481,7 +554,7 @@ class UslMailPdfRetrieval(models.Model):
             retrieval.write({"state": "superseded", "generation": retrieval.generation + 1})
             return
         duplicate = retrieval.search(
-            [("expense_id", "=", retrieval.expense_id.id), ("sha256", "=", digest), ("state", "=", "succeeded")],
+            [("move_id" if retrieval.move_id else "expense_id", "=", retrieval._target_record().id), ("sha256", "=", digest), ("state", "=", "succeeded")],
             limit=1,
         ).attachment_id
         attachment = duplicate or self.env["ir.attachment"].sudo().create(
@@ -489,13 +562,13 @@ class UslMailPdfRetrieval(models.Model):
                 "name": filename,
                 "raw": content,
                 "mimetype": "application/pdf",
-                "res_model": "hr.expense",
-                "res_id": retrieval.expense_id.id,
+                "res_model": retrieval._target_record()._name,
+                "res_id": retrieval._target_record().id,
                 "company_id": retrieval.company_id.id,
             },
         )
         if not duplicate:
-            retrieval.expense_id.with_context(
+            retrieval._target_record().with_context(
                 mail_post_autofollow_author_skip=True,
                 linked_receipt_attachment=True,
             ).message_post(
@@ -503,7 +576,7 @@ class UslMailPdfRetrieval(models.Model):
                 attachment_ids=[attachment.id],
                 subtype_xmlid="mail.mt_note",
             )
-            retrieval.expense_id.sudo()._message_set_main_attachment_id(
+            retrieval._target_record().sudo()._message_set_main_attachment_id(
                 attachment,
                 force=True,
             )

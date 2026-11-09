@@ -84,7 +84,7 @@
                     <button
                         name="action_reverse"
                         type="object"
-                        string="Reverse Settlement"
+                        string="Undo settlement"
                         title="Undo this settlement and reopen its linked accounting items."
                         class="btn-primary"
                         groups="account.group_account_user"
@@ -173,12 +173,14 @@
                                 <field name="generated_line_ids"/>
                                 <field name="partial_reconcile_ids"/>
                                 <field name="source_line_id_snapshot"/>
+                            </group>
+                        </page>
+                        <page string="Technical details" name="technical_details">
+                            <group>
                                 <field name="provenance_details"/>
-                                <field
-                                    name="original_document_line_snapshot"
+                                <field name="original_document_line_snapshot"
                                     invisible="payment_rate_application != 'document_reprice'"/>
-                                <field
-                                    name="repriced_document_line_snapshot"
+                                <field name="repriced_document_line_snapshot"
                                     invisible="payment_rate_application != 'document_reprice'"/>
                             </group>
                         </page>

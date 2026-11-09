@@ -1,4 +1,5 @@
 import hashlib
+import json
 from collections import Counter, defaultdict
 from datetime import timedelta
 
@@ -8,6 +9,8 @@ from odoo import _, api, fields, models
 from odoo.exceptions import AccessError, UserError
 
 from .bank_partner_suggestion import _normalize_text
+
+_POSTING_REVIEW_CONFIRMED = object()
 
 _CANDIDATE_DATE_WINDOW_DAYS = 10
 _CANDIDATE_LIMIT = 5
@@ -142,6 +145,7 @@ class UslExpenseBankMatchCandidate(models.Model):
         return {
             "type": "ir.actions.act_window",
             "name": _("Use bank transaction"),
+            "context": dict(self.env.context),
             "res_model": "usl.expense.bank.match.wizard",
             "res_id": wizard.id,
             "view_mode": "form",
@@ -285,6 +289,7 @@ class UslExpenseBankMatchCandidate(models.Model):
         if expense.state == "approved":
             post_action = expense.with_context(
                 validate_analytic=True,
+                usl_bank_match_transition=_POSTING_REVIEW_CONFIRMED,
             ).action_post()
             if post_action:
                 raise UserError(_(
@@ -442,6 +447,49 @@ class HrExpense(models.Model):
                 if expense.usl_bank_match_eligible
                 else expense._usl_bank_match_ineligible_reason()
             )
+
+    def _usl_employee_payment_review(self, stage, *, wizard=None):
+        """Refresh the incumbent suggestions within the operator's bank authority."""
+        if not (self.env.su or self.env.user.has_group("account.group_account_manager")):
+            return False
+        self.check_access("write")
+        eligible = self.filtered(lambda expense: expense.payment_mode == "own_account" and expense._usl_bank_match_is_eligible())
+        if eligible:
+            eligible._usl_refresh_bank_match_candidates()
+        candidates = eligible.usl_bank_match_candidate_ids.filtered(lambda candidate: candidate.state == "available")
+        facts = [(expense.id, expense.write_date, expense.state, expense.payment_mode) for expense in eligible.sorted("id")]
+        evidence = [(candidate.id, candidate.fingerprint, candidate.name, candidate.journal_id.id,
+                     candidate.evidence_summary, candidate.competing_expense_count) for candidate in candidates.sorted("id")]
+        fingerprint = hashlib.sha256(json.dumps([facts, evidence], default=str).encode()).hexdigest()
+        if not candidates:
+            return False
+        if wizard and wizard.usl_review_fingerprint == fingerprint:
+            return False
+        wizard = wizard or self.env["hr.expense.post.wizard"].with_context(active_ids=self.ids).create({})
+        return wizard._usl_open_employee_payment_review(self, candidates, stage, fingerprint)
+
+    def action_submit(self):
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("submit")
+            if action:
+                return action
+        return super().action_submit()
+
+    def action_approve(self):
+        self._check_can_approve()
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("approve")
+            if action:
+                return action
+        return super().action_approve()
+
+    def action_post(self):
+        self._check_can_create_move()
+        if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
+            action = self._usl_employee_payment_review("post")
+            if action:
+                return action
+        return super().action_post()
 
     def _usl_bank_match_is_eligible(self):
         self.ensure_one()

@@ -1319,7 +1319,7 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         )
         self.assertFalse(bill.immediate_settlement_ids.adjustment_move_id)
 
-    def test_payment_rate_blocks_taxed_documents(self):
+    def test_payment_rate_corrects_taxed_documents_and_restores(self):
         tax = self.env["account.tax"].create(
             {
                 "name": "Payment-rate purchase tax",
@@ -1341,17 +1341,12 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
         payment_rate = bill._get_payment_rate_settlement_eligibility(source_line)
 
         self.assertTrue(settle["eligible"], settle["reason"])
-        self.assertFalse(payment_rate["eligible"])
-        self.assertIn("contains taxes", payment_rate["reason"])
-        with self.assertRaisesRegex(UserError, "contains taxes"):
-            bill.js_use_payment_rate_outstanding_line(source_line.id)
-        self.assertEqual(
-            bill._foreign_settlement_tax_snapshot(),
-            snapshot,
-        )
-        self.assertFalse(bill.immediate_settlement_ids)
+        self.assertTrue(payment_rate["eligible"], payment_rate["reason"])
+        result = bill.js_use_payment_rate_outstanding_line(source_line.id)
+        self.env["account.immediate.settlement"].browse(result["settlement_id"]).action_reverse()
+        self.assertEqual(bill._foreign_settlement_tax_snapshot(), snapshot)
 
-    def test_payment_rate_blocks_cash_basis_tax_documents(self):
+    def test_payment_rate_corrects_cash_basis_tax_documents(self):
         self.company.tax_exigibility = True
         self.company.account_cash_basis_base_account_id = self.company_data[
             "default_account_assets"
@@ -1403,13 +1398,13 @@ class TestImmediateSettlement(AccountTestInvoicingCommon):
 
         payment_rate = bill._get_payment_rate_settlement_eligibility(source_line)
 
-        self.assertFalse(payment_rate["eligible"])
-        self.assertIn("contains taxes", payment_rate["reason"])
-        self.assertFalse(
-            self.env["account.move"].search(
-                [("tax_cash_basis_origin_move_id", "=", bill.id)],
-            ),
-        )
+        self.assertTrue(payment_rate["eligible"], payment_rate["reason"])
+        result = bill.js_use_payment_rate_outstanding_line(source_line.id)
+        self.assertTrue(self.env["account.move"].search([
+            ("tax_cash_basis_origin_move_id", "=", bill.id),
+        ]))
+        self.env["account.immediate.settlement"].browse(result["settlement_id"]).action_reverse()
+        self.assertAlmostEqual(bill.invoice_currency_rate, bill.expected_currency_rate, places=9)
 
     def test_unsafe_asset_account_keeps_add_and_settle_only(self):
         asset_account = self.env["account.account"].create(

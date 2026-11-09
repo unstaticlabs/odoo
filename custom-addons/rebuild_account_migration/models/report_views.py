@@ -1,41 +1,45 @@
 from odoo import api, fields, models, tools
 
-FIRST_FISCAL_YEAR_PERIOD_KEY = "Fiscal year 2024-01-10 to 2025-09-30"
-CURRENT_PERIOD_KEY = "Fiscal year from 2025-10-01"
-USL_MEDIA_PERIOD_KEY = "All posted accounting"
+from .fiscal_period import (
+    EARLIER_ANALYTIC_LABEL,
+    fiscal_period_sql,
+)
 
-PERIOD_CASE_SQL = """
-    CASE
-        WHEN move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-        THEN 'Fiscal year 2024-01-10 to 2025-09-30'
-        WHEN move.date >= DATE '2025-10-01'
-        THEN 'Fiscal year from 2025-10-01'
-        ELSE 'Earlier posted accounting'
-    END
-"""
+# Every report view buckets a posted date into the closed fiscal year it
+# belongs to. See ``fiscal_period`` for the rule; the view columns are
+# ``period_key`` (label), ``period_date_from`` and ``period_date_to``.
+PERIOD_SQL = fiscal_period_sql("move.date", "company")
+ANALYTIC_PERIOD_SQL = fiscal_period_sql(
+    "analytic.date",
+    "company",
+    earlier_label=EARLIER_ANALYTIC_LABEL,
+)
 
-ANALYTIC_PERIOD_CASE_SQL = """
-    CASE
-        WHEN analytic.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-        THEN 'Fiscal year 2024-01-10 to 2025-09-30'
-        WHEN analytic.date >= DATE '2025-10-01'
-        THEN 'Fiscal year from 2025-10-01'
-        ELSE 'Earlier analytic accounting'
-    END
-"""
+
+def _bounded_period_domain(record, field_name):
+    """Date domain for the closed bucket a report row stands for.
+
+    The bounds are the row's own ``period_date_from`` / ``period_date_to``
+    columns. A missing lower bound means the open "earlier" bucket.
+    """
+    domain = []
+    if record.period_date_from:
+        domain.append((
+            field_name,
+            ">=",
+            fields.Date.to_string(record.period_date_from),
+        ))
+    if record.period_date_to:
+        domain.append((
+            field_name,
+            "<=",
+            fields.Date.to_string(record.period_date_to),
+        ))
+    return domain
 
 
 def _period_domain(record):
-    if record.period_key == FIRST_FISCAL_YEAR_PERIOD_KEY:
-        return [
-            ("move_id.date", ">=", "2024-01-10"),
-            ("move_id.date", "<=", "2025-09-30"),
-        ]
-    if record.period_key == CURRENT_PERIOD_KEY:
-        return [("move_id.date", ">=", "2025-10-01")]
-    if record.period_key == USL_MEDIA_PERIOD_KEY:
-        return []
-    return []
+    return _bounded_period_domain(record, "move_id.date")
 
 
 def _base_journal_item_domain(record):
@@ -47,16 +51,7 @@ def _base_journal_item_domain(record):
 
 
 def _analytic_line_period_domain(record):
-    if record.period_key == FIRST_FISCAL_YEAR_PERIOD_KEY:
-        return [
-            ("date", ">=", "2024-01-10"),
-            ("date", "<=", "2025-09-30"),
-        ]
-    if record.period_key == CURRENT_PERIOD_KEY:
-        return [("date", ">=", "2025-10-01")]
-    if record.period_key == USL_MEDIA_PERIOD_KEY:
-        return []
-    return []
+    return _bounded_period_domain(record, "date")
 
 
 def _analytic_lines_action(record, domain, name=None):
@@ -117,6 +112,8 @@ class RebuildAccountFinancialStatementLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     statement_key = fields.Char(readonly=True)
     statement_name = fields.Char(readonly=True)
     section_sequence = fields.Integer(readonly=True)
@@ -170,7 +167,7 @@ class RebuildAccountFinancialStatementLine(models.Model):
                            line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            CASE
                                WHEN account.account_type IN ('income', 'income_other', 'expense', 'expense_direct_cost', 'expense_depreciation')
                                THEN 'profit_and_loss'
@@ -229,7 +226,7 @@ class RebuildAccountFinancialStatementLine(models.Model):
                      GROUP BY line.company_id,
                               company.id,
                               company.currency_id,
-                              {PERIOD_CASE_SQL},
+                              {PERIOD_SQL.group_by},
                               account.id,
                               COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text),
@@ -241,6 +238,8 @@ class RebuildAccountFinancialStatementLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            'balance_sheet' AS statement_key,
                            'Balance Sheet' AS statement_name,
                            35 AS section_sequence,
@@ -260,7 +259,9 @@ class RebuildAccountFinancialStatementLine(models.Model):
                      GROUP BY company_id,
                               source_company_id,
                               company_currency_id,
-                              period_key
+                              period_key,
+                              period_date_from,
+                              period_date_to
                 )
                 SELECT * FROM account_lines
                 UNION ALL
@@ -280,6 +281,8 @@ class RebuildAccountTaxReportLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     report_section = fields.Char(readonly=True)
     tax_tag_id = fields.Many2one("account.account.tag", readonly=True)
     source_tax_tag_id = fields.Integer(readonly=True)
@@ -322,7 +325,7 @@ class RebuildAccountTaxReportLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            'Tax grid tags' AS report_section,
                            tag.id AS tax_tag_id,
                            tag.id AS source_tax_tag_id,
@@ -345,7 +348,7 @@ class RebuildAccountTaxReportLine(models.Model):
                      GROUP BY line.company_id,
                               company.id,
                               company.currency_id,
-                              {PERIOD_CASE_SQL},
+                              {PERIOD_SQL.group_by},
                               tag.id,
                               tag.id,
                               COALESCE(tag.name->>'fr_FR', tag.name->>'en_US', tag.name::text),
@@ -357,7 +360,7 @@ class RebuildAccountTaxReportLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            'VAT accounts' AS report_section,
                            NULL::integer AS tax_tag_id,
                            NULL::integer AS source_tax_tag_id,
@@ -379,7 +382,7 @@ class RebuildAccountTaxReportLine(models.Model):
                      GROUP BY line.company_id,
                               company.id,
                               company.currency_id,
-                              {PERIOD_CASE_SQL},
+                              {PERIOD_SQL.group_by},
                               account.id,
                               COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                               COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text)
@@ -409,6 +412,9 @@ class RebuildAccountEuTaxReportLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
+    period_month = fields.Date(readonly=True)
     report_type = fields.Selection(
         [
             ("ec_sales_list", "EC Sales List"),
@@ -444,6 +450,21 @@ class RebuildAccountEuTaxReportLine(models.Model):
     def action_open_journal_items(self):
         self.ensure_one()
         domain = _base_journal_item_domain(self)
+        if self.period_month:
+            domain.extend([
+                (
+                    "move_id.date",
+                    ">=",
+                    fields.Date.to_string(self.period_month),
+                ),
+                (
+                    "move_id.date",
+                    "<=",
+                    fields.Date.to_string(
+                        fields.Date.end_of(self.period_month, "month"),
+                    ),
+                ),
+            ])
         if self.partner_id:
             domain.append(("partner_id", "=", self.partner_id.id))
         if self.journal_id:
@@ -470,7 +491,8 @@ class RebuildAccountEuTaxReportLine(models.Model):
                            line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
+                           date_trunc('month', move.date)::date AS period_month,
                            line.move_id,
                            move.journal_id,
                            journal.code AS journal_code,
@@ -517,7 +539,8 @@ class RebuildAccountEuTaxReportLine(models.Model):
                            line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
+                           date_trunc('month', move.date)::date AS period_month,
                            line.move_id,
                            move.journal_id,
                            journal.code AS journal_code,
@@ -614,6 +637,9 @@ class RebuildAccountEuTaxReportLine(models.Model):
                        source_company_id,
                        company_currency_id,
                        period_key,
+                       period_date_from,
+                       period_date_to,
+                       period_month,
                        report_type,
                        report_name,
                        COALESCE(country_code, '') AS country_code,
@@ -650,6 +676,9 @@ class RebuildAccountEuTaxReportLine(models.Model):
                           source_company_id,
                           company_currency_id,
                           period_key,
+                          period_date_from,
+                          period_date_to,
+                          period_month,
                           report_type,
                           report_name,
                           country_code,
@@ -684,6 +713,8 @@ class RebuildAccountBankReconciliationLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date = fields.Date(readonly=True)
     journal_id = fields.Many2one("account.journal", readonly=True)
     journal_code = fields.Char(readonly=True)
@@ -730,7 +761,7 @@ class RebuildAccountBankReconciliationLine(models.Model):
                        bsl.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        move.date,
                        journal.id AS journal_id,
                        journal.code AS journal_code,
@@ -767,7 +798,7 @@ class RebuildAccountBankReconciliationLine(models.Model):
                           bsl.company_id,
                           company.id,
                           company.currency_id,
-                          {PERIOD_CASE_SQL},
+                          {PERIOD_SQL.group_by},
                           move.date,
                           journal.id,
                           journal.code,
@@ -800,6 +831,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     report_section = fields.Char(readonly=True)
     currency_id = fields.Many2one("res.currency", readonly=True)
     account_id = fields.Many2one("account.account", readonly=True)
@@ -846,7 +879,7 @@ class RebuildAccountCurrencyReportLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            line.currency_id,
                            account.id AS account_id,
                            COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text) AS account_code,
@@ -872,6 +905,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            'Foreign currency ledger' AS report_section,
                            currency_id,
                            account_id,
@@ -893,6 +928,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                               source_company_id,
                               company_currency_id,
                               period_key,
+                              period_date_from,
+                              period_date_to,
                               currency_id,
                               account_id,
                               account_code,
@@ -904,6 +941,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            'Realized exchange gains and losses',
                            currency_id,
                            account_id,
@@ -925,6 +964,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                               source_company_id,
                               company_currency_id,
                               period_key,
+                              period_date_from,
+                              period_date_to,
                               currency_id,
                               account_id,
                               account_code,
@@ -936,6 +977,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            'Unrealized foreign-currency open items',
                            currency_id,
                            account_id,
@@ -961,6 +1004,8 @@ class RebuildAccountCurrencyReportLine(models.Model):
                               source_company_id,
                               company_currency_id,
                               period_key,
+                              period_date_from,
+                              period_date_to,
                               currency_id,
                               account_id,
                               account_code,
@@ -988,6 +1033,8 @@ class RebuildAccountManagementSummaryLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     report_key = fields.Char(readonly=True)
     report_name = fields.Char(readonly=True)
     line_sequence = fields.Integer(readonly=True)
@@ -1063,7 +1110,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                     SELECT line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            account.account_type,
                            line.id AS move_line_id,
                            line.debit,
@@ -1081,6 +1128,8 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            source_company_id,
                            company_currency_id,
                            period_key,
+                           period_date_from,
+                           period_date_to,
                            count(move_line_id)::integer AS all_line_count,
                            greatest((max(date) - min(date) + 1), 1)::numeric AS day_count,
                            count(move_line_id) FILTER (
@@ -1153,10 +1202,12 @@ class RebuildAccountManagementSummaryLine(models.Model):
                      GROUP BY company_id,
                               source_company_id,
                               company_currency_id,
-                              period_key
+                              period_key,
+                              period_date_from,
+                              period_date_to
                 ),
                 line_sources AS (
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow' AS report_key, 'Cash Flow Statement' AS report_name, 10 AS line_sequence,
                            'CASH_RECEIVED' AS line_code, 'Cash received' AS line_name,
                            'currency' AS metric_type, 'Debit movements on cash and credit-card accounts' AS source_formula,
@@ -1164,7 +1215,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            cash_received AS amount, cash_received::double precision AS metric_value
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow', 'Cash Flow Statement', 20,
                            'CASH_SPENT', 'Cash spent',
                            'currency', 'Credit movements on cash and credit-card accounts',
@@ -1172,7 +1223,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            cash_spent, cash_spent::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow', 'Cash Flow Statement', 30,
                            'CASH_SURPLUS', 'Cash surplus',
                            'currency', 'Cash received minus cash spent',
@@ -1180,7 +1231,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            cash_received - cash_spent, (cash_received - cash_spent)::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow', 'Cash Flow Statement', 40,
                            'CLOSING_CASH', 'Closing bank balance',
                            'currency', 'Closing balance of cash and credit-card accounts',
@@ -1188,7 +1239,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            closing_cash, closing_cash::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 10,
                            'REVENUE', 'Total income',
                            'currency', 'Income and other income account balances with management sign',
@@ -1196,7 +1247,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            revenue, revenue::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 20,
                            'COST_OF_REVENUE', 'Cost of revenue',
                            'currency', 'Direct-cost expense account balances',
@@ -1204,7 +1255,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            cost_of_revenue, cost_of_revenue::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 30,
                            'GROSS_PROFIT', 'Gross profit',
                            'currency', 'Revenue minus cost of revenue',
@@ -1212,7 +1263,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            revenue - cost_of_revenue, (revenue - cost_of_revenue)::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 40,
                            'EXPENSES', 'Expenses',
                            'currency', 'Operating, depreciation and other expense account balances excluding direct costs',
@@ -1220,7 +1271,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            expenses, expenses::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 50,
                            'NET_PROFIT', 'Net profit',
                            'currency', 'Net balance of income and expense accounts with management sign',
@@ -1228,7 +1279,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            net_profit, net_profit::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 60,
                            'RECEIVABLES', 'Receivables',
                            'currency', 'Receivable account balances',
@@ -1236,7 +1287,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            receivables, receivables::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 70,
                            'PAYABLES', 'Payables',
                            'currency', 'Payable account balances with liability sign',
@@ -1244,7 +1295,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            payables, payables::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 80,
                            'NET_ASSETS', 'Net assets',
                            'currency', 'Asset balances minus liability balances',
@@ -1252,7 +1303,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            net_assets, net_assets::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 90,
                            'GROSS_PROFIT_MARGIN', 'Gross profit margin',
                            'percent', '(Gross profit / revenue) * 100, zero when revenue is zero',
@@ -1261,7 +1312,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            CASE WHEN revenue = 0 THEN 0 ELSE round(((revenue - cost_of_revenue) / revenue * 100)::numeric, 4)::double precision END
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 100,
                            'NET_PROFIT_MARGIN', 'Net profit margin',
                            'percent', '(Net profit / revenue) * 100, zero when revenue is zero',
@@ -1270,7 +1321,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            CASE WHEN revenue = 0 THEN 0 ELSE round((net_profit / revenue * 100)::numeric, 4)::double precision END
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 110,
                            'RETURN_ON_INVESTMENT', 'Return on investments',
                            'percent', '(Net profit / current assets) * 100, zero when current assets are zero',
@@ -1279,7 +1330,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            CASE WHEN current_assets = 0 THEN 0 ELSE round((net_profit / current_assets * 100)::numeric, 4)::double precision END
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 120,
                            'AVERAGE_DEBTORS_DAYS', 'Average debtors days',
                            'days', '(Receivables / revenue) * days in source period, zero when revenue is zero',
@@ -1288,7 +1339,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            CASE WHEN revenue = 0 THEN 0 ELSE round((receivables / revenue * day_count)::numeric, 4)::double precision END
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 130,
                            'AVERAGE_CREDITORS_DAYS', 'Average creditors days',
                            'days', '(Payables / (cost of revenue + expenses)) * days in source period, zero when denominator is zero',
@@ -1297,7 +1348,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            CASE WHEN cost_of_revenue + expenses = 0 THEN 0 ELSE round((payables / (cost_of_revenue + expenses) * day_count)::numeric, 4)::double precision END
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 140,
                            'SHORT_TERM_CASH_FORECAST', 'Short term cash forecast',
                            'currency', 'Receivables less payables',
@@ -1305,7 +1356,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            receivables - payables, (receivables - payables)::double precision
                       FROM aggregates
                     UNION ALL
-                    SELECT company_id, source_company_id, company_currency_id, period_key,
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'executive_summary', 'Executive Summary', 150,
                            'CURRENT_ASSETS_TO_LIABILITIES', 'Current assets to liabilities',
                            'ratio', 'Current assets / current liabilities, zero when current liabilities are zero',
@@ -1545,6 +1596,8 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     analytic_key = fields.Char(readonly=True)
     analytic_account_id = fields.Many2one("account.analytic.account", readonly=True)
     analytic_code = fields.Char(readonly=True)
@@ -1583,7 +1636,7 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
                     SELECT analytic.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {ANALYTIC_PERIOD_CASE_SQL} AS period_key,
+                           {ANALYTIC_PERIOD_SQL.select},
                            COALESCE(
                                analytic_account.id::text,
                                analytic.account_id::text,
@@ -1608,7 +1661,7 @@ class RebuildAccountAnalyticDistributionLine(models.Model):
                      GROUP BY analytic.company_id,
                               company.id,
                               company.currency_id,
-                              {ANALYTIC_PERIOD_CASE_SQL},
+                              {ANALYTIC_PERIOD_SQL.group_by},
                               COALESCE(
                                   analytic_account.id::text,
                                   analytic.account_id::text,

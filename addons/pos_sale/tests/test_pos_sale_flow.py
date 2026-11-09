@@ -471,6 +471,27 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
 
         self.start_pos_tour('test_settle_so_with_non_pos_groupable_uom')
 
+    def test_settle_so_price_unit_not_rounded(self):
+        lang = self.env['res.lang'].search([('code', '=', self.pos_user.lang)])
+        lang.write({'thousands_sep': '.', 'decimal_point': ','})
+        product = self.env['product.product'].create({
+            'name': 'Cable',
+            'available_in_pos': True,
+            'taxes_id': False,
+            'lst_price': 0.1838,
+        })
+        sale_order = self.env['sale.order'].sudo().create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({
+                'product_id': product.id,
+                'product_uom_qty': 100,
+                'price_unit': 0.1838,
+                'discount': 10,
+            })],
+        })
+        self.assertEqual(sale_order.amount_total, 16.54)
+        self.start_pos_tour('test_settle_so_price_unit_not_rounded')
+
     def test_settle_so_with_pos_downpayment(self):
         so = self.env['sale.order'].sudo().create({
             'partner_id': self.partner_a.id,
@@ -862,6 +883,28 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         self.main_pos_config.open_ui()
         self.start_pos_tour('test_down_payment_displayed', login="accountman")
 
+    def test_full_down_payment_so_still_listed(self):
+        """
+        Tests that a Sale Order fully paid by a down payment in the PoS is still listed, so it can be settled
+        """
+        product_a = self.env['product.product'].create({
+            'name': 'Product A',
+            'lst_price': 10.0,
+        })
+        so = self.env['sale.order'].sudo().create({
+            'name': 'Full Down Payment SO',
+            'partner_id': self.env['res.partner'].create({'name': 'Test Partner'}).id,
+            'order_line': [(0, 0, {
+                'product_id': product_a.id,
+                'product_uom_qty': 1,
+                'price_unit': product_a.lst_price,
+            })]
+        })
+        so.action_confirm()
+        self.main_pos_config.down_payment_product_id = self.env.ref("pos_sale.default_downpayment_product")
+        self.main_pos_config.open_ui()
+        self.start_pos_tour('test_full_down_payment_so_still_listed', login="accountman")
+
     def test_amount_to_invoice(self):
         """
         Checks that the amount to invoice is updated correctly when paying an order in the PoS
@@ -1132,7 +1175,12 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
         pos_order = self.env['pos.order'].search([('partner_id', '=', test_partner.id)], limit=1)
 
         self.assertEqual(pos_order.lines[0].qty, 12.0, "quantity should be 12.0")
-        self.assertEqual(pos_order.lines[0].price_unit, 0.83, "price of product should be 0.83")
+        self.assertEqual(pos_order.lines[0].price_unit, sale_order.order_line.price_unit / 12)
+        self.assertEqual(pos_order.amount_total, sale_order.amount_total)
+
+        session = self.main_pos_config.current_session_id
+        session.close_session_from_ui()
+        self.assertEqual(session.state, 'closed')
 
     def test_selected_partner_quotation_loading(self):
         """
@@ -1659,6 +1707,60 @@ class TestPoSSale(TestPointOfSaleHttpCommon):
             "a positive refund line must be treated as negative in the computation",
         )
 
+    def test_invoice_settled_so_with_combo_product(self):
+        self.main_pos_config.open_ui()
+        product = self.desk_pad.product_variant_id
+        combo = self.env['product.combo'].create({
+            'name': 'Desk Combo',
+            'combo_item_ids': [Command.create({'product_id': product.id, 'extra_price': 0})],
+        })
+        combo_product = self.env['product.product'].create({
+            'name': 'Combo Product',
+            'type': 'combo',
+            'list_price': product.lst_price,
+            'taxes_id': [],
+            'combo_ids': [Command.set(combo.ids)],
+        })
+        so = self.env['sale.order'].sudo().create({
+            'partner_id': self.partner_a.id,
+            'order_line': [Command.create({'product_id': combo_product.id, 'product_uom_qty': 1})],
+        })
+        so.order_line = [Command.create({
+            'product_id': product.id,
+            'product_uom_qty': 1,
+            'linked_line_id': so.order_line.id,
+            'combo_item_id': combo.combo_item_ids.id,
+        })]
+        so.action_confirm()
+        combo_so_line, item_so_line = so.order_line.sorted('id')
+        pos_order = self.env['pos.order'].create({
+            'company_id': self.env.company.id,
+            'session_id': self.main_pos_config.current_session_id.id,
+            'partner_id': self.partner_a.id,
+            'lines': [Command.create({
+                'product_id': combo_product.id, 'price_unit': 0.0, 'qty': 1.0,
+                'tax_ids': [], 'price_subtotal': 0.0, 'price_subtotal_incl': 0.0,
+                'sale_order_line_id': combo_so_line.id,
+                'sale_order_origin_id': so.id,
+            })],
+            'amount_total': product.lst_price, 'amount_tax': 0.0,
+            'amount_paid': 0.0, 'amount_return': 0.0,
+            'last_order_preparation_change': '{}',
+        })
+        pos_order.lines = [Command.create({
+            'product_id': product.id, 'price_unit': product.lst_price, 'qty': 1.0,
+            'tax_ids': [], 'price_subtotal': product.lst_price,
+            'price_subtotal_incl': product.lst_price,
+            'sale_order_line_id': item_so_line.id,
+            'sale_order_origin_id': so.id,
+            'combo_parent_id': pos_order.lines.id,
+            'combo_item_id': combo.combo_item_ids.id,
+        })]
+        pos_order.action_pos_order_invoice()
+        invoice_lines = pos_order.account_move.invoice_line_ids
+        self.assertEqual(invoice_lines.mapped('display_type'), ['line_section', 'product'])
+        self.assertEqual(invoice_lines.filtered(lambda l: l.display_type == 'product').price_subtotal, product.lst_price)
+
 
 @tagged('post_install', '-at_install')
 class TestPoSSalePayment(TestPointOfSaleHttpCommon, PaymentCommon):
@@ -1677,7 +1779,6 @@ class TestPoSSalePayment(TestPointOfSaleHttpCommon, PaymentCommon):
                 'product_uom_qty': 1,
                 'price_unit': self.product_a.lst_price,
             })],
-            'require_signature': False,
             'require_payment': True,
             'prepayment_percent': 0.3,
         })

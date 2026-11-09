@@ -1,5 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_expense_bank_match_candidate_list" model="ir.ui.view">
+        <field name="name">usl.expense.bank.match.candidate.list</field>
+        <field name="model">usl.expense.bank.match.candidate</field>
+        <field name="arch" type="xml">
+                    <list
+                        create="0"
+                        edit="0"
+                        delete="0"
+                        default_order="rank"
+                        limit="5">
+                        <field name="expense_id" width="90px" column_invisible="not context.get('usl_bank_match_show_expense')"/>
+                        <field name="amount_is_exact" column_invisible="True"/>
+                        <field name="currency_id" column_invisible="True"/>
+                        <field
+                            name="bank_amount"
+                            string="Amount"
+                            widget="monetary"
+                            options="{'currency_field': 'currency_id'}"/>
+                        <button
+                            name="action_open_confirmation"
+                            type="object"
+                            string="Use"
+                            icon="fa-link"
+                            class="btn-primary"
+                            groups="account.group_account_manager"
+                            invisible="not amount_is_exact"
+                            title="Review the selected bank transaction, then post this as a company-paid expense and reconcile its native payment."/>
+                        <field name="bank_date" string="Date"/>
+                        <field
+                            name="match_label"
+                            string="Match"
+                            widget="badge"
+                            decoration-primary="match_label == 'best'"
+                            decoration-muted="match_label == 'alternative'"/>
+                        <field name="journal_id" string="Journal"/>
+                        <field name="bank_label" string="Bank label"/>
+                        <field name="partner_id" string="Partner" optional="hide"/>
+                        <field name="evidence_summary" string="Why suggested"/>
+                        <field name="competing_expense_count" column_invisible="True"/>
+                    </list>
+        </field>
+    </record>
     <record id="view_hr_expense_form_bank_matching" model="ir.ui.view">
         <field name="name">hr.expense.form.company.bank.matching</field>
         <field name="model">hr.expense</field>
@@ -45,44 +87,14 @@
                 </div>
                 <field
                     name="usl_bank_match_candidate_ids"
+                    mode="list"
+                    context="{'list_view_ref': 'usl_accounting.view_expense_bank_match_candidate_list'}"
                     nolabel="1"
                     readonly="1"
                     groups="account.group_account_readonly,account.group_account_manager"
                     domain="[('state', '=', 'available')]"
                     invisible="not usl_bank_match_available_count">
-                    <list
-                        create="0"
-                        edit="0"
-                        delete="0"
-                        default_order="rank"
-                        limit="5">
-                        <field
-                            name="match_label"
-                            string="Match"
-                            widget="badge"
-                            decoration-primary="match_label == 'best'"
-                            decoration-muted="match_label == 'alternative'"/>
-                        <field name="bank_date" string="Date"/>
-                        <field
-                            name="bank_amount"
-                            string="Amount"
-                            widget="monetary"
-                            options="{'currency_field': 'currency_id'}"/>
-                        <field name="journal_id" string="Journal"/>
-                        <field name="bank_label" string="Bank label"/>
-                        <field name="partner_id" string="Partner" optional="hide"/>
-                        <field name="evidence_summary" string="Why suggested"/>
-                        <field name="competing_expense_count" column_invisible="True"/>
-                        <button
-                            name="action_open_confirmation"
-                            type="object"
-                            string="Use"
-                            icon="fa-link"
-                            class="btn-primary"
-                            groups="account.group_account_manager"
-                            invisible="not amount_is_exact"
-                            title="Review the selected bank transaction, then post this as a company-paid expense and reconcile its native payment."/>
-                    </list>
+
                 </field>
                 <field
                     name="usl_bank_match_candidate_ids"

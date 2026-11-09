@@ -57,7 +57,7 @@ test("browser submission failure closes the blank tab and preserves an explicit 
     patchWithCleanup(HTMLFormElement.prototype, { submit() { throw new Error("[QA] Browser failure"); } });
     openLinkedReceipt(environment(), action);
     expect(tab.document.querySelector("form")).toBe(null);
-    expect.verifySteps(["close", "The receipt website could not be opened. Try again from the expense."]);
+    expect.verifySteps(["close", "The receipt website could not be opened. Try again from the document."]);
 });
 
 test("missing CSRF or malformed action opens no tab", () => {

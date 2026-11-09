@@ -1,19 +1,23 @@
 import { expect, test } from "@odoo/hoot";
-import { setInputFiles, waitFor } from "@odoo/hoot-dom";
+import { press, setInputFiles, waitFor, waitForNone } from "@odoo/hoot-dom";
 import { animationFrame } from "@odoo/hoot-mock";
 import { Component, xml } from "@odoo/owl";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import {
     contains,
+    getService,
     mountWithCleanup,
     onRpc,
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
+import { WebClient } from "@web/webclient/webclient";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { browser } from "@web/core/browser/browser";
 import { Deferred } from "@web/core/utils/concurrency";
 import {
     FeedbackPanel,
+    FeedbackComposer,
     feedbackPageContext,
     pageContextNotice,
 } from "../src/js/feedback_messaging_menu";
@@ -98,7 +102,7 @@ function mockFeedbackStart(recent = []) {
     }));
 }
 
-async function mountFeedbackPanel(props = {}) {
+async function mountFeedbackPanel(props = {}, waitForDraft = true) {
     patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
     const component = await mountWithCleanup(FeedbackPanel, {
         props: {
@@ -110,6 +114,9 @@ async function mountFeedbackPanel(props = {}) {
         },
     });
     await waitFor("#usl_feedback_message");
+    if (waitForDraft) {
+        await waitFor("#usl_feedback_files:enabled");
+    }
     return component;
 }
 
@@ -343,8 +350,8 @@ test("feedback chat window preserves folds and releases cancelled, late, or clos
 
 test("browser back cancels the local page preview and any late result", () => {
     const service = feedbackChatWindowService.start(
-        { bus: { trigger() {} } },
-        { "mail.store": { chatHub: { opened: [], maxOpened: 1 } } }
+        { bus: { trigger() {}, addEventListener() {} } },
+        { "mail.store": { chatHub: { opened: [], maxOpened: 1 } }, command: { add() {} } }
     );
     const captureId = service.beginCapture({ action_id: 7 });
     let released = 0;
@@ -784,4 +791,244 @@ test("draft and provider errors preserve recovery actions and reporter input", a
     await animationFrame();
     expect(".o-usl-FeedbackPanel [role='alert']").toHaveText(/could not load/);
     expect(".o-usl-FeedbackPanel [role='alert'] button").toHaveText("Try again");
+});
+
+
+test("feedback accepts typing before the draft and page preview are ready", async () => {
+    const response = new Deferred();
+    onRpc("usl.feedback.submission", "feedback_start", () => response);
+    const component = await mountFeedbackPanel({ captureState: "preparing" }, false);
+    await contains("#usl_feedback_message").edit("[QA] Keep my report while preparing.");
+    expect(".o-usl-FeedbackPanel-submit button").not.toBeEnabled();
+    expect(".o-usl-FeedbackPanel-previewStatus").toHaveCount(1);
+    response.resolve({ draft_id: 41, recent: [], assistant_mode: "off" });
+    await animationFrame();
+    expect("#usl_feedback_message").toHaveValue("[QA] Keep my report while preparing.");
+    expect(".o-usl-FeedbackPanel-submit button").toBeEnabled();
+    expect(component.state.message).toBe("[QA] Keep my report while preparing.");
+});
+
+test("pasted images use the existing bounded attachment path and text paste remains native", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel();
+    let prevented = false;
+    const image = new File(["[QA] image"], "clipboard.png", { type: "image/png" });
+    onRpc("usl.feedback.submission", "feedback_add_attachment", ({ args }) => {
+        expect(args[1]).toBe("clipboard.png");
+        expect(args[2]).toBe("image/png");
+        expect(args[4]).toBe(false);
+        return { id: 123, name: "clipboard.png" };
+    });
+    await component.onInitialPaste({
+        clipboardData: { items: [{ kind: "file", type: "image/png", getAsFile: () => image }] },
+        preventDefault: () => { prevented = true; },
+    });
+    expect(prevented).toBe(true);
+    expect(component.state.attachments).toEqual([{ id: 123, name: "clipboard.png" }]);
+    prevented = false;
+    await component.onInitialPaste({
+        clipboardData: { items: [{ kind: "string", type: "text/plain" }] },
+        preventDefault: () => { prevented = true; },
+    });
+    expect(prevented).toBe(false);
+});
+
+test("sharing navigation keeps only five distinct technical steps", () => {
+    const service = new FeedbackChatWindowService({}, {});
+    for (let id = 1; id <= 8; id++) {
+        service.recordNavigation({ action: id, model: "project.task", token: "secret", resId: id });
+    }
+    service.recordNavigation({ action: 8, model: "project.task" });
+    expect(service.navigation).toEqual([4, 5, 6, 7, 8].map((action_id) => ({ action_id, model: "project.task" })));
+    expect(JSON.stringify(service.navigation)).not.toMatch(/secret|token|resId/);
+});
+
+test("sending before capture completes releases the late preview", () => {
+    const service = new FeedbackChatWindowService({ bus: { trigger() {} } }, {
+        "mail.store": { chatHub: { opened: [], maxOpened: 1 } },
+    });
+    const captureId = service.beginCapture({});
+    service.clearScreenshot();
+    let released = false;
+    service.completeCapture(captureId, { release: () => { released = true; } });
+    expect(released).toBe(true);
+    expect(service.screenshot).toBe(false);
+});
+
+test.tags("mobile");
+test("the mobile feedback composer sends without refocusing its input", async () => {
+    const input = { blur: () => expect.step("blur"), focus: () => expect.step("focus") };
+    const composer = {
+        ui: { isSmall: true }, ref: { el: input }, state: { active: true },
+        canProcessMessage: true,
+        props: { composer: { attachments: [], composerHtml: "[QA] Reply", autofocus: 1 },
+            onPostCallback: () => expect.step("posted") },
+        clear: () => expect.step("clear"),
+    };
+    await FeedbackComposer.prototype.processMessage.call(composer, async () => expect.step("send"));
+    expect.verifySteps(["blur", "send", "posted", "clear"]);
+    expect(composer.props.composer.autofocus).toBe(0);
+    expect(composer.state.active).toBe(true);
+});
+
+
+test("a pending page preview reserves one of ten attachment slots", async () => {
+    mockFeedbackStart();
+    const component = await mountFeedbackPanel({ captureState: "preparing" });
+    component.state.attachments = Array.from({ length: 9 }, (_, id) => ({ id, name: "[QA] image.png" }));
+    let warned = false;
+    component.notification = { add: () => { warned = true; } };
+    onRpc("usl.feedback.submission", "feedback_add_attachment", () => { throw new Error("No upload expected at capacity"); });
+    await component.addFiles([new File(["[QA]"], "clipboard.png", { type: "image/png" })]);
+    expect(warned).toBe(true);
+    expect(component.state.attachments).toHaveLength(9);
+});
+
+
+test("a second conversation cannot send or attach against the preceding draft", async () => {
+    const response = new Deferred();
+    let calls = 0;
+    onRpc("usl.feedback.submission", "feedback_start", () => {
+        calls++;
+        return calls === 1 ? { draft_id: 41, recent: [], assistant_mode: "off" } : response;
+    });
+    const component = await mountFeedbackPanel();
+    component.state.phase = "conversation";
+    component.state.task = feedbackTask();
+    const starting = component.newConversation();
+    await animationFrame();
+    await contains("#usl_feedback_message").edit("[QA] A separate report");
+    expect(component.state.draftId).toBe(false);
+    expect(".o-usl-FeedbackPanel-submit button").not.toBeEnabled();
+    expect("#usl_feedback_files").not.toBeEnabled();
+    onRpc("usl.feedback.submission", "feedback_submit_initial", () => { throw new Error("Do not submit the preceding draft"); });
+    await component.submitInitial();
+    response.resolve({ draft_id: 42, recent: [], assistant_mode: "off" });
+    await starting;
+    await animationFrame();
+    expect(component.state.draftId).toBe(42);
+    expect("#usl_feedback_message").toHaveValue("[QA] A separate report");
+    expect(".o-usl-FeedbackPanel-submit button").toBeEnabled();
+});
+
+
+test("completed native action navigation records feedback history and keeps the palette command", async () => {
+    patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
+    await mountWithCleanup(WebClient);
+    const action = getService("action");
+    const feedback = getService("usl_feedback.chat_window");
+    await action.doAction({ id: 501, type: "ir.actions.act_window", name: "[QA] First screen",
+        res_model: "res.partner", views: [[false, "list"]] });
+    await action.doAction({ id: 502, type: "ir.actions.act_window", name: "[QA] Second screen",
+        res_model: "res.partner", views: [[false, "list"]] });
+    expect(feedback.navigation.slice(-2)).toEqual([
+        { action_id: 501, model: "res.partner" }, { action_id: 502, model: "res.partner" },
+    ]);
+    expect(getService("command").getCommands(document.body).some(({ name }) => name === "Send product feedback")).toBe(true);
+    await press(["Control", "k"]);
+    await waitFor(".o_command_palette");
+    expect("#o_command_0").toHaveText("Send product feedback");
+    expect("#o_command_0").toHaveAttribute("aria-selected", "true");
+    await press("escape");
+    await waitForNone(".o_command_palette");
+    getService("dialog").add(ConfirmationDialog, { body: "[QA] Keep this modal open", confirm() {} });
+    await waitFor(".o_dialog");
+    await press(["Control", "k"]);
+    await waitFor(".o_command_palette");
+    expect("#o_command_0").toHaveText("Send product feedback");
+    let currentContext;
+    onRpc("usl.feedback.submission", "feedback_start", ({ args }) => {
+        currentContext = args[0];
+        return { draft_id: 41, recent: [], assistant_mode: "off" };
+    });
+    await contains("#o_command_0").click();
+    await waitForNone(".o_command_palette");
+    await waitFor(".o-usl-FeedbackChatWindow-active");
+    await animationFrame();
+    expect(".o_dialog").toHaveCount(1);
+    expect(".o-usl-FeedbackChatWindow").toHaveClass("o-usl-FeedbackChatWindow-active");
+    await waitFor("#usl_feedback_files:enabled");
+    expect(currentContext.navigation.at(-1).action_id).toBe(502);
+    const originalContext = currentContext;
+    getService("dialog").closeAll();
+    await waitForNone(".o_dialog");
+    onRpc("usl.feedback.submission", "feedback_add_attachment", () => ({ id: 173, name: "[QA] page.jpg" }));
+    onRpc("usl.feedback.submission", "feedback_submit_initial", () => feedbackTask());
+    onRpc("project.task", "feedback_poll_agent", () => feedbackTask());
+    await contains("#usl_feedback_message").edit("[QA] First report");
+    await contains(".o-usl-FeedbackPanel-submit button").click();
+    await waitFor(".o-test-FeedbackChatter");
+    await action.doAction({ id: 503, type: "ir.actions.act_window", name: "[QA] Third screen",
+        res_model: "res.partner", views: [[false, "list"]] });
+    await contains(".o-usl-FeedbackPanel-header button:contains('New')").click();
+    await waitFor("#usl_feedback_files:enabled");
+    expect(currentContext.navigation.at(-1).action_id).toBe(503);
+    expect(originalContext.navigation.at(-1).action_id).toBe(502);
+    await contains(".o-usl-FeedbackPanel-close").click();
+});
+
+
+test("New refreshes page evidence while refocusing a saved conversation does not", async () => {
+    let supplied;
+    onRpc("usl.feedback.submission", "feedback_start", ({ args }) => {
+        supplied = args[0];
+        return { draft_id: 41, recent: [], assistant_mode: "off" };
+    });
+    const refreshed = { action_id: 502, model: "res.partner", navigation: [{ action_id: 502, model: "res.partner" }] };
+    let refreshes = 0;
+    const component = await mountFeedbackPanel({
+        refreshContext: () => { refreshes++; return refreshed; },
+    });
+    component.state.task = feedbackTask();
+    component.state.phase = "conversation";
+    component.showConversation();
+    expect(refreshes).toBe(0);
+    await component.newConversation();
+    expect(supplied).toEqual(refreshed);
+    expect(refreshes).toBe(1);
+});
+
+
+test.tags("desktop");
+test("reopening folded feedback reclaims native dialog focus without losing its draft", async () => {
+    mockFeedbackStart();
+    patchWithCleanup(FeedbackPanel.components, { FeedbackChatter: TestChatter });
+    await mountWithCleanup(WebClient);
+    const feedback = getService("usl_feedback.chat_window");
+    const ui = getService("ui");
+    for (let cycle = 0; cycle < 2; cycle++) {
+        feedback.openFeedback();
+        await waitFor("#usl_feedback_files:enabled");
+        await contains("#usl_feedback_message").edit("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-fold").click();
+        getService("dialog").add(ConfirmationDialog, { body: "[QA] Later modal", confirm() {} });
+        await waitFor(".o_dialog");
+        const modal = ui.activeElement;
+        await press(["Control", "k"]);
+        await waitFor(".o_command_palette");
+        await contains("#o_command_0").click();
+        await waitForNone(".o_command_palette");
+        await animationFrame();
+        const root = document.querySelector(".o-usl-FeedbackChatWindow");
+        expect(ui.activeElement).toBe(root);
+        expect(root).toHaveClass("o-usl-FeedbackChatWindow-active");
+        expect("#usl_feedback_message").toHaveValue("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-fold").click();
+        await waitFor(".o-usl-FeedbackChatWindow.d-none");
+        expect(ui.activeElement).toBe(modal);
+        await press("Tab");
+        expect(document.activeElement.closest(".o_dialog")).not.toBe(null);
+        await contains(".o-usl-FeedbackChatBubble-button").click();
+        await animationFrame();
+        expect(ui.activeElement).toBe(root);
+        expect("#usl_feedback_message").toHaveValue("[QA] Keep this existing draft");
+        await contains(".o-usl-FeedbackPanel-close").click();
+        await waitForNone(".o-usl-FeedbackChatWindow");
+        expect(ui.activeElement).toBe(modal);
+        expect(".o_dialog").toHaveCount(1);
+        await press("Tab");
+        expect(document.activeElement.closest(".o_dialog")).not.toBe(null);
+        getService("dialog").closeAll();
+        await waitForNone(".o_dialog");
+    }
 });

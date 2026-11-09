@@ -1,6 +1,9 @@
-from odoo import _, api, fields, models
+from odoo import _, api, Command, fields, models
 from odoo.exceptions import AccessDenied, AccessError, ValidationError
 from odoo.fields import Domain
+
+
+_NOTIFICATION_PREFERENCE_TOKEN = object()
 
 
 class ResUsers(models.Model):
@@ -265,6 +268,24 @@ class ResUsers(models.Model):
         users._check_usl_agent_irreversible_incompatibility()
         return users
 
+    def _inverse_notification_type(self):
+        users = self.with_context(
+            usl_notification_preference_token=_NOTIFICATION_PREFERENCE_TOKEN,
+        )
+        return super(ResUsers, users)._inverse_notification_type()
+
+    def _usl_is_self_notification_marker_write(self, vals):
+        if (
+            self.env.context.get("usl_notification_preference_token") is not _NOTIFICATION_PREFERENCE_TOKEN
+            or self != self.env.user
+            or set(vals) != {"group_ids"}
+        ):
+            return False
+        inbox = self.env.ref("mail.group_mail_notification_type_inbox")
+        if self.notification_type == "inbox":
+            return not self.share and vals["group_ids"] == [Command.link(inbox.id)]
+        return vals["group_ids"] == [Command.unlink(inbox.id)]
+
     def write(self, vals):
         if self.filtered("usl_managed_agent_id") and not self.env.context.get("usl_agent_provisioning"):
             raise AccessError(_("Manage Agent identities from the Agent record."))
@@ -294,7 +315,11 @@ class ResUsers(models.Model):
             "usl_pocketid_email_link",
         }
         changing_another_identity = self != self.env.user and {"email", "name"} & set(vals)
-        if persisted and (sensitive_fields & set(vals) or changing_another_identity):
+        if (
+            persisted
+            and (sensitive_fields & set(vals) or changing_another_identity)
+            and not self._usl_is_self_notification_marker_write(vals)
+        ):
             self._usl_require_irreversible_action(
                 "authorization.user.change",
                 "change user identity or authorization",

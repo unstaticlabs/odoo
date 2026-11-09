@@ -66,11 +66,35 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.13"
+      - name: Verify the Mattermost Odoo pin is on main
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        # review also verifies the pin. On a pull request it puts the module
+        # diff between the base pin and the new pin into the job summary.
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            scripts/mattermost-odoo review --base "$BASE_SHA" > "$RUNNER_TEMP/mattermost-odoo-review.md"
+            cat "$RUNNER_TEMP/mattermost-odoo-review.md" >> "$GITHUB_STEP_SUMMARY"
+            cat "$RUNNER_TEMP/mattermost-odoo-review.md"
+          else
+            scripts/mattermost-odoo verify
+          fi
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
+      - name: Read the pinned Odoo MCP commit
+        id: mcp
+        run: printf 'commit=%s\n' "$(jq -r .commit deploy/odoo-mcp/release.json)" >> "$GITHUB_OUTPUT"
+      - name: Checkout pinned Odoo MCP
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: unstaticlabs/odoo-mcp
+          ref: ${{ steps.mcp.outputs.commit }}
+          path: .release/odoo-mcp
+          persist-credentials: false
       - name: Validate source, contracts, governance, XML and migrations
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,6 +105,8 @@ jobs:
           make action-risk-inventory
           scripts/check-github-governance
           scripts/check-action-pins
+          scripts/docs check
+          scripts/docs mcp check --repository "$GITHUB_WORKSPACE/.release/odoo-mcp"
           find custom-addons -name '*.xml' -print0 | xargs -0 -n1 python3 -c 'import sys,xml.etree.ElementTree as E; E.parse(sys.argv[1])'
           python3 .usl/bin/agent_skills_lock.py verify
           git diff --check
@@ -91,7 +117,8 @@ jobs:
       (github.event_name == 'push' && github.ref == 'refs/heads/19-usl-staging') ||
       (github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl')
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # Broad native catch-ups need room for backend and browser suites.
+    timeout-minutes: 60
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
       ODOO_TEST_IMAGE: usl-odoo:test-${{ github.sha }}
@@ -101,6 +128,8 @@ jobs:
         run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
       - name: Resolve pinned OCA sources
         run: scripts/sync-oca-addons
+      - name: Install the screenshot comparison library
+        run: python3 -m pip install --disable-pip-version-check --quiet 'Pillow>=10'
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
       - name: Build and load the qualified test image
@@ -123,6 +152,15 @@ jobs:
             USL_TEST_MODULES="$test_modules" \
             ODOO_TEST_IMAGE="$ODOO_TEST_IMAGE" \
             scripts/ci-product-database
+      - name: Retain the docs evidence and journey captures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: docs-evidence-${{ github.run_id }}
+          path: artifacts/usl-docs
+          if-no-files-found: warn
+          retention-days: 90
+          overwrite: true # a re-run attempt shares the run id
 
   result:
     name: USL qualification
@@ -197,7 +235,7 @@ jobs:
             --output qualification-evidence.json
           echo "sha256=$(sha256sum qualification-evidence.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Retain qualification evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == '19-usl' && format('production-qualification-{0}-{1}', github.event.pull_request.number, github.event.pull_request.head.sha) || format('qualification-{0}', github.run_id) }}
           path: qualification-evidence.json

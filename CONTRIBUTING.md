@@ -158,7 +158,12 @@ Update documentation when changing:
 - accounting behaviour;
 - stored-data upgrade and recovery expectations.
 
-Create or update an Architecture Decision Record for material architectural choices.
+User pages live under `docs/users/` with front matter; tutorials and how-to
+guides are generated from browser journeys and are never edited by hand. Run
+`make docs-check` before opening a pull request. `docs/README.md` has the rules.
+
+Create or update an Architecture Decision Record for material architectural
+choices in `docs/product/decisions/` (next free number, Nygard sections).
 
 
 ## Security and privacy

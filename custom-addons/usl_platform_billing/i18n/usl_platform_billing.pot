@@ -23,6 +23,14 @@ msgstr ""
 
 #. module: usl_platform_billing
 #. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(count)s bank transaction(s) adopted from existing Accounting "
+"reconciliations. No entry, payment or reconciliation was created or changed."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
 #: code:addons/usl_platform_billing/models/session.py:0
 msgid "%(count)s payout(s) remain open while payment is delayed."
 msgstr ""
@@ -85,6 +93,21 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "%s is no longer an eligible open incoming bank transaction."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%s is not a bank transaction already reconciled in Accounting against the "
+"selected payouts, or it has no amount left to link."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"%(bank)s is not connected to the Accounting documents of %(payout)s."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -241,7 +264,13 @@ msgstr ""
 #: model:ir.model.fields,help:usl_platform_billing.field_usl_platform_billing_bank_import_wizard__candidate_scope
 msgid ""
 "All open keeps every eligible incoming transaction available. Suggested only"
-" applies the configured recognition rules."
+" applies the configured recognition rules. Already reconciled in Accounting "
+"lists, for the selected payouts, the incoming transactions that Accounting "
+"has already reconciled against their invoices or compensation entries, "
+"directly or through intermediate entries, so they can be linked as bank "
+"evidence without changing any entry. Select the payouts first. The search "
+"follows reconciliations of receivable lines, within 4 steps; a transaction "
+"reconciled through a payment's outstanding receipts account is not found."
 msgstr ""
 
 #. module: usl_platform_billing
@@ -274,6 +303,11 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/models/bank_allocation.py:0
 msgid "Allocations cannot exceed the platform payout amount."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model:ir.model.fields.selection,name:usl_platform_billing.selection__usl_platform_billing_bank_import_wizard__candidate_scope__reconciled
+msgid "Already reconciled in Accounting"
 msgstr ""
 
 #. module: usl_platform_billing
@@ -1733,6 +1767,24 @@ msgstr ""
 
 #. module: usl_platform_billing
 #: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid "Incoming bank transactions already reconciled in Accounting"
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
+msgid ""
+"Select the payouts first. The list then shows the bank\n"
+"                        transactions Accounting already reconciled against those\n"
+"                        payouts' invoices or compensation entries, directly or\n"
+"                        through intermediate entries. Linking them only records the\n"
+"                        bank evidence on the payouts: no entry, payment or\n"
+"                        reconciliation is created or changed. If a payout is\n"
+"                        slightly above the bank amount, lower its amount to settle\n"
+"                        to match the selected transactions."
+msgstr ""
+
+#. module: usl_platform_billing
+#: model_terms:ir.ui.view,arch_db:usl_platform_billing.view_platform_billing_bank_import_wizard_form
 msgid "Open payouts"
 msgstr ""
 
@@ -2295,6 +2347,14 @@ msgstr ""
 #. odoo-python
 #: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
 msgid "Switch to payout creation mode first."
+msgstr ""
+
+#. module: usl_platform_billing
+#. odoo-python
+#: code:addons/usl_platform_billing/wizard/bank_import_wizard.py:0
+msgid ""
+"Transactions already reconciled in Accounting can only be linked to "
+"registered payouts."
 msgstr ""
 
 #. module: usl_platform_billing

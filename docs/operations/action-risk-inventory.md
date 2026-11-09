@@ -313,3 +313,57 @@ advance. Fixed server actions and their scheduled jobs are dispatched according
 to their exact reviewed classifications. Manually triggering a qualified
 ordinary job therefore does not require the Irreversible Actions capability,
 while an unknown job or a qualified protected job still fails closed.
+
+
+## Agent read-only projection
+
+The compiler includes every reviewed `read_only` RPC in the Agent read-only
+projection, except methods already using the existing collaboration contract.
+A method does not need a second generic-name or individually named helper grant.
+Native access, current owner/company ceilings and protected operations remain
+runtime responsibilities. Changing an action's reviewed classification still
+requires the normal evidence and digest review; method names alone neither
+approve a mutation nor veto an already reviewed read.
+
+
+### Accounting report session effects
+
+The native report client's load, group-toggle and PDF/XLSX export calls need
+recoverable temporary state. Their exact model/method keys use the existing
+collaboration projection; this does not admit other methods with the same name
+or change their reviewed risk classifications. Generic wizard writes, tax
+adjustments and official generation actions retain their existing delegation.
+
+For an Accounting delegation that cannot write, the report extension replaces
+the generic operation scope with private, identity-bound session provenance.
+The cooperative ORM effect check admits native report records, their generated
+preview children and the session's export-file attachment. Native ACLs, fields,
+owner authority and company checks continue. Native empty create/write/unlink
+operations delegate to Odoo without a report-session requirement; guessed
+nonempty IDs are never shrunk into an authorized no-op. No other transient or business model acquires
+write authority. Existing writable delegations use the unchanged native engine
+and operation scope.
+
+The binary field stores its download in an attachment, so inspecting only the
+TransientModel would miss a real effect. Qualification must cover native PDF
+provenance, XLSX replacement, refresh and source-line identifiers, plus atomic
+rollback when a linked closing export reaches its ordinary business-write
+boundary. Preserve original business attachments and financial records through
+predecessor and repeated upgrades; do not treat temporary export files as a
+reason to weaken the release preservation gate.
+Native grouping-set aggregation is resolved as an inherited helper effect, not
+as a setter because `_read_grouping_sets` contains `_set`. Source discovery
+includes the helper implementations for the effective model, and the public
+`formatted_read_grouping_sets` runtime digest binds its installed helper MRO.
+Real writes in an override remain mutation evidence; a method name or
+`@api.readonly` decorator does not override that evidence. Native read-only
+formatting may retain `sudo` for relation labels and fold metadata. Review that
+read context without treating it as a product mutation.
+
+Authenticated native read-only calls defer best-effort Agent credential usage
+telemetry until commit, using a separate writable governance cursor. The
+callback retains only the database name, credential ID and timestamp; a denied
+or rolled-back request does not run it. Authority, expiry and transport checks
+still run before dispatch. Native grouping field specifications also pass their
+field identities through the existing secret-field checker, including aggregate
+suffixes and nested grouping sets; this does not change the secret field list.

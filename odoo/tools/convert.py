@@ -35,6 +35,27 @@ from .safe_eval import safe_eval, time
 
 _logger = logging.getLogger(__name__)
 
+# USL distribution compatibility: native reloads must not reapply seeded
+# authority or rewrite an existing generated report asset. Review these exact
+# XML IDs and the native asset-loader behavior at the next upstream sync.
+_USL_NATIVE_SEED_GROUPS = frozenset({
+    'account.group_account_manager',
+    'hr.group_hr_manager',
+    'hr_expense.group_hr_expense_manager',
+    'project.group_project_manager',
+    'purchase.group_purchase_manager',
+    'sales_team.group_sale_manager',
+    'spreadsheet_dashboard.group_dashboard_manager',
+    'stock.group_stock_manager',
+})
+_USL_REPORT_STYLE = 'web.asset_styles_company_report'
+_USL_REPORT_STYLE_METADATA = {
+    'type': 'binary',
+    'name': 'res.company.scss',
+    'url': 'web/static/asset_styles_company_report.scss',
+    'mimetype': 'text/scss',
+}
+
 ConvertMode = typing.Literal['init', 'update']
 IdRef = dict[str, int | typing.Literal[False]]
 
@@ -357,6 +378,58 @@ form: module.record_id""" % (xml_id,)
         for child in rec.iterchildren('menuitem'):
             self._tag_menuitem(child, parent=menu.id)
 
+    def _usl_load_upgrade_record(self, model, data):
+        """Keep existing authority/evidence while applying exact native XML."""
+        xid, values = data['xml_id'], data['values']
+        if self.mode != 'update' or xid.partition('.')[0] != self.module:
+            return model._load_records([data], self.mode == 'update')
+        if model._name == 'res.groups' and xid in _USL_NATIVE_SEED_GROUPS:
+            if model.env['ir.model.data']._load_xmlid(xid):
+                # Existing membership is configured authority, not seed data.
+                # Other native fields, fresh groups and explicit custom-module
+                # migrations continue through the ordinary loader unchanged.
+                values.pop('user_ids', None)
+        if xid != _USL_REPORT_STYLE:
+            return model._load_records([data], True)
+
+        binding = model.env['ir.model.data'].search([
+            ('module', '=', 'web'), ('name', '=', 'asset_styles_company_report'),
+        ])
+        if not binding or binding.noupdate:
+            return model._load_records([data], True)
+        if model._name != 'ir.attachment' or binding.model != 'ir.attachment':
+            raise ValidationError('The native report-style XML ID has unexpected provenance.')
+        original = model.env.ref(xid, raise_if_not_found=False)
+        if not original:
+            # A dangling generated-asset XML ID has no original row to retain.
+            # Let the native loader recreate it, including normal XMLID repair.
+            return model._load_records([data], True)
+        if any(
+            original[field] != expected
+            for field, expected in _USL_REPORT_STYLE_METADATA.items()
+        ) or any(original[field] for field in ('res_model', 'res_id', 'res_field')):
+            raise ValidationError('The native report-style XML ID has unexpected provenance.')
+        if any(
+            values.get(field, original[field]) != expected
+            for field, expected in _USL_REPORT_STYLE_METADATA.items()
+        ) or any(values.get(field, original[field]) for field in ('res_model', 'res_id', 'res_field')):
+            raise ValidationError('The native report-style update has unexpected provenance.')
+        if 'raw' not in values or bytes(values['raw'] or b'') == bytes(original.raw or b''):
+            return model._load_records([data], True)
+
+        # Keep the original row and blob. Native asset URL lookup uses id DESC;
+        # the derivative and the exact XML ID therefore select the same bytes.
+        # A failed normal load rolls back both the derivative and its binding.
+        try:
+            with model.env.cr.savepoint():
+                derivative = original.copy(values)
+                binding.write({'res_id': derivative.id})
+                binding.flush_recordset(['res_id'])
+                model.env.registry.clear_cache()
+                return model._load_records([data], True)
+        finally:
+            model.env.registry.clear_cache()
+
     def _tag_record(self, rec, extra_vals=None):
         rec_model = rec.get("model")
         env = self.get_env(rec)
@@ -482,7 +555,7 @@ form: module.record_id""" % (xml_id,)
         data = dict(xml_id=xid, values=res, noupdate=self.noupdate)
         if foreign_record_to_create:
             model = model.with_context(foreign_record_to_create=foreign_record_to_create)
-        record = model._load_records([data], self.mode == 'update')
+        record = self._usl_load_upgrade_record(model, data)
         if xid:
             self.idref[xid] = record.id
         if config.get('import_partial'):

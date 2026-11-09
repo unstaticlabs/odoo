@@ -115,5 +115,17 @@
       "USL_BACKUP_CACHE_PASSWORD"
     ]
   },
+  "lifecycle": {
+    "mode": "on_demand",
+    "idle_after_ci_minutes": 30,
+    "idle_after_interactive_minutes": 30,
+    "wake_timeout_seconds": 900,
+    "max_lease_minutes": 480,
+    "sweep_seconds": 60,
+    "gateway_service": "gateway",
+    "listen_port": 8081,
+    "oidc_issuer": "https://auth.unstaticlabs.com",
+    "oidc_required_group": "c_suite"
+  },
   "state_directory": "/var/lib/usl-odoo/runtime/staging"
 }

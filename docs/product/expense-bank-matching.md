@@ -43,6 +43,43 @@ Draft, Submitted and Approved expenses are eligible. An already posted
 employee-paid expense is not silently converted; the user must correct it
 through Odoo's normal accounting workflow.
 
+## Continue an employee-paid expense
+
+When an Accounting Manager submits, approves or posts an employee-paid expense,
+Odoo refreshes the existing **Find bank transactions** suggestions. If none are
+available, the native action continues immediately. Company-paid expenses and
+users without existing bank-matching authority keep their native workflow;
+no bank evidence or additional rights are granted to those users.
+
+When suggestions exist, one dialog displays the same candidates table as the
+expense detail. **Use** opens the existing confirmation and completes native
+company payment and reconciliation. **Continue with employee payment** keeps
+the payer and resumes the requested Submit, Approve or Post action. **Cancel**
+leaves the expense and ledger unchanged. Refreshing suggestions only updates
+the recomputable candidate cache.
+
+Near amounts remain visible but cannot be used. Changed evidence refreshes the
+table before continuation; disappearing matches continue without an empty
+prompt. Native duplicate review, analytic validation and posting controls stay
+authoritative. Posting retains the native journal and accounting-date dialog,
+and checks for new bank evidence again at its final step without repeating an
+unchanged decision. Completed continuations cannot post a second entry.
+
+A batch is checked before any selected expense advances. Each candidate names
+its expense. After **Use** completes one expense, the remaining selection resumes
+the original action and shows any remaining candidates.
+
+People and delegated Agents use the same permissions and actions. The returned
+native wizard exposes `usl_review_expense_ids`, `usl_review_stage` and
+`usl_review_candidate_ids`; candidates carry readable bank-transaction IDs,
+exactness and supporting evidence. Call `action_continue_employee_payment` to
+continue, or the candidate's existing `action_open_confirmation` and returned
+wizard's `action_confirm` to use the company payment. Preserve the returned
+action context when continuing a batch.
+
+No business records are backfilled by the module upgrade. Continuation fields
+belong to the native temporary posting wizard.
+
 ## Access and history
 
 - Accounting Managers can refresh and use suggestions.

@@ -2,12 +2,16 @@
 
 from odoo import fields, models, tools
 
+from .fiscal_period import first_fiscal_year_sql
 from .report_views import (
-    PERIOD_CASE_SQL,
+    PERIOD_SQL,
     _base_journal_item_domain,
     _journal_items_action,
     _single_journal_item_action,
 )
+
+
+FIRST_YEAR_SQL = first_fiscal_year_sql("company")
 
 
 class RebuildAccountTrialBalanceLine(models.Model):
@@ -20,6 +24,8 @@ class RebuildAccountTrialBalanceLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date_from = fields.Date(readonly=True)
     date_to = fields.Date(readonly=True)
     account_id = fields.Many2one("account.account", readonly=True)
@@ -52,7 +58,7 @@ class RebuildAccountTrialBalanceLine(models.Model):
                        line.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        min(move.date) AS date_from,
                        max(move.date) AS date_to,
                        account.id AS account_id,
@@ -72,7 +78,7 @@ class RebuildAccountTrialBalanceLine(models.Model):
                  GROUP BY line.company_id,
                           company.id,
                           company.currency_id,
-                          {PERIOD_CASE_SQL},
+                          {PERIOD_SQL.group_by},
                           account.id,
                           COALESCE(account.code_store->>company.id::text, account.code_store->>'1', account.code_store::text),
                           COALESCE(account.name->>'fr_FR', account.name->>'en_US', account.name::text),
@@ -92,6 +98,8 @@ class RebuildAccountGeneralLedgerLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date = fields.Date(readonly=True)
     journal_id = fields.Many2one("account.journal", readonly=True)
     journal_code = fields.Char(readonly=True)
@@ -125,7 +133,7 @@ class RebuildAccountGeneralLedgerLine(models.Model):
                        line.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        move.date,
                        journal.id AS journal_id,
                        journal.code AS journal_code,
@@ -167,6 +175,8 @@ class RebuildAccountJournalReportLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date_from = fields.Date(readonly=True)
     date_to = fields.Date(readonly=True)
     journal_id = fields.Many2one("account.journal", readonly=True)
@@ -199,7 +209,7 @@ class RebuildAccountJournalReportLine(models.Model):
                        line.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        min(move.date) AS date_from,
                        max(move.date) AS date_to,
                        journal.id AS journal_id,
@@ -219,7 +229,7 @@ class RebuildAccountJournalReportLine(models.Model):
                  GROUP BY line.company_id,
                           company.id,
                           company.currency_id,
-                          {PERIOD_CASE_SQL},
+                          {PERIOD_SQL.group_by},
                           journal.id,
                           journal.code,
                           COALESCE(journal.name->>'fr_FR', journal.name->>'en_US', journal.name::text),
@@ -239,6 +249,8 @@ class RebuildAccountPartnerLedgerLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date = fields.Date(readonly=True)
     date_maturity = fields.Date(readonly=True)
     journal_id = fields.Many2one("account.journal", readonly=True)
@@ -277,7 +289,7 @@ class RebuildAccountPartnerLedgerLine(models.Model):
                        line.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        move.date,
                        line.date_maturity,
                        journal.id AS journal_id,
@@ -325,6 +337,8 @@ class RebuildAccountOpenItemLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     date = fields.Date(readonly=True)
     date_maturity = fields.Date(readonly=True)
     journal_id = fields.Many2one("account.journal", readonly=True)
@@ -359,7 +373,7 @@ class RebuildAccountOpenItemLine(models.Model):
                        line.company_id,
                        company.id AS source_company_id,
                        company.currency_id AS company_currency_id,
-                       {PERIOD_CASE_SQL} AS period_key,
+                       {PERIOD_SQL.select},
                        move.date,
                        line.date_maturity,
                        journal.id AS journal_id,
@@ -407,6 +421,8 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
     source_company_id = fields.Integer(readonly=True)
     company_currency_id = fields.Many2one("res.currency", readonly=True)
     period_key = fields.Char(readonly=True)
+    period_date_from = fields.Date(readonly=True)
+    period_date_to = fields.Date(readonly=True)
     as_of_date = fields.Date(readonly=True)
     partner_id = fields.Many2one("res.partner", readonly=True)
     account_type = fields.Char(readonly=True)
@@ -447,11 +463,11 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                            line.company_id,
                            company.id AS source_company_id,
                            company.currency_id AS company_currency_id,
-                           {PERIOD_CASE_SQL} AS period_key,
+                           {PERIOD_SQL.select},
                            CASE
-                               WHEN company.id = 1
-                                AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-                               THEN DATE '2025-09-30'
+                               WHEN {FIRST_YEAR_SQL.is_set}
+                                AND move.date BETWEEN {FIRST_YEAR_SQL.date_from} AND {FIRST_YEAR_SQL.date_to}
+                               THEN {FIRST_YEAR_SQL.date_to}
                                ELSE CURRENT_DATE
                            END AS as_of_date,
                            line.partner_id,
@@ -461,9 +477,9 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                                ELSE line.amount_residual
                            END AS presented_residual,
                            CASE
-                               WHEN company.id = 1
-                                AND move.date BETWEEN DATE '2024-01-10' AND DATE '2025-09-30'
-                               THEN DATE '2025-09-30'
+                               WHEN {FIRST_YEAR_SQL.is_set}
+                                AND move.date BETWEEN {FIRST_YEAR_SQL.date_from} AND {FIRST_YEAR_SQL.date_to}
+                               THEN {FIRST_YEAR_SQL.date_to}
                                ELSE CURRENT_DATE
                            END - COALESCE(line.date_maturity, move.date) AS age_days
                       FROM account_move_line line
@@ -479,6 +495,8 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                        source_company_id,
                        company_currency_id,
                        period_key,
+                       period_date_from,
+                       period_date_to,
                        as_of_date,
                        partner_id,
                        account_type,
@@ -494,6 +512,8 @@ class RebuildAccountAgedPartnerBalanceLine(models.Model):
                           source_company_id,
                           company_currency_id,
                           period_key,
+                          period_date_from,
+                          period_date_to,
                           as_of_date,
                           partner_id,
                           account_type

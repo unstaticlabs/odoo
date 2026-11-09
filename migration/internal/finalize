@@ -33,29 +33,11 @@ case "$qa_profile" in
     ;;
 esac
 
-# Update the complete delivered product allow-list. A broad ``-u all`` would
-# also mutate unrelated native and OCA modules during target finalization.
-product_modules=(
-  rebuild_account_migration
-  usl_access_control
-  usl_accounting
-  usl_b2c
-  usl_documents
-  usl_documents_accounting
-  usl_documents_b2c
-  usl_expense_batch
-  usl_feedback
-  usl_home
-  usl_locale
-  usl_platform_billing
-  usl_platform_billing_pocketid
-  usl_pocketid
-  usl_project
-  usl_sign
-  usl_tese_accounting
-  usl_tese_payroll
-)
-product_modules_csv="$(IFS=,; printf '%s' "${product_modules[*]}")"
+# Update the complete delivered product allow-list, read from the one product
+# registry (scripts/product-modules). A broad ``-u all`` would also mutate
+# unrelated native and OCA modules during target finalization.
+product_modules_csv="$(scripts/product-modules)"
+IFS=, read -r -a product_modules <<< "$product_modules_csv"
 
 configure_home_modules() {
   local module_name module_state
