@@ -357,24 +357,95 @@ class TestDeclarationAndClosing(TransactionCase):
             ("rule_id.period_basis", "=", "fiscal_year"),
         ]))
 
-    def test_sync_does_not_reopen_unreviewed_rows_of_a_locked_year(self):
-        company = self._company("Locked year stays closed")
+    def _inconsistent_rows(self, company):
+        """Rows whose status and applicability disagree about "not applicable"."""
+        rows = self.env["rebuild.account.declaration"].search([("company_id", "=", company.id)])
+        self.assertTrue(rows)
+        return rows.filtered(
+            lambda d: (d.status == "not_applicable") != (d.applicability == "not_applicable")
+        )
+
+    def test_rows_retired_at_the_rollover_are_revived_whatever_the_lock_date(self):
+        # The finished year is locked as a normal closing step before its
+        # returns are filed. The lock must neither keep the rows hidden nor be
+        # touched by the sync.
+        for lock in ("2026-09-30", "2026-12-31"):
+            with self.subTest(lock=lock):
+                company = self._company("Locked year revived " + lock)
+                Declaration = self.env["rebuild.account.declaration"]
+                with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+                    Declaration.sync_for_company(company)
+                fy2026 = Declaration.search([
+                    ("company_id", "=", company.id),
+                    ("fiscalyear_end", "=", date(2026, 9, 30)),
+                    ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
+                ])
+                self.assertEqual(len(fy2026), 2)
+                # What the rollover did: the retirement pass superseded them.
+                Declaration._retire_superseded_instances(
+                    company, Declaration.browse(), date(2025, 10, 1), date(2026, 9, 30),
+                )
+                fy2026.invalidate_recordset()
+                self.assertEqual(set(fy2026.mapped("status")), {"not_applicable"})
+                self.assertEqual(set(fy2026.mapped("applicability")), {"not_applicable"})
+
+                company.fiscalyear_lock_date = lock
+                with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+                    Declaration.sync_for_company(company)
+                fy2026.invalidate_recordset()
+                self.assertEqual(set(fy2026.mapped("applicability")), {"applicable"})
+                self.assertFalse(fy2026.filtered(lambda d: d.status == "not_applicable"))
+                self.assertEqual(
+                    Declaration.search([
+                        ("id", "in", fy2026.ids),
+                        ("status", "not in", ["filed", "paid", "archived", "not_applicable"]),
+                    ]),
+                    fy2026,
+                    "revived rows must show in the Open filter",
+                )
+                self.assertFalse(self._inconsistent_rows(company))
+                # The lock date belongs to the owner: the sync never moves it.
+                self.assertEqual(company.fiscalyear_lock_date, fields.Date.to_date(lock))
+
+    def test_reviewed_filed_paid_and_archived_rows_of_a_locked_year_are_untouched(self):
+        company = self._company("Locked year closed rows")
         Declaration = self.env["rebuild.account.declaration"]
         with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
             Declaration.sync_for_company(company)
         fy2026 = Declaration.search([
             ("company_id", "=", company.id),
             ("fiscalyear_end", "=", date(2026, 9, 30)),
-            ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
         ])
-        self.assertEqual(len(fy2026), 2)
-        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
-        company.fiscalyear_lock_date = "2026-09-30"
+        by_code = {row.rule_id.code: row for row in fy2026}
+        self.assertGreaterEqual(len(by_code), 4)
+        filed, paid, archived, reviewed = (by_code[code] for code in sorted(by_code)[:4])
+        filed.write({"status": "filed"})
+        paid.write({"status": "paid"})
+        archived.write({"status": "archived"})
+        decision = self.env["rebuild.account.assurance.decision"].create({
+            "gate": "declaration_review",
+            "conclusion": "accepted_with_difference",
+            "company_id": company.id,
+            "declaration_id": reviewed.id,
+            "decision_summary": "Synthetic reviewer decision.",
+            "evidence_summary": "Synthetic evidence.",
+        })
+        decision.action_record()
+        # A reviewed row that reads "not applicable" is a person's judgment and
+        # stays exactly as it is, status and applicability alike.
+        reviewed.write({"status": "not_applicable", "applicability": "not_applicable"})
 
+        company.fiscalyear_lock_date = "2026-09-30"
         with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
             Declaration.sync_for_company(company)
-        fy2026.invalidate_recordset()
-        self.assertEqual(set(fy2026.mapped("status")), {"not_applicable"})
+        for row in (filed, paid, archived, reviewed):
+            row.invalidate_recordset()
+        self.assertEqual(filed.status, "filed")
+        self.assertEqual(paid.status, "paid")
+        self.assertEqual(archived.status, "archived")
+        self.assertEqual((reviewed.status, reviewed.applicability), ("not_applicable", "not_applicable"))
+        self.assertEqual(company.fiscalyear_lock_date, date(2026, 9, 30))
+        self.assertFalse(self._inconsistent_rows(company))
 
     def test_unreviewed_not_applicable_row_returns_to_preparation(self):
         company = self._company("Manual N/A without review")

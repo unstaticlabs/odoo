@@ -22,12 +22,12 @@ class RebuildAccountDeclaration(models.Model):
         current_start, current_end = company.rebuild_compute_fiscalyear_dates(today)
         periods = [(current_start, current_end)]
         lock_date = company.fiscalyear_lock_date
-        # Retain the most recently completed fiscal year until it is locked.
-        # Otherwise, rolling into October drops the unclosed September year
-        # from the governed schedule and falsely retires its declarations.
-        # Once a lock covers that year it is no longer added here, so a sync
-        # never reopens rows of a closed year; the lock block below still keeps
-        # the fiscal year that contains the lock date itself.
+        # Always retain the most recently completed fiscal year. Its returns
+        # are due after the year ends, and the year is usually locked as a
+        # normal closing step before they are filed. Dropping it from the
+        # governed schedule, at the rollover or once a lock covers it, would
+        # let the retirement pass mark its declarations "not applicable".
+        # The lock date is only read here to place the fiscal year it falls in.
         previous_start, previous_end = company.rebuild_compute_fiscalyear_dates(
             current_start - timedelta(days=1)
         )
@@ -37,7 +37,6 @@ class RebuildAccountDeclaration(models.Model):
         if (
             (previous_start, previous_end) not in periods
             and not (first_start and previous_start < first_start)
-            and not (lock_date and lock_date >= previous_end)
         ):
             periods.append((previous_start, previous_end))
         if lock_date:
@@ -546,17 +545,22 @@ class RebuildAccountDeclaration(models.Model):
             "portal_entry_guidance": rule.filing_guidance,
         }
         if declaration:
-            # A previously (and perhaps mistakenly) superseded open row must
-            # become preparable again when its obligation re-enters the schedule.
-            # Keep any recorded accountant judgment intact, and never reopen a
-            # period that a fiscal-year lock already covers.
-            lock_date = company.fiscalyear_lock_date
-            if (
-                declaration.status == "not_applicable"
-                and not (lock_date and period_end <= lock_date)
-                and not declaration._with_recorded_review()
-            ):
-                vals["status"] = "to_prepare"
+            # A row the retirement pass superseded must become preparable again
+            # when its obligation is still in the schedule. Only this sync ever
+            # sets "not applicable" (the fields are read-only and a human
+            # review ends in "ready to file"), so no person's decision is
+            # undone, and a fiscal-year lock does not matter: it only freezes
+            # the ledger, and a returns row left "not applicable" under it
+            # would stay hidden from the open list and never count as overdue.
+            # A recorded review keeps its judgment, and filed, paid or archived
+            # rows are never in this state.
+            if declaration.status == "not_applicable":
+                if declaration._with_recorded_review():
+                    # Keep the row as it is: applicability must not say
+                    # "applicable" while the status still says otherwise.
+                    vals.pop("applicability")
+                else:
+                    vals["status"] = "to_prepare"
             declaration.write(vals)
         else:
             declaration = self.create({
