@@ -217,6 +217,8 @@ The lifecycle values of every product record, in the order the product moves thr
 
 ## Monthly B2C Accounting Session: State
 
+Draft: totals computed, not yet reviewed by a person. Reviewed: a B2C operator checked the totals and evidence. Locked: the month is frozen. Coverage percentages never change this state by themselves.
+
 - **Draft** (`draft`)
 - **Reviewed** (`reviewed`)
 - **Locked** (`locked`)
