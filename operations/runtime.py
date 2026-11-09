@@ -259,8 +259,17 @@ def _python_probe_problem(program: str) -> str | None:
             candidates = list(node.args[:2]) + [
                 keyword.value for keyword in node.keywords if keyword.arg in {"mode", "flags"}
             ]
+            if any(keyword.arg is None for keyword in node.keywords):
+                return "python -c opening a file with unpacked arguments"
             for value in candidates:
-                if isinstance(value, ast.Constant) and isinstance(value.value, str) and set(value.value) & set("wax+"):
+                # A first argument is a mode only when it looks like one;
+                # otherwise it is a path ('/var/lib/odoo/x' is a read).
+                if (
+                    isinstance(value, ast.Constant)
+                    and isinstance(value.value, str)
+                    and re.fullmatch(r"[rwaxbtU+]{1,4}", value.value)
+                    and set(value.value) & set("wax+")
+                ):
                     return "python -c opening a file for writing"
             second = node.args[1] if len(node.args) > 1 else None
             if second is not None and not (
