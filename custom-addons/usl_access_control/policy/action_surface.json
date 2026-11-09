@@ -1721616,11 +1721616,11 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "6c86320e9e572c577c42e44493da376107fc7d19eb722aac85652a3eeec71bee",
+      "manifest_sha256": "c1d0a7fed2733e1f0d1dde2d42bfc7a73e5e96345babf23807a5b2504fbcf36d",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "d74e3dc435a033184bfaad76c2a3a8843d06d2fe70cd6a81ed7a07bad8f9527f",
-      "version": "saas~19.3.1.0.17"
+      "source_sha256": "67c612dea48fc4096111d10ad14f26e5a5b357632926010d89f298660b70aa6c",
+      "version": "saas~19.3.1.0.18"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
