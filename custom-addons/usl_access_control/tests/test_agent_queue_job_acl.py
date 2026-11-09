@@ -1,14 +1,20 @@
 from odoo import Command, tools
 from odoo.tests import TransactionCase, tagged
 
+ACL_XMLID = "usl_accounting.access_queue_job_settings_admin"
+
 
 @tagged("post_install", "-at_install", "usl_access_control")
 class TestAgentKeepsSettingsAcrossQueueJobAcl(TransactionCase):
-    """An ACL granted to Settings must not reduce an Agent delegated Settings.
+    """Loading the queue.job ACL line must not reduce an Agent delegated Settings.
 
-    Granting through an implication on ``base.group_system`` re-ran Agent
-    reconciliation and deleted ``res_groups_users_rel`` rows; an ACL line does
-    neither.
+    The test follows the upgrade order: an Agent delegated Settings exists, the
+    module's real ``ir.model.access.csv`` is then loaded and the Agent
+    capabilities are reconciled. It proves that the ACL line leaves the Agent's
+    group rows, approved groups and delegation unchanged and gives it read
+    access to ``queue.job``. The contrast case proves the test can fail: linking
+    the queue job manager group under Settings, the withdrawn design, removes
+    Settings from the same Agent.
     """
 
     def _group_rows(self, user):
@@ -19,7 +25,14 @@ class TestAgentKeepsSettingsAcrossQueueJobAcl(TransactionCase):
         )
         return [row[0] for row in self.env.cr.fetchall()]
 
-    def test_agent_delegated_settings_survives_acl_load_and_reconciliation(self):
+    def _snapshot(self, agent):
+        return {
+            "rows": self._group_rows(agent.user_id),
+            "approved": sorted(agent.approved_effective_group_ids.ids),
+            "delegated": sorted(agent.delegated_group_ids.ids),
+        }
+
+    def _settings_agent(self):
         system = self.env.ref("base.group_system")
         owner = self.env["res.users"].with_context(
             no_reset_password=True, usl_governed_identity_provisioning=True,
@@ -42,19 +55,45 @@ class TestAgentKeepsSettingsAcrossQueueJobAcl(TransactionCase):
                 "access_mode": "read_write",
             },
         )
-        user = agent.user_id
-        approved = sorted(agent.approved_effective_group_ids.ids)
-        rows = self._group_rows(user)
-        self.assertIn(system.id, rows)
+        self.assertIn(system.id, self._group_rows(agent.user_id))
+        return agent
 
-        # Load the module's real ACL file again, then reconcile every Agent.
+    def test_agent_delegated_settings_survives_acl_load_and_reconciliation(self):
+        system = self.env.ref("base.group_system")
+        # Start from a database that predates the grant.
+        self.env.ref(ACL_XMLID).unlink()
+        self.assertFalse(self.env.ref(ACL_XMLID, raise_if_not_found=False))
+
+        agent = self._settings_agent()
+        user = agent.user_id
+        before = self._snapshot(agent)
+
+        # The upgrade loads the module's real ACL file, then reconciles Agents.
         tools.convert_file(
             self.env, "usl_accounting", "security/ir.model.access.csv",
             {}, "init", False, "data",
         )
+        acl = self.env.ref(ACL_XMLID, raise_if_not_found=False)
+        self.assertTrue(acl, "the real CSV must recreate the ACL row")
+        self.assertEqual(acl.group_id, system)
         self.env["res.users"]._usl_validate_all_agent_capabilities()
 
+        self.assertEqual(self._snapshot(agent), before)
         self.assertIn(system, user.all_group_ids)
-        self.assertEqual(sorted(agent.approved_effective_group_ids.ids), approved)
-        self.assertEqual(agent.delegated_group_ids, system)
-        self.assertEqual(self._group_rows(user), rows)
+        self.env["queue.job"].with_user(user).check_access("read")
+
+    def test_contrast_implication_on_settings_reconciles_the_agent(self):
+        system = self.env.ref("base.group_system")
+        manager = self.env.ref("queue_job.group_queue_job_manager")
+        agent = self._settings_agent()
+        user = agent.user_id
+        before = self._snapshot(agent)
+        self.assertNotIn(manager, agent.approved_effective_group_ids)
+
+        # The withdrawn design: Settings implies the queue job manager group.
+        system.write({"implied_ids": [Command.link(manager.id)]})
+        self.env["res.users"]._usl_validate_all_agent_capabilities()
+
+        self.assertNotEqual(self._snapshot(agent), before)
+        self.assertNotIn(system, user.all_group_ids)
+        self.assertNotIn(system.id, self._group_rows(user))
