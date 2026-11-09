@@ -118,6 +118,13 @@ class TestTesePayroll(AccountTestInvoicingCommon):
             groups="base.group_user,account.group_account_readonly",
             company_ids=company_commands,
         )
+        cls.accountant_no_hr_user = mail_new_test_user(
+            cls.env,
+            name="TESE accountant without HR",
+            login="tese_accountant_no_hr",
+            groups="base.group_user,account.group_account_user",
+            company_ids=company_commands,
+        )
         cls.readonly_user = mail_new_test_user(
             cls.env,
             name="TESE combined readonly",
@@ -1052,7 +1059,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertEqual(len(rounding_lines), 1)
         self.assertEqual(abs(rounding_lines.amount_residual), 0.55)
 
-    def _settle_natively(self, payslip, kind):
+    def _settle_natively(self, payslip, kind, user=None):
         """Pay a liability the way Bank Matching does, with no payroll button."""
         debt_lines = payslip._debt_lines(kind)
         bank = self.bank_journal.default_account_id
@@ -1084,7 +1091,7 @@ class TestTesePayroll(AccountTestInvoicingCommon):
                     item.account_id == line.account_id and item.debit > 0
                 ),
             )
-            (line + counterpart).reconcile()
+            (line + counterpart).with_user(user or self.env.user).reconcile()
         return move
 
     def _assert_state_matches_fields(self, payslip):
@@ -1125,12 +1132,34 @@ class TestTesePayroll(AccountTestInvoicingCommon):
         self.assertTrue(payslip.tese_payment_reconciled)
         self._assert_state_matches_fields(payslip)
 
-        payslip.tese_settlement_move_id = False
         tese_lines = payslip._debt_lines("tese")
         tese_lines.remove_move_reconcile()
         self.assertEqual(payslip.payment_status, "tese_open")
         self.assertEqual(payslip.state, "to_reconcile")
         self._assert_state_matches_fields(payslip)
+
+    def test_accountant_without_hr_role_can_reconcile_and_unreconcile(self):
+        """Bank Matching is an accounting right: the HR-only payslip rule
+        must not stop it, and must not be loosened to let it through."""
+        accountant = self.accountant_no_hr_user
+        payslip = self._posted_payslip()
+        payslip.action_finalize(notify=False)
+        with self.assertRaises(AccessError):
+            payslip.with_user(accountant).read(["state"])
+
+        self._settle_natively(payslip, "salary", user=accountant)
+        self.assertEqual(payslip.salary_open_amount, 0.0)
+        self.assertTrue(payslip.salary_payment_reconciled)
+        self._settle_natively(payslip, "tese", user=accountant)
+        self.assertEqual(payslip.state, "paid")
+        self._assert_state_matches_fields(payslip)
+
+        payslip._debt_lines("tese").with_user(accountant).remove_move_reconcile()
+        self.assertEqual(payslip.payment_status, "tese_open")
+        self.assertEqual(payslip.state, "to_reconcile")
+        self._assert_state_matches_fields(payslip)
+        with self.assertRaises(AccessError):
+            payslip.with_user(accountant).read(["state"])
 
     def test_open_message_does_not_count_a_carryover_as_urssaf_open(self):
         payslip = self._posted_payslip()
