@@ -119,6 +119,11 @@ fix the test was pinned to.
 
 ## Closing the loop on the card
 
+**Check `usl_feedback_pr_url` and `usl_feedback_branch` on every transition**, not only
+when the pull request opens. Read the card back; if the field is empty or points at a
+replaced, reverted or closed pull request, point it at the one that now carries the
+work and name the old one in the chatter note.
+
 Write `stage_id` and `state` in a single call: Odoo's `write()` resets `state`
 only when the stage changes *without* a state in the same values
 (`addons/project/models/project_task.py:1375`). Writing the stage alone is what
@@ -127,7 +132,7 @@ loses an approval.
 | Moment | Stage | State | Also |
 |---|---|---|---|
 | allocated | Build | In Progress | `usl_feedback_branch`, assignee Elio |
-| draft PR open | Build | In Progress | `usl_feedback_pr_url`, chatter note |
+| draft PR open | Build | In Progress | `usl_feedback_pr_url` (the pull request, or any external URL where the work is visible), chatter note |
 | you send it back | Build | **Changes Requested** | review notes on the PR, agent resumed or re-allocated, chatter note |
 | the agent returns a revision | Build | In Progress | re-review from the top |
 | you accept | Review | In Progress | PR ready, reviewers assigned, chatter note mentioning the reporter, **Approval activity** for the reporter |
