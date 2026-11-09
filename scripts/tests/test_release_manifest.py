@@ -409,6 +409,29 @@ class ReleaseManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
             validate(release, commit=commit)
 
+    def test_validates_the_docs_evidence_without_a_commit_argument(self) -> None:
+        # The launcher reads the active and the previous manifest with
+        # validate(payload) alone; the evidence binds to the manifest's own
+        # source commit, so neither an own-run nor an adopted evidence can
+        # make a deployed release unreadable.
+        from operations.docs import evidence as docs_evidence
+
+        release = manifest()
+        commit = release["source"]["commit"]
+        for evidence in (
+            docs_evidence.recovery(repository="unstaticlabs/odoo", commit=commit),
+            docs_evidence.stamp_release(docs_evidence.recovery(repository="unstaticlabs/odoo", commit="f" * 40), commit),
+        ):
+            release["qualification"]["docs_evidence"] = evidence
+            del release["identity"]
+            release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            self.assertEqual(validate(release)["source"]["commit"], commit)
+        release["qualification"]["docs_evidence"] = docs_evidence.recovery(repository="unstaticlabs/odoo", commit="f" * 40)
+        del release["identity"]
+        release["identity"] = hashlib.sha256(json.dumps(release, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        with self.assertRaisesRegex(ReleaseManifestError, "different commit"):
+            validate(release)
+
     def test_accepts_the_evidence_a_production_release_adopted_by_tree(self) -> None:
         from operations.docs import evidence as docs_evidence
 
