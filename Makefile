@@ -229,14 +229,13 @@ addon-tests: oca-addons-sync
 docs: docs-journeys docs-render
 
 # Journeys run in the test container so screenshots come from the same
-# Chromium as CI. MODULE limits the installed modules; the default is the
-# module set the journeys need.
+# Chromium as CI, on the whole product set as the qualification run does:
+# the committed screenshots must match its pixels, and a smaller database
+# draws other smart buttons, columns and home screens. MODULE=name narrows
+# the run for a quick iteration; only the default produces captures CI
+# accepts. The set is read lazily, only when a docs target expands it.
 DOCS_JOURNEY_DB ?= odoo_docs_journeys
-# The qualification run captures the journeys on the whole product set, and
-# the committed screenshots must match its pixels: a smaller database draws
-# other smart buttons, columns and home screens. MODULE=name narrows the run
-# for a quick iteration; only the default produces captures CI accepts.
-DOCS_JOURNEY_ALL_MODULES := $(shell scripts/product-modules)
+DOCS_JOURNEY_ALL_MODULES = $(shell scripts/product-modules)
 DOCS_JOURNEY_MODULES ?= $(or $(MODULE),$(DOCS_JOURNEY_ALL_MODULES))
 docs-journeys:
 	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
