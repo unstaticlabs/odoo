@@ -164,11 +164,47 @@ class UslAgent(models.Model):
     last_used_at = fields.Datetime(compute="_compute_credential_summary", store=False)
     needs_attention = fields.Boolean(compute="_compute_credential_summary", search="_search_needs_attention")
     access_summary = fields.Char(compute="_compute_access_summary")
+    image_1920 = fields.Image(
+        string="Avatar",
+        max_width=1920,
+        max_height=1920,
+        compute="_compute_avatar",
+        inverse="_inverse_avatar",
+        help="The picture shown for this Agent wherever it appears, such as chatter.",
+    )
+    image_128 = fields.Image(
+        string="Avatar (128px)",
+        max_width=128,
+        max_height=128,
+        compute="_compute_avatar",
+    )
 
     _user_unique = models.Constraint(
         "UNIQUE(user_id)",
         "An Odoo user can back only one Agent.",
     )
+
+    @api.depends("user_id.image_1920")
+    def _compute_avatar(self):
+        # The picture belongs to the Agent's backing user, which its manager has
+        # no right to read or write. Visibility of this record is the boundary,
+        # so the read is elevated for this one field only.
+        for agent in self:
+            user = agent.user_id.sudo()
+            agent.image_1920 = user.image_1920
+            agent.image_128 = user.image_128
+
+    def _inverse_avatar(self):
+        self._check_caller_can_manage()
+        for agent in self:
+            # Replacing a picture deletes the previous attachment, which the
+            # irreversible-action guard refuses for anyone without that
+            # permission. Managing the Agent was checked above, and the module
+            # already writes the backing user as the service identity.
+            agent.user_id.with_user(SUPERUSER_ID).with_context(
+                usl_agent_provisioning=True,
+            ).write({"image_1920": agent.image_1920})
+        self.invalidate_recordset(["image_1920", "image_128"])
 
     @api.depends("owner_id")
     def _compute_owner_authority(self):

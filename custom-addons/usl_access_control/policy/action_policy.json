@@ -177728,6 +177728,8 @@
       "action_keys": [
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2",
@@ -177794,6 +177796,12 @@
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": {
           "reachability_proof": "Internal read of model-access metadata used by Agent authorization checks; it has no independent RPC, controller, UI, or scheduled entry point and performs no mutation."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
@@ -177962,6 +177970,8 @@
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "b4a04c8d4a76665d9874e0292821fa0423f725361add50dcd14a62b0bb38ee00",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1": "a50323293ea3d8d38ed801c4a27daa708984c7371ba007a8249bb055cac313ee",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1": "e9a6712da6d4c17d04ede88228560774350f315bb70f4c49d40b0da570738fbd",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "63f0fd894e7cdbc255384ae69ce2a6b81644d237edae395fbe8c1dafdc1392e9",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "85b959c52d7c886c7fbc12687186f813682d3f38d547178ad6e93b86c37ec197",

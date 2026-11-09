@@ -57,6 +57,7 @@
                         </div>
                         <button name="action_acknowledge_authority_reduction" type="object" string="Review complete" class="btn-secondary"/>
                     </div>
+                    <field name="image_1920" widget="image" class="oe_avatar" options="{'preview_image': 'image_128'}"/>
                     <div class="oe_title">
                         <label for="name"/>
                         <h1><field name="name" placeholder="e.g. ChatGPT – USL Agent"/></h1>
