@@ -6,8 +6,11 @@ import ast
 import hashlib
 import json
 from collections import defaultdict, deque
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
+
+from operations.mattermost_odoo_release import load_pin
 
 INVENTORY_SCHEMA = "usl-module-inventory/v1"
 PLAN_SCHEMA = "usl-module-upgrade-plan/v1"
@@ -45,17 +48,38 @@ def _sha256_files(root: Path, paths: list[Path]) -> str:
     return digest.hexdigest()
 
 
+def installable_manifests(root: Path) -> Iterator[tuple[str, dict[str, Any]]]:
+    """Yield ``(name, manifest)`` for every installable add-on under custom-addons/."""
+    for manifest_path in sorted((root / "custom-addons").glob("*/__manifest__.py")):
+        value = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
+        if value.get("installable", True):
+            yield manifest_path.parent.name, value
+
+
+def external_product_modules(root: Path) -> frozenset[str]:
+    """Product modules exported into custom-addons/ at build time from a pin.
+
+    ``scripts/sync-external-addons`` exports them, so a synced checkout also
+    finds their manifests; an unsynced one still names them from the pin.
+    """
+    return frozenset({load_pin(root)["module"]})
+
+
+def product_modules(root: Path) -> frozenset[str]:
+    """The delivered product-module set: the one definition every gate reads.
+
+    A module is a product module because its manifest ships in custom-addons/
+    or because a pin exports it there at build time. Nothing else names them.
+    """
+    return frozenset(name for name, _ in installable_manifests(root)) | external_product_modules(root)
+
+
 def build_inventory(root: Path, *, require_dependencies: bool = False) -> dict[str, Any]:
     """Describe every installable custom add-on shipped in the product image."""
     addons = root / "custom-addons"
     modules: dict[str, Any] = {}
-    for manifest_path in sorted(addons.glob("*/__manifest__.py")):
-        name = manifest_path.parent.name
-        if name == "usl_bootstrap":
-            continue
-        value = ast.literal_eval(manifest_path.read_text(encoding="utf-8"))
-        if not value.get("installable", True):
-            continue
+    for name, value in installable_manifests(root):
+        manifest_path = addons / name / "__manifest__.py"
         files = [
             path for path in manifest_path.parent.rglob("*")
             if path.is_file()

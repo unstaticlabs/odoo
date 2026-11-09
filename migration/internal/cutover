@@ -641,8 +641,10 @@ gate() {
 
   printf '[1/5] Product/migration, action-risk and immutable release boundaries\n'
   scripts/check-product-migration-boundary
+  product_modules="$(scripts/product-modules)"
   run_odoo_shell "$database" scripts/odoo/product_database_boundary.py \
-    -e USL_PRODUCT_BOUNDARY_PREPROD=1
+    -e USL_PRODUCT_BOUNDARY_PREPROD=1 \
+    -e USL_PRODUCT_MODULES="$product_modules"
   if [[ "$VERIFIED_EVOLVED" == 1 ]]; then
     identity_json="$(tr -d '\n' < "$candidate/evidence/release-identity.json")"
   else
@@ -650,7 +652,8 @@ gate() {
   fi
   run_odoo_shell "$database" scripts/odoo/release_identity.py \
     -e USL_RELEASE_IDENTITY_JSON="$identity_json" \
-    -e USL_RELEASE_IDENTITY_APPLY=0
+    -e USL_RELEASE_IDENTITY_APPLY=0 \
+    -e USL_PRODUCT_MODULES="$product_modules"
   run_odoo_shell "$database" scripts/odoo/action_risk_inventory.py \
     -e ACTION_RISK_MODE=check
 

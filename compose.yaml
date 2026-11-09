@@ -1190,7 +1190,10 @@ services:
       ODOO_DB_FILTER: ${ODOO_DB_FILTER:-^odoo_dev$}
       ODOO_HTTP_INTERFACE: ${ODOO_HTTP_INTERFACE:-0.0.0.0}
       ODOO_MAX_CRON_THREADS: 0
-      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons}
+      # The test profile alone also sees test-addons/ (synthetic fixtures
+      # such as usl_bootstrap); the product image and every other service
+      # never mount it.
+      ODOO_ADDONS_PATH: ${ODOO_ADDONS_PATH:-/opt/odoo/addons,/opt/odoo/odoo/addons,/mnt/custom-addons,/mnt/oca-addons,/mnt/test-addons}
       USL_USER_DOCS_PATH: ${USL_USER_DOCS_PATH:-/mnt/user-docs}
       USL_EINVOICE_LIVE_ENABLED: ${USL_EINVOICE_LIVE_ENABLED:-0}
       USL_EREPORTING_LIVE_ENABLED: ${USL_EREPORTING_LIVE_ENABLED:-0}
@@ -1212,6 +1215,7 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons
+      - ./test-addons:/mnt/test-addons:ro
       - ./migration/accounting_restore/addons:/mnt/accounting-migration-addons:ro
       - ./migration/identity_restore/addons:/mnt/identity-migration-addons:ro
       - ./migration/product_restore/addons:/mnt/product-migration-addons:ro
@@ -1224,6 +1228,7 @@ services:
       - ./oca-src:/mnt/oca-src:ro
       - ./oca-addons:/mnt/oca-addons:ro
       - ./docs/users:/mnt/user-docs:ro
+      - ./artifacts/usl-docs:/mnt/usl-docs-artifacts
       - ${USL_DOCUMENT_RENDERER_CERT_DIR:-./private/document-renderer-certs}:/run/secrets/document-renderer:ro
       - ${USL_SIGN_ODOO_SECRET_DIR:-./.secrets/sign/odoo}:/run/usl-sign:ro
     networks:

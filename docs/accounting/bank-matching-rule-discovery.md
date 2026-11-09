@@ -3,7 +3,7 @@
 ## Qualification
 
 The final review, runtime, concurrency and upgrade evidence is recorded in the
-[30 October QA context](../product/qa/proven-bank-rule-proposals-20261030/README.md).
+[30 October QA context](../archive/product/qa/proven-bank-rule-proposals-20261030/README.md).
 The 15 October captures remain historical illustrations of the earlier form.
 Release admission and recovery continue through the distribution's normal gates.
 

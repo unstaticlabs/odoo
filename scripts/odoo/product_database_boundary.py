@@ -14,28 +14,29 @@ MIGRATION_MODULES = {
     "usl_tese_restore",
     "usl_collaboration_restore",
 }
-PRODUCT_MODULES = {
-    "rebuild_account_migration",
-    "usl_access_control",
-    "usl_accounting",
-    "usl_b2c",
-    "usl_b2c_ingest",
-    "usl_documents",
-    "usl_documents_accounting",
-    "usl_documents_b2c",
-    "usl_expense_batch",
-    "usl_feedback",
-    "usl_home",
-    "usl_locale",
-    "usl_mattermost",
-    "usl_platform_billing",
-    "usl_platform_billing_pocketid",
-    "usl_pocketid",
-    "usl_project",
-    "usl_sign",
-    "usl_tese_accounting",
-    "usl_tese_payroll",
-}
+
+def received_product_modules():
+    """The product-module set the host derived and passed in.
+
+    This script runs on stdin inside the Odoo container and cannot import
+    operations.module_release, so scripts/product-modules computes the set and
+    the caller passes it through USL_PRODUCT_MODULES.
+    """
+    raw = os.environ.get("USL_PRODUCT_MODULES", "")
+    modules = {name.strip() for name in raw.split(",") if name.strip()}
+    if not modules:
+        raise RuntimeError(
+            "USL_PRODUCT_MODULES is required: pass the output of "
+            "scripts/product-modules.",
+        )
+    return modules
+
+
+PRODUCT_MODULES = received_product_modules()
+# Synthetic fixtures under test-addons/. Their source never enters a product
+# image, but an existing database may still carry one, so the database itself
+# is checked.
+TEST_FIXTURE_MODULES = {"usl_bootstrap"}
 EXCLUDED_AUTO_INSTALL_MODULES = {
     "gamification",
     "hr_gamification",
@@ -111,7 +112,7 @@ module_states = dict(rows(
             MIGRATION_MODULES
             | PRODUCT_MODULES
             | EXCLUDED_AUTO_INSTALL_MODULES
-            | {"usl_bootstrap"},
+            | TEST_FIXTURE_MODULES,
         ),
     ),
 ))
@@ -126,8 +127,11 @@ for module_name in sorted(PRODUCT_MODULES):
             f"Product module {module_name} is not installed "
             f"({module_states.get(module_name, 'missing')}).",
         )
-if module_states.get("usl_bootstrap") == "installed":
-    errors.append("Test-only usl_bootstrap is installed in the product target.")
+for module_name in sorted(TEST_FIXTURE_MODULES):
+    if module_states.get(module_name) == "installed":
+        errors.append(
+            f"Test-only {module_name} is installed in the product target.",
+        )
 for module_name in sorted(EXCLUDED_AUTO_INSTALL_MODULES):
     if module_states.get(module_name) not in {None, "uninstalled", "uninstallable"}:
         errors.append(

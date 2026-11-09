@@ -1,0 +1,80 @@
+{
+  "journey": "correct-a-bank-statement-period",
+  "lang": "en",
+  "login": "bank_period_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_accounting.tests.test_accounting_journeys.TestBankPeriodJourney.test_correct_a_bank_statement_period",
+  "source_test_file": {
+    "line": 55,
+    "path": "custom-addons/usl_accounting/tests/test_accounting_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 3,
+    "path": "custom-addons/usl_accounting/static/tests/tours/bank_period_tour.js",
+    "steps": {
+      "apply": 24,
+      "correct": 9,
+      "corrected": 26,
+      "dialog": 14,
+      "reason": 19
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The ingestion that needs attention offers a period correction",
+      "id": "correct",
+      "index": 1,
+      "run": "click",
+      "screenshot": "01-correct.png",
+      "sha256": "273fb2b82fb20f26b08d6bc77d8d089c21a2d130f2eb9b4092326e1b037b1ce7",
+      "text": "Open **Accounting > Configuration > Bank Statement Email Setup**, choose the bank, and open the received export that reads **Needs attention** in its list; the activity on the bank journal points to the same record. Choose **Correct period**.",
+      "trigger": "button[name='action_correct_period']"
+    },
+    {
+      "assertion": "The correction dialog opens",
+      "id": "dialog",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Set the **start** and **end** of the period the statement really covers.",
+      "trigger": ".o_dialog [data-field='period_start']"
+    },
+    {
+      "assertion": "A reason is required and kept in the history",
+      "id": "reason",
+      "index": 3,
+      "run": "edit Verified official bank statement",
+      "screenshot": "02-reason.png",
+      "sha256": "f9590a3cd860b135e2803b57b3c1c9dbcb692d12024cc27b2003f9f3af63f058",
+      "text": "Write the **reason**, for example what the official statement says. It is posted in the import's history with your name.",
+      "trigger": ".o_dialog .o_field_widget[name='reason'] textarea"
+    },
+    {
+      "assertion": "Apply the corrected period",
+      "id": "apply",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Apply correction**.",
+      "trigger": ".o_dialog button[name='action_apply']"
+    },
+    {
+      "assertion": "The ingestion carries the corrected period",
+      "id": "corrected",
+      "index": 5,
+      "run": "",
+      "screenshot": "03-corrected.png",
+      "sha256": "6b250f76679275b444a9a9030ebb501a12165d2d76f6c3b3a41f0d42f92a15b1",
+      "text": "The import shows the corrected period and continues from there.",
+      "trigger": "body:not(:has(.o_dialog)) .o_form_view .o_field_widget[name='period_start']"
+    }
+  ],
+  "title": "Correct the period of an imported bank statement",
+  "tour": "usl_bank_period_correction",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

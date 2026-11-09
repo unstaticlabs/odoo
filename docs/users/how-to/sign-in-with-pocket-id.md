@@ -1,3 +1,17 @@
+---
+title: Sign in with Pocket ID
+type: how-to
+description: Sign in to Odoo and Documents with a passkey through Pocket ID, and recover when it fails.
+lang: en
+persona: everyone
+app: Access & identity
+models:
+  - res.users
+source:
+  - custom-addons/usl_pocketid
+generated: false
+---
+
 # Sign in with Pocket ID
 
 Pocket ID is the only normal sign-in method for Odoo and Documents.

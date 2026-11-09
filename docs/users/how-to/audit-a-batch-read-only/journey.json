@@ -1,0 +1,72 @@
+{
+  "journey": "audit-a-batch-read-only",
+  "lang": "en",
+  "login": "expense_batch_browser_reviewer",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_audit_a_batch_read_only",
+  "source_test_file": {
+    "line": 75,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 225,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "check-the-receipt-on-an-expense": 255,
+      "evidence": 228,
+      "history": 240,
+      "no_actions": 234,
+      "post-an-approved-batch": 316,
+      "reconciliation": 246,
+      "review-a-batch-before-submitting": 284
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The read-only accountant can inspect the Batch evidence",
+      "id": "evidence",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-evidence.png",
+      "sha256": "d7fbc5561dc77d4e90ce53029f19e1e8a65d6feb7cb675d813af2df391c3bbe1",
+      "text": "Open **Expenses > Expense Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts.",
+      "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids'])"
+    },
+    {
+      "assertion": "No lifecycle or line-correction action is exposed",
+      "id": "no_actions",
+      "index": 2,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "No lifecycle button and no line action is shown: nothing you do here can submit, approve, post or move an expense.",
+      "trigger": ".o_form_view:not(:has(header button)):not(:has(button[name='action_return_from_batch']))"
+    },
+    {
+      "assertion": "Accounting history remains available for audit",
+      "id": "history",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Open the **Accounting and history** tab.",
+      "trigger": ".o_notebook_headers .nav-link:contains('Accounting and history')"
+    },
+    {
+      "assertion": "Accounting reconciliation context is visible but read-only",
+      "id": "reconciliation",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-reconciliation.png",
+      "sha256": "467f2f2f95e964387c256fa9085e4ca14a547b54b42251a0f4e8d2b3e0911e50",
+      "text": "The reconciliation state of the Batch and its history are visible and locked. Use them to answer an audit question or to prepare a remark for the accountant who can act.",
+      "trigger": ".o_form_view .o_field_widget[name='accounting_reconciliation_state'].o_readonly_modifier"
+    }
+  ],
+  "title": "Audit a Batch as a read-only accountant",
+  "tour": "usl_expense_batch_readonly_audit",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

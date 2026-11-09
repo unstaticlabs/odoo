@@ -12,35 +12,20 @@ import hashlib
 import json
 import re
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    # Loaded by path (tests, odoo-dev) as well as imported as operations.*.
+    sys.path.insert(0, str(ROOT))
+
+from operations.module_release import product_modules  # noqa: E402
+
 SYNC_REPOSITORY = re.compile(
     r'^sync_repo "(?P<name>[^"]+)" "(?P<url>[^"]+)" '
     r'"(?P<branch>[^"]+)" "(?P<commit>[0-9a-f]{40})"$',
 )
-PRODUCT_MODULES = {
-    "rebuild_account_migration",
-    "usl_access_control",
-    "usl_accounting",
-    "usl_b2c",
-    "usl_b2c_ingest",
-    "usl_documents",
-    "usl_documents_accounting",
-    "usl_documents_b2c",
-    "usl_expense_batch",
-    "usl_feedback",
-    "usl_home",
-    "usl_locale",
-    "usl_mattermost",
-    "usl_platform_billing",
-    "usl_platform_billing_pocketid",
-    "usl_pocketid",
-    "usl_project",
-    "usl_sign",
-    "usl_tese_accounting",
-    "usl_tese_payroll",
-}
 ACTION_RISK_POLICY_DIRECTORY = ROOT / "custom-addons/usl_access_control/policy"
 
 
@@ -146,8 +131,14 @@ def manifest(path: Path) -> dict[str, object]:
 
 
 def product_module_versions() -> dict[str, str]:
+    """Version every product module from its manifest.
+
+    The perimeter is derived, so the identity follows the add-on set: adding
+    a module to custom-addons/ (or to the external pin) widens it, and the
+    pinned external add-on must have been exported before this runs.
+    """
     versions = {}
-    for module_name in sorted(PRODUCT_MODULES):
+    for module_name in sorted(product_modules(ROOT)):
         manifest_path = ROOT / "custom-addons" / module_name / "__manifest__.py"
         if not manifest_path.is_file():
             raise ReleaseIdentityError(

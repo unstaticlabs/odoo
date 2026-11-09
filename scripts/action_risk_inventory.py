@@ -29,6 +29,10 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from operations.module_release import product_modules  # noqa: E402
 DEFAULT_SURFACE = (
     ROOT / "custom-addons" / "usl_access_control" / "policy" / "action_surface.json"
 )
@@ -103,30 +107,6 @@ AGENT_COLLABORATION_METHODS = frozenset(
         "message_subscribe",
         "message_unsubscribe",
         "submit_mcp_feedback",
-    },
-)
-PRODUCT_MODULES = frozenset(
-    {
-        "rebuild_account_migration",
-        "usl_access_control",
-        "usl_accounting",
-        "usl_b2c",
-        "usl_b2c_ingest",
-        "usl_documents",
-        "usl_documents_accounting",
-        "usl_documents_b2c",
-        "usl_expense_batch",
-        "usl_feedback",
-        "usl_home",
-        "usl_locale",
-        "usl_mattermost",
-        "usl_platform_billing",
-        "usl_platform_billing_pocketid",
-        "usl_pocketid",
-        "usl_project",
-        "usl_sign",
-        "usl_tese_accounting",
-        "usl_tese_payroll",
     },
 )
 # Optional applications deliberately removed after Odoo reaches its native
@@ -1748,15 +1728,21 @@ def _merge_runtime(
 def discover_surface(
     *,
     root: Path = ROOT,
-    root_modules: Iterable[str] = PRODUCT_MODULES,
+    root_modules: Iterable[str] | None = None,
     installed_modules: Iterable[str] | None = None,
     runtime: Mapping[str, object] | None = None,
     country_codes: Iterable[str] = ("fr",),
 ) -> dict[str, object]:
-    """Discover a deterministic action surface from source and optional runtime facts."""
+    """Discover a deterministic action surface from source and optional runtime facts.
+
+    ``root_modules`` defaults to the delivered product-module set derived
+    from the add-on manifests and the external pin.
+    """
 
     modules = module_index(root)
-    requested_roots = sorted(set(root_modules))
+    requested_roots = sorted(
+        set(root_modules) if root_modules is not None else product_modules(root),
+    )
     if runtime is not None:
         runtime_modules = runtime.get("modules")
         if not isinstance(runtime_modules, list):
@@ -2429,7 +2415,7 @@ def _discover_from_args(args: argparse.Namespace) -> dict[str, object]:
     roots = (
         args.root_modules.split(",")
         if getattr(args, "root_modules", None)
-        else PRODUCT_MODULES
+        else None
     )
     return discover_surface(
         root=args.root,
@@ -2641,7 +2627,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 ]
                 candidate = discover_surface(
                     root=args.root,
-                    root_modules=surface.get("root_modules", PRODUCT_MODULES),
+                    root_modules=surface.get("root_modules"),
                     installed_modules=module_names,
                     country_codes=surface.get("country_codes", ("fr",)),
                 )

@@ -250,6 +250,7 @@ PY
     -e ODOO_INIT_DB="$clone_db" -e ODOO_DB_FILTER="^${clone_db}$" \
     -e USL_RELEASE_IDENTITY_JSON="$identity_json" \
     -e USL_RELEASE_IDENTITY_APPLY=1 \
+    -e USL_PRODUCT_MODULES="$(scripts/product-modules)" \
     init-db odoo shell --config=/etc/odoo/odoo.conf \
     --database="$clone_db" --shell-interface=python \
     < "$ROOT/scripts/odoo/release_identity.py" >/dev/null
