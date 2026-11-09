@@ -173,7 +173,8 @@ _SQL_WRITE = re.compile(
     r"PREPARE|EXECUTE|DISCARD|IMPORT|SECURITY|INTO)\b"
     r"|\b(?:pg_terminate_backend|pg_cancel_backend|pg_reload_conf|pg_rotate_logfile|"
     r"pg_switch_wal|pg_promote|pg_file_\w+|pg_advisory\w*|pg_create\w*|pg_drop\w*|"
-    r"set_config|nextval|setval|lo_\w+|dblink\w*)\s*\(",
+    r"set_config|nextval|setval|lo_\w+|dblink\w*|pg_stat_reset\w*|pg_logical_emit_message|"
+    r"pg_replication_slot_advance|pg_notify)\s*\(",
     re.IGNORECASE,
 )
 # Calls a probe program must not make: file-system, process and HTTP writes.
@@ -184,11 +185,14 @@ _PYTHON_WRITE_CALLS = frozenset({
     "rmtree", "move", "copy", "copy2", "copyfile", "copytree", "system", "popen",
     "execv", "execve", "execl", "execlp", "execvp", "spawnv", "kill", "fork", "touch",
     "mkfifo", "mknod", "utime", "post", "put", "patch", "delete", "exec", "eval",
-    "compile", "__import__", "setattr", "dup2",
+    "compile", "__import__", "setattr", "getattr", "dup2", "FileIO",
 })
+# The only POST bodies a probe may send: the Sign DSS health check and the
+# shared Ollama embedding. Both compute an answer and store nothing.
+_PYTHON_POST_PATHS = frozenset({"/v1/health", "/api/embed"})
 _PYTHON_WRITE_MODULES = frozenset({
     "subprocess", "shutil", "ctypes", "multiprocessing", "pty", "tempfile", "sqlite3",
-    "psycopg2", "importlib",
+    "psycopg2", "importlib", "http",
 })
 
 
@@ -213,14 +217,17 @@ def _python_probe_problem(program: str) -> str | None:
         function = node.func
         name = function.attr if isinstance(function, ast.Attribute) else getattr(function, "id", None)
         if name == "replace" and isinstance(function, ast.Attribute):
-            # str.replace is a read; os.replace and Path.replace move files.
-            if isinstance(function.value, ast.Name) and function.value.id == "os":
-                return "python -c calling os.replace"
+            # str.replace(old, new) is a read; os.replace(a, b) and
+            # Path.replace(target) move files.
+            if (isinstance(function.value, ast.Name) and function.value.id == "os") or len(node.args) < 2:
+                return "python -c calling a file replace"
             continue
         if name in _PYTHON_WRITE_CALLS:
             return f"python -c calling {name}"
         if name == "open":
-            mode = node.args[1] if len(node.args) > 1 else next(
+            # open(path, mode) and Path.open(mode).
+            position = 0 if isinstance(function, ast.Attribute) else 1
+            mode = node.args[position] if len(node.args) > position else next(
                 (keyword.value for keyword in node.keywords if keyword.arg == "mode"), None,
             )
             if mode is not None and not (
@@ -235,6 +242,14 @@ def _python_probe_problem(program: str) -> str | None:
             for keyword in node.keywords
         ):
             return "python -c sending a non-GET request"
+        sends_body = len(node.args) > 1 or any(keyword.arg == "data" for keyword in node.keywords)
+        if name == "urlopen" and sends_body:
+            return "python -c posting through urlopen"
+        if name == "Request" and sends_body:
+            url = node.args[0] if node.args else None
+            suffix = url.right if isinstance(url, ast.BinOp) else url
+            if not (isinstance(suffix, ast.Constant) and suffix.value in _PYTHON_POST_PATHS):
+                return "python -c posting to an unreviewed endpoint"
     return None
 
 
@@ -298,6 +313,8 @@ def _curl_problem(command: list[str]) -> str | None:
                 return f"curl {argument} without a value"
             if argument == "--output" and arguments[index + 1] != "/dev/null":
                 return "curl --output to a file"
+            if argument == "--write-out" and "%output" in arguments[index + 1]:
+                return "curl --write-out to a file"
             index += 2
             continue
         if re.fullmatch(r"https?://[^\s]+", argument):
