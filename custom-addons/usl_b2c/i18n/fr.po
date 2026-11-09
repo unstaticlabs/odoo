@@ -3064,8 +3064,8 @@ msgid "Historical B2C orders cannot be linked to payment transactions."
 msgstr "Les commandes B2C historiques ne peuvent pas être liées à des transactions de paiement."
 
 #. module: usl_b2c
-msgid "Locked: this month is closed and immutable. A B2C manager can unlock it."
-msgstr "Verrouillée : ce mois est clos et immuable. Un gestionnaire B2C peut la débloquer."
+msgid "Locked: the session is closed and immutable. A B2C manager can unlock it."
+msgstr "Verrouillée : la session est close et immuable. Un gestionnaire B2C peut la débloquer."
 
 #. module: usl_b2c
 msgid "Reviewed by %(user)s. Next step: Lock the session to freeze the month."
@@ -3110,3 +3110,31 @@ msgstr "Prochaine étape de vérification"
 #. module: usl_b2c
 msgid "Awaiting Review"
 msgstr "En attente de vérification"
+
+#. module: usl_b2c
+msgid "Review Status"
+msgstr "État de la vérification"
+
+#. module: usl_b2c
+msgid "Short answer to \"is this month incomplete, or just not reviewed?\" for lists. The sentence on the form says what to do about it."
+msgstr "Réponse courte à « ce mois est-il incomplet, ou simplement pas vérifié ? » pour les listes. La phrase du formulaire dit quoi faire."
+
+#. module: usl_b2c
+msgid "Awaiting review"
+msgstr "En attente de vérification"
+
+#. module: usl_b2c
+msgid "Ready to lock"
+msgstr "Prêt à verrouiller"
+
+#. module: usl_b2c
+msgid "Not refreshed"
+msgstr "Non actualisée"
+
+#. module: usl_b2c
+msgid "1 open gap"
+msgstr "1 écart ouvert"
+
+#. module: usl_b2c
+msgid "%(count)s open gaps"
+msgstr "%(count)s écarts ouverts"

@@ -26,10 +26,10 @@
         <field name="model">b2c.accounting.session</field>
         <field name="arch" type="xml">
             <list decoration-success="state == 'locked'" decoration-warning="pending_link_count or pending_mapping_count or pending_conversion_count">
-                <field name="period_start"/>
+                <field name="review_status" width="140px"/>
+                <field name="state" widget="badge" width="110px"/>
                 <field name="name"/>
-                <field name="state" widget="badge"/>
-                <field name="review_next_step" optional="show"/>
+                <field name="period_start"/>
                 <field name="channel_id" optional="show"/>
                 <field name="source_provider" optional="show"/>
                 <field name="order_count" sum="Orders"/>

@@ -636,6 +636,7 @@ class TestB2cFoundation(TransactionCase):
             },
         )
         self.assertIn("Refresh", session.review_next_step)
+        self.assertEqual(session.review_status, "Not refreshed")
         order = self.env["b2c.order"].create(self._order_values("review-step"))
         order.accounting_link_state = "not_applicable"
         session.action_refresh()
@@ -645,18 +646,31 @@ class TestB2cFoundation(TransactionCase):
         self.assertEqual(session.state, "draft")
         self.assertIn("not a review", session.review_next_step)
         self.assertIn("Mark Reviewed", session.review_next_step)
+        # The list cell is a short label, not the sentence.
+        self.assertEqual(session.review_status, "Awaiting review")
 
         order.accounting_link_state = "pending"
         session.action_refresh()
         self.assertEqual(session.state, "draft")
         self.assertIn("1 record", session.review_next_step)
         self.assertNotIn("not a review", session.review_next_step)
+        self.assertEqual(session.review_status, "1 open gap")
+        self.assertEqual(session.state, "draft")
+
+        second = self.env["b2c.order"].create(self._order_values("review-step-2"))
+        second.accounting_link_state = "pending"
+        session.action_refresh()
+        self.assertEqual(session.review_status, "2 open gaps")
 
         session.action_mark_reviewed()
         self.assertIn("Lock", session.review_next_step)
+        self.assertEqual(session.review_status, "Ready to lock")
         session.action_lock()
         self.assertIn("locked", session.review_next_step.lower())
         self.assertNotIn("Mark Reviewed", session.review_next_step)
+        self.assertEqual(session.review_status, "Locked")
+        for label in ("Not refreshed", "Awaiting review", "1 open gap", "Ready to lock", "Locked"):
+            self.assertLess(len(label), 20, "list labels must fit a phone-width cell")
 
     def test_acl_and_company_isolation(self):
         order = self.env["b2c.order"].create(self._order_values("acl"))

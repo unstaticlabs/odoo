@@ -130,6 +130,13 @@ class B2cAccountingSession(models.Model):
     locked_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     locked_at = fields.Datetime(readonly=True, copy=False)
     review_note = fields.Text()
+    review_status = fields.Char(
+        compute="_compute_review_next_step",
+        help=(
+            "Short answer to \"is this month incomplete, or just not reviewed?\" "
+            "for lists. The sentence on the form says what to do about it."
+        ),
+    )
     review_next_step = fields.Char(
         compute="_compute_review_next_step",
         help=(
@@ -203,18 +210,26 @@ class B2cAccountingSession(models.Model):
     )
     def _compute_review_next_step(self):
         for session in self:
+            open_gaps = (
+                session.pending_link_count
+                + session.pending_mapping_count
+                + session.pending_conversion_count
+            )
             if session.state == "locked":
+                status = self.env._("Locked")
                 step = self.env._(
-                    "Locked: this month is closed and immutable. "
+                    "Locked: the session is closed and immutable. "
                     "A B2C manager can unlock it.",
                 )
             elif session.state == "reviewed":
+                status = self.env._("Ready to lock")
                 step = self.env._(
                     "Reviewed by %(user)s. Next step: Lock the session "
                     "to freeze the month.",
                     user=session.reviewed_by_id.name or "-",
                 )
             elif not session.refreshed_at:
+                status = self.env._("Not refreshed")
                 step = self.env._(
                     "Not refreshed yet. Refresh the evidenced totals, "
                     "then review them.",
@@ -242,6 +257,12 @@ class B2cAccountingSession(models.Model):
                             count=session.pending_conversion_count,
                         ),
                     )
+                if open_gaps == 1:
+                    status = self.env._("1 open gap")
+                elif open_gaps:
+                    status = self.env._("%(count)s open gaps", count=open_gaps)
+                else:
+                    status = self.env._("Awaiting review")
                 if gaps:
                     step = self.env._(
                         "Draft, awaiting review. Still open: %(gaps)s. "
@@ -254,6 +275,7 @@ class B2cAccountingSession(models.Model):
                         "disposition, but coverage is not a review: a B2C "
                         "operator checks the totals, then presses Mark Reviewed.",
                     )
+            session.review_status = status
             session.review_next_step = step
 
     def action_refresh(self):
