@@ -55,6 +55,11 @@ class B2cAccountingSession(models.Model):
         default="draft",
         index=True,
         tracking=True,
+        help=(
+            "Draft: totals computed, not yet reviewed by a person. Reviewed: a "
+            "B2C operator checked the totals and evidence. Locked: the month is "
+            "frozen. Coverage percentages never change this state by themselves."
+        ),
     )
     company_currency_id = fields.Many2one(
         related="company_id.currency_id",
@@ -125,6 +130,14 @@ class B2cAccountingSession(models.Model):
     locked_by_id = fields.Many2one("res.users", readonly=True, copy=False)
     locked_at = fields.Datetime(readonly=True, copy=False)
     review_note = fields.Text()
+    review_next_step = fields.Char(
+        compute="_compute_review_next_step",
+        help=(
+            "What stands between this session and the next state. Coverage "
+            "percentages measure evidence; moving from Draft to Reviewed is a "
+            "person's decision and never follows from a percentage."
+        ),
+    )
     accounting_link_ids = fields.One2many(
         "b2c.accounting.link",
         "session_id",
@@ -179,6 +192,69 @@ class B2cAccountingSession(models.Model):
         if self.source_provider:
             domain.append(("source_provider", "=", self.source_provider))
         return domain
+
+    @api.depends(
+        "state",
+        "refreshed_at",
+        "pending_link_count",
+        "pending_mapping_count",
+        "pending_conversion_count",
+        "reviewed_by_id",
+    )
+    def _compute_review_next_step(self):
+        for session in self:
+            if session.state == "locked":
+                step = self.env._(
+                    "Locked: this month is closed and immutable. "
+                    "A B2C manager can unlock it.",
+                )
+            elif session.state == "reviewed":
+                step = self.env._(
+                    "Reviewed by %(user)s. Next step: Lock the session "
+                    "to freeze the month.",
+                    user=session.reviewed_by_id.name or "-",
+                )
+            elif not session.refreshed_at:
+                step = self.env._(
+                    "Not refreshed yet. Refresh the evidenced totals, "
+                    "then review them.",
+                )
+            else:
+                gaps = []
+                if session.pending_link_count:
+                    gaps.append(
+                        self.env._(
+                            "%(count)s record(s) without an accounting disposition",
+                            count=session.pending_link_count,
+                        ),
+                    )
+                if session.pending_mapping_count:
+                    gaps.append(
+                        self.env._(
+                            "%(count)s order line(s) not mapped",
+                            count=session.pending_mapping_count,
+                        ),
+                    )
+                if session.pending_conversion_count:
+                    gaps.append(
+                        self.env._(
+                            "%(count)s record(s) awaiting currency conversion",
+                            count=session.pending_conversion_count,
+                        ),
+                    )
+                if gaps:
+                    step = self.env._(
+                        "Draft, awaiting review. Still open: %(gaps)s. "
+                        "Resolve them, then a B2C operator presses Mark Reviewed.",
+                        gaps="; ".join(gaps),
+                    )
+                else:
+                    step = self.env._(
+                        "Draft, awaiting review. Every record has an accounting "
+                        "disposition, but coverage is not a review: a B2C "
+                        "operator checks the totals, then presses Mark Reviewed.",
+                    )
+            session.review_next_step = step
 
     def action_refresh(self):
         for session in self:

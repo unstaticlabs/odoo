@@ -9,6 +9,7 @@
                 <field name="period_start"/>
                 <field name="channel_id"/>
                 <filter name="open" string="Open" domain="[('state', '!=', 'locked')]"/>
+                <filter name="awaiting_review" string="Awaiting Review" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False)]"/>
                 <filter name="blocked_coverage" string="Incomplete Coverage" domain="['|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
                 <group>
                     <filter name="group_month" string="Month" context="{'group_by': 'period_start:month'}"/>
@@ -27,6 +28,8 @@
             <list decoration-success="state == 'locked'" decoration-warning="pending_link_count or pending_mapping_count or pending_conversion_count">
                 <field name="period_start"/>
                 <field name="name"/>
+                <field name="state" widget="badge"/>
+                <field name="review_next_step" optional="show"/>
                 <field name="channel_id" optional="show"/>
                 <field name="source_provider" optional="show"/>
                 <field name="order_count" sum="Orders"/>
@@ -46,7 +49,6 @@
                 <field name="pending_mapping_count"/>
                 <field name="pending_link_count"/>
                 <field name="pending_conversion_count"/>
-                <field name="state" widget="badge"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
             </list>
         </field>
@@ -64,6 +66,9 @@
                     <button name="action_unlock" type="object" string="Unlock" title="Unlock this session to allow review and refresh actions again." invisible="state != 'locked'" groups="usl_b2c.group_b2c_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,reviewed,locked"/>
                 </header>
+                <div class="alert alert-info mb-0" role="status" invisible="state == 'locked'">
+                    <field name="review_next_step" class="fw-bold"/>
+                </div>
                 <sheet>
                     <widget name="web_ribbon" title="Immutable" bg_color="text-bg-success" invisible="state != 'locked'"/>
                     <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
