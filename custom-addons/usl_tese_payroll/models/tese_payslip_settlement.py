@@ -230,31 +230,27 @@ class UslTesePayslip(models.Model):
         values[f"{prefix}_match_message"] = message
         return values
 
-    def action_refresh_candidates(self):
+    def _refresh_payment_state(self):
+        """Re-rank candidates and rewrite the payment state from the ledger."""
         self.ensure_one()
-        self._check_workflow_access()
-        if not self.move_id or self.move_id.state != "posted":
-            raise UserError(_("Post the payroll journal entry first."))
-        salary_ok, tese_ok, _salary_open, tese_open = self._residual_status()
-        carryover_only = self._is_tese_carryover_only(tese_open)
-        tese_settled = tese_ok or carryover_only
+        control = self._payment_control_values()
+        salary_ok = control["salary_payment_reconciled"]
+        tese_settled = control["tese_payment_reconciled"]
+        carryover_only = self._is_tese_carryover_only(
+            self._residual_status()[3],
+        )
         salary_ranked = [] if salary_ok else self._rank_candidates("salary")
         tese_ranked = [] if tese_settled else self._rank_candidates("tese")
         values = {
             **self._candidate_values("salary", salary_ranked),
             **self._candidate_values("tese", tese_ranked),
-            "salary_payment_reconciled": salary_ok,
-            "tese_payment_reconciled": tese_settled,
-            "state": "paid" if salary_ok and tese_settled else "to_reconcile",
+            **control,
         }
         if salary_ok:
             values["salary_payment_match_message"] = _("Salary payment matched.")
         if tese_settled:
             values["tese_payment_match_message"] = _("URSSAF debit matched.")
-        if (
-            salary_ok
-            and carryover_only
-        ):
+        if salary_ok and carryover_only:
             values["bank_reconcile_message"] = self._tese_carryover_message()
         else:
             values["bank_reconcile_message"] = _(
@@ -265,6 +261,14 @@ class UslTesePayslip(models.Model):
         self.with_context(
             _tese_internal_write=TESE_INTERNAL_WRITE_TOKEN,
         ).write(values)
+        return values
+
+    def action_refresh_candidates(self):
+        self.ensure_one()
+        self._check_workflow_access()
+        if not self.move_id or self.move_id.state != "posted":
+            raise UserError(_("Post the payroll journal entry first."))
+        values = self._refresh_payment_state()
         return self._notify(values["bank_reconcile_message"])
 
     def _unique_safe_candidate(self, kind):
