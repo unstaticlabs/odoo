@@ -533,6 +533,33 @@ test("My feedback shows a readable status and next step", async () => {
     expect(".o-usl-FeedbackPanel button:contains('Open board')").toHaveCount(1);
 });
 
+test("My feedback shows the board progress over a stale assistant state", async () => {
+    const cards = [
+        feedbackTask({ id: 71, name: "Moved to Build", stage: "Build", progress: "in_progress" }),
+        feedbackTask({ id: 72, name: "Waiting in review", stage: "Review", progress: "review" }),
+        feedbackTask({
+            id: 73,
+            name: "Shipped",
+            stage: "Release",
+            progress: "done",
+            state: "1_done",
+        }),
+        feedbackTask({ id: 74, name: "Still a draft", progress: "inbox" }),
+    ];
+    mockFeedbackStart(cards);
+    onRpc("project.task", "feedback_recent", () => cards);
+    await mountFeedbackPanel();
+
+    await contains(".o-usl-FeedbackPanel-nav button:contains('My feedback')").click();
+
+    expect(".o-usl-FeedbackPanel-feedbackItem").toHaveCount(4);
+    expect(".o-usl-FeedbackPanel-feedbackItem:eq(0)").toHaveText(/Build.*In progress/s);
+    expect(".o-usl-FeedbackPanel-feedbackItem:eq(1)").toHaveText(/Review.*In review/s);
+    expect(".o-usl-FeedbackPanel-feedbackItem:eq(2)").toHaveText(/Release.*Done/s);
+    expect(".o-usl-FeedbackPanel-feedbackItem:eq(0)").not.toHaveText(/Needs your reply/);
+    expect(".o-usl-FeedbackPanel-feedbackItem:eq(3)").toHaveText(/Needs your reply/);
+});
+
 test("My feedback is not replaced by a late new-conversation draft", async () => {
     const draft = new Deferred();
     const task = feedbackTask({ name: "Saved feedback remains visible" });

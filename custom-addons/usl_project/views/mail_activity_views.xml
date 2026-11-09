@@ -1,0 +1,24 @@
+<odoo>
+    <!--
+        A mail.activity opened on its own page (a record link, a notification, the
+        browser history) uses this popup form, because it is the lowest-priority
+        form of the model. Native Odoo hides its "Open Document" button, so the page
+        links to no task. The chatter edit dialog always carries default_res_model in
+        its context and sits on the document already, so it stays as native Odoo
+        draws it.
+        This is not task-specific: the link follows res_model/res_id, and
+        action_open_document keeps sending a reader without access to the document
+        to the restricted activity form. The document name is deliberately not added
+        to this form, so the page shows nothing the assignee could not already read.
+    -->
+    <record id="mail_activity_view_form_popup_document_link" model="ir.ui.view">
+        <field name="name">mail.activity.view.form.popup.document.link</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="attributes">
+                <attribute name="invisible">context.get('default_res_model')</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

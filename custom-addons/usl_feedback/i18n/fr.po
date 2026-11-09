@@ -2490,3 +2490,63 @@ msgstr "Agrandir l’aperçu"
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Collapse preview"
 msgstr "Réduire l’aperçu"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Waiting to be planned"
+msgstr "En attente de planification"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Being shaped"
+msgstr "En cadrage"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "The team is scoping it"
+msgstr "L’équipe en définit le périmètre"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "In progress"
+msgstr "En cours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "The team is building it"
+msgstr "L’équipe la réalise"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "In review"
+msgstr "En revue"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Being checked before release"
+msgstr "Vérification avant livraison"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Released"
+msgstr "Livré"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Rolling out"
+msgstr "Déploiement en cours"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Done"
+msgstr "Terminé"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Not planned"
+msgstr "Non planifié"
+
+#. module: usl_feedback
+#. odoo-javascript
+msgid "Kept for reference"
+msgstr "Conservé pour mémoire"

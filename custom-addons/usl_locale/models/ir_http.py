@@ -8,7 +8,7 @@ from odoo import _, models
 RELEASE_COMMIT_RE = re.compile(r"[0-9a-f]{40}")
 
 #: Where this Odoo's own user documentation is served, by the controller in
-#: ``rebuild_account_migration``. Odoo points the user menu's Help entry at
+#: ``usl_docs``. Odoo points the user menu's Help entry at
 #: ``session_info["support_url"]``, which upstream sets to its own pricing
 #: page — an answer to a question nobody using this instance is asking.
 USER_DOCS_URL = "/usl/user-docs"

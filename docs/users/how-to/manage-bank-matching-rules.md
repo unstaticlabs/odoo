@@ -1,3 +1,17 @@
+---
+title: Manage bank matching rules
+type: how-to
+description: Create, order and test the rules that propose counterparts for bank transactions.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - account.reconcile.model
+actions:
+  - account.action_account_reconcile_model
+generated: false
+---
+
 # Manage Bank Matching Rules
 
 Open **Accounting > Configuration > Bank Matching Rules**.

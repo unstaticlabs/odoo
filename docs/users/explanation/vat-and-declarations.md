@@ -1,3 +1,16 @@
+---
+title: VAT and declarations
+type: explanation
+description: How taxes on documents become tax bases, tags and the French VAT return.
+lang: en
+persona: accountant
+app: Accounting
+models:
+  - rebuild.account.declaration
+  - account.tax
+generated: false
+---
+
 # VAT and Declarations
 
 Taxes on business-document lines generate tax bases, tax amounts and tax tags in the ledger. The French VAT report groups those tagged entries into statutory lines for the chosen period.

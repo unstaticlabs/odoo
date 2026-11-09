@@ -1,3 +1,17 @@
+---
+title: Email a document
+type: how-to
+description: Send or forward a file to the Documents intake address and find it archived in the right company.
+lang: en
+persona: everyone
+app: Documents
+models:
+  - usl.document
+source:
+  - custom-addons/usl_documents
+generated: false
+---
+
 # Email a document
 
 Send a file to the Documents intake address and Odoo archives it for you. Use
