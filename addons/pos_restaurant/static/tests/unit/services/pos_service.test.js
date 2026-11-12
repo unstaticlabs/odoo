@@ -37,6 +37,60 @@ describe("restaurant pos_store.js", () => {
         expect(newOrder.lines.length).toBe(1);
     });
 
+    test("postSyncAllOrders removes the empty local order merged on the same table", async () => {
+        const store = await setupPosEnv();
+        const table = store.models["restaurant.table"].get(2);
+        const order = store.addNewOrder({ table_id: table });
+        await store.addLineToOrder(
+            { product_tmpl_id: store.models["product.template"].get(5), qty: 1 },
+            order
+        );
+        // Empty order left by the server merging it in the open order of the table
+        const emptyOrder = store.createNewOrder({ table_id: table });
+        store.setOrder(emptyOrder);
+        await store.syncAllOrders({ orders: [order] });
+        expect(order.isSynced).toBe(true);
+        expect(Boolean(store.models["pos.order"].getBy("uuid", emptyOrder.uuid))).toBe(false);
+        expect(store.getOrder().uuid).toBe(order.uuid);
+    });
+
+    test("addNewOrder keeps the table of an order paid from another device", async () => {
+        const store = await setupPosEnv();
+        const table = store.models["restaurant.table"].get(2);
+        const otherTable = store.models["restaurant.table"].get(3);
+        const order = store.addNewOrder({ table_id: table });
+
+        // Table order still open: a new order without table is a direct sale
+        expect(Boolean(store.addNewOrder().table_id)).toBe(false);
+
+        // Table order paid from another device while displayed: the new order stays on the table
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+        order.state = "paid";
+        expect(store.addNewOrder().table_id.id).toBe(table.id);
+
+        // An explicit table and refunds are kept as requested
+        store.setOrder(order);
+        expect(store.addNewOrder({ table_id: otherTable }).table_id.id).toBe(otherTable.id);
+        store.setOrder(order);
+        expect(Boolean(store.addNewOrder({ is_refund: true }).table_id)).toBe(false);
+    });
+
+    test("addNewOrder after a local payment does not reuse the paid table", async () => {
+        const store = await setupPosEnv();
+        const table = store.models["restaurant.table"].get(2);
+        const order = store.addNewOrder({ table_id: table });
+        store.navigate("FeedbackScreen", { orderUuid: order.uuid });
+        order.state = "paid";
+
+        // e.g. orderDone() creating the next order when the default screen is the register
+        expect(Boolean(store.addNewOrder().table_id)).toBe(false);
+
+        // Not a restaurant: never inherits the table
+        store.config.module_pos_restaurant = false;
+        store.navigate("ProductScreen", { orderUuid: order.uuid });
+        expect(Boolean(store.addNewOrder().table_id)).toBe(false);
+    });
+
     test("fireCourse", async () => {
         const store = await setupPosEnv();
         store.addNewOrder();
@@ -626,6 +680,28 @@ describe("restaurant pos_store.js", () => {
             expect(order.getSelectedCourse()).toBe(course);
             expect(order.getOrderlines().length).toBe(1);
         });
+    });
+
+    test("preparation receipt prints courses in their sequence order", async () => {
+        const store = await setupPosEnv();
+        const models = store.models;
+        store.config.use_course_allocation = true;
+        const order = store.addNewOrder({ table_id: models["restaurant.table"].get(2) });
+        // Product 6 belongs to "Default Course 2", product 5 to "Default Course 1":
+        // the second course is created first, so it gets the lowest course index.
+        for (const productId of [6, 5]) {
+            const product = models["product.template"].get(productId);
+            const allocation = store.autoCourseAllocation(product);
+            const line = await store.addLineToCurrentOrder({ product_tmpl_id: product });
+            store.cleanAutoCourseAllocation(line, allocation);
+        }
+        const courseNames = ["Default Course 1", "Default Course 2"];
+        expect(order.courses.map((course) => course.name)).toEqual(courseNames);
+
+        const categoryIds = new Set(models["pos.category"].getAll().map((c) => c.id));
+        const generator = store.ticketPrinter.getGenerator({ models, order });
+        const [receipt] = generator.generatePreparationData(categoryIds, {});
+        expect(receipt.changes.groupedData.map((group) => group.name)).toEqual(courseNames);
     });
 
     test("preparation receipt order_label", async () => {

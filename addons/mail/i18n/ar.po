@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-24 17:42+0000\n"
+"POT-Creation-Date: 2026-11-06 17:38+0000\n"
 "PO-Revision-Date: 2026-10-12 11:08+0000\n"
 "Last-Translator: \"Malaz Siddig Elsayed Abuidris (msea)\" <msea@odoo.com>\n"
 "Language-Team: Arabic <https://translate.odoo.com/projects/odoo-s19-3/mail/"
@@ -561,6 +561,12 @@ msgstr ""
 
 #. module: mail
 #. odoo-javascript
+#: code:addons/mail/static/src/core/common/search_message_result.js:0
+msgid "1 message found"
+msgstr ""
+
+#. module: mail
+#. odoo-javascript
 #: code:addons/mail/static/src/discuss/core/common/thread_patch.js:0
 msgid "1 new message"
 msgstr "رسالة جديدة واحدة"
@@ -976,7 +982,7 @@ msgstr "يوجد خادم بريد إلكتروني شخصي يستخدم هذا
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid ""
 "A place to connect and exchange news with colleagues across the company."
 msgstr ""
@@ -1508,7 +1514,7 @@ msgstr "المسؤول"
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "Administrators"
 msgstr "المسؤولون"
 
@@ -2745,12 +2751,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/mail/models/mail_activity.py:0
 msgid "Cannot search, too many activities"
-msgstr ""
-
-#. module: mail
-#. odoo-python
-#: code:addons/mail/models/mail_message.py:0
-msgid "Cannot search, too many messages"
 msgstr ""
 
 #. module: mail
@@ -5584,13 +5584,13 @@ msgstr "البوّابة"
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "General"
 msgstr "عام"
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "General channel for administrators."
 msgstr ""
 
@@ -6990,6 +6990,11 @@ msgstr "مباشر"
 #: model:ir.model.fields,field_description:mail.field_mail_template__lang
 msgid "Language"
 msgstr "اللغة"
+
+#. module: mail
+#: model:ir.model.fields,help:mail.field_mail_message_translation__target_lang
+msgid "Language code used as the target for the translation request."
+msgstr ""
 
 #. module: mail
 #: model:ir.model.fields,field_description:mail.field_discuss_channel__last_interest_dt
@@ -11492,11 +11497,6 @@ msgid "Shortcut"
 msgstr "اختصار"
 
 #. module: mail
-#: model:ir.model.fields,help:mail.field_mail_message_translation__target_lang
-msgid "Shortened language code used as the target for the translation request."
-msgstr "تم تقصير كود اللغة المستخدَم كالهدف في طلب الترجمة."
-
-#. module: mail
 #. odoo-javascript
 #: code:addons/mail/static/src/core/web/command_palette.js:0
 msgid "Show All Activities"
@@ -11571,6 +11571,14 @@ msgstr "إظهار المحتوى المقتطع"
 #: code:addons/mail/static/src/discuss/call/common/call_settings.xml:0
 msgid "Show video participants only"
 msgstr "إظهار مشاركي الفيديو فقط"
+
+#. module: mail
+#. odoo-javascript
+#: code:addons/mail/static/src/core/common/search_message_result.js:0
+msgid ""
+"Showing the first %(count)s messages found. Narrow your search or scroll to "
+"see more."
+msgstr ""
 
 #. module: mail
 #. odoo-javascript
@@ -12582,7 +12590,7 @@ msgstr ""
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "This is a space for the whole team to connect and share updates."
 msgstr ""
 
@@ -12939,6 +12947,14 @@ msgstr "غداً صباحاً"
 #: code:addons/mail/static/src/core/web/activity.xml:0
 msgid "Tomorrow:"
 msgstr "غدًا:"
+
+#. module: mail
+#. odoo-python
+#: code:addons/mail/models/mail_message.py:0
+msgid ""
+"Too many messages to be processed.\n"
+"Please apply additional filters to reduce the number of potential messages."
+msgstr ""
 
 #. module: mail
 #: model_terms:ir.ui.view,arch_db:mail.discuss_channel_view_search
@@ -14072,7 +14088,7 @@ msgstr "مرحباً بك إلى %(channelName)s!"
 
 #. module: mail
 #. odoo-python
-#: code:addons/mail/__init__.py:0
+#: code:addons/mail/models/discuss/discuss_channel.py:0
 msgid "Welcome to the #General channel 🎉"
 msgstr ""
 
@@ -15277,6 +15293,10 @@ msgstr "“%s”"
 #: code:addons/mail/models/mail_canned_response.py:0
 msgid "🔒 Private"
 msgstr ""
+
+#~ msgid ""
+#~ "Shortened language code used as the target for the translation request."
+#~ msgstr "تم تقصير كود اللغة المستخدَم كالهدف في طلب الترجمة."
 
 #~ msgid "d"
 #~ msgstr "d"
