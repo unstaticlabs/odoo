@@ -341,6 +341,8 @@ export class SearchModel extends EventBus {
             this._createGroupOfDynamicFilters(dynamicFilters);
         }
 
+        const defaultFavoriteId = this._createGroupOfFavorites(this.irFilters || []);
+
         // Activate filters if necessary (from the state bound to this action or saved filters).
         // Reading the global router here can leak the outgoing action's search into a newly
         // mounting action or dialog, before the action service has updated the route.
@@ -351,7 +353,6 @@ export class SearchModel extends EventBus {
             useUrl = this._tryApplySharedFilters(urlDomain, urlGroupBy, urlOrderBy); // Returns False if no filters could be activated
         }
         if (!useUrl) {
-            const defaultFavoriteId = this._createGroupOfFavorites(this.irFilters || []);
             const activateFavorite = "activateFavorite" in config ? config.activateFavorite : true;
             this._activateDefaultSearchItems(activateFavorite ? defaultFavoriteId : null);
         }
