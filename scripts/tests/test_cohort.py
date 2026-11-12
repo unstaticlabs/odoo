@@ -4664,6 +4664,83 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "release run state is invalid"):
             _cleanup_captures(target, runner, set())
 
+    def test_legacy_capture_retirement_requires_exact_qualified_replacement(self) -> None:
+        from operations.stack import _legacy_capture_retirement
+        target = load_target("production", TARGETS)
+        old, replacement = "manual-old-capture", "proof-daily-" + "a" * 16
+        entries = {old: "d", replacement: "d"}
+        files = self._capture_files(target, old, created_at="2026-09-01T00:00:00Z")
+        files.update(self._capture_files(target, replacement, created_at="2026-11-12T00:00:00Z"))
+        runner = self._capture_state_root(target, entries, files)
+        result = _legacy_capture_retirement(target, runner, old, replacement, set())
+        self.assertEqual(result["capture"], old)
+        self.assertEqual(result["replacement"], replacement)
+        self.assertEqual(result["capture_identity"]["durable_snapshot_id"], "1" * 64)
+        self.assertEqual(runner.removed, [])
+        with self.assertRaisesRegex(RuntimeError, "protected release"):
+            _legacy_capture_retirement(target, runner, old, replacement, {"a" * 40})
+        for invalid in ("../generations", "generations", replacement):
+            with self.subTest(invalid=invalid), self.assertRaises(RuntimeError):
+                _legacy_capture_retirement(target, runner, invalid, replacement, set())
+        files.update(self._capture_files(target, replacement, created_at="2026-11-12T00:00:00Z", status="uploaded"))
+        with self.assertRaisesRegex(RuntimeError, "replacement.*qualified"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+        files.update(self._capture_files(target, replacement, created_at="2026-08-12T00:00:00Z"))
+        with self.assertRaisesRegex(RuntimeError, "newer"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+        entries[old] = "l"
+        with self.assertRaisesRegex(RuntimeError, "directory"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+
+    @unittest.skipUnless(__import__("sys").platform == "linux", "runtime cleanup uses GNU find on the Linux host")
+    def test_legacy_retirement_real_files_preserves_backup_and_recovery_anchor(self) -> None:
+        import tarfile
+        from operations.runtime import CommandRunner, Target
+        from operations.stack import _retire_legacy_capture
+        configured = load_target("production", TARGETS)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            value = {**configured.value, "state_directory": str(root)}
+            target = Target(configured.path, value)
+            runner = CommandRunner()
+            old, replacement = "manual-synthetic-legacy", "proof-daily-" + "a" * 16
+            for name, date in ((old, "2026-09-01T00:00:00Z"), (replacement, "2026-11-12T00:00:00Z")):
+                for relative, content in self._capture_files(target, name, created_at=date).items():
+                    path = root / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(content)
+                (root / name / "payload").write_bytes(b"synthetic recovery data" * 10000)
+            archive = Path(temporary) / "offsite-fixture.tar"
+            with tarfile.open(archive, "w") as backup:
+                backup.add(root / replacement, arcname="capture")
+            def restore_and_check(destination):
+                with tarfile.open(archive) as backup:
+                    backup.extractall(destination, filter="data")
+                self.assertEqual((destination / "capture/payload").read_bytes(), b"synthetic recovery data" * 10000)
+            restore_and_check(Path(temporary) / "restore-before")
+            arguments = argparse.Namespace(action="retire-apply", capture=old, replacement=replacement,
+                                           owner="synthetic QA", reason="replaced recovery workspace", confirm=target.name)
+            def retire():
+                with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                        mock.patch("operations.stack.inspect_runtime", return_value={}), \
+                        mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}):
+                    return _retire_legacy_capture(arguments, target, runner)
+            before = sum(path.stat().st_size for path in (root / old).rglob("*") if path.is_file())
+            self.assertGreater(before, 200000)
+            # A durable receipt write failure must leave the only payload intact.
+            with mock.patch("operations.stack._write_recovery_proof_evidence", side_effect=OperationsError("disk full")):
+                with self.assertRaisesRegex(OperationsError, "disk full"):
+                    retire()
+            self.assertTrue((root / old / "payload").is_file())
+            result = retire()
+            self.assertEqual(result["status"], "retired")
+            self.assertFalse((root / old).exists())
+            self.assertTrue((root / replacement / "payload").is_file())
+            receipt = json.loads((root / "retired-captures" / (old + ".json")).read_text())
+            self.assertEqual(receipt["status"], "retired")
+            self.assertEqual(receipt["capture_identity"]["durable_snapshot_id"], "1" * 64)
+            restore_and_check(Path(temporary) / "restore-after")
+
     def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
         target = load_target("production", TARGETS)
         attempt = "intent-" + "a" * 48

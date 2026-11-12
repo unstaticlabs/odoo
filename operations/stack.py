@@ -10573,6 +10573,94 @@ def _qualified_capture(target, runner, run_id: str) -> dict | None:
     return {"created_at": created_at}
 
 
+def _legacy_capture_retirement(
+    target, runner, run_id: str, replacement: str, protected_commits: set[str],
+) -> dict:
+    """Review one explicitly named legacy payload; never infer ownership from age.
+
+    This only retires local copies. Qualified remote snapshots and retained
+    receipts remain under the cohort retention policy.
+    """
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or run_id == replacement
+        or _capture_attempt(target, run_id) is not None or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("legacy capture identity is invalid or already managed")
+    if _capture_attempt(target, replacement) is None and not _proof_capture(target, replacement):
+        raise RuntimeError("replacement must be a managed qualified capture")
+    identities = {}
+    dates = {}
+    for label, name in (("capture", run_id), ("replacement", replacement)):
+        root = f"{target.value['state_directory']}/{name}"
+        probe = runner.run(
+            ["find", root, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"{label} must be a real directory")
+        capture = _qualified_capture(target, runner, name)
+        if capture is None:
+            raise RuntimeError(f"{label} is not qualified")
+        raw = runner.run(["cat", f"{root}/manifest.json"]).stdout
+        manifest = validate_cohort_manifest(json.loads(raw))
+        state = json.loads(runner.run(["cat", f"{root}/state.json"]).stdout)
+        if label == "capture" and manifest["release"]["commit"] in protected_commits:
+            raise RuntimeError("legacy capture belongs to a protected release")
+        identities[label] = {
+            "manifest_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+            "durable_snapshot_id": state["durable_snapshot_id"],
+            "cache_snapshot_id": state["cache_snapshot_id"],
+            "release_commit": manifest["release"]["commit"],
+        }
+        dates[label] = capture["created_at"]
+    if dates["replacement"] <= dates["capture"]:
+        raise RuntimeError("replacement must be newer than the legacy capture")
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "replacement": replacement,
+        "capture_identity": identities["capture"], "replacement_identity": identities["replacement"],
+    }
+
+
+def _retire_legacy_capture(arguments, target, runner) -> dict:
+    if not all((arguments.capture, arguments.replacement, arguments.owner, arguments.reason)):
+        raise RuntimeError("legacy retirement requires --capture, --replacement, --owner and --reason")
+    apply = arguments.action == "retire-apply"
+    if apply and arguments.confirm != target.name:
+        raise RuntimeError("legacy retirement apply requires exact --confirm")
+    run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+    with runtime_lock(target, runner, "cleanup", run_id):
+        current = inspect_runtime(target, runner)
+        inventory = _cleanup_inventory(target, runner, current)
+        protected_commits = set()
+        for generation in inventory["protected_generations"]:
+            path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+            release = validate_release(json.loads(runner.run(["cat", path]).stdout))
+            protected_commits.add(release["source"]["commit"])
+        plan = _legacy_capture_retirement(
+            target, runner, arguments.capture, arguments.replacement, protected_commits,
+        )
+        plan.update({
+            "owner": arguments.owner, "reason": arguments.reason,
+            "reviewed_at": datetime.now(UTC).isoformat(),
+        })
+        if apply:
+            # Persist the identities before removing anything. Re-evaluate under
+            # the same lifecycle lock, then retain a second durable completion.
+            receipt = f"{target.value['state_directory']}/retired-captures/{arguments.capture}.json"
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "prepared"})
+            checked = _legacy_capture_retirement(
+                target, runner, arguments.capture, arguments.replacement, protected_commits,
+            )
+            if any(checked[key] != plan[key] for key in checked):
+                raise RuntimeError("legacy capture changed during retirement")
+            runner.run(["rm", "-rf", "--", f"{target.value['state_directory']}/{arguments.capture}"])
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "retired"})
+        return {**plan, "status": "retired" if apply else "planned"}
+
+
 def _unfinished_release_attempts(target, runner) -> set[str]:
     """Return attempts whose persisted launcher run may still resume a capture."""
     runs_root = f"{target.value['state_directory']}/runs"
@@ -11093,6 +11181,10 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     retention_image = None
+    if arguments.action in {"retire-plan", "retire-apply"}:
+        plan = _retire_legacy_capture(arguments, target, runner)
+        print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
@@ -12389,9 +12481,13 @@ def build_parser() -> argparse.ArgumentParser:
     recovery_proof.add_argument("--json", action="store_true")
     recovery_proof.set_defaults(handler=recovery_proof_command)
     cleanup = commands.add_parser("cleanup")
-    cleanup.add_argument("action", choices=("plan", "apply"))
+    cleanup.add_argument("action", choices=("plan", "apply", "retire-plan", "retire-apply"))
     cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
+    cleanup.add_argument("--capture", help="explicit legacy local capture identity")
+    cleanup.add_argument("--replacement", help="newer managed qualified recovery capture")
+    cleanup.add_argument("--owner", help="person or task responsible for retirement")
+    cleanup.add_argument("--reason", help="why this local legacy payload is obsolete")
     cleanup.add_argument(
         "--runtime-only",
         action="store_true",

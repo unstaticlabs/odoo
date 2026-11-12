@@ -337,6 +337,39 @@ lists or deletes other entries of the state directory. Before it deletes a
 directory, `cleanup apply` checks again that the path is a directory, not a
 symlink, and that the capture is still `qualified`.
 
+### Retire an explicitly reviewed legacy capture
+
+Ordinary retention deliberately ignores manual and historical capture names.
+Do not rename those directories to make them look managed, or delete them by
+age. Review one exact legacy capture against a newer qualified managed capture:
+
+```bash
+scripts/usl-stack cleanup retire-plan --target production \
+  --capture manual-example --replacement proof-daily-0123456789abcdef \
+  --owner 'CIO #2374' --reason 'Superseded local upload workspace' --json
+```
+
+After checking the identities, run the same command with `retire-apply` and
+`--confirm production`. Both operations take the existing lifecycle lock.
+The tool refuses symlinks, unmanaged replacements, unqualified or older
+replacements, and captures from the active or previous release commit. It
+persists exact manifest and paired snapshot identities before deletion,
+rechecks them under the lock, and retains the completion receipt in
+`retired-captures/<capture>.json` outside the retired payload.
+
+Only the named local capture directory is removed. Remote Restic snapshots,
+current/previous generation data, the replacement capture and frozen historical
+source packages are untouched. A successful upload by itself is insufficient:
+`qualified` must already record the cohort tool's restore and verification of
+both snapshots. These local retirement checks do not establish that a remote
+repository still exists or meets the recovery objective; check the current
+recovery proof and remote inventory before operational retirement.
+
+Receipts contain recovery metadata and belong on the private host and Odoo
+tracking card, not in a public pull request. The synthetic regression exercises
+backup, restore, cleanup and a second restore, plus a receipt-write failure.
+It does not certify a private production restore or current fleet-wide RPO/RTO.
+
 ## Service-level objective
 
 The first clean production-to-staging benchmark completed on 2 September 2026
