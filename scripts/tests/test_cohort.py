@@ -4418,6 +4418,12 @@ class CohortContractTests(unittest.TestCase):
                 self.removed = []
 
             def run(self, command, *, check=True, **_kwargs):
+                if command[0] == "readlink":
+                    return subprocess.CompletedProcess(command, 0, "\n".join(command[3:]) + "\n", "")
+                if command[0] == "findmnt":
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"filesystems": [{"target": "/", "fsroot": "/", "maj:min": "8:1", "fstype": "ext4"}]}), "")
+                if command[:3] == ["docker", "ps", "--all"] or command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
                 if command[:2] == ["test", "-L"]:
                     return subprocess.CompletedProcess(command, 1, "", "")
                 if command[:3] == ["test", "!", "-e"]:
@@ -4912,6 +4918,8 @@ class CohortContractTests(unittest.TestCase):
     def test_legacy_retirement_rejects_mount_targets_and_sources(self) -> None:
         from operations.stack import _assert_capture_unmounted
         path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
         base = {"target": "/", "fsroot": "/", "fstype": "ext4", "maj:min": "8:1"}
         for mounted in (path, path + "/durable/database"):
             for field in ("target", "fsroot"):
@@ -4952,6 +4960,8 @@ class CohortContractTests(unittest.TestCase):
     def test_legacy_retirement_preserves_explicit_container_bind_sources(self) -> None:
         from operations.stack import _assert_capture_not_bound
         path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
         for source in (path, path + "/durable"):
             runner = mock.Mock()
             runner.run.side_effect = [
@@ -4970,6 +4980,8 @@ class CohortContractTests(unittest.TestCase):
     def test_legacy_retirement_preserves_named_volume_devices_even_without_a_container(self) -> None:
         from operations.stack import _assert_capture_not_bound
         path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
         for source in (path, path + "/durable"):
             runner = mock.Mock()
             runner.run.side_effect = [
@@ -4986,6 +4998,23 @@ class CohortContractTests(unittest.TestCase):
         ]
         _assert_capture_not_bound(runner, path)
 
+    @unittest.skipUnless(__import__("sys").platform == "linux", "native capture guards use GNU readlink")
+    def test_capture_reference_aliases_resolve_host_symlinks_and_dotdot(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); capture = root / "capture"; capture.mkdir()
+            (capture / "durable").mkdir(); (root / "alias").symlink_to(capture, target_is_directory=True)
+            for device in (str(root / "alias/durable"), str(root / "unrelated/../capture/durable")):
+                class Runner:
+                    def run(self, command, **kwargs):
+                        if command[0] == "readlink":
+                            return subprocess.run(command, text=True, capture_output=True, check=True)
+                        if command[:3] == ["docker", "volume", "inspect"]:
+                            return subprocess.CompletedProcess(command, 0, json.dumps({"Options": {"device": device}}), "")
+                        return subprocess.CompletedProcess(command, 0, "retained\n" if command[:3] == ["docker", "volume", "ls"] else "", "")
+                with self.subTest(device=device), self.assertRaisesRegex(OperationsError, "source alias"):
+                    _assert_capture_not_bound(Runner(), str(capture))
+
     def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
         target = load_target("production", TARGETS)
         attempt = "intent-" + "a" * 48
@@ -4993,10 +5022,18 @@ class CohortContractTests(unittest.TestCase):
         entries = {run_id: "d"}
         files = self._capture_files(target, run_id, created_at="2026-09-01T00:00:00Z")
         runner = self._capture_state_root(target, entries, files)
-        self.assertEqual(
-            _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]}),
-            [f"{target.value['state_directory']}/{run_id}"],
-        )
+        with mock.patch("operations.stack._assert_capture_unmounted"), mock.patch("operations.stack._assert_capture_not_bound"):
+            self.assertEqual(
+                _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]}),
+                [f"{target.value['state_directory']}/{run_id}"],
+            )
+        for guard in ("_assert_capture_unmounted", "_assert_capture_not_bound"):
+            with self.subTest(guard=guard), \
+                    mock.patch("operations.stack._assert_capture_unmounted"), \
+                    mock.patch("operations.stack._assert_capture_not_bound"), \
+                    mock.patch("operations.stack." + guard, side_effect=OperationsError("physical data reference")):
+                with self.assertRaisesRegex(OperationsError, "physical data reference"):
+                    _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]})
         for invalid in ("../attempts", "generations", "release-admitted-intent-x", "proof-daily-0123"):
             with self.subTest(run_id=invalid), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
                 _validated_cleanup_captures(target, runner, {"delete_captures": [invalid]})

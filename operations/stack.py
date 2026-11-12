@@ -10741,10 +10741,18 @@ def _historical_capture_retirement(
     }
 
 
+def _canonical_filesystem_paths(runner, paths: list[str]) -> list[str]:
+    values = runner.run(["readlink", "-m", "--", *paths]).stdout.splitlines()
+    if len(values) != len(paths) or any(not value.startswith("/") for value in values):
+        raise RuntimeError("capture filesystem references are invalid")
+    return values
+
+
 def _assert_capture_unmounted(runner, path: str) -> None:
     # Mount targets alone miss captures bound elsewhere on the same filesystem.
     # Compare kernel filesystem roots as well, without treating broad ancestor
     # management mounts as references to every file they can see.
+    path = _canonical_filesystem_paths(runner, [path])[0]
     try:
         inventory = json.loads(runner.run([
             "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN,FSTYPE",
@@ -10788,6 +10796,7 @@ def _assert_capture_not_bound(runner, path: str) -> None:
     Broad host-management mounts do not classify every host file as in use;
     native host operations are serialized by the lifecycle lock instead.
     """
+    sources = []
     containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
     if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
         raise RuntimeError("legacy capture container inventory is invalid")
@@ -10803,6 +10812,8 @@ def _assert_capture_not_bound(runner, path: str) -> None:
                     raise ValueError("invalid bind source")
                 if source == path or source.startswith(path + "/"):
                     raise RuntimeError("legacy capture is bound by a retained container")
+                if source.startswith("/"):
+                    sources.append(source)
     except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
         raise RuntimeError("legacy capture container mounts are invalid") from error
     # A local named volume can alias a capture through Options.device while
@@ -10819,6 +10830,12 @@ def _assert_capture_not_bound(runner, path: str) -> None:
             raise RuntimeError("legacy capture volume device is invalid")
         if device == path or device.startswith(path + "/"):
             raise RuntimeError("legacy capture is referenced by a retained named volume")
+        if device.startswith("/"):
+            sources.append(device)
+    canonical = _canonical_filesystem_paths(runner, [path, *sources])
+    capture = canonical[0]
+    if any(source == capture or source.startswith(capture + "/") for source in canonical[1:]):
+        raise RuntimeError("legacy capture is referenced through a filesystem source alias")
 
 
 def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:
@@ -11394,6 +11411,8 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
             raise RuntimeError(f"cleanup capture became invalid: {path}")
         if _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
+        _assert_capture_unmounted(runner, path)
+        _assert_capture_not_bound(runner, path)
         paths.append(path)
     return paths
 
