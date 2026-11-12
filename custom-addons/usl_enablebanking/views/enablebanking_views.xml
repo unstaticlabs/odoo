@@ -91,6 +91,7 @@
                     <div class="alert alert-warning" role="alert" invisible="connection_status != 'expired'">Bank access has expired. Open the bank connection to renew access. Existing imported transactions stay in place.</div>
                     <div class="alert alert-warning" role="alert" invisible="available">This account is unavailable in the current bank session. Renew access on the connection to check which accounts the bank exposes.</div>
                     <div class="alert alert-warning" role="alert" invisible="not last_error"><field name="last_error" nolabel="1"/></div>
+                    <div class="alert alert-warning" role="alert" invisible="not balance_warning"><field name="balance_warning" nolabel="1"/></div>
                     <group>
                         <group string="Bank account">
                             <field name="connection_id"/>

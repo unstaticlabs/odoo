@@ -970,25 +970,54 @@ msgstr ""
 " conservées."
 
 #. module: usl_enablebanking
-#: code:addons/usl_enablebanking/models/provider.py:0
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__line_origin
 msgid "Origin"
 msgstr "Origine"
 
 #. module: usl_enablebanking
-#: code:addons/usl_enablebanking/models/provider.py:0
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_import__line_origin__created
 msgid "Created by import"
 msgstr "Créée par l’import"
 
 #. module: usl_enablebanking
-#: code:addons/usl_enablebanking/models/provider.py:0
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_import__line_origin__matched_existing
 msgid "Matched existing"
 msgstr "Opération existante associée"
 
 #. module: usl_enablebanking
-#: code:addons/usl_enablebanking/models/provider.py:0
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_import__line_origin
 msgid ""
 "An exact existing import identity may be linked without changing its native "
 "bank transaction."
 msgstr ""
 "Une identité d’import existante exacte peut être associée sans modifier "
 "l’opération bancaire Odoo."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__balance_error_code
+msgid "Balance Error Code"
+msgstr "Code d’erreur du solde"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__balance_warning
+msgid "Balance Warning"
+msgstr "Avertissement sur les soldes"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid ""
+"Booked transactions were imported, but bank balances could not be refreshed."
+" Previously retrieved balances, if any, keep their original dates. Try the "
+"import again to refresh balances."
+msgstr ""
+"Les opérations comptabilisées par la banque ont été importées, mais les "
+"soldes bancaires n’ont pas pu être actualisés. Les soldes déjà récupérés, le"
+" cas échéant, conservent leurs dates d’origine. Relancez l’import pour "
+"actualiser les soldes."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Renew bank access on the connection before retrying."
+msgstr "Renouvelez l’accès bancaire depuis la connexion avant de réessayer."

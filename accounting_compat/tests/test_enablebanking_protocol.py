@@ -58,6 +58,12 @@ class EnableBankingProtocolCase(unittest.TestCase):
             with self.subTest(account=account), self.assertRaisesRegex(protocol.ProviderDataError, "invalid_account_identity"):
                 protocol.account_identity(account)
 
+    def test_unhashable_status_and_direction_have_stable_error_codes(self):
+        for field, code in (("status", "invalid_transaction_status"), ("credit_debit_indicator", "invalid_direction")):
+            for value in ([], {}, ["BOOK"]):
+                with self.subTest(field=field, value=value), self.assertRaisesRegex(protocol.ProviderDataError, code):
+                    protocol.normalise_transactions([movement("valid-first"), movement("invalid-second", **{field: value})], "EUR")
+
     def test_pending_transactions_do_not_become_booked_lines(self):
         result = protocol.normalise_transactions([movement(), movement("pending", status="PDNG")], "EUR")
         self.assertEqual(len(result.transactions), 1)

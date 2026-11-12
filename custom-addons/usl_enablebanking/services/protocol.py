@@ -46,7 +46,8 @@ def normalise_transactions(rows, currency, *, date_since=None, date_until=None):
     for row in rows:
         if not isinstance(row, dict):
             raise ProviderDataError("invalid_transaction")
-        if row.get("status") not in {"BOOK", "CNCL", "HOLD", "OTHR", "PDNG", "RJCT", "SCHD"}:
+        status = row.get("status")
+        if not isinstance(status, str) or status not in {"BOOK", "CNCL", "HOLD", "OTHR", "PDNG", "RJCT", "SCHD"}:
             raise ProviderDataError("invalid_transaction_status")
         if row.get("status") != "BOOK":
             pending += 1
@@ -75,7 +76,7 @@ def normalise_transactions(rows, currency, *, date_since=None, date_until=None):
         if not amount.is_finite() or abs(amount) > Decimal("999999999999999"):
             raise ProviderDataError("invalid_amount")
         direction = row.get("credit_debit_indicator")
-        if direction not in {"CRDT", "DBIT"}:
+        if not isinstance(direction, str) or direction not in {"CRDT", "DBIT"}:
             raise ProviderDataError("invalid_direction")
         amount = abs(amount) * (-1 if direction == "DBIT" else 1)
         if Decimal(str(float(amount))) != amount:

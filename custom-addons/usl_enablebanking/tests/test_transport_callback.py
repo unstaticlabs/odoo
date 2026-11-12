@@ -55,6 +55,29 @@ class TestEnableBankingTransport(TransactionCase):
                 client.transactions("session-account", {})
             self.assertEqual(str(error.exception), "provider_unavailable")
 
+    def test_unhashable_provider_error_codes_have_safe_fallback(self):
+        client = EnableBankingClient("synthetic-app", 4)
+        response = Mock(status_code=403)
+        with patch.object(client, "_token", return_value="synthetic-token"), patch("odoo.addons.usl_enablebanking.services.client.httpx.Client") as transport:
+            transport.return_value.__enter__.return_value.request.return_value = response
+            for code in ([], {}, ["EXPIRED_SESSION"]):
+                response.json.return_value = {"error": code}
+                with self.subTest(code=code):
+                    with self.assertRaises(ProviderDataError) as error:
+                        client.transactions("session-account", {})
+                    self.assertEqual(str(error.exception), "provider_unavailable")
+
+    def test_malformed_company_signing_key_has_safe_configuration_error(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "synthetic-malformed-key.pem"
+            path.write_bytes(b"not-a-pem-synthetic-qa-key")
+            with patch.dict(os.environ, {"USL_ENABLEBANKING_KEY_FILE_4": str(path)}, clear=True):
+                with self.assertRaises(ProviderDataError) as error:
+                    EnableBankingClient("synthetic-app", 4)._token()
+                self.assertEqual(str(error.exception), "signing_not_configured")
+                self.assertNotIn(str(path), str(error.exception))
+                self.assertNotIn("not-a-pem", str(error.exception))
+
     def test_redirect_must_remain_on_provider_authorization_origin(self):
         client = EnableBankingClient("synthetic-app", 4)
         for url in ("http://auth.enablebanking.com/", "https://auth.enablebanking.com.example.invalid/", "https://name@auth.enablebanking.com/"):

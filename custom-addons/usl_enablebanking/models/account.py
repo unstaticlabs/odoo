@@ -4,7 +4,7 @@ import uuid
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
-ACCOUNT_MANAGED = {"connection_id", "company_id", "stable_key", "session_uid", "available", "currency_id", "account_number", "product", "account_type", "last_import_at", "last_imported_count", "last_duplicate_count", "last_pending_count", "last_error_code"}
+ACCOUNT_MANAGED = {"connection_id", "company_id", "stable_key", "session_uid", "available", "currency_id", "account_number", "product", "account_type", "last_import_at", "last_imported_count", "last_duplicate_count", "last_pending_count", "last_error_code", "balance_error_code"}
 
 
 class EnableBankingAccount(models.Model):
@@ -36,6 +36,8 @@ class EnableBankingAccount(models.Model):
     last_duplicate_count = fields.Integer(readonly=True, copy=False)
     last_pending_count = fields.Integer(readonly=True, copy=False)
     last_error_code = fields.Char(readonly=True, copy=False)
+    balance_error_code = fields.Char(readonly=True, copy=False)
+    balance_warning = fields.Text(compute="_compute_balance_warning")
     last_error = fields.Text(compute="_compute_last_error")
     import_from = fields.Date(string="First booking date", default=lambda self: fields.Date.today(), required=True,
                               help="First booking date to request. Repeating an earlier period is safe when the bank supplies stable entry references.")
@@ -49,6 +51,14 @@ class EnableBankingAccount(models.Model):
         for account in self:
             message = ERROR_MESSAGES.get(account.last_error_code, ERROR_MESSAGES["unknown_data"])
             account.last_error = self.env._("%(bank)s / %(account)s: %(message)s", bank=account.connection_id.name, account=account.name, message=self.env._(message)) if account.last_error_code else False
+
+    @api.depends("balance_error_code")
+    def _compute_balance_warning(self):
+        for account in self:
+            warning = self.env._("Booked transactions were imported, but bank balances could not be refreshed. Previously retrieved balances, if any, keep their original dates. Try the import again to refresh balances.") if account.balance_error_code else False
+            if account.balance_error_code in {"consent_expired", "consent_renewal_required"}:
+                warning += " " + self.env._("Renew bank access on the connection before retrying.")
+            account.balance_warning = warning
 
     @api.model_create_multi
     def create(self, values_list):
@@ -106,9 +116,12 @@ class EnableBankingAccount(models.Model):
             raise UserError(self.env._("Choose or create a bank journal for this account first."))
         self._ensure_provider()
         self.provider_ids._pull_bank_account(self.import_from, fields.Date.today())
+        message = self.last_error or self.env._("Import complete: %(count)s new transactions, %(duplicates)s already imported.", count=self.last_imported_count, duplicates=self.last_duplicate_count)
+        if not self.last_error and self.balance_warning:
+            message += " " + self.balance_warning
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {
-            "title": self.env._("Bank import"), "message": self.last_error or self.env._("Import complete: %(count)s new transactions, %(duplicates)s already imported.", count=self.last_imported_count, duplicates=self.last_duplicate_count),
-            "type": "warning" if self.last_error else "success", "sticky": bool(self.last_error),
+            "title": self.env._("Bank import"), "message": message,
+            "type": "warning" if self.last_error or self.balance_warning else "success", "sticky": bool(self.last_error or self.balance_warning),
             "next": {"type": "ir.actions.client", "tag": "soft_reload"},
         }}
 
