@@ -150,6 +150,32 @@ class CommandRunner:
 
 _OBSERVATION_ONLY = False
 
+# One fixed host-side read avoids hundreds of SSH round trips when historical
+# independent MCP deployments predate source sidecars. No paths come from input.
+MCP_RETAINED_LEDGER_SCAN = """import json,pathlib,re,sys
+root=pathlib.Path('/var/lib/usl-odoo/gitops-runs')
+environment=sys.argv[1]
+entries=sorted(root.iterdir()) if root.is_dir() else []
+if len(entries)>1000:
+    raise SystemExit('retained MCP authority scan exceeds its bound')
+values=[]
+for entry in entries:
+    if not re.fullmatch(r'[0-9a-f]{40}[.][A-Za-z0-9._-]+',entry.name) or entry.is_symlink() or not entry.is_dir() or entry.resolve()!=entry:
+        continue
+    marker=entry/'.usl-gitops-commit'
+    ledger=entry/'komodo/releases'/('usl-odoo-'+environment+'-mcp.json')
+    try:
+        if any(path.is_symlink() or not path.is_file() or path.resolve()!=path or path.stat().st_size>65536 for path in (marker,ledger)):
+            continue
+        commit=marker.read_text(encoding='ascii').strip()
+        value=json.loads(ledger.read_text(encoding='utf-8'))
+    except (OSError,ValueError):
+        continue
+    if commit==entry.name.split('.',1)[0] and isinstance(value,dict):
+        values.append({'root':str(entry),'gitops_commit':commit,'ledger':value})
+print(json.dumps(values,sort_keys=True,separators=(',',':')))
+"""
+
 _READ_ONLY_HOST_COMMANDS = frozenset({
     "cat", "test", "stat", "df", "du", "findmnt", "sha256sum", "readlink",
 })
@@ -394,6 +420,11 @@ def read_only_command_problem(command: list[str], input_text: str | None = None)
         return "empty command"
     head = command[0]
     if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if (
+        len(command) == 4 and command[:3] == ["python3", "-c", MCP_RETAINED_LEDGER_SCAN]
+        and command[3] in {"staging", "production"}
+    ):
         return None
     if command == ["containerd", "config", "dump"]:
         return None
