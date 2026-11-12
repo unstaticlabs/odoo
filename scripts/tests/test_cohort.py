@@ -5035,6 +5035,20 @@ class CohortContractTests(unittest.TestCase):
             with self.subTest(filesystem=filesystem), mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths):
                 _assert_capture_not_bound(runner, path)
 
+    def test_remote_filesystem_type_does_not_hide_explicit_bind_devices(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for filesystem, option in (("nfs", "bind"), ("cifs", "rbind")):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "local-bind-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Options": {"type": filesystem, "device": path, "o": option}}), ""),
+            ]
+            with self.subTest(filesystem=filesystem, option=option), mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths):
+                with self.assertRaisesRegex(OperationsError, "named volume"):
+                    _assert_capture_not_bound(runner, path)
+
     @unittest.skipUnless(__import__("sys").platform == "linux", "native capture guards use GNU readlink")
     def test_capture_reference_aliases_resolve_host_symlinks_and_dotdot(self) -> None:
         from operations.stack import _assert_capture_not_bound
