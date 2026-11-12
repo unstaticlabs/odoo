@@ -10848,7 +10848,10 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         protected_commits = set()
-        for generation in inventory["protected_generations"]:
+        generations = inventory["protected_generations"]
+        if archive_path:
+            generations = inventory.get("historical_capture_protected_generations", generations)
+        for generation in generations:
             path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
             release = validate_release(json.loads(runner.run(["cat", path]).stdout))
             protected_commits.add(release["source"]["commit"])
@@ -11107,6 +11110,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         previous_generation = (state.get("previous") or {}).get("generation")
         if previous_generation:
             protected_generations.add(previous_generation)
+    historical_capture_generations = set(protected_generations)
     # Compose may reuse sidecars across rollback; their config labels still
     # reference candidate files even when the database has returned to baseline.
     prefix = f"{target.value['state_directory']}/generations/"
@@ -11132,6 +11136,11 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
                 if not GENERATION_NAME.fullmatch(generation):
                     raise RuntimeError("running service generation label is invalid")
                 protected_generations.add(generation)
+                # The stable gateway can retain old Compose labels indefinitely.
+                # Keep that provenance/config protected, without treating an
+                # independently archived backup copy as current business data.
+                if container.get("Service") != "gateway":
+                    historical_capture_generations.add(generation)
                 active.update(generation_volume_names(target, generation).values())
                 protected_networks.add(f"{target.project}-{generation}-recovery")
     inventory = runner.run(
@@ -11168,6 +11177,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "protected_volumes": sorted(active | previous),
         "protected_networks": sorted(protected_networks),
         "protected_generations": sorted(protected_generations),
+        "historical_capture_protected_generations": sorted(historical_capture_generations),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),

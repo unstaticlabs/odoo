@@ -4329,6 +4329,35 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(inventory["delete_networks"], ["stale-network"])
         self.assertIn(generation, workspaces.call_args.args[2])
 
+    def test_historical_archive_retirement_distinguishes_gateway_only_from_data_generations(self) -> None:
+        target = load_target("staging", TARGETS)
+        active, previous, legacy = "g20261112-active", "g20261111-previous", "g20260903-gateway"
+        prefix = target.value["state_directory"] + "/generations/"
+        for service, state, generation, expected in (
+            ("gateway", "running", legacy, {active, previous}),
+            (target.value["services"]["mcp"], "running", legacy, {active, previous, legacy}),
+            (target.value["services"]["odoo"], "exited", legacy, {active, previous, legacy}),
+            ("unknown-running-service", "running", legacy, {active, previous, legacy}),
+            ("gateway", "running", active, {active, previous}),
+        ):
+            class Runner:
+                def run(self, command, **kwargs):
+                    if command[0] == "cat":
+                        value = {"generation": active, "previous": {"generation": previous}}
+                    elif command[:2] == ["docker", "inspect"]:
+                        value = {"com.docker.compose.project.config_files": prefix + generation + "/compose.generation.json"}
+                    else:
+                        return subprocess.CompletedProcess(command, 0, "", "")
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+            current = {"generation": active, "volumes": {}, "containers": [{"ID": "retained", "State": state, "Service": service}]}
+            with self.subTest(service=service, state=state, generation=generation), \
+                    mock.patch("operations.stack._cleanup_workspaces", return_value=[]), \
+                    mock.patch("operations.stack._cleanup_captures", return_value={}):
+                inventory = _cleanup_inventory(target, Runner(), current)
+                self.assertEqual(set(inventory["historical_capture_protected_generations"]), expected)
+                # Gateway provenance/config remains protected by ordinary cleanup.
+                self.assertIn(generation, inventory["protected_generations"])
+
     def test_recovery_evidence_may_use_its_own_storage_subdirectory(self) -> None:
         from operations.stack import _recovery_proof_root
         target = load_target("production", TARGETS.parent / "targets-host")
