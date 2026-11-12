@@ -355,7 +355,10 @@ The tool refuses symlinks, unmanaged replacements, unqualified or older
 replacements, and captures from the active or previous release commit. It
 persists exact manifest and paired snapshot identities before deletion,
 rechecks them under the lock, and retains the completion receipt in
-`retired-captures/<capture>.json` outside the retired payload.
+`retired-captures/<capture>.json` outside the retired payload. The plan records
+allocated payload bytes; the completion verifies the directory is gone and
+records zero remaining payload bytes. These are scoped payload measurements,
+not a promise that host-wide free space rises by the same amount.
 
 Only the named local capture directory is removed. Remote Restic snapshots,
 current/previous generation data, the replacement capture and frozen historical

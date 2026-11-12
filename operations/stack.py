@@ -10642,9 +10642,14 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         plan = _legacy_capture_retirement(
             target, runner, arguments.capture, arguments.replacement, protected_commits,
         )
+        payload = f"{target.value['state_directory']}/{arguments.capture}"
+        size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
+        if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
+            raise RuntimeError("legacy capture allocation could not be measured")
         plan.update({
             "owner": arguments.owner, "reason": arguments.reason,
             "reviewed_at": datetime.now(UTC).isoformat(),
+            "payload_allocated_bytes": int(size[0]),
         })
         if apply:
             # Persist the identities before removing anything. Re-evaluate under
@@ -10656,7 +10661,10 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             )
             if any(checked[key] != plan[key] for key in checked):
                 raise RuntimeError("legacy capture changed during retirement")
-            runner.run(["rm", "-rf", "--", f"{target.value['state_directory']}/{arguments.capture}"])
+            runner.run(["rm", "-rf", "--", payload])
+            if runner.run(["test", "!", "-e", payload], check=False).returncode:
+                raise RuntimeError("legacy capture payload remains after retirement")
+            plan["payload_remaining_bytes"] = 0
             _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "retired"})
         return {**plan, "status": "retired" if apply else "planned"}
 

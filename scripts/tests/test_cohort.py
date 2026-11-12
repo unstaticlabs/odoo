@@ -4734,6 +4734,8 @@ class CohortContractTests(unittest.TestCase):
             self.assertTrue((root / old / "payload").is_file())
             result = retire()
             self.assertEqual(result["status"], "retired")
+            self.assertGreater(result["payload_allocated_bytes"], 200000)
+            self.assertEqual(result["payload_remaining_bytes"], 0)
             self.assertFalse((root / old).exists())
             self.assertTrue((root / replacement / "payload").is_file())
             receipt = json.loads((root / "retired-captures" / (old + ".json")).read_text())
