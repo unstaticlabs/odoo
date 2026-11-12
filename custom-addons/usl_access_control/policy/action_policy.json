@@ -33672,6 +33672,30 @@
         "rpc:mail.activity.action_notify": {
           "evidence_id": "notification-productivity-20261014",
           "rationale": "Reviewed in docs/operations/notification-productivity-action-risk-review.md: native fixed preference inverse has an exact self-only private marker exception; native assignment channels and verified personal todo alias change notification/implicit assignment behavior without broader business access or role authority."
+        },
+        "rpc:mail.template.reset.reset_template": {
+          "classification": "operational",
+          "consequence": "Restores the selected native Mail/SMS template fields and translations from its installed source XML; no message is sent.",
+          "evidence_id": "upstream-sync-20261112-template-reset",
+          "rationale": "This fixed native reset writes through the existing model loader and translation importer. Native template/editor ACLs and caller context remain in force; global templates retain cross-company editor access. Both direct methods and reset wizards require delegated write access. A read-only application profile may inspect templates but cannot reset them. No new approval or business authority is introduced."
+        },
+        "rpc:mail.template.reset_template": {
+          "classification": "operational",
+          "consequence": "Restores the selected native Mail/SMS template fields and translations from its installed source XML; no message is sent.",
+          "evidence_id": "upstream-sync-20261112-template-reset",
+          "rationale": "This fixed native reset writes through the existing model loader and translation importer. Native template/editor ACLs and caller context remain in force; global templates retain cross-company editor access. Both direct methods and reset wizards require delegated write access. A read-only application profile may inspect templates but cannot reset them. No new approval or business authority is introduced."
+        },
+        "rpc:sms.template.reset_template": {
+          "classification": "operational",
+          "consequence": "Restores the selected native Mail/SMS template fields and translations from its installed source XML; no message is sent.",
+          "evidence_id": "upstream-sync-20261112-template-reset",
+          "rationale": "This fixed native reset writes through the existing model loader and translation importer. Native template/editor ACLs and caller context remain in force; global templates retain cross-company editor access. Both direct methods and reset wizards require delegated write access. A read-only application profile may inspect templates but cannot reset them. No new approval or business authority is introduced."
+        },
+        "rpc:template.reset.mixin.reset_template": {
+          "classification": "operational",
+          "consequence": "Restores the selected native Mail/SMS template fields and translations from its installed source XML; no message is sent.",
+          "evidence_id": "upstream-sync-20261112-template-reset",
+          "rationale": "This fixed native reset writes through the existing model loader and translation importer. Native template/editor ACLs and caller context remain in force; global templates retain cross-company editor access. Both direct methods and reset wizards require delegated write access. A read-only application profile may inspect templates but cannot reset them. No new approval or business authority is introduced."
         }
       },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
@@ -35908,7 +35932,7 @@
         "rpc:mail.template.reset.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:mail.template.reset.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:mail.template.reset.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "rpc:mail.template.reset_template": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+        "rpc:mail.template.reset_template": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
         "rpc:mail.template.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
         "rpc:mail.template.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
         "rpc:mail.template.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
@@ -36761,7 +36785,7 @@
         "rpc:sms.template.preview.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:sms.template.reset.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:sms.template.reset.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
-        "rpc:sms.template.reset_template": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+        "rpc:sms.template.reset_template": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
         "rpc:sms.tracker.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:sms.tracker.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:snailmail.letter.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -36914,7 +36938,7 @@
         "rpc:task.share.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:template.reset.mixin.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:template.reset.mixin.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
-        "rpc:template.reset.mixin.reset_template": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+        "rpc:template.reset.mixin.reset_template": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
         "rpc:trial.balance.report.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:trial.balance.report.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:uom.uom.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
@@ -57342,6 +57366,12 @@
         "rpc:ir.qweb.field.time.attributes": {
           "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point. Upstream sync 2026-11-08 (saas-19.3 1edc802202a9): Computes data-oe-translation-state from stored translations of the related field (285349f3edb7); read-only rendering attributes."
         },
+        "rpc:sms.template.reset.reset_template": {
+          "classification": "operational",
+          "consequence": "Restores the selected native Mail/SMS template fields and translations from its installed source XML; no message is sent.",
+          "evidence_id": "upstream-sync-20261112-template-reset",
+          "rationale": "This fixed native reset writes through the existing model loader and translation importer. Native template/editor ACLs and caller context remain in force; global templates retain cross-company editor access. Both direct methods and reset wizards require delegated write access. A read-only application profile may inspect templates but cannot reset them. No new approval or business authority is introduced."
+        },
         "rpc:usl.docs.guide.list_pages": {
           "evidence_id": "read-only-no-sink-v1",
           "rationale": "Reads the committed user guide (docs/users) for internal users only: search_pages ranks pages for a query, read_page returns one page's front matter, Markdown and journey facts, list_pages returns the index with the release's test evidence. usl.docs.guide is an abstract model with no table; nothing is written."
@@ -65454,7 +65484,7 @@
         "rpc:uom.uom.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:uom.uom.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:uom.uom.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
-        "rpc:uom.uom.compare": "8f66703c710298236d16010a27a4c2ba70a7903226bd0a4c0e6669edf4804e6e",
+        "rpc:uom.uom.compare": "36172350e85d4068ffe0bd8c008a2fb3948a1784fbba11095419fdba853bdafd",
         "rpc:uom.uom.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
         "rpc:uom.uom.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
         "rpc:uom.uom.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
@@ -65472,12 +65502,12 @@
         "rpc:uom.uom.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
         "rpc:uom.uom.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
         "rpc:uom.uom.hierarchy_read": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
-        "rpc:uom.uom.is_zero": "4a7f6726c4ff0c6d356018fa1ffc56513df0d52507140b88ea52216bb5c92100",
+        "rpc:uom.uom.is_zero": "106b669999c984b6908ecfd641c0dbddb5864f057ba34ba70d3271480ca1500b",
         "rpc:uom.uom.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
         "rpc:uom.uom.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
         "rpc:uom.uom.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:uom.uom.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
-        "rpc:uom.uom.round": "ef8d1cedbafbbccb9c0733b88a7542db71a23133dc9e4b1fa06f4ea2748ae6d7",
+        "rpc:uom.uom.round": "8295aa92a9e9af00a6845fa48f2431b19396f2d45434085539cc49c601903303",
         "rpc:uom.uom.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
         "rpc:uom.uom.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
         "rpc:uom.uom.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
@@ -153701,7 +153731,7 @@
         "sink:account:addons/account/models/account_move.py:account.move._is_eligible_for_early_payment_discount:sudo:1": "f719ef63e43f8c219770c831ef9c36e51bba43c038fb1c95893eed8cb27c712c",
         "sink:account:addons/account/models/account_move.py:account.move._is_eligible_for_early_payment_discount:sudo:2": "a5d20d4378d22a443061185e91fe047aca9bf101906cc09858dc01aedd91c3a9",
         "sink:account:addons/account/models/account_move.py:account.move._link_bill_origin_to_purchase_orders:orm_write:1": "064a6ec478a86a7f150baf7b3a452edf84d78e540530d532171f8763a10be8c9",
-        "sink:account:addons/account/models/account_move.py:account.move._message_set_main_attachment_id:orm_write:1": "bdbd927fcd705d19cafa4fac2069cf1f827b5929ed348add9132457ccade3610",
+        "sink:account:addons/account/models/account_move.py:account.move._message_set_main_attachment_id:orm_write:1": "888ceb1d9928703c4418fc07c15a81745f88445d71f50cf3bd9a4b3a4bb531f6",
         "sink:account:addons/account/models/account_move.py:account.move._move_dict_to_preview_vals:sudo:1": "1f13596447b1e06ce94e2ca9e2a1b93edc2e660ec9f102a725db205776f54e7c",
         "sink:account:addons/account/models/account_move.py:account.move._prepare_epd_base_lines_for_taxes_computation_from_base_lines:orm_write:1": "0166317fadf56e15104b804bcbd9baf5f15c8c1751bfdd19ffc5885c861f2cfd",
         "sink:account:addons/account/models/account_move.py:account.move._prepare_invoice_aggregated_taxes:orm_write:1": "3e4d48184e4e6e41dc64d22975c5345ec0048d511a4c8210b5bf783b7fae3df8",
@@ -153790,10 +153820,10 @@
         "sink:account:addons/account/models/account_move_line.py:account.move.line.get_views:sudo:1": "9cbc8a2dd75bd44bf18eca0d27bb8946d4328e83b1471d8ac512c792772b68f5",
         "sink:account:addons/account/models/account_move_line.py:account.move.line.unlink:orm_unlink:1": "1b9792973e8970c5b57a91525503c39020166a12785d3027efc34aa16504dabc",
         "sink:account:addons/account/models/account_move_line.py:account.move.line.unlink:orm_write:1": "fe069c8ae83ab015d8e2f718dc13b39f40fa4dbd62ad7937de4c164b8ed4d085",
-        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:1": "bb60f29bb52e2125574d7c6789841ab2750630e8f22dcae23d34d8d51799abe2",
-        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:2": "5cd7944e3e1028a3b5724cc6c36cd2be425ba24cb6d631d588487e52685116d3",
-        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:3": "56569914afedef15081e2890fdca637b6e19c4ecdb2836ec1a2a338b17dae72e",
-        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:4": "654d35677104d3ae6086f06e39e3404dafe93a438750c1b005c9361bfa83c553",
+        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:1": "103bcd7a508b19f36be9d84f0ef5aed5c24f504091ed84b37977518d68397da6",
+        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:2": "f0da22048114b559424d54da24eb0d6a34226be2250a998bf94b28ce19047b19",
+        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:3": "d587e6c5b9ae056d4ee94d818bbc8b6f36768b2f85f8ae9e744b20f07367a194",
+        "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:4": "a5f4ceb0bacae136ae794ed5990fd6b74a7cc63364a8ab1be8980f8387f038cd",
         "sink:account:addons/account/models/account_move_send.py:account.move.send._generate_dynamic_reports:orm_create:1": "4ca12971a69eaef5afa2803ef5504d674aa01543661abfef8b7bf47fb090396d",
         "sink:account:addons/account/models/account_move_send.py:account.move.send._generate_invoice_documents:sudo:1": "6e33dbd931e900993019198c07b3ecf1e24a46e0fb4423b6ec026b2fddf96c9b",
         "sink:account:addons/account/models/account_move_send.py:account.move.send._generate_invoice_fallback_documents:orm_create:1": "59e2c19f2247f748b302df17a3eb92fbb5e61da1ab8ce5b4cd278474c5051760",
@@ -153869,7 +153899,7 @@
         "sink:account:addons/account/models/account_tax.py:account.tax._add_tax_details_in_base_lines:orm_write:1": "a77b177a6cdf7260804780bb5d089062be6b90e95bab86ef9749a98f9fd19c82",
         "sink:account:addons/account/models/account_tax.py:account.tax._compute_invoice_repartition_line_ids:orm_create:1": "691ae565df851d1f3feaa45b25384e7e17e60a1ad44273d68556d2aad1ebe0f3",
         "sink:account:addons/account/models/account_tax.py:account.tax._compute_invoice_repartition_line_ids:orm_create:2": "e024e7179aa4c296a18f3016162278e3d4b8f366c64274e4e7e47191eff795a5",
-        "sink:account:addons/account/models/account_tax.py:account.tax._compute_is_used:sudo:1": "43df0c5dd66f26c3f6ea33f8d2538b605c97af3568b1b2be399f9e8999b6447f",
+        "sink:account:addons/account/models/account_tax.py:account.tax._compute_is_used:sudo:1": "1e99d7af9c27d0c687a80eeaae2bb5310373a72e81318ca0a6eb0e8d139f1644",
         "sink:account:addons/account/models/account_tax.py:account.tax._compute_refund_repartition_line_ids:orm_create:1": "d0316fb0bb2b1c6efeb39890c67919dc3ebcb4d6c056bdd0c3dee9b8e2bd1bb3",
         "sink:account:addons/account/models/account_tax.py:account.tax._compute_refund_repartition_line_ids:orm_create:2": "ac14dadc875e5c5bbe23fc5d447624a3a0f4da673e40a70730988cbe9558824f",
         "sink:account:addons/account/models/account_tax.py:account.tax._constrains_name:sudo:1": "6a8800dfcec7b30307e54abdfd2a5bf4102782cea213289f6bbbdce5bc2b1249",
@@ -155130,7 +155160,7 @@
         "sink:stock_account:addons/stock_account/models/account_move.py:account.move._post:orm_write:2": "78fd2b1aaa4ba88bbdc207b810b664e3e58cfb30331f429f18f1fa9d3d8b44f8",
         "sink:stock_account:addons/stock_account/models/account_move.py:account.move._post:orm_write:3": "7cf33d294becc1b5a7e8342d5ba3a95c29e7aff985d91ffccc62d8c9838b694b",
         "sink:stock_account:addons/stock_account/models/account_move_line.py:account.move.line._eligible_for_stock_account:sudo:1": "0a3fa8923a1baafc8c69c8e7f5a18d7ac89c1be5b962340f213f2e40014061d1",
-        "sink:stock_account:addons/stock_account/models/account_move_line.py:account.move.line._get_cogs_value:orm_write:1": "a6a42268ba471cdafd5311f19917484fd9aa1fdc800b3698e742255af64b5b7a",
+        "sink:stock_account:addons/stock_account/models/account_move_line.py:account.move.line._get_cogs_value:orm_write:1": "7d9e8fb221be5323064010c48b4e49682f43989cc6b20b23b83c0714fdcc99e6",
         "sink:stock_account:addons/stock_account/models/product.py:product.category.write:orm_write:1": "6aaaa5623f299827c4c3b809e97ac5fde8683509f93e005955540ee3adf26df3",
         "sink:stock_account:addons/stock_account/models/product.py:product.category.write:orm_write:2": "98a1ec3c04f6c0fc945341f42fc8d77356cb041f46ecf14027167a25f78ee8fa",
         "sink:stock_account:addons/stock_account/models/product.py:product.category.write:orm_write:3": "071d83eb5e61b039c2e44455ae491bae041d7d7d5f483856d2ec9bb9d10de6e2",
@@ -156781,12 +156811,12 @@
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
         "sink:account:addons/account/models/account_move.py:account.move._update_sequence_made_gap:sudo:1": "715681155d9eeca3fc7f4e89e75a06d869302af41a63edd33a79476979d5048e",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:1": "67d1a673e2530cddf35715036f26e63f4066850bd9d414486fc584acf26b4dcb",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:2": "366e6fd95c5884e2ecada377bebbc4272dad49f95502fbbcd9ed6016e495d2e2",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:3": "798c3358560ffaadde5bba2b4fe2f18b73fe91d04275ac8003a58f1525f3e730",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:4": "280a6a27b8bcc0edd73e20112d51387618f3f4e1a07e040fe3e685b35e3c1343",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:5": "f92b6288141721d4b3fc8f1d0cc10987ad156dbf58a18f83af8fc723507de6cc",
-        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:6": "f9da1bc404afaa646771d195e6ea9f00dfcdfbf14173b6406ce424a9659e2274",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:1": "a17b5a235dc7f4ca32a2c0c4cf228ca06e0b2678ed7eb428d4b6575fb70948c4",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:2": "a659079df720b0f7ebe82f7ea1564ddb9d2100a165488cd06c0a28b5f3b0d33b",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:3": "e796f36c3331cffdf807bfb0d67a539b165393ff98494beeea9f9234959a9b6b",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:4": "b2a02a3090950c76a462bcc01759da8d2340d9f1db833c5cf73a69a9cde7694f",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:5": "c58cd6ff062271baa327e65806c4c113d826552f52fa1be8d9719cd699e7fd85",
+        "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:6": "3506ad86fccb99e41914b28be7a5a0f6f7708b838edcbb9196a80124415092f6",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_cii.py:account.edi.cii._cii_add_supply_chain_trade_transaction_node:orm_write:1": "9a6888b8e3f97fe9a9a4259f5d9109f9b042c88259403b9fdb5b8ba653e58b27",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_cii.py:account.edi.cii._cii_check_buyer:orm_write:1": "bc63681ddce36dc3c88a3cef9db84e5e954b675348ed567795fc99b9db2e672d",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_cii.py:account.edi.cii._cii_check_seller:orm_write:1": "84d3b33cbdece127c91886373131ed208c7b70774e0b7cf3e8707b33fea79fcd",
@@ -156840,8 +156870,8 @@
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._generate_pdf_attachment:orm_create:1": "73989cf9e0eff627efc17a241d822e1609dae98a3d8d356aa3b24258c7f609f5",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._generate_pdf_attachment:orm_write:1": "3bd52519b3e9139f440831303ceecd476b401dfca523fbc9b1c6415e1a536476",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._generate_pdf_attachment:sudo:1": "e024fce4f4746ae8b76bbe838ca49339bb91e0ff4e14eefb1bc55eb4704254b1",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_create:1": "170db52bf912f8d000ac733037892074c35a9df63ac1311684956d344a382cda",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_write:1": "6970b90ea97cbb1cd9bcd4fcfb6b7df44c8bce17496b35f6223d6ef61fbda5d4",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_create:1": "1584e03e390b578e51ef61559b58a13e8077d050466687b455f2a56c5e53221a",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_write:1": "6f6bcb5cfb9e670e01c5956754f2bf0c7183ab18e75a00f81eb4ba7e6e21a420",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_invoice_add_base_lines:orm_write:1": "6181b381ca3170b7b4a0185872a73291727d22da3d43a5535791f9633e888cff",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_invoice_add_base_lines:orm_write:2": "eec0e64b6e2eb9d149ba8630c53da977ea70585a01af0d1a076157f679355237",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_invoice_fix_taxes_amounts:orm_write:1": "214dc16cb1a20156d1d80fa43a7c82e35ad4c1e3d489985614c841b956dba645",
@@ -163533,10 +163563,10 @@
         "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.pre_button_mark_done:orm_write:1": "8c0bf248425f91de9cacf751611e614182b177b61e1f4783f7f72933b2ff0557",
         "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.set_qty_producing:orm_write:1": "6a7c7d1336353cf771f7666c164992ca68e66400356e6596d9fd3385560a4a71",
         "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.unlink:orm_unlink:1": "ede8db1dd692748a5888254f596f8ca625c6d37b34cfc0496e63752b7aed112b",
-        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:1": "490e7e497e4f9e263d4079919a25c0fc7d1f9c24b8d8259055b47db588a81e79",
-        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:2": "324c1c324fff38eec0ee21aac53f3b0b9dd7c94386b5edab37b1ce0ffccd1e3b",
-        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:3": "d45a0e6b299986ba31805d34055dc764a87aaad34c1690a212fe0dfa2574fa71",
-        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:4": "cb926a77b6bb82a938abf320f381eb3b24186f296cef3527d100bd9cc8e33a91",
+        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:1": "0b8e07d7716e5acd0d652c7ed2da244ab739d37d0eb7edc0260cfc2b146346f9",
+        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:2": "b53cc333eca7c2267b98a1b8c164b096544c1c268bd877d97b86b9db5636ea05",
+        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:3": "1d0c2b11778cdda2bf9c56271904473f4cd4cc2bd8079bd01823fdde10ed6508",
+        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:4": "d2f120f1d6984a6e5d84dbe8235fc7a322d08fba596c4d529afff073a17c0da6",
         "sink:mrp:addons/mrp/models/mrp_routing.py:mrp.routing.workcenter.action_archive:orm_write:1": "82fb764935019fbc3a55781f32de727088f78d226f76725c9e36e115875d8ed0",
         "sink:mrp:addons/mrp/models/mrp_routing.py:mrp.routing.workcenter.action_archive:orm_write:2": "d75f636fae662fa27a56f2afe33bfa9554f4a587089d877081205b914d4a6cb2",
         "sink:mrp:addons/mrp/models/mrp_routing.py:mrp.routing.workcenter.action_archive:orm_write:3": "9c5b04ab065d1e77dcb696f4dad37ae6c7ad1b8fb222d8b7c09fba4fd0f92a80",
@@ -164068,7 +164098,7 @@
         "sink:sale:addons/sale/models/ir_config_parameter.py:ir.config_parameter.write:orm_write:2": "b0370f5db55418c9e695fb45282d8c4f722dda6719f7759068e46396380d8050",
         "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._cron_send_invoice:orm_write:1": "094eb117129c12d61a72c5a0393de818e05bb089459c1f9295fba63befdc77ae",
         "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._cron_send_invoice:sudo:1": "cd2f90014402c6686da7ade29e3e2e37b8ca16e1a7a486df20557cd72b3130a4",
-        "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._invoice_sale_orders:orm_write:1": "895d843bc397dd4c7f6dd6bec72b673e5b422ddfb05a54e975ab1334e142e7c6",
+        "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._invoice_sale_orders:orm_write:1": "ece96a06f443b39594297c89553834b40445e9335fd287f730bff291a623a28c",
         "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._log_message_on_linked_documents:message_send:1": "ded58e7a5bcca4429139b779910b468e4caa645f4004b7122dacd0e955a772cf",
         "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._post_process:orm_write:1": "412885600fd0a15c5cd6a6d65c8b1ebda5375217e1ef09f9a837d92ed0c33eba",
         "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._post_process:orm_write:2": "17542b6f7dff172dedd9518ad1fed57a3db391f809fb729a4754b3bdd0a5bbbe",
@@ -172721,18 +172751,18 @@
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_route_process:orm_write:1": "359b7219a58a880cb62ed15149afdee1dd6353cd73f4bb13a8c73acab2fa73f3",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_route_process:sudo:1": "7d6dea2915b56015ddd2d6d9b335bd6362e0d0108392611936fc5bb7428359ee",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_route_process:sudo:2": "37a0400bfcb51c97fe3789c4b37397dcde7a687b19e3f3c0f74b0963fe307c42",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_unlink:1": "2926a60aae2c407e6fe264deed67d42e61b1de3dabd6dfbb224847299e8ff960",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:1": "7a7aca13b0487e3499a4dcf042e6a7ef4827009eb3efb60dbcfd91a9f320b032",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:2": "727675d478771c24002432c597410e240c21290f1edfc9c4ae65a0a39ea036bc",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:3": "22209b34a219133cc6f57990f6686cbdda9ba0328e2d1178ab66ace2595eb331",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:4": "66e61f4b62cd01fe69f2a0d05899b74193e77a3bba9b31d32fc9be35ae3ba840",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:5": "16d16d6f178b59b9de0f57cc1f01aede64673aac566b7953cef63c1502af2db3",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:6": "ea723e6e60643f3c57fc8f3de535f3a61d54ec24c31473eb9f8c340b3ee773d9",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:7": "6acff78639b75941c72e361151f37250be813ac935b24023239c37cdf81b3425",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:1": "731376cda55e83f55207effec683c9426eec4774b4e6b33496c40fc51145da4e",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:2": "d73b63e579d31225538adfd2cf38cff07a7afd9cfd4bd8c26ce5deed148658a5",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:3": "770c9405be0f4d0bc7767f95eeea318dc25e2417076f513e861a967324d83cc3",
-        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:4": "d8b6a4cee4a8eb8925ef3688e5f673dc8a6ed9d1dba71e08e45140696cb73c7a",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_unlink:1": "1f38ff3d58d5b9251329971da5d371e58161a2498fd64ee40876e4c8b526538c",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:1": "6e4042d5dad6afb85b83705a4c96e22241ba63a125daa9a895a8e532ef9355f6",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:2": "475f65bc6be7a0b8f8f0ac54ceea8c6470627c37cbb6f9fbf31d9715942fe3b2",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:3": "3aa0d2e5eb39c726e0cbb8ad73e9e9e758ddd1a925a080ee7f4ec2f9c227cfdc",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:4": "bebfe62d61503066d304a35d1fd141477e76459db3ca18b0c8f1639d255a134e",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:5": "6ffd19a113891a02d3f5a77806738e3c6ac897c77610fd401354748b48b7d459",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:6": "9cec67e87e7ecf0ff93d5f0d26ecd77a3ad11fea2c223d4370bac3b707c18c5d",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:7": "d88432a55c9fd1f37b9c34462f7936a6fa4f3c0fa1e5a5222f6c4934762206d6",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:1": "4b36f07903e57ffa8365af3d9301cc3bab11f2d5eaae57eb572d1359b9bdef58",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:2": "51e9e7d438044bca0f646e45083094578eaf847fcb7c950e61cf440300281029",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:3": "68ecae6d5001b8e6783ce173853194e28ce5fa653d0f5935362d460154cb194e",
+        "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:4": "1669672b292d31b5ca4c26ab5bbcec0b9ab2534192666e790c3cc67776f3810f",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._notify_by_email_get_base_mail_values:sudo:1": "69894122ba8b1fef0f161c05fbc6b400beb7d3724846bdaa68622c2ae28bbe31",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._notify_by_email_get_base_mail_values:sudo:2": "ccc01b971dfbb685ceb165c9d2121b4651705dd98fb671e23ada715d7365a428",
         "sink:mail:addons/mail/models/mail_thread.py:mail.thread._notify_by_email_prepare_rendering_context:sudo:1": "7819266f486fe550f635ce96930890a46d1a62de96ac90d64e6e3d3accce0cff",
@@ -185380,8 +185410,8 @@
         "sink:base:odoo/orm/models.py:base._read_group:orm_write:2": "6d29ced9ec27bd0ce0b81dc091dd3e36ea844d7109a5b974e090f341451fc881",
         "sink:base:odoo/orm/models.py:base._read_group_postprocess_groupby:orm_write:1": "1d299d8305fa4b0d58980db5cfa4f2112f70304a589ad607409cac2c9af539af",
         "sink:base:odoo/orm/models.py:base._sql_error_to_message:sudo:1": "14b1c2ad2397b006fed259530c831de73f8959d9d524cdcc98b144071df2a2ab",
-        "sink:base:odoo/orm/models.py:base._update_cache:orm_write:1": "9e7d5240a5984c3f73abf0334eac820fbd99ae508f4e0c8d7f1402e0e2ab5101",
-        "sink:base:odoo/orm/models.py:base._update_cache:orm_write:2": "b8be1122e9b54bcdeb15c98c01aa022ae6a6798e3cffbd745d9465abb3ba5bb2",
+        "sink:base:odoo/orm/models.py:base._update_cache:orm_write:1": "61703916e6b63e05a6a64e44352712eaca887575d60e90e9bb50f6afbf25725a",
+        "sink:base:odoo/orm/models.py:base._update_cache:orm_write:2": "ae93c25b501c14e0fef78ce83bc47f408226804b6587a652a9ccbf423d0a0535",
         "sink:base:odoo/orm/models.py:base._update_field_translations:orm_write:1": "f252db4300b05f212c805c6b4bb5f6aee858bf0fbf1ef624a5805cfd2ff503c9",
         "sink:base:odoo/orm/models.py:base._update_field_translations:orm_write:2": "ab9deaf6cb96315a90bac93fbc967f8b9c935467a7e150c7cac55be0696add07",
         "sink:base:odoo/orm/models.py:base._validate_fields:sudo:1": "5983e777ff3e6148f4b3b1f67c107ba6a33c699bb9c61e9e2a8864a44f1ca7bb",
@@ -199735,9 +199765,14 @@
       "domain": "accounting",
       "evidence_id": "upstream-sync-20261015",
       "id": "upstream-sync-20261015.19",
+      "overrides": {
+        "rpc:mrp.production.write": {
+          "rationale": "The native picking-type change retains production IDs before the write, then resolves the current raw moves after any BOM rewrite before ordinary unreserve/reassignment. Native ACL/company checks remain. The existing private completion ContextVar, posted-entry date refusal, future-date constraint, stock propagation and analytic synchronization remain unchanged; no RPC context can authorize an initial completion."
+        }
+      },
       "rationale": "Native manufacturing write refuses changed completion dates for finished orders with posted stock/workorder entries regardless of an unchanged state supplied by the actor. A private ContextVar permits only the genuine initial completion, resets on exit, and cannot be set through RPC context. Native ACL/company, future-date constraint, stock propagation and analytic synchronization remain. Existing sudo sites read only linked journal evidence. Native first, repeat and mixed-batch completion, ordinary-user refusal and posted-entry preservation tests pass.",
       "reviewed_digests": {
-        "rpc:mrp.production.write": "96670dffeb5675c9f639c69942ca7d5f8c27c466a30120d3061c7c6dd316e710"
+        "rpc:mrp.production.write": "b805f794d1a7b506186f51b1342df271fcb80762294759c69d852c7ded9b9415"
       }
     },
     {
@@ -200630,7 +200665,7 @@
       "rationale": "Core write propagates completion date to raw and finished stock moves, adjusts start when necessary; future done completion rejected by constraint. mrp_account checks linked stock journal and workorder journal rows with narrow sudo reads, then after super writes dates of analytic rows with sudo. Existing mrp.group_mrp_user model write ACL and company rule apply. Same unchanged-state/date combination requires disposable consistency verification; no new permission or global capability is appropriate.",
       "reachability_proof": "Exact implementation sink only; it has no independent public method/controller dispatch. Its reviewed native parent owns actor, record and company authority.",
       "reviewed_digests": {
-        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:5": "072ba8a6c06974dc6d652301cb7363325dfaca0286780686166035a36cef8b5a"
+        "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:5": "40d0a4bbf6ab58cc478bd165ce2e0c653d2c64d662e4099746075568cf996ae0"
       }
     },
     {
@@ -204454,10 +204489,15 @@
       "domain": "accounting",
       "evidence_id": "recoverable-perform-reverse-v1",
       "id": "upstream-20261030-2b39c67bf59ade0d",
+      "overrides": {
+        "rpc:account.move.line.write": {
+          "rationale": "The incremental native change only labels hashed-entry refusals with their company when the selected entries span companies. Hashed values remain immutable, with no sudo or wider record access. Existing analytic normalization, native accounting/owner-company checks, before-value evidence and the supported write reversal remain unchanged."
+        }
+      },
       "rationale": "The shared analytic.mixin.write now removes references to already-deleted analytic accounts only when analytic_distribution is written; remaining percentages are grouped and flushed on the same recordset, without sudo. Model-native write/accounting/owner-company checks remain, including the existing before-value/reversal contract for valid governed state. No deleted analytic account is recreated or new authority granted.",
       "reversal_action": "rpc:account.move.line.write",
       "reviewed_digests": {
-        "rpc:account.move.line.write": "007eaed87922b9bad79378ebe830553630fcc60459329de5d42e08b22e6d0c31"
+        "rpc:account.move.line.write": "d52ad3b42bafcdc81eb2ac10780cc31ce24cb18b1f8f705ce32a02260d8d52d5"
       }
     },
     {
@@ -209630,6 +209670,13 @@
         "scripts/tests/test_module_release.py",
         "scripts/tests/test_pocket_id_dev.py",
         "scripts/tests/test_production_upgrade_plan.py"
+      ]
+    },
+    "upstream-sync-20261112-template-reset": {
+      "contract": "Native Mail/SMS template reset rewrites installed source defaults and translations under existing caller/editor authority. Direct and wizard calls are writes, authorized human and delegated writer resets work, read-only calls are rejected before dispatch, native reader/portal denials preserve templates, and global templates keep native cross-company editor access.",
+      "tests": [
+        "custom-addons/usl_access_control/tests/test_native_template_reset.py::TestNativeTemplateReset",
+        "addons/mail/tests/test_mail_template.py::TestMailTemplateReset.test_mail_template_reset_invalid_translation"
       ]
     },
     "vendor-bill-linked-receipt-20261017": {

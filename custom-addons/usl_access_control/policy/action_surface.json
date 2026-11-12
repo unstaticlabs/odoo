@@ -3511,7 +3511,7 @@
       ],
       "sources": [
         {
-          "line": 622,
+          "line": 623,
           "path": "addons/web/static/src/search/search_model.js"
         }
       ]
@@ -144675,7 +144675,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3941,
+          "line": 3948,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -144732,7 +144732,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3928,
+          "line": 3935,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -144759,7 +144759,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3925,
+          "line": 3932,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145059,7 +145059,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3340,
+          "line": 3347,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145148,7 +145148,7 @@
       ],
       "sources": [
         {
-          "line": 2282,
+          "line": 2289,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145645,7 +145645,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3685,
+          "line": 3692,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145708,7 +145708,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3893,
+          "line": 3900,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145765,7 +145765,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3885,
+          "line": 3892,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -145798,7 +145798,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3889,
+          "line": 3896,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -146230,7 +146230,7 @@
       ],
       "sources": [
         {
-          "line": 3919,
+          "line": 3926,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -146341,7 +146341,7 @@
       ],
       "sources": [
         {
-          "line": 3332,
+          "line": 3339,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -146374,7 +146374,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3336,
+          "line": 3343,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -146589,7 +146589,7 @@
           "path": "custom-addons/usl_accounting/models/immediate_settlement_move.py"
         },
         {
-          "line": 2196,
+          "line": 2203,
           "path": "addons/account/models/account_move_line.py"
         },
         {
@@ -147001,7 +147001,7 @@
         "rpc:decimal.precision.precision_get",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "007eaed87922b9bad79378ebe830553630fcc60459329de5d42e08b22e6d0c31",
+      "digest": "d52ad3b42bafcdc81eb2ac10780cc31ce24cb18b1f8f705ce32a02260d8d52d5",
       "guards": [],
       "key": "rpc:account.move.line.write",
       "kind": "rpc",
@@ -147017,7 +147017,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "939db372dd30f4cc203b44cb61a555592c63a5093387447803fadc5c94248ac4",
+      "runtime_digest": "e3de91381a1bb212b430f3f32178b3c8f4ef5e85d438d9bfe1fcb5db9caa6b2a",
       "sinks": [
         "orm_write",
         "sudo"
@@ -205990,7 +205990,7 @@
       ],
       "sources": [
         {
-          "line": 4876,
+          "line": 4887,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -206090,7 +206090,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 683,
+          "line": 694,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -206172,7 +206172,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 664,
+          "line": 675,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -206308,7 +206308,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 4867,
+          "line": 4878,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -206904,7 +206904,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 4870,
+          "line": 4881,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -209713,7 +209713,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 733,
+          "line": 744,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -209740,7 +209740,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 738,
+          "line": 749,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -209797,7 +209797,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 745,
+          "line": 756,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -211871,7 +211871,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 5032,
+          "line": 5043,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -212494,7 +212494,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 680,
+          "line": 691,
           "path": "addons/account/models/account_tax.py"
         },
         {
@@ -687821,7 +687821,7 @@
         "rpc:res.lang.get_installed",
         "rpc:template.reset.mixin.filtered"
       ],
-      "digest": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+      "digest": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
       "guards": [],
       "key": "rpc:mail.template.reset_template",
       "kind": "rpc",
@@ -687832,7 +687832,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e840109c070e00310f5291cb6a987b7efcb170605aef0d712a18486ca187edfa",
+      "runtime_digest": "813dcd7594d73e6cab18d321ec3939e87a57b1a23d7bc8d5a78b7e671b07db14",
       "sinks": [],
       "sources": [
         {
@@ -722418,7 +722418,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1788,
+          "line": 1789,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722445,7 +722445,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1954,
+          "line": 1955,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722475,7 +722475,7 @@
       ],
       "sources": [
         {
-          "line": 3185,
+          "line": 3186,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722513,7 +722513,7 @@
       ],
       "sources": [
         {
-          "line": 1712,
+          "line": 1713,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722566,7 +722566,7 @@
       ],
       "sources": [
         {
-          "line": 1223,
+          "line": 1224,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722610,7 +722610,7 @@
       ],
       "sources": [
         {
-          "line": 1688,
+          "line": 1689,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722650,7 +722650,7 @@
       ],
       "sources": [
         {
-          "line": 2654,
+          "line": 2655,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722682,7 +722682,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3142,
+          "line": 3143,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722712,7 +722712,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3156,
+          "line": 3157,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722775,7 +722775,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1268,
+          "line": 1269,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722907,7 +722907,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2511,
+          "line": 2512,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722940,7 +722940,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2531,
+          "line": 2532,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -722988,7 +722988,7 @@
       ],
       "sources": [
         {
-          "line": 2629,
+          "line": 2630,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723026,7 +723026,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3170,
+          "line": 3171,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723059,7 +723059,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1263,
+          "line": 1264,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723116,7 +723116,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1281,
+          "line": 1282,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723179,7 +723179,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1247,
+          "line": 1248,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723245,7 +723245,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1618,
+          "line": 1619,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723275,7 +723275,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1658,
+          "line": 1659,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723305,7 +723305,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1598,
+          "line": 1599,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723338,7 +723338,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1638,
+          "line": 1639,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723371,7 +723371,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2548,
+          "line": 2549,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723434,7 +723434,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2542,
+          "line": 2543,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -723494,7 +723494,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 3175,
+          "line": 3176,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727136,7 +727136,7 @@
       ],
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727179,7 +727179,7 @@
       ],
       "sources": [
         {
-          "line": 1793,
+          "line": 1794,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727212,7 +727212,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2611,
+          "line": 2612,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727244,7 +727244,7 @@
       ],
       "sources": [
         {
-          "line": 1823,
+          "line": 1824,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727330,7 +727330,7 @@
       ],
       "sources": [
         {
-          "line": 1208,
+          "line": 1209,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727408,7 +727408,7 @@
       ],
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727497,7 +727497,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2508,
+          "line": 2509,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -727704,7 +727704,7 @@
       ],
       "sources": [
         {
-          "line": 2559,
+          "line": 2560,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -730758,7 +730758,7 @@
       ],
       "sources": [
         {
-          "line": 2457,
+          "line": 2458,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -732872,7 +732872,7 @@
       ],
       "sources": [
         {
-          "line": 1594,
+          "line": 1595,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -737969,7 +737969,7 @@
       ],
       "sources": [
         {
-          "line": 1196,
+          "line": 1197,
           "path": "addons/mrp/models/mrp_production.py"
         },
         {
@@ -738372,6 +738372,7 @@
       "delegates": [
         "rpc:mail.thread.with_context",
         "rpc:mrp.bom.browse",
+        "rpc:mrp.production.browse",
         "rpc:mrp.production.filtered",
         "rpc:mrp.production.sudo",
         "rpc:res.partner.browse",
@@ -738380,7 +738381,7 @@
         "rpc:stock.picking.type.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "96670dffeb5675c9f639c69942ca7d5f8c27c466a30120d3061c7c6dd316e710",
+      "digest": "b805f794d1a7b506186f51b1342df271fcb80762294759c69d852c7ded9b9415",
       "guards": [],
       "key": "rpc:mrp.production.write",
       "kind": "rpc",
@@ -738397,7 +738398,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2df8b18a700e356520708741f6a4b5fb9e8a2efa29d0668eac00271e7c34fd0d",
+      "runtime_digest": "53dfadd1f5001d75110c79223a7a587b8bd2b940fdacd85d92b6f6c4421e4057",
       "sinks": [
         "orm_write",
         "sudo"
@@ -738457,6 +738458,7 @@
       "unresolved_delegates": [
         "rpc:mail.thread.with_context",
         "rpc:mrp.bom.browse",
+        "rpc:mrp.production.browse",
         "rpc:mrp.production.filtered",
         "rpc:mrp.production.sudo",
         "rpc:res.partner.browse",
@@ -755715,7 +755717,7 @@
           "path": "addons/mrp_account/models/mrp_workorder.py"
         },
         {
-          "line": 772,
+          "line": 776,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -755749,7 +755751,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 971,
+          "line": 975,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -755783,7 +755785,7 @@
       ],
       "sources": [
         {
-          "line": 980,
+          "line": 984,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -755817,7 +755819,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 777,
+          "line": 781,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -755946,7 +755948,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 993,
+          "line": 997,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -755976,7 +755978,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 801,
+          "line": 805,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756035,7 +756037,7 @@
       ],
       "sources": [
         {
-          "line": 986,
+          "line": 990,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756307,7 +756309,7 @@
       ],
       "sources": [
         {
-          "line": 716,
+          "line": 720,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756340,7 +756342,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 764,
+          "line": 768,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756374,7 +756376,7 @@
       ],
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756401,7 +756403,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 767,
+          "line": 771,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756560,7 +756562,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 545,
+          "line": 549,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756625,7 +756627,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 761,
+          "line": 765,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756655,7 +756657,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 749,
+          "line": 753,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -756857,7 +756859,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 960,
+          "line": 964,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -757215,7 +757217,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 942,
+          "line": 946,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -758958,7 +758960,7 @@
           "path": "addons/web/models/models.py"
         },
         {
-          "line": 812,
+          "line": 816,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -759118,7 +759120,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 473,
+          "line": 477,
           "path": "addons/mrp/models/mrp_workorder.py"
         },
         {
@@ -780585,7 +780587,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 256,
+          "line": 258,
           "path": "addons/sale/models/payment_transaction.py"
         },
         {
@@ -1107108,7 +1107110,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1379,
+          "line": 1382,
           "path": "addons/account/models/partner.py"
         },
         {
@@ -1111198,7 +1111200,7 @@
           "path": "addons/account_peppol/models/res_partner.py"
         },
         {
-          "line": 31,
+          "line": 40,
           "path": "addons/account_peppol_response/models/res_partner.py"
         },
         {
@@ -1210172,7 +1210174,7 @@
         "rpc:res.lang.get_installed",
         "rpc:template.reset.mixin.filtered"
       ],
-      "digest": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+      "digest": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
       "guards": [],
       "key": "rpc:sms.template.reset_template",
       "kind": "rpc",
@@ -1210183,7 +1210185,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e840109c070e00310f5291cb6a987b7efcb170605aef0d712a18486ca187edfa",
+      "runtime_digest": "813dcd7594d73e6cab18d321ec3939e87a57b1a23d7bc8d5a78b7e671b07db14",
       "sinks": [],
       "sources": [
         {
@@ -1314837,7 +1314839,7 @@
         "rpc:res.lang.get_installed",
         "rpc:template.reset.mixin.filtered"
       ],
-      "digest": "60696e5395a5b794785ce172b41c58f7f35435e3f4868376f8328f7ac5898521",
+      "digest": "0cd364e56081d8f975e0efdb3b33d16b36cb4497d6b7ec21a2268ed1597b3595",
       "guards": [],
       "key": "rpc:template.reset.mixin.reset_template",
       "kind": "rpc",
@@ -1314848,7 +1314850,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e840109c070e00310f5291cb6a987b7efcb170605aef0d712a18486ca187edfa",
+      "runtime_digest": "813dcd7594d73e6cab18d321ec3939e87a57b1a23d7bc8d5a78b7e671b07db14",
       "sinks": [],
       "sources": [
         {
@@ -1317525,10 +1317527,9 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
-        "rpc:decimal.precision.precision_get",
-        "rpc:uom.uom.ensure_one"
+        "rpc:decimal.precision.precision_get"
       ],
-      "digest": "8f66703c710298236d16010a27a4c2ba70a7903226bd0a4c0e6669edf4804e6e",
+      "digest": "36172350e85d4068ffe0bd8c008a2fb3948a1784fbba11095419fdba853bdafd",
       "guards": [],
       "key": "rpc:uom.uom.compare",
       "kind": "rpc",
@@ -1317539,21 +1317540,18 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "085f0cbf74d48212d003e7229dfd8bc338029aff5bee9170d03d445f011412bb",
+      "runtime_digest": "b6de1bc61a6371088cc92c0ea55e7be945bb6adfc741d56ceb874a7051a1f550",
       "sinks": [],
       "sources": [
         {
-          "line": 114,
+          "line": 113,
           "path": "addons/uom/models/uom_uom.py"
         },
         {
           "path": "odoo/addons/uom/models/uom_uom.py"
         }
       ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:uom.uom.ensure_one"
-      ]
+      "transient": false
     },
     {
       "abstract": false,
@@ -1318275,10 +1318273,9 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
-        "rpc:decimal.precision.precision_get",
-        "rpc:uom.uom.ensure_one"
+        "rpc:decimal.precision.precision_get"
       ],
-      "digest": "4a7f6726c4ff0c6d356018fa1ffc56513df0d52507140b88ea52216bb5c92100",
+      "digest": "106b669999c984b6908ecfd641c0dbddb5864f057ba34ba70d3271480ca1500b",
       "guards": [],
       "key": "rpc:uom.uom.is_zero",
       "kind": "rpc",
@@ -1318289,21 +1318286,18 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "21608f6f4ef25f99ea9ce4dab17be9cbeafdbeb699b7742daddbc58c1f9814e3",
+      "runtime_digest": "dc43dff9ee3588379f20ef42d529b7084729acd77e3f2f86695bb17e4a36a0c7",
       "sinks": [],
       "sources": [
         {
-          "line": 125,
+          "line": 123,
           "path": "addons/uom/models/uom_uom.py"
         },
         {
           "path": "odoo/addons/uom/models/uom_uom.py"
         }
       ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:uom.uom.ensure_one"
-      ]
+      "transient": false
     },
     {
       "abstract": false,
@@ -1318583,10 +1318577,9 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
-        "rpc:decimal.precision.precision_get",
-        "rpc:uom.uom.ensure_one"
+        "rpc:decimal.precision.precision_get"
       ],
-      "digest": "ef8d1cedbafbbccb9c0733b88a7542db71a23133dc9e4b1fa06f4ea2748ae6d7",
+      "digest": "8295aa92a9e9af00a6845fa48f2431b19396f2d45434085539cc49c601903303",
       "guards": [],
       "key": "rpc:uom.uom.round",
       "kind": "rpc",
@@ -1318597,7 +1318590,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "de72986af5c09ba6f271144bee49070d0e8666f2df980d5a3d07a1a30ff31aac",
+      "runtime_digest": "774bb9eb9e4bed539083da2689ccdc8cf025be9ade2466135eb83546ee0b2f6b",
       "sinks": [],
       "sources": [
         {
@@ -1318608,10 +1318601,7 @@
           "path": "odoo/addons/uom/models/uom_uom.py"
         }
       ],
-      "transient": false,
-      "unresolved_delegates": [
-        "rpc:uom.uom.ensure_one"
-      ]
+      "transient": false
     },
     {
       "abstract": false,
@@ -1527101,7 +1527091,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1977,
+          "line": 1976,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527116,7 +1527106,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 975,
+          "line": 974,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527131,7 +1527121,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2047,
+          "line": 2046,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527146,7 +1527136,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1406,
+          "line": 1405,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527161,7 +1527151,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1605,
+          "line": 1604,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527176,7 +1527166,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1900,
+          "line": 1899,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527461,7 +1527451,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1842,
+          "line": 1841,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527476,7 +1527466,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1842,
+          "line": 1841,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527746,7 +1527736,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2061,
+          "line": 2060,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1527902,7 +1527892,7 @@
       ]
     },
     {
-      "digest": "bdbd927fcd705d19cafa4fac2069cf1f827b5929ed348add9132457ccade3610",
+      "digest": "888ceb1d9928703c4418fc07c15a81745f88445d71f50cf3bd9a4b3a4bb531f6",
       "key": "sink:account:addons/account/models/account_move.py:account.move._message_set_main_attachment_id:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1528076,7 +1528066,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1705,
+          "line": 1704,
           "path": "addons/account/models/account_move.py"
         }
       ]
@@ -1529048,7 +1529038,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 3408,
+          "line": 3415,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529063,7 +1529053,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 3278,
+          "line": 3285,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529078,7 +1529068,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3278,
+          "line": 3285,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529243,7 +1529233,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 3179,
+          "line": 3186,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529258,7 +1529248,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2973,
+          "line": 2980,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529273,7 +1529263,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2973,
+          "line": 2980,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529288,7 +1529278,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529303,7 +1529293,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529318,7 +1529308,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529333,7 +1529323,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529348,7 +1529338,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529363,7 +1529353,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529378,7 +1529368,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2997,
+          "line": 3004,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529393,7 +1529383,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 3597,
+          "line": 3604,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529516,7 +1529506,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 2196,
+          "line": 2203,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
@@ -1529534,13 +1529524,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2196,
+          "line": 2203,
           "path": "addons/account/models/account_move_line.py"
         }
       ]
     },
     {
-      "digest": "bb60f29bb52e2125574d7c6789841ab2750630e8f22dcae23d34d8d51799abe2",
+      "digest": "103bcd7a508b19f36be9d84f0ef5aed5c24f504091ed84b37977518d68397da6",
       "key": "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1529558,7 +1529548,7 @@
       ]
     },
     {
-      "digest": "5cd7944e3e1028a3b5724cc6c36cd2be425ba24cb6d631d588487e52685116d3",
+      "digest": "f0da22048114b559424d54da24eb0d6a34226be2250a998bf94b28ce19047b19",
       "key": "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1529576,7 +1529566,7 @@
       ]
     },
     {
-      "digest": "56569914afedef15081e2890fdca637b6e19c4ecdb2836ec1a2a338b17dae72e",
+      "digest": "d587e6c5b9ae056d4ee94d818bbc8b6f36768b2f85f8ae9e744b20f07367a194",
       "key": "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1529594,7 +1529584,7 @@
       ]
     },
     {
-      "digest": "654d35677104d3ae6086f06e39e3404dafe93a438750c1b005c9361bfa83c553",
+      "digest": "a5f4ceb0bacae136ae794ed5990fd6b74a7cc63364a8ab1be8980f8387f038cd",
       "key": "sink:account:addons/account/models/account_move_line.py:account.move.line.write:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1530962,7 +1530952,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2561,
+          "line": 2572,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1530977,7 +1530967,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2425,
+          "line": 2436,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1530992,7 +1530982,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1835,
+          "line": 1846,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531007,7 +1530997,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 490,
+          "line": 501,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531022,13 +1531012,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 490,
+          "line": 501,
           "path": "addons/account/models/account_tax.py"
         }
       ]
     },
     {
-      "digest": "43df0c5dd66f26c3f6ea33f8d2538b605c97af3568b1b2be399f9e8999b6447f",
+      "digest": "1e99d7af9c27d0c687a80eeaae2bb5310373a72e81318ca0a6eb0e8d139f1644",
       "key": "sink:account:addons/account/models/account_tax.py:account.tax._compute_is_used:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1531052,7 +1531042,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 499,
+          "line": 510,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531067,7 +1531057,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 499,
+          "line": 510,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531097,7 +1531087,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 881,
+          "line": 892,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531112,7 +1531102,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 799,
+          "line": 810,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531127,7 +1531117,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 4994,
+          "line": 5005,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531142,7 +1531132,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 420,
+          "line": 431,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531157,7 +1531147,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 420,
+          "line": 431,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531172,7 +1531162,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3572,
+          "line": 3583,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531187,7 +1531177,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 630,
+          "line": 641,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531205,7 +1531195,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 4876,
+          "line": 4887,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531223,7 +1531213,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 4876,
+          "line": 4887,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531241,7 +1531231,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 664,
+          "line": 675,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1531259,7 +1531249,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 680,
+          "line": 691,
           "path": "addons/account/models/account_tax.py"
         }
       ]
@@ -1532216,7 +1532206,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 1383,
+          "line": 1386,
           "path": "addons/account/models/partner.py"
         }
       ]
@@ -1532336,7 +1532326,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1324,
+          "line": 1327,
           "path": "addons/account/models/partner.py"
         }
       ]
@@ -1533452,7 +1533442,7 @@
       ]
     },
     {
-      "digest": "67d1a673e2530cddf35715036f26e63f4066850bd9d414486fc584acf26b4dcb",
+      "digest": "a17b5a235dc7f4ca32a2c0c4cf228ca06e0b2678ed7eb428d4b6575fb70948c4",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1533467,7 +1533457,7 @@
       ]
     },
     {
-      "digest": "366e6fd95c5884e2ecada377bebbc4272dad49f95502fbbcd9ed6016e495d2e2",
+      "digest": "a659079df720b0f7ebe82f7ea1564ddb9d2100a165488cd06c0a28b5f3b0d33b",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:2",
       "kind": "sink",
       "modules": [
@@ -1533482,7 +1533472,7 @@
       ]
     },
     {
-      "digest": "798c3358560ffaadde5bba2b4fe2f18b73fe91d04275ac8003a58f1525f3e730",
+      "digest": "e796f36c3331cffdf807bfb0d67a539b165393ff98494beeea9f9234959a9b6b",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:3",
       "kind": "sink",
       "modules": [
@@ -1533497,7 +1533487,7 @@
       ]
     },
     {
-      "digest": "280a6a27b8bcc0edd73e20112d51387618f3f4e1a07e040fe3e685b35e3c1343",
+      "digest": "b2a02a3090950c76a462bcc01759da8d2340d9f1db833c5cf73a69a9cde7694f",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:4",
       "kind": "sink",
       "modules": [
@@ -1533512,7 +1533502,7 @@
       ]
     },
     {
-      "digest": "f92b6288141721d4b3fc8f1d0cc10987ad156dbf58a18f83af8fc723507de6cc",
+      "digest": "c58cd6ff062271baa327e65806c4c113d826552f52fa1be8d9719cd699e7fd85",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:5",
       "kind": "sink",
       "modules": [
@@ -1533527,7 +1533517,7 @@
       ]
     },
     {
-      "digest": "f9da1bc404afaa646771d195e6ea9f00dfcdfbf14173b6406ce424a9659e2274",
+      "digest": "3506ad86fccb99e41914b28be7a5a0f6f7708b838edcbb9196a80124415092f6",
       "key": "sink:account:addons/account/wizard/accrued_orders.py:account.accrued.orders.wizard._compute_move_vals:orm_create:6",
       "kind": "sink",
       "modules": [
@@ -1535915,7 +1535905,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2109,
+          "line": 2110,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1535930,7 +1535920,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2109,
+          "line": 2110,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1535945,7 +1535935,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2109,
+          "line": 2110,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1535981,7 +1535971,7 @@
       ]
     },
     {
-      "digest": "170db52bf912f8d000ac733037892074c35a9df63ac1311684956d344a382cda",
+      "digest": "1584e03e390b578e51ef61559b58a13e8077d050466687b455f2a56c5e53221a",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1535996,7 +1535986,7 @@
       ]
     },
     {
-      "digest": "6970b90ea97cbb1cd9bcd4fcfb6b7df44c8bce17496b35f6223d6ef61fbda5d4",
+      "digest": "6f6bcb5cfb9e670e01c5956754f2bf0c7183ab18e75a00f81eb4ba7e6e21a420",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_common.py:account.edi.common._import_create_missing_customer:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1536020,7 +1536010,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1895,
+          "line": 1896,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536035,7 +1536025,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1895,
+          "line": 1896,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536050,7 +1536040,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2002,
+          "line": 2003,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536065,7 +1536055,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2002,
+          "line": 2003,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536080,7 +1536070,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1852,
+          "line": 1853,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536095,7 +1536085,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 2082,
+          "line": 2083,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536110,7 +1536100,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2082,
+          "line": 2083,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536125,7 +1536115,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2082,
+          "line": 2083,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536155,7 +1536145,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1971,
+          "line": 1972,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536170,7 +1536160,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1971,
+          "line": 1972,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536185,7 +1536175,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1971,
+          "line": 1972,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1536245,7 +1536235,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1610,
+          "line": 1611,
           "path": "addons/account_edi_ubl_cii/models/account_edi_common.py"
         }
       ]
@@ -1558638,7 +1558628,7 @@
       ]
     },
     {
-      "digest": "9e7d5240a5984c3f73abf0334eac820fbd99ae508f4e0c8d7f1402e0e2ab5101",
+      "digest": "61703916e6b63e05a6a64e44352712eaca887575d60e90e9bb50f6afbf25725a",
       "key": "sink:base:odoo/orm/models.py:base._update_cache:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1558653,7 +1558643,7 @@
       ]
     },
     {
-      "digest": "b8be1122e9b54bcdeb15c98c01aa022ae6a6798e3cffbd745d9465abb3ba5bb2",
+      "digest": "ae93c25b501c14e0fef78ce83bc47f408226804b6587a652a9ccbf423d0a0535",
       "key": "sink:base:odoo/orm/models.py:base._update_cache:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1564464,7 +1564454,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 141,
+          "line": 131,
           "path": "addons/hr/models/resource.py"
         }
       ]
@@ -1564479,7 +1564469,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 141,
+          "line": 131,
           "path": "addons/hr/models/resource.py"
         }
       ]
@@ -1578117,7 +1578107,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 5197,
+          "line": 5202,
           "path": "addons/mail/models/mail_thread.py"
         }
       ]
@@ -1578603,7 +1578593,7 @@
       ]
     },
     {
-      "digest": "2926a60aae2c407e6fe264deed67d42e61b1de3dabd6dfbb224847299e8ff960",
+      "digest": "1f38ff3d58d5b9251329971da5d371e58161a2498fd64ee40876e4c8b526538c",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_unlink:1",
       "kind": "sink",
       "modules": [
@@ -1578618,7 +1578608,7 @@
       ]
     },
     {
-      "digest": "7a7aca13b0487e3499a4dcf042e6a7ef4827009eb3efb60dbcfd91a9f320b032",
+      "digest": "6e4042d5dad6afb85b83705a4c96e22241ba63a125daa9a895a8e532ef9355f6",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1578633,7 +1578623,7 @@
       ]
     },
     {
-      "digest": "727675d478771c24002432c597410e240c21290f1edfc9c4ae65a0a39ea036bc",
+      "digest": "475f65bc6be7a0b8f8f0ac54ceea8c6470627c37cbb6f9fbf31d9715942fe3b2",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1578648,7 +1578638,7 @@
       ]
     },
     {
-      "digest": "22209b34a219133cc6f57990f6686cbdda9ba0328e2d1178ab66ace2595eb331",
+      "digest": "3aa0d2e5eb39c726e0cbb8ad73e9e9e758ddd1a925a080ee7f4ec2f9c227cfdc",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1578663,7 +1578653,7 @@
       ]
     },
     {
-      "digest": "66e61f4b62cd01fe69f2a0d05899b74193e77a3bba9b31d32fc9be35ae3ba840",
+      "digest": "bebfe62d61503066d304a35d1fd141477e76459db3ca18b0c8f1639d255a134e",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1578678,7 +1578668,7 @@
       ]
     },
     {
-      "digest": "16d16d6f178b59b9de0f57cc1f01aede64673aac566b7953cef63c1502af2db3",
+      "digest": "6ffd19a113891a02d3f5a77806738e3c6ac897c77610fd401354748b48b7d459",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1578693,7 +1578683,7 @@
       ]
     },
     {
-      "digest": "ea723e6e60643f3c57fc8f3de535f3a61d54ec24c31473eb9f8c340b3ee773d9",
+      "digest": "9cec67e87e7ecf0ff93d5f0d26ecd77a3ad11fea2c223d4370bac3b707c18c5d",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:6",
       "kind": "sink",
       "modules": [
@@ -1578708,7 +1578698,7 @@
       ]
     },
     {
-      "digest": "6acff78639b75941c72e361151f37250be813ac935b24023239c37cdf81b3425",
+      "digest": "d88432a55c9fd1f37b9c34462f7936a6fa4f3c0fa1e5a5222f6c4934762206d6",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:orm_write:7",
       "kind": "sink",
       "modules": [
@@ -1578723,7 +1578713,7 @@
       ]
     },
     {
-      "digest": "731376cda55e83f55207effec683c9426eec4774b4e6b33496c40fc51145da4e",
+      "digest": "4b36f07903e57ffa8365af3d9301cc3bab11f2d5eaae57eb572d1359b9bdef58",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1578738,7 +1578728,7 @@
       ]
     },
     {
-      "digest": "d73b63e579d31225538adfd2cf38cff07a7afd9cfd4bd8c26ce5deed148658a5",
+      "digest": "51e9e7d438044bca0f646e45083094578eaf847fcb7c950e61cf440300281029",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1578753,7 +1578743,7 @@
       ]
     },
     {
-      "digest": "770c9405be0f4d0bc7767f95eeea318dc25e2417076f513e861a967324d83cc3",
+      "digest": "68ecae6d5001b8e6783ce173853194e28ce5fa653d0f5935362d460154cb194e",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1578768,7 +1578758,7 @@
       ]
     },
     {
-      "digest": "d8b6a4cee4a8eb8925ef3688e5f673dc8a6ed9d1dba71e08e45140696cb73c7a",
+      "digest": "1669672b292d31b5ca4c26ab5bbcec0b9ab2534192666e790c3cc67776f3810f",
       "key": "sink:mail:addons/mail/models/mail_thread.py:mail.thread._message_update_content:sudo:4",
       "kind": "sink",
       "modules": [
@@ -1579632,7 +1579622,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 5206,
+          "line": 5211,
           "path": "addons/mail/models/mail_thread.py"
         }
       ]
@@ -1579647,7 +1579637,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 5206,
+          "line": 5211,
           "path": "addons/mail/models/mail_thread.py"
         }
       ]
@@ -1584030,7 +1584020,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1913,
+          "line": 1914,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584150,7 +1584140,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1385,
+          "line": 1386,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584165,7 +1584155,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1291,
+          "line": 1292,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584180,7 +1584170,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1291,
+          "line": 1292,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584195,7 +1584185,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1291,
+          "line": 1292,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584210,7 +1584200,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2726,
+          "line": 2727,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584225,7 +1584215,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2726,
+          "line": 2727,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584240,7 +1584230,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2726,
+          "line": 2727,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584255,7 +1584245,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 2726,
+          "line": 2727,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584270,7 +1584260,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2726,
+          "line": 2727,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584285,7 +1584275,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1754,
+          "line": 1755,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584300,7 +1584290,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2565,
+          "line": 2566,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584315,7 +1584305,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2006,
+          "line": 2007,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584330,7 +1584320,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 3271,
+          "line": 3272,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584345,7 +1584335,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1467,
+          "line": 1468,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584360,7 +1584350,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1467,
+          "line": 1468,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584375,7 +1584365,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1467,
+          "line": 1468,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584390,7 +1584380,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3046,
+          "line": 3047,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584405,7 +1584395,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584420,7 +1584410,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584435,7 +1584425,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584450,7 +1584440,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584465,7 +1584455,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584480,7 +1584470,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584495,7 +1584485,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584510,7 +1584500,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584525,7 +1584515,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584540,7 +1584530,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584555,7 +1584545,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2087,
+          "line": 2088,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584570,7 +1584560,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 3238,
+          "line": 3239,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584585,7 +1584575,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3238,
+          "line": 3239,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584600,7 +1584590,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3238,
+          "line": 3239,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584615,7 +1584605,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3238,
+          "line": 3239,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584630,7 +1584620,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1511,
+          "line": 1512,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584648,7 +1584638,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 3185,
+          "line": 3186,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584666,7 +1584656,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1712,
+          "line": 1713,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584684,7 +1584674,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1712,
+          "line": 1713,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584702,7 +1584692,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1712,
+          "line": 1713,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584720,7 +1584710,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1688,
+          "line": 1689,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584738,7 +1584728,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1688,
+          "line": 1689,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584756,7 +1584746,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2654,
+          "line": 2655,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584774,7 +1584764,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2654,
+          "line": 2655,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584792,7 +1584782,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2654,
+          "line": 2655,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584810,7 +1584800,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 2654,
+          "line": 2655,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584828,7 +1584818,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 2629,
+          "line": 2630,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584846,7 +1584836,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2629,
+          "line": 2630,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584864,7 +1584854,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2629,
+          "line": 2630,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584882,7 +1584872,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584900,7 +1584890,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584918,7 +1584908,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584936,7 +1584926,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584954,7 +1584944,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584972,7 +1584962,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2321,
+          "line": 2322,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1584990,7 +1584980,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1793,
+          "line": 1794,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585008,7 +1584998,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1823,
+          "line": 1824,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585026,7 +1585016,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585044,7 +1585034,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585062,7 +1585052,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585080,7 +1585070,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585098,7 +1585088,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585116,7 +1585106,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1142,
+          "line": 1143,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585134,7 +1585124,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 2457,
+          "line": 2458,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585152,7 +1585142,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1594,
+          "line": 1595,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
@@ -1585170,13 +1585160,13 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 1196,
+          "line": 1197,
           "path": "addons/mrp/models/mrp_production.py"
         }
       ]
     },
     {
-      "digest": "490e7e497e4f9e263d4079919a25c0fc7d1f9c24b8d8259055b47db588a81e79",
+      "digest": "0b8e07d7716e5acd0d652c7ed2da244ab739d37d0eb7edc0260cfc2b146346f9",
       "key": "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1585194,7 +1585184,7 @@
       ]
     },
     {
-      "digest": "324c1c324fff38eec0ee21aac53f3b0b9dd7c94386b5edab37b1ce0ffccd1e3b",
+      "digest": "b53cc333eca7c2267b98a1b8c164b096544c1c268bd877d97b86b9db5636ea05",
       "key": "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1585212,7 +1585202,7 @@
       ]
     },
     {
-      "digest": "d45a0e6b299986ba31805d34055dc764a87aaad34c1690a212fe0dfa2574fa71",
+      "digest": "1d0c2b11778cdda2bf9c56271904473f4cd4cc2bd8079bd01823fdde10ed6508",
       "key": "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1585230,7 +1585220,7 @@
       ]
     },
     {
-      "digest": "cb926a77b6bb82a938abf320f381eb3b24186f296cef3527d100bd9cc8e33a91",
+      "digest": "d2f120f1d6984a6e5d84dbe8235fc7a322d08fba596c4d529afff073a17c0da6",
       "key": "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1585248,7 +1585238,7 @@
       ]
     },
     {
-      "digest": "072ba8a6c06974dc6d652301cb7363325dfaca0286780686166035a36cef8b5a",
+      "digest": "40d0a4bbf6ab58cc478bd165ce2e0c653d2c64d662e4099746075568cf996ae0",
       "key": "sink:mrp:addons/mrp/models/mrp_production.py:mrp.production.write:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1585671,7 +1585661,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 567,
+          "line": 571,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585686,7 +1585676,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 567,
+          "line": 571,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585836,7 +1585826,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1114,
+          "line": 1118,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585851,7 +1585841,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1114,
+          "line": 1118,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585866,7 +1585856,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1114,
+          "line": 1118,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585884,7 +1585874,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 772,
+          "line": 776,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585902,7 +1585892,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 986,
+          "line": 990,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585920,7 +1585910,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 716,
+          "line": 720,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585938,7 +1585928,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 716,
+          "line": 720,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585956,7 +1585946,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585974,7 +1585964,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1585992,7 +1585982,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586010,7 +1586000,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586028,7 +1586018,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 670,
+          "line": 674,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586046,7 +1586036,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 545,
+          "line": 549,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586136,7 +1586126,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 812,
+          "line": 816,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586154,7 +1586144,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 473,
+          "line": 477,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586172,7 +1586162,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 473,
+          "line": 477,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1586190,7 +1586180,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 473,
+          "line": 477,
           "path": "addons/mrp/models/mrp_workorder.py"
         }
       ]
@@ -1607916,7 +1607906,7 @@
       ]
     },
     {
-      "digest": "895d843bc397dd4c7f6dd6bec72b673e5b422ddfb05a54e975ab1334e142e7c6",
+      "digest": "ece96a06f443b39594297c89553834b40445e9335fd287f730bff291a623a28c",
       "key": "sink:sale:addons/sale/models/payment_transaction.py:payment.transaction._invoice_sale_orders:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1623381,7 +1623371,7 @@
       ]
     },
     {
-      "digest": "a6a42268ba471cdafd5311f19917484fd9aa1fdc800b3698e742255af64b5b7a",
+      "digest": "7d9e8fb221be5323064010c48b4e49682f43989cc6b20b23b83c0714fdcc99e6",
       "key": "sink:stock_account:addons/stock_account/models/account_move_line.py:account.move.line._get_cogs_value:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1625319,7 +1625309,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 198,
+          "line": 195,
           "path": "addons/uom/models/uom_uom.py"
         }
       ]
@@ -1720709,7 +1720699,7 @@
       "manifest_sha256": "daaf4ee9455b2011774f85241d0995213be1c75f12a6fb1b5815c72cd4a6fa3a",
       "name": "account",
       "origin": "native",
-      "source_sha256": "ec90c5dc740edd7635e1dd22e04dd39646f21cf31c249059d28c8b300ca2a94b",
+      "source_sha256": "64ad6a058d48c27c0518eb3d2c0b0cc11ddcd036f21dbe2a422f35ade7a3aa2d",
       "version": "1.6"
     },
     {
@@ -1720730,7 +1720720,7 @@
       "manifest_sha256": "8acd0ea5b88aff3eaa1579bb8daa97d7f5d38211f2410884e254bbc765292f83",
       "name": "account_edi_ubl_cii",
       "origin": "native",
-      "source_sha256": "a9d42bb17a6808aee5918fafb78ca66da4fda14492da30759efafc618fc4f490",
+      "source_sha256": "f45662d32dd7d1bee5259d79495f671d542c9d69f59d04d06794827130e4335c",
       "version": ""
     },
     {
@@ -1720751,14 +1720741,14 @@
       "manifest_sha256": "123acee8972a940349e554f7c4f90c0ded2c746d9e979d683858be92ac212ccd",
       "name": "account_peppol",
       "origin": "native",
-      "source_sha256": "84d9502e849c3f042024d6400f9e4bd52a7e696538823f52f3f05aa53aca6c5c",
+      "source_sha256": "24d106a1a3afd0e6eb6643e2d5f18099fbfb88387a2aa1bf6573eb44259792b1",
       "version": "1.2"
     },
     {
       "manifest_sha256": "594236788a1d21c86dc83edf07e1da3b3c3bd1ae90f313c9455090a0202c0804",
       "name": "account_peppol_response",
       "origin": "native",
-      "source_sha256": "a706da32da600a6064108452c306c46ce33e9db210ac2101390186c666bdef41",
+      "source_sha256": "6bac472661e49cc56cf8d3f5e245ca3c512cca2dffa2dc7c42b794f65a7e3aa7",
       "version": ""
     },
     {
@@ -1721038,7 +1721028,7 @@
       "manifest_sha256": "b6011c1c48080769d2de8ba32cc4ee158fd15847c23068ce59fd70ad96996b19",
       "name": "hr",
       "origin": "native",
-      "source_sha256": "667a96d1e3248c53c4595c5aa12424e7529a2796ac404369df4fda0a9afcb09d",
+      "source_sha256": "8178a470e40dd5cf54544e61ba3da7150859f5430750ae767f60a85f9d12a7f3",
       "version": "1.1"
     },
     {
@@ -1721059,7 +1721049,7 @@
       "manifest_sha256": "8487b0e72c59861820c213a5136ac079d032aeb64c7972524203d9547f8854ff",
       "name": "html_editor",
       "origin": "native",
-      "source_sha256": "34410681980528283b60e65cabe261de909ddba65074b4853b687ba2c357321a",
+      "source_sha256": "3f77467063c9071248dbb8e666a7fbaadc96203a8434f2996f1801b1bd01c1ee",
       "version": ""
     },
     {
@@ -1721108,7 +1721098,7 @@
       "manifest_sha256": "ab19a12f0c453cb9d9b2f23a5242b009b7f6f86d5db2d696bdeefdcbbe17e158",
       "name": "mail",
       "origin": "native",
-      "source_sha256": "5e21e991f0524bbfdafab1a71a6f0ee1635ced240c8aed9df48d1b547377663e",
+      "source_sha256": "b68b977240687cf801da7dfef2fca9b9596a3e74093dcaf02151aa04c6aed8b7",
       "version": "1.19"
     },
     {
@@ -1721143,7 +1721133,7 @@
       "manifest_sha256": "723242bda92a1e46ffe2a91935743c2e453e9c8b3dfd8266c0e19318c0ba3400",
       "name": "mrp",
       "origin": "native",
-      "source_sha256": "874ea1c81f232a83a379ddc5b4d56fcf11a06d292353575ade472c80950f4525",
+      "source_sha256": "568ff04604f3d611c7597a04adffa2632dd239fc86e1fa875adfea5952e28572",
       "version": "2.0"
     },
     {
@@ -1721346,7 +1721336,7 @@
       "manifest_sha256": "25e4410720fd74ec9837b5a7a4b2804e6fbde6f6a45a155d6406e705739abf29",
       "name": "purchase",
       "origin": "native",
-      "source_sha256": "c9858207670cdfde6adc9d9a4c3878e942afef8132d5c156005fc2b57897c342",
+      "source_sha256": "014d3ffc86c2fbc10db76f8ff0b21aab36ac0484b5a4f14606ea525f4fd6895a",
       "version": "1.2"
     },
     {
@@ -1721409,7 +1721399,7 @@
       "manifest_sha256": "0e7331218daa56e0ed93294b51a0340a3eb3cddf134070c168cf53ad90a553b5",
       "name": "resource",
       "origin": "native",
-      "source_sha256": "3963a7aeadea7d5bb29922e5a8c2a5d92b60a9b1bac3de8cc18c52c1ab6c563b",
+      "source_sha256": "225675d01c61ee619e239c418e55da9fe9c8f64e926f690806e20f8ca21d28f9",
       "version": "1.1"
     },
     {
@@ -1721430,7 +1721420,7 @@
       "manifest_sha256": "1a4b48bcaff4110d916136918f905e7ec04e1bdd70203d05893e3863491a3145",
       "name": "sale",
       "origin": "native",
-      "source_sha256": "34b564a93d94c7725386171e30e49db59560f4143db8c88588f42f35dfc2b3b3",
+      "source_sha256": "a88fd0b042b483b944d3cdbf3360b8cb3a9d4fb8127c634bebd4ca84dec88cf4",
       "version": "1.2"
     },
     {
@@ -1721549,7 +1721539,7 @@
       "manifest_sha256": "9f98dca4ae169d3a6d5d70a9174618d826437592a01f878b8436e7116317030a",
       "name": "sale_stock",
       "origin": "native",
-      "source_sha256": "b6590285b579b588c5d5ef5278d10c15f2407a34014c6ff9517be0196aae08f5",
+      "source_sha256": "86da10aad579d5a3ec0378707719699f8b56a7744e379fbfa82ffe15200fd015",
       "version": ""
     },
     {
@@ -1721647,14 +1721637,14 @@
       "manifest_sha256": "4c11222bb0a3592e336bd0a58634aa48192ad41eaa5338e323fbd46e4413d263",
       "name": "stock",
       "origin": "native",
-      "source_sha256": "bfa771a701cdc316914cb11d36eea75c63b42b8c75df35bd35d17765a8813b4b",
+      "source_sha256": "480b8fd86a4938c4a4398972a20a3bd0f28acefa307ba55a151ac009977b405e",
       "version": "1.1"
     },
     {
       "manifest_sha256": "c7f098cd972c1f1894c289332ec9d973c2e7a82d0f66919a80fa40d6d9b87c05",
       "name": "stock_account",
       "origin": "native",
-      "source_sha256": "3135efec71ca73f3a768114691c8978997c50383ad00b41a76d66a9447b2099e",
+      "source_sha256": "a4e4fe63ea39c47ed3648d070357548a8ce660ad2f767ba01ccb7c3efeff8005",
       "version": "1.1"
     },
     {
@@ -1721682,7 +1721672,7 @@
       "manifest_sha256": "67448e5e7329e9562c8fe99e6a65b0223cdd0ce47a656c3fd8a898ccb7a55262",
       "name": "uom",
       "origin": "native",
-      "source_sha256": "ea50af9c3521eeb9997d281dce68851bd5eac32c55fd0ce9ae7607e95ac33247",
+      "source_sha256": "9ca33da30b8d4ed0d21e86faf3ee26a4a13c09d217a24b00ee5d2a362770b2fc",
       "version": ""
     },
     {
@@ -1721843,7 +1721833,7 @@
       "manifest_sha256": "b3db8f4d1acfff6b387bef1d2375195acae92abc3f0541845615d45670d0da17",
       "name": "web",
       "origin": "native",
-      "source_sha256": "c3058d0cc919614047133ea71eef93a4f8d8f672ea233727537a35e323a0d57a",
+      "source_sha256": "ab4e81113595f9070317ec8803aafe54c6cc3ce628c3c530e26059e7be9f6190",
       "version": ""
     },
     {
