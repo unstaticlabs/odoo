@@ -380,6 +380,65 @@ tracking card, not in a public pull request. The synthetic regression exercises
 backup, restore, cleanup and a second restore, plus a receipt-write failure.
 It does not certify a private production restore or current fleet-wide RPO/RTO.
 
+### Relocate an exact historical archive
+
+Some historical v2 captures predate the keys now required for complete modern
+recovery, even though their original receipt says `qualified`. Keep modern
+cohort validation strict. Do not rewrite those manifests, relabel them as
+current recovery points, or require a new staging runtime simply to move an
+identical historical copy off the VPS.
+
+For an explicitly reviewed historical payload, the native helper
+`python3 -m operations.historical_capture` uses ordinary encrypted Restic. Under
+the target's existing operation lock, mount only that source read-only, provide
+owned disposable scratch and a separate private receipt directory, and use the
+existing production durable repository and its normal backup environment:
+
+```bash
+python3 -m operations.historical_capture /historical-capture \
+  --scratch /owned-scratch --receipt /receipts/manual-example.json \
+  --target staging --capture manual-example \
+  --repository '<existing-production-durable-repository>'
+```
+
+The helper uploads all original bytes, including `manifest.json`, `state.json`,
+embedded release, database dumps, keys and cache. It restores the new snapshot
+independently and compares native file-tree identity plus modes, ownership,
+modification times and extended attributes. It also verifies the source did not
+change during archival. A successful retry reuses the verified snapshot; a
+failed read-back leaves scratch for the owner's bounded investigation window.
+The caller must classify that scratch using the disposable-artifact policy.
+
+Archive snapshots carry `usl-historical-capture-archive`, `cio-2374`, target and
+capture tags. They carry **no** `usl-cohort`, `durable` or `recovery-eligible`
+tags. Native cohort retention ignores them; their referenced packs remain
+protected during scoped Restic pruning. These finite historical preservation
+anchors are retained until a maintainer explicitly reviews their own retention.
+This does not introduce another periodic backup stream.
+
+Store the verified, fsynced receipt at
+`<target-state-directory>/historical-archives/<capture>.json`. Then review:
+
+```bash
+scripts/usl-stack cleanup retire-plan --target staging \
+  --capture manual-example \
+  --historical-archive-receipt /var/lib/usl-odoo/runtime/staging/historical-archives/manual-example.json \
+  --owner 'CIO #2374' --reason 'Exact historical bytes verified in encrypted archive' --json
+```
+
+Apply the reviewed plan with `retire-apply --confirm staging`. This path binds
+the exact local byte and metadata fingerprint to the separate remote archive
+receipt, retaining both the archival and retirement receipts. Immediately before
+removal it also checks that the exact immutable remote snapshot still exists
+with the archive tag and expected source path, using the existing production
+backup credential context. An unreachable or missing anchor preserves the local
+payload. It preserves the
+same active/previous release, mount, container-reference and lifecycle-lock
+checks. It does not require a modern replacement because it relocates the same
+historical copy; it explicitly reports `modern_recovery_certified: false`.
+The modern replacement path above retains its newer-qualified-cohort requirement.
+Neither path removes active runtime data or modifies original historical evidence.
+
 ## Service-level objective
 
 The first clean production-to-staging benchmark completed on 2 September 2026

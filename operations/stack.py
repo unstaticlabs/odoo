@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from operations import backup_maintenance
+from operations import historical_capture
 from operations import staging_lifecycle as lifecycle
 from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
@@ -10679,6 +10680,54 @@ def _legacy_capture_retirement(
     }
 
 
+def _historical_capture_retirement(
+    target, runner, run_id: str, protected_commits: set[str], archive: dict,
+    repository: str, image: str,
+) -> dict:
+    """Relocate historical bytes using their own exact offsite archive anchor."""
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures", "historical-archives"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or _capture_attempt(target, run_id) is not None
+        or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("historical capture identity is invalid or already managed")
+    path = f"{target.value['state_directory']}/{run_id}"
+    probe = runner.run([
+        "find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n",
+    ], check=False)
+    if probe.returncode or probe.stdout.strip() != "d":
+        raise RuntimeError("historical capture must be a real directory")
+    identity = historical_capture.capture_identity(
+        runner.run(["cat", f"{path}/manifest.json"]).stdout,
+        json.loads(runner.run(["cat", f"{path}/state.json"]).stdout),
+        target=target.name, capture=run_id,
+    )
+    if identity["release_commit"] in protected_commits:
+        raise RuntimeError("historical capture belongs to a protected release")
+    program = (
+        "import json;from pathlib import Path;from operations.cohort import tree_identity;"
+        "from operations.historical_capture import metadata_identity;"
+        "p=Path('/capture');print(json.dumps({'tree':tree_identity(p),"
+        "'metadata_sha256':metadata_identity(p)}))"
+    )
+    tree = json.loads(runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL",
+        "--cap-add", "DAC_OVERRIDE", "--user", "0:0", "--volume", f"{path}:/capture:ro", "--entrypoint", "python3", image, "-c", program,
+    ]).stdout)
+    historical_capture.validate_archive(
+        archive, target=target.name, capture=run_id, manifest_sha256=identity["manifest_sha256"],
+        repository=repository, actual_tree=tree["tree"],
+        actual_metadata_sha256=tree["metadata_sha256"],
+    )
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "capture_identity": identity,
+        "historical_archive": archive, "preservation_kind": "exact-historical-archive",
+        "modern_recovery_certified": False,
+    }
+
+
 def _assert_capture_unmounted(runner, path: str) -> None:
     # st_dev and os.path.ismount miss bind mounts on the same filesystem.
     # Read the kernel mount inventory, including descendants, before deleting.
@@ -10724,9 +10773,27 @@ def _assert_capture_not_bound(runner, path: str) -> None:
         raise RuntimeError("legacy capture container mounts are invalid") from error
 
 
+def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:
+    _secret_file(target, runner)
+    program = (
+        "import json,sys;from operations.historical_capture import verify_remote_archive;"
+        "verify_remote_archive(json.load(sys.stdin))"
+    )
+    runner.run([
+        "docker", "run", "--rm", "--interactive", "--read-only", "--cap-drop", "ALL",
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env", f"RESTIC_REPOSITORY={archive['repository']}",
+        "--env", "RESTIC_CACHE_DIR=/cache", "--tmpfs", "/cache:rw,size=67108864",
+        "--entrypoint", "python3", image, "-c", program,
+    ], input_text=json.dumps(archive))
+
+
 def _retire_legacy_capture(arguments, target, runner) -> dict:
-    if not all((arguments.capture, arguments.replacement, arguments.owner, arguments.reason)):
-        raise RuntimeError("legacy retirement requires --capture, --replacement, --owner and --reason")
+    archive_path = getattr(arguments, "historical_archive_receipt", None)
+    if not all((arguments.capture, arguments.owner, arguments.reason)):
+        raise RuntimeError("legacy retirement requires --capture, --owner and --reason")
+    if bool(archive_path) == bool(arguments.replacement):
+        raise RuntimeError("choose exactly one --replacement or --historical-archive-receipt")
     apply = arguments.action == "retire-apply"
     if apply and arguments.confirm != target.name:
         raise RuntimeError("legacy retirement apply requires exact --confirm")
@@ -10739,12 +10806,32 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
             release = validate_release(json.loads(runner.run(["cat", path]).stdout))
             protected_commits.add(release["source"]["commit"])
-        plan = _legacy_capture_retirement(
-            target, runner, arguments.capture, arguments.replacement, protected_commits,
-        )
         payload = f"{target.value['state_directory']}/{arguments.capture}"
         _assert_capture_unmounted(runner, payload)
         _assert_capture_not_bound(runner, payload)
+        archive = None
+        if archive_path:
+            expected = f"{target.value['state_directory']}/historical-archives/{arguments.capture}.json"
+            if str(archive_path) != expected:
+                raise RuntimeError("historical archive receipt path differs from the capture")
+            archive = json.loads(runner.run(["cat", expected]).stdout)
+            production = load_target("production", arguments.targets)
+            repository = production.value["backup"]["durable_repository"]
+            release, _sha, _raw = _release(target, runner, None)
+            image = _operations_image(release)
+
+        def review():
+            if archive is not None:
+                plan = _historical_capture_retirement(
+                    target, runner, arguments.capture, protected_commits, archive, repository, image,
+                )
+                _assert_historical_archive_remote(production, runner, image, archive)
+                return plan
+            return _legacy_capture_retirement(
+                target, runner, arguments.capture, arguments.replacement, protected_commits,
+            )
+
+        plan = review()
         size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
         if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
             raise RuntimeError("legacy capture allocation could not be measured")
@@ -10758,9 +10845,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             # the same lifecycle lock, then retain a second durable completion.
             receipt = f"{target.value['state_directory']}/retired-captures/{arguments.capture}.json"
             _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "prepared"})
-            checked = _legacy_capture_retirement(
-                target, runner, arguments.capture, arguments.replacement, protected_commits,
-            )
+            checked = review()
             if any(checked[key] != plan[key] for key in checked):
                 raise RuntimeError("legacy capture changed during retirement")
             _assert_capture_unmounted(runner, payload)
@@ -12598,6 +12683,10 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--confirm")
     cleanup.add_argument("--capture", help="explicit legacy local capture identity")
     cleanup.add_argument("--replacement", help="newer managed qualified recovery capture")
+    cleanup.add_argument(
+        "--historical-archive-receipt", type=Path,
+        help="exact raw historical archive read-back receipt; does not certify modern recovery",
+    )
     cleanup.add_argument("--owner", help="person or task responsible for retirement")
     cleanup.add_argument("--reason", help="why this local legacy payload is obsolete")
     cleanup.add_argument(

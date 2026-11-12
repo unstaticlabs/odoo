@@ -2336,7 +2336,7 @@ class CohortContractTests(unittest.TestCase):
         write_remote.assert_not_called()
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
-        policy_path = "/opt/usl/deploy/production.cron-policy.json"
+        policy_path = "/synthetic/nonexistent-production.cron-policy.json"
         policy_raw = json.dumps({
                 "schema": "usl-production-cron-policy-v1",
                 "gates": ["always"],
@@ -4735,7 +4735,7 @@ class CohortContractTests(unittest.TestCase):
 
     @unittest.skipUnless(__import__("sys").platform == "linux", "runtime cleanup uses GNU find on the Linux host")
     def test_legacy_retirement_real_files_preserves_backup_and_recovery_anchor(self) -> None:
-        import tarfile
+        import shutil
         from operations.runtime import CommandRunner, Target
         from operations.stack import _retire_legacy_capture
         configured = load_target("production", TARGETS)
@@ -4751,12 +4751,10 @@ class CohortContractTests(unittest.TestCase):
                     path.parent.mkdir(parents=True, exist_ok=True)
                     path.write_text(content)
                 (root / name / "payload").write_bytes(b"synthetic recovery data" * 10000)
-            archive = Path(temporary) / "offsite-fixture.tar"
-            with tarfile.open(archive, "w") as backup:
-                backup.add(root / replacement, arcname="capture")
+            archive = Path(temporary) / "offsite-fixture"
+            shutil.copytree(root / replacement, archive)
             def restore_and_check(destination):
-                with tarfile.open(archive) as backup:
-                    backup.extractall(destination, filter="data")
+                shutil.copytree(archive, destination / "capture")
                 self.assertEqual((destination / "capture/payload").read_bytes(), b"synthetic recovery data" * 10000)
             restore_and_check(Path(temporary) / "restore-before")
             arguments = argparse.Namespace(action="retire-apply", capture=old, replacement=replacement,
@@ -4784,6 +4782,86 @@ class CohortContractTests(unittest.TestCase):
             self.assertEqual(receipt["status"], "retired")
             self.assertEqual(receipt["capture_identity"]["durable_snapshot_id"], "1" * 64)
             restore_and_check(Path(temporary) / "restore-after")
+
+    @unittest.skipUnless(__import__("sys").platform == "linux", "runtime cleanup uses GNU find on the Linux host")
+    def test_historical_archive_relocation_preserves_bytes_without_modern_keys(self) -> None:
+        import shutil
+        from operations import historical_capture as historical
+        from operations.runtime import CommandRunner, Target
+        from operations.stack import _digested_document, _qualified_capture, _retire_legacy_capture
+        configured = load_target("production", TARGETS)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            target = Target(configured.path, {**configured.value, "state_directory": str(root)})
+            name = "manual-synthetic-historical"
+            for relative, raw in self._capture_files(target, name, created_at="2026-09-01T00:00:00Z").items():
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(raw)
+            manifest_path = root / name / "manifest.json"
+            value = json.loads(manifest_path.read_text())
+            for role in ("mcp_secrets", "renderer_secrets", "paperless_personal_ai_keys"):
+                value["resources"].pop(role, None)
+            manifest_path.write_text(json.dumps(value))
+            payload = b"synthetic historical bytes" * 10000
+            (root / name / "payload").write_bytes(payload)
+            self.assertIsNone(_qualified_capture(target, CommandRunner(), name))
+            tree = cohort.tree_identity(root / name)
+            backup_path = Path(temporary) / "offsite-fixture"
+            shutil.copytree(root / name, backup_path)
+            shutil.copytree(backup_path, Path(temporary) / "readback/capture")
+            restored = cohort.tree_identity(Path(temporary) / "readback/capture")
+            self.assertEqual(tree, restored)
+            archive = _digested_document({
+                "schema": historical.SCHEMA, "target": target.name, "capture": name,
+                "repository": target.value["backup"]["durable_repository"],
+                "snapshot_id": "3" * 64, "tag": historical.TAG, "archive_path": "/historical-capture",
+                "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+                "source_tree": tree, "restored_tree": restored, "status": "verified",
+                "source_metadata_sha256": historical.metadata_identity(root / name),
+                "restored_metadata_sha256": historical.metadata_identity(root / name),
+                "verified_at": "2026-11-12T21:00:00Z",
+            })
+            receipt = root / "historical-archives" / (name + ".json")
+            receipt.parent.mkdir()
+            receipt.write_text(json.dumps(archive))
+            arguments = argparse.Namespace(action="retire-apply", capture=name, replacement=None,
+                                           historical_archive_receipt=receipt, owner="synthetic QA",
+                                           reason="exact historical relocation", confirm=target.name, targets=TARGETS)
+            class FixtureRunner(CommandRunner):
+                def run(self, command, **kwargs):
+                    if command[:2] == ["docker", "run"]:
+                        # Actual file hashing uses the same native hash inside
+                        # the production tool; no nested Docker is needed here.
+                        return subprocess.CompletedProcess(command, 0, json.dumps({
+                            "tree": cohort.tree_identity(root / name),
+                            "metadata_sha256": historical.metadata_identity(root / name),
+                        }), "")
+                    return super().run(command, **kwargs)
+            release = {"components": {"backup-tool": {"digest_reference": "synthetic-tool"}}}
+            with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                    mock.patch("operations.stack._cleanup_runtime", return_value={}), \
+                    mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}), \
+                    mock.patch("operations.stack._assert_capture_not_bound"), \
+                    mock.patch("operations.stack._release", return_value=(release, "", "")), \
+                    mock.patch("operations.stack._assert_historical_archive_remote"):
+                original_stat = (root / name / "payload").stat()
+                (root / name / "payload").write_bytes(b"changed")
+                with self.assertRaisesRegex(historical.HistoricalCaptureError, "exact payload"):
+                    _retire_legacy_capture(arguments, target, FixtureRunner())
+                self.assertTrue((root / name).exists())
+                (root / name / "payload").write_bytes(payload)
+                os.utime(root / name / "payload", ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+                with mock.patch("operations.stack._assert_historical_archive_remote", side_effect=OperationsError("archive unavailable")):
+                    with self.assertRaisesRegex(OperationsError, "archive unavailable"):
+                        _retire_legacy_capture(arguments, target, FixtureRunner())
+                self.assertTrue((root / name / "payload").exists())
+                result = _retire_legacy_capture(arguments, target, FixtureRunner())
+            self.assertFalse(result["modern_recovery_certified"])
+            self.assertFalse((root / name).exists())
+            self.assertTrue(receipt.exists())
+            shutil.copytree(backup_path, Path(temporary) / "restore-after/capture")
+            self.assertEqual(cohort.tree_identity(Path(temporary) / "restore-after/capture"), tree)
 
     def test_legacy_retirement_rejects_descendant_and_same_filesystem_bind_mounts(self) -> None:
         from operations.stack import _assert_capture_unmounted
