@@ -5022,6 +5022,19 @@ class CohortContractTests(unittest.TestCase):
         ]
         _assert_capture_not_bound(runner, path)
 
+    def test_remote_named_volume_exports_are_not_local_capture_references(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for filesystem in ("nfs", "nfs4", "cifs", "smb", "smb3"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "remote-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Options": {"type": filesystem, "device": path, "o": "addr=192.0.2.1"}}), ""),
+            ]
+            with self.subTest(filesystem=filesystem), mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths):
+                _assert_capture_not_bound(runner, path)
+
     @unittest.skipUnless(__import__("sys").platform == "linux", "native capture guards use GNU readlink")
     def test_capture_reference_aliases_resolve_host_symlinks_and_dotdot(self) -> None:
         from operations.stack import _assert_capture_not_bound

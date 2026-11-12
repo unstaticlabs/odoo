@@ -10825,6 +10825,8 @@ def _assert_capture_not_bound(runner, path: str) -> None:
         options = volume.get("Options") or {}
         if not isinstance(options, dict):
             raise RuntimeError("legacy capture volume options are invalid")
+        if options.get("type") in ("nfs", "nfs4", "cifs", "smb", "smb3"):
+            continue  # Absolute remote export names are not local filesystem paths.
         device = options.get("device", "")
         if not isinstance(device, str):
             raise RuntimeError("legacy capture volume device is invalid")
