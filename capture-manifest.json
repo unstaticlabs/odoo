@@ -1,0 +1,122 @@
+{
+  "capture_date": "2026-11-12",
+  "source_commit": "4e63774e5fec4a2d805f62048e9843c199c79e68",
+  "source_hashes": {
+    "custom-addons/usl_enablebanking/views/enablebanking_views.xml": "51d38b7f30b845d542065b959d89afab3e6719f285db9515c1f526758729ac9a",
+    "custom-addons/usl_enablebanking/models/account.py": "f5f05b916ae02ddc3edc9e412bd54202a2817bea7578f7f23b4ddfe77e38df08",
+    "custom-addons/usl_enablebanking/models/connection.py": "12030947f62331a3454fd128c494c32523dae2f70bdce5e986180f7b6ac6dfd7",
+    "custom-addons/usl_enablebanking/i18n/fr.po": "8d5912a23e950962d18de6df704c43fa32a8b4d4efb2242683e914f86a7be8df"
+  },
+  "qa_context": "Disposable synthetic French EUR company, native Odoo168-module integration build, fixed mocked bank responses, no actual provider app/key/consent or live bank payload. English UI; French155-term catalogue separately checked. Desktop1366x900, mobile390x844. Setup uses blank application ID; accounts uses literal fake qa-application and invalid example callback. Ephemeral synthetic signing fixture only.",
+  "functional_evidence": "Actual CUA selected native journal, imported two distinct equal-looking booked rows, repeated import0new/2already, observed missing-reference atomic error, balance-failure continuation plus later recovery, and expired-consent retained-history banner. Screenshots illustrate states; they do not prove behavior. Native tests separately prove checkpoint/fingerprint/identity invariants.",
+  "screenshots": [
+    {
+      "file": "desktop-accounts.jpg",
+      "sha256": "7fe6d3c2a649c76a5f3c700f4340c970b113c706bfbc2977d4c5e743b80a73dc",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:20:12.154321+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-balance-warning.jpg",
+      "sha256": "f3a5197c3ea0d7478711802d360fca3218fbd30e24bad84afa79ce0eb5048fbe",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:18:47.861289+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-expired-access.jpg",
+      "sha256": "e5e29b8c4958f6d6c5ade8dd3696ae760e95dd9a225e3f9979e76863da665a98",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:19:41.405667+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-import-error.jpg",
+      "sha256": "f50a04d5c1f62c3f0b952867909338682b8ee9bae5c90469ce3f5a1ac3f25217",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:18:22.778378+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-import-results.jpg",
+      "sha256": "cf3d39e6e6f6b1a3bb9f6c004fec4420ff92c80a5b698c4057e0860547b494fa",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:17:43.807717+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-native-transactions.jpg",
+      "sha256": "93cc09ef248d68b4ff67382c10859c4237f9b289f8402128a3c4219c04378bae",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:17:56.595146+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "desktop-setup.jpg",
+      "sha256": "5c15d6c54fad6112d8a2b2b336aef7e898f35d2aa916d5c130d61c3625424106",
+      "width": 1366,
+      "height": 900,
+      "captured_at_utc": "2026-11-12T05:12:40.756639+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "mobile-accounts.jpg",
+      "sha256": "2eedec1285dc81ab765b68ee5069ac0a6e68d94ea2078a4ad6aef5f03411b04a",
+      "width": 390,
+      "height": 844,
+      "captured_at_utc": "2026-11-12T05:11:58.289943+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "mobile-expired-access.jpg",
+      "sha256": "ccb27b4998001596a9697209b40257a081d8f18247d666a8a4af6474f8f4d1a9",
+      "width": 390,
+      "height": 844,
+      "captured_at_utc": "2026-11-12T05:19:46.067018+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "mobile-import-error.jpg",
+      "sha256": "8ff49e9e0fc5246906872fcbb2615166463875d7212745cb049105aeefb61ff1",
+      "width": 390,
+      "height": 844,
+      "captured_at_utc": "2026-11-12T05:18:28.623795+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "mobile-import-results.jpg",
+      "sha256": "82b50e158c0283cb89de12a4c47308b83c98e965511392dc31f968dac4d3bedd",
+      "width": 390,
+      "height": 844,
+      "captured_at_utc": "2026-11-12T05:17:48.016523+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    },
+    {
+      "file": "mobile-setup.jpg",
+      "sha256": "b3b8a9425168717c1b6a3b823bfbaf9fbcfc613657ab7f575e3409a75887bd24",
+      "width": 390,
+      "height": 844,
+      "captured_at_utc": "2026-11-12T05:12:49.806589+00:00",
+      "metadata": "APP0 JFIF only; no EXIF, XMP, IPTC or comment",
+      "personally_inspected": true
+    }
+  ]
+}
