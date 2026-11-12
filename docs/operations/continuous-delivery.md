@@ -389,6 +389,54 @@ to seed B with its shipped plugin and qualify the version transition too. The
 fixture owns and removes only its generated containers, images, networks and
 marker volumes; no Odoo database or provider is involved.
 
+## Backup capture maintenance
+
+An ordinary production or staging backup uses the existing runtime operation
+lock, enables the native gateway's maintenance marker before stopping writers,
+and removes its own marker only after the existing Compose `up --wait` has
+resumed them. The marker is created exclusively. A release-owned, empty or
+legacy marker is preserved byte for byte; a marker replaced by another owner
+is retained. An unhealthy resume keeps maintenance enabled for recovery.
+
+| Input | Maintenance behavior |
+|---|---|
+| Ordinary production backup | Temporary owned marker; production MCP receives the existing JSON 503 and `Retry-After: 60` during capture. |
+| Ordinary staging backup | Temporary owned marker on the existing Odoo/WebSocket gateway. Direct loopback staging MCP remains outside this gateway until its separate routing companion is delivered. |
+| Release-owned or legacy maintenance | Preserve the existing marker through capture, resume and errors. |
+| Successful `--leave-quiesced` capture | Preserve maintenance and leave writers quiesced for the caller. |
+| Failed capture or partial stop | Attempt the existing healthy writer resume; remove only the capture's marker after success. |
+| Unsafe resume or changed recovery baseline | Retain the capture's marker. |
+| Concurrent backup/release operation | The existing runtime lock refuses overlap before writer or marker changes. |
+| Local/bootstrap runtime without a gateway | Retain the existing capture/resume behavior; no gateway is provisioned. |
+| Upload/verification retry from an existing capture | No new writer freeze or maintenance claim. |
+
+The 12 November 2026 incident mapped to the ordinary daily-proof class: its
+111-second writer freeze temporarily removed the MCP Docker DNS upstream and
+returned gateway 502. The retained pre-release backup from the same day is the
+other legitimate class: qualified v2 receipt, non-null quiesced evidence,
+`writers_quiesced=true`, and `writer_interval_complete=false`. It must keep
+release-owned maintenance. Tests use synthetic equivalents of both classes;
+private receipts and payloads remain on the host.
+
+The opt-in Docker fixture uses the exact checksum-pinned native production and
+staging gateway configs, a synthetic HTTP writer, no published ports or
+external networks, and its own generated Compose project. It verifies
+200→503→200, the existing body/Retry-After, capture failure recovery, and
+preservation of a pre-existing marker while writers stay quiesced. Production
+MCP and staging Odoo coverage are distinct. Run it against a reviewed GitOps
+checkout:
+
+```bash
+USL_BACKUP_GATEWAY_QA=1 \
+USL_BACKUP_GATEWAY_CONFIG_ROOT=/path/to/gitops/komodo/stacks/prod-odoo-nbg1-2 \
+python3 -m unittest scripts.tests.test_backup_maintenance_docker -v
+```
+
+A controlled 503 signals a real writer outage. It does not promise a particular
+error presentation in an external MCP client or uninterrupted access while
+writers are quiesced. No provider binding, delegation or admission authority
+changes.
+
 ## Read-only observation
 
 `scripts/usl-stack-observe <target> <observation>` is the agent-safe view of a
