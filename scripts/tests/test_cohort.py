@@ -4664,6 +4664,47 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "release run state is invalid"):
             _cleanup_captures(target, runner, set())
 
+    def test_cleanup_can_inventory_admitted_sleeping_target_without_an_anchor(self) -> None:
+        from operations.stack import _cleanup_runtime
+        target = load_target("staging", TARGETS)
+        active = {"generation": "gactive", "volumes": {"odoo_postgres": "owned-database"}}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        missing = OperationsError(f"expected one {target.project}/{target.value['compose']['anchor_service']} container, found 0")
+        definitions = {"odoo_postgres": {"name": "owned-database", "class": "transient", "tier": "database"}}
+        owned = {"Name": "owned-database", "Labels": {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": "gactive",
+            "com.unstaticlabs.runtime.role": "odoo_postgres",
+        }}
+        with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
+                mock.patch("operations.stack.read_active_state", return_value=active), \
+                mock.patch("operations.stack.read_active_release", return_value={}), \
+                mock.patch("operations.stack.effective_volumes", return_value=(definitions, "gactive")), \
+                mock.patch("operations.stack._volume_inspect", return_value=owned), \
+                mock.patch("operations.stack._observed_admission_receipt", return_value={"status": "verified"}):
+            result = _cleanup_runtime(target, runner)
+            self.assertEqual(result["volumes"], definitions)
+            self.assertEqual(result["generation"], "gactive")
+            self.assertEqual(result["containers"], [])
+            owned["Labels"]["com.unstaticlabs.runtime.project"] = "foreign"
+            with self.assertRaisesRegex(OperationsError, "ownership"):
+                _cleanup_runtime(target, runner)
+        with mock.patch("operations.stack.inspect_runtime", side_effect=OperationsError("corrupt admitted identity")):
+            with self.assertRaisesRegex(OperationsError, "corrupt admitted identity"):
+                _cleanup_runtime(target, runner)
+
+    def test_cleanup_missing_anchor_never_bypasses_production_or_missing_admission(self) -> None:
+        from operations.stack import _cleanup_runtime
+        for name in ("production", "staging"):
+            target = load_target(name, TARGETS)
+            missing = OperationsError(f"expected one {target.project}/{target.value['compose']['anchor_service']} container, found 0")
+            with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
+                    mock.patch("operations.stack.read_active_state", return_value=None):
+                with self.subTest(target=name), self.assertRaises(OperationsError):
+                    _cleanup_runtime(target, mock.Mock())
+
     def test_legacy_capture_retirement_requires_exact_qualified_replacement(self) -> None:
         from operations.stack import _legacy_capture_retirement
         target = load_target("production", TARGETS)

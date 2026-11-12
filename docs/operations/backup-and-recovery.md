@@ -286,7 +286,13 @@ scripts/usl-stack cleanup apply --target staging --confirm staging --json
 ```
 
 The active and immediately previous generations are protected. The command
-uses exact Docker labels and never deletes foreign projects or volumes. On
+uses exact Docker labels and never deletes foreign projects or volumes.
+Housekeeping can also inspect an admitted on-demand target after its application
+anchor container has been removed: it validates the retained admission and every
+active volume's exact ownership, and protects any remaining retained containers.
+It neither wakes that target nor reports it healthy. A missing or corrupt
+admission, foreign volume, or ordinary production runtime error still refuses
+cleanup. Normal wake and release identity checks remain unchanged. On
 production, the same plan also applies paired Restic retention: 14 daily, 8
 weekly, 24 monthly, and 10 yearly recovery points. A retained durable snapshot
 always protects its exact reusable-cache snapshot. Cache snapshots are also

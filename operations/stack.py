@@ -94,6 +94,7 @@ from operations.runtime import (
     Target,
     compose_command,
     compose_identity,
+    effective_volumes,
     inspect_runtime,
     load_target,
     read_active_release,
@@ -10447,6 +10448,60 @@ def _recovery_proof_command_locked(
     return 0
 
 
+def _cleanup_runtime(target, runner) -> dict:
+    """Inventory admitted sleeping resources without starting an application.
+
+    Normal runtime inspection remains strict. Only housekeeping on an on-demand
+    target may use the retained admission when its anchor is entirely absent.
+    """
+    try:
+        return inspect_runtime(target, runner)
+    except RuntimeError as error:
+        anchor = target.value["compose"]["anchor_service"]
+        missing = f"expected one {target.project}/{anchor} container, found 0"
+        if target.value["lifecycle"]["mode"] != "on_demand" or str(error) != missing:
+            raise
+    active = read_active_state(target, runner)
+    if active is None:
+        raise RuntimeError("sleeping cleanup requires an admitted generation")
+    read_active_release(target, runner, active)
+    definitions, generation = effective_volumes(target, runner)
+    if generation != active["generation"]:
+        raise RuntimeError("sleeping cleanup generation changed during inspection")
+    for role, definition in definitions.items():
+        volume = _volume_inspect(runner, definition["name"])
+        labels = volume.get("Labels") or {}
+        expected_labels = {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+            "com.unstaticlabs.runtime.role": role,
+        }
+        if volume.get("Name") != definition["name"] or any(
+            labels.get(key) != expected for key, expected in expected_labels.items()
+        ):
+            raise RuntimeError("sleeping cleanup volume ownership differs from admission")
+    identifiers = runner.run([
+        "docker", "ps", "--all", "--filter",
+        f"label=com.docker.compose.project={target.project}", "--format", "{{.ID}}",
+    ]).stdout.split()
+    containers = []
+    template = ('[{{json .Id}},{{json .State.Status}},'
+                '{{json (index .Config.Labels "com.docker.compose.service")}}]')
+    for identifier in identifiers:
+        value = json.loads(runner.run(["docker", "inspect", identifier, "--format", template]).stdout)
+        identifier, state, service = value
+        if service == anchor:
+            raise RuntimeError("sleeping cleanup anchor appeared during inspection")
+        containers.append({"ID": identifier, "State": state, "Service": service})
+    current = {
+        "volumes": definitions, "generation": generation,
+        "active_state": active, "containers": containers,
+    }
+    _observed_admission_receipt(target, runner, current)
+    return current
+
+
 def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list[str]:
     state_root = target.value["state_directory"]
     generations_root = f"{state_root}/generations"
@@ -10677,7 +10732,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         raise RuntimeError("legacy retirement apply requires exact --confirm")
     run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
     with runtime_lock(target, runner, "cleanup", run_id):
-        current = inspect_runtime(target, runner)
+        current = _cleanup_runtime(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         protected_commits = set()
         for generation in inventory["protected_generations"]:
@@ -11247,7 +11302,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            current = inspect_runtime(target, runner)
+            current = _cleanup_runtime(target, runner)
             inventory = _cleanup_inventory(target, runner, current)
             retention_plan = None
             if target.value["environment"] == "production" and not getattr(
@@ -11288,7 +11343,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
-        current = inspect_runtime(target, runner)
+        current = _cleanup_runtime(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         retention_plan = None
         if target.value["environment"] == "production" and not getattr(
