@@ -4665,7 +4665,7 @@ class CohortContractTests(unittest.TestCase):
             _cleanup_captures(target, runner, set())
 
     def test_cleanup_can_inventory_admitted_sleeping_target_without_an_anchor(self) -> None:
-        from operations.stack import _cleanup_runtime
+        from operations.stack import _inspect_runtime_or_admitted
         target = load_target("staging", TARGETS)
         active = {"generation": "gactive", "volumes": {"odoo_postgres": "owned-database"}}
         runner = mock.Mock()
@@ -4680,30 +4680,47 @@ class CohortContractTests(unittest.TestCase):
         }}
         with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
                 mock.patch("operations.stack.read_active_state", return_value=active), \
-                mock.patch("operations.stack.read_active_release", return_value={}), \
+                mock.patch("operations.stack.read_active_release", return_value={"schema": "usl-release/v3"}), \
                 mock.patch("operations.stack.effective_volumes", return_value=(definitions, "gactive")), \
                 mock.patch("operations.stack._volume_inspect", return_value=owned), \
                 mock.patch("operations.stack._observed_admission_receipt", return_value={"status": "verified"}):
-            result = _cleanup_runtime(target, runner)
+            result = _inspect_runtime_or_admitted(target, runner)
             self.assertEqual(result["volumes"], definitions)
             self.assertEqual(result["generation"], "gactive")
             self.assertEqual(result["containers"], [])
+            recorded = {"project": target.project, "working_directory": "/retained/admitted-context"}
+            with mock.patch("operations.stack._generation_base_compose_identity", return_value=recorded) as provenance:
+                started = _inspect_runtime_or_admitted(target, runner, for_start=True)
+            self.assertEqual(started["compose"], recorded)
+            provenance.assert_called_once_with(target, runner, active, {}, {"schema": "usl-release/v3"})
+            with mock.patch("operations.stack._generation_base_compose_identity", side_effect=OperationsError("retained provenance invalid")):
+                with self.assertRaisesRegex(OperationsError, "retained provenance invalid"):
+                    _inspect_runtime_or_admitted(target, runner, for_start=True)
             owned["Labels"]["com.unstaticlabs.runtime.project"] = "foreign"
             with self.assertRaisesRegex(OperationsError, "ownership"):
-                _cleanup_runtime(target, runner)
+                _inspect_runtime_or_admitted(target, runner)
         with mock.patch("operations.stack.inspect_runtime", side_effect=OperationsError("corrupt admitted identity")):
             with self.assertRaisesRegex(OperationsError, "corrupt admitted identity"):
-                _cleanup_runtime(target, runner)
+                _inspect_runtime_or_admitted(target, runner)
+
+    def test_warm_retained_inventory_keeps_the_existing_fast_path(self) -> None:
+        from operations.stack import _inspect_runtime_or_admitted
+        target = load_target("staging", TARGETS)
+        current = {"compose": {"working_directory": "/already-observed"}, "active_state": {}}
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), \
+                mock.patch("operations.stack._generation_base_compose_identity") as provenance:
+            self.assertIs(_inspect_runtime_or_admitted(target, mock.Mock(), for_start=True), current)
+        provenance.assert_not_called()
 
     def test_cleanup_missing_anchor_never_bypasses_production_or_missing_admission(self) -> None:
-        from operations.stack import _cleanup_runtime
+        from operations.stack import _inspect_runtime_or_admitted
         for name in ("production", "staging"):
             target = load_target(name, TARGETS)
             missing = OperationsError(f"expected one {target.project}/{target.value['compose']['anchor_service']} container, found 0")
             with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
                     mock.patch("operations.stack.read_active_state", return_value=None):
                 with self.subTest(target=name), self.assertRaises(OperationsError):
-                    _cleanup_runtime(target, mock.Mock())
+                    _inspect_runtime_or_admitted(target, mock.Mock())
 
     def test_legacy_capture_retirement_requires_exact_qualified_replacement(self) -> None:
         from operations.stack import _legacy_capture_retirement
@@ -4840,7 +4857,7 @@ class CohortContractTests(unittest.TestCase):
                     return super().run(command, **kwargs)
             release = {"components": {"backup-tool": {"digest_reference": "synthetic-tool"}}}
             with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
-                    mock.patch("operations.stack._cleanup_runtime", return_value={}), \
+                    mock.patch("operations.stack._inspect_runtime_or_admitted", return_value={}), \
                     mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}), \
                     mock.patch("operations.stack._assert_capture_not_bound"), \
                     mock.patch("operations.stack._release", return_value=(release, "", "")), \

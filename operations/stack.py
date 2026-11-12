@@ -1382,7 +1382,7 @@ def wake_staging(
                 }
         started = time.monotonic()
         try:
-            current = inspect_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner, for_start=True)
             plan = _runtime_start_plan(target, runner, current, mcp_authority=False)
             _identity, _config, services, drift, states = plan
             matches = (
@@ -10458,11 +10458,11 @@ def _recovery_proof_command_locked(
     return 0
 
 
-def _cleanup_runtime(target, runner) -> dict:
-    """Inventory admitted sleeping resources without starting an application.
+def _inspect_runtime_or_admitted(target, runner, *, for_start: bool = False) -> dict:
+    """Recover on-demand inventory from admission when its anchor is absent.
 
-    Normal runtime inspection remains strict. Only housekeeping on an on-demand
-    target may use the retained admission when its anchor is entirely absent.
+    Normal inspection remains strict and cheap. Cold wake additionally resolves
+    only the recorded generation's Compose provenance, never desired files.
     """
     try:
         return inspect_runtime(target, runner)
@@ -10473,11 +10473,11 @@ def _cleanup_runtime(target, runner) -> dict:
             raise
     active = read_active_state(target, runner)
     if active is None:
-        raise RuntimeError("sleeping cleanup requires an admitted generation")
-    read_active_release(target, runner, active)
+        raise RuntimeError("retained runtime requires an admitted generation")
+    release = read_active_release(target, runner, active)
     definitions, generation = effective_volumes(target, runner)
     if generation != active["generation"]:
-        raise RuntimeError("sleeping cleanup generation changed during inspection")
+        raise RuntimeError("retained runtime generation changed during inspection")
     for role, definition in definitions.items():
         volume = _volume_inspect(runner, definition["name"])
         labels = volume.get("Labels") or {}
@@ -10490,7 +10490,7 @@ def _cleanup_runtime(target, runner) -> dict:
         if volume.get("Name") != definition["name"] or any(
             labels.get(key) != expected for key, expected in expected_labels.items()
         ):
-            raise RuntimeError("sleeping cleanup volume ownership differs from admission")
+            raise RuntimeError("retained runtime volume ownership differs from admission")
     identifiers = runner.run([
         "docker", "ps", "--all", "--filter",
         f"label=com.docker.compose.project={target.project}", "--format", "{{.ID}}",
@@ -10502,13 +10502,17 @@ def _cleanup_runtime(target, runner) -> dict:
         value = json.loads(runner.run(["docker", "inspect", identifier, "--format", template]).stdout)
         identifier, state, service = value
         if service == anchor:
-            raise RuntimeError("sleeping cleanup anchor appeared during inspection")
+            raise RuntimeError("retained runtime anchor appeared during inspection")
         containers.append({"ID": identifier, "State": state, "Service": service})
     current = {
         "volumes": definitions, "generation": generation,
         "active_state": active, "containers": containers,
     }
     _observed_admission_receipt(target, runner, current)
+    if for_start:
+        if release["schema"] != "usl-release/v3" or _generation_compose_contract(target) is None:
+            raise RuntimeError("cold wake requires retained generation Compose provenance")
+        current["compose"] = _generation_base_compose_identity(target, runner, active, {}, release)
     return current
 
 
@@ -10808,7 +10812,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         raise RuntimeError("legacy retirement apply requires exact --confirm")
     run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
     with runtime_lock(target, runner, "cleanup", run_id):
-        current = _cleanup_runtime(target, runner)
+        current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         protected_commits = set()
         for generation in inventory["protected_generations"]:
@@ -11396,7 +11400,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            current = _cleanup_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner)
             inventory = _cleanup_inventory(target, runner, current)
             retention_plan = None
             if target.value["environment"] == "production" and not getattr(
@@ -11437,7 +11441,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
-        current = _cleanup_runtime(target, runner)
+        current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         retention_plan = None
         if target.value["environment"] == "production" and not getattr(
