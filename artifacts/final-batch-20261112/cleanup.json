@@ -1,0 +1,64 @@
+{
+  "all_removed_images_unreferenced": true,
+  "already_absent_image_ids": [
+    "sha256:baa4223db36113be7aca29faefc87ab831324204f86fa33f354ae7181e77fa6a"
+  ],
+  "bulk_free_after_bytes": 19135016960,
+  "bulk_free_before_bytes": 16873656320,
+  "databases_baseline_source_private_evidence_preserved": true,
+  "global_prune_used": false,
+  "observed_reclaimed_bytes": 2261360640,
+  "official_release_pull_budget": {
+    "backup_tool_active_reference_size_bytes": 847701466,
+    "backup_tool_candidate_input_sha256": "b4eae4804f86e70a71a2224766b1d430508814b05d3b1ea4f7d48b4da111e7f5",
+    "bulk_reserve_bytes": 16106127360,
+    "combined_growth_fs_log_allowance_bytes": 268435456,
+    "distribution_full_reference_size_bytes": 1887729260,
+    "future_published_metadata_must_fit_planned_envelope": true,
+    "immutable_base_prefix_reuse_credited_bytes": 0,
+    "measured_zero_reuse_pair_bytes": 2735430726,
+    "planned_bound_bytes": 3003866182,
+    "published_registry_pull_needs_no_full_oci_input_archive": true,
+    "qa_image_reuse_credited_bytes": 0,
+    "stop_and_replan_if_native_capacity_guard_refuses": true
+  },
+  "production_mutated": false,
+  "protected_runtime_foundation_images_preserved": true,
+  "reader_cache_retirement": {
+    "bulk_free_bytes": 19153113088,
+    "combined_growth_fs_log_allowance_bytes": 268435456,
+    "consumer_count_before": 0,
+    "global_prune_used": false,
+    "headroom_above_15gib_bytes": 3046985728,
+    "materialized_source_cache_snapshot_original_evidence_preserved": true,
+    "official_pull_budget_bytes": 3003866182,
+    "production_mutated": false,
+    "receipt_sha256": "3d0ad8e2e665d7f8801eab46a0bd6dfa059f5372b9f5d8bcca9b1eb89ecbccd6",
+    "remaining_margin_above_floor_and_budget_bytes": 43119546,
+    "retired_allocated_bytes": 20299776,
+    "retired_role": "unused task-owned Restic reader cache only",
+    "schema": "usl-backend-reader-cache-retirement-public/v1",
+    "status": "passed",
+    "zero_reuse_pair_full_sizes_bytes": 2735430726
+  },
+  "receipt_sha256": "45c35f97bde5d0d416b8d451c0aa0e0c4f041d497de47f782e739ca915e61324",
+  "removed_image_ids": [
+    "sha256:9a56368dacdac9309d0c560836a3992ff011548fa0afe2bbef4a8633af503241",
+    "sha256:a856b2d8a026a74cf4c3cc47263e8b9548cede3825a02b6f050bdba3f3ab2036",
+    "sha256:053cb5ba0c77fe85e87e834fb5d5b0308a848c756fb84e497758c145a865c077"
+  ],
+  "root_free_after_bytes": 18396835840,
+  "root_remaining_qa_filestore_preserved": true,
+  "schema": "usl-backend-qa-image-cleanup/v1",
+  "status": "passed",
+  "verified_qa_filestore_relocation": {
+    "both_original_postgres_datasets_preserved": true,
+    "complete_source_destination_source_again_match": true,
+    "content_metadata_manifest_sha256": "d641fffcadf46436fa1c2646119cf0c53234c95961deda34d916df9610983541",
+    "new_private_config_copies_native_validated": true,
+    "original_configs_baselines_evidence_preserved": true,
+    "placement_receipt_sha256": "668a3afea8c974e1becfa72ce0a0f4231763f7b9b2a0d0ee436fb1b4d6ffbb4a",
+    "root_directory_owner_mode_mtime_preserved": true,
+    "unused_duplicate_qa_payload_volumes_retired": 3
+  }
+}
