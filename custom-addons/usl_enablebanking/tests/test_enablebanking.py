@@ -353,6 +353,13 @@ class TestEnableBanking(TransactionCase):
         self.assertEqual(read_access, "read_only")
         self.assertEqual(self.account.with_user(agent.user_id).action_transactions()["domain"], [("id", "in", native_ids)])
 
+    def test_bank_connections_navigation_is_visible_to_native_accounting_roles(self):
+        menu = self.env.ref("usl_enablebanking.connection_menu")
+        for user in (self.manager, self.accountant, self.reader):
+            with self.subTest(role=user.login):
+                self.assertIn(menu.id, self.env["ir.ui.menu"].with_user(user)._visible_menu_ids())
+        self.assertNotIn(menu.id, self.env["ir.ui.menu"].with_user(self.outsider)._visible_menu_ids())
+
     def test_accounting_reader_can_view_native_imports_without_mutation(self):
         self.assertTrue(self.pull())
         ids = self.imports().line_id.ids
