@@ -10742,19 +10742,40 @@ def _historical_capture_retirement(
 
 
 def _assert_capture_unmounted(runner, path: str) -> None:
-    # st_dev and os.path.ismount miss bind mounts on the same filesystem.
-    # Read the kernel mount inventory, including descendants, before deleting.
+    # Mount targets alone miss captures bound elsewhere on the same filesystem.
+    # Compare kernel filesystem roots as well, without treating broad ancestor
+    # management mounts as references to every file they can see.
     try:
-        mounts = json.loads(runner.run(["findmnt", "--json", "--output", "TARGET"]).stdout)
-        pending = list(mounts["filesystems"])
+        inventory = json.loads(runner.run([
+            "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN",
+        ]).stdout)
+        pending = list(inventory["filesystems"])
+        mounts = []
         while pending:
             mount = pending.pop()
-            destination = mount["target"]
-            if not isinstance(destination, str):
-                raise ValueError("invalid mount target")
+            destination, root, device = (mount[key] for key in ("target", "fsroot", "maj:min"))
+            if (
+                not isinstance(destination, str) or not destination.startswith("/")
+                or not isinstance(root, str) or not root.startswith("/")
+                or not isinstance(device, str) or not re.fullmatch(r"[0-9]+:[0-9]+", device)
+            ):
+                raise ValueError("invalid mount identity")
             if destination == path or destination.startswith(path + "/"):
                 raise RuntimeError("legacy capture contains a mounted filesystem")
+            mounts.append(mount)
             pending.extend(mount.get("children", []))
+        ancestors = [m for m in mounts if path.startswith(m["target"].rstrip("/") + "/")]
+        if not ancestors:
+            raise ValueError("capture filesystem is missing")
+        base = max(ancestors, key=lambda m: len(m["target"]))
+        relative = path[len(base["target"].rstrip("/")):].lstrip("/")
+        capture_root = base["fsroot"].rstrip("/") + "/" + relative
+        for mount in mounts:
+            root = mount["fsroot"]
+            if mount["maj:min"] == base["maj:min"] and (
+                root == capture_root or root.startswith(capture_root + "/")
+            ):
+                raise RuntimeError("legacy capture contains a mounted filesystem source")
     except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError("legacy capture mount inventory is invalid") from error
 
@@ -10766,13 +10787,11 @@ def _assert_capture_not_bound(runner, path: str) -> None:
     native host operations are serialized by the lifecycle lock instead.
     """
     containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
-    if not containers:
-        return
     if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
         raise RuntimeError("legacy capture container inventory is invalid")
     try:
-        listing = runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers])
-        lines = listing.stdout.splitlines()
+        lines = (runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers]).stdout.splitlines()
+                 if containers else [])
         if len(lines) != len(containers):
             raise ValueError("incomplete container mounts")
         for line in lines:
@@ -10784,6 +10803,20 @@ def _assert_capture_not_bound(runner, path: str) -> None:
                     raise RuntimeError("legacy capture is bound by a retained container")
     except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
         raise RuntimeError("legacy capture container mounts are invalid") from error
+    # A local named volume can alias a capture through Options.device while
+    # containers report only Docker's _data mountpoint. Preserve even an unused
+    # retained volume: it may be needed by a stopped or future recovery runtime.
+    names = runner.run(["docker", "volume", "ls", "--quiet"]).stdout.split()
+    for name in names:
+        volume = _volume_inspect(runner, name)
+        options = volume.get("Options") or {}
+        if not isinstance(options, dict):
+            raise RuntimeError("legacy capture volume options are invalid")
+        device = options.get("device", "")
+        if not isinstance(device, str):
+            raise RuntimeError("legacy capture volume device is invalid")
+        if device == path or device.startswith(path + "/"):
+            raise RuntimeError("legacy capture is referenced by a retained named volume")
 
 
 def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:

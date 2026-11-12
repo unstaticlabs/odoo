@@ -4880,18 +4880,29 @@ class CohortContractTests(unittest.TestCase):
             shutil.copytree(backup_path, Path(temporary) / "restore-after/capture")
             self.assertEqual(cohort.tree_identity(Path(temporary) / "restore-after/capture"), tree)
 
-    def test_legacy_retirement_rejects_descendant_and_same_filesystem_bind_mounts(self) -> None:
+    def test_legacy_retirement_rejects_mount_targets_and_sources(self) -> None:
         from operations.stack import _assert_capture_unmounted
         path = "/runtime/manual-example"
+        base = {"target": "/", "fsroot": "/", "maj:min": "8:1"}
         for mounted in (path, path + "/durable/database"):
-            runner = mock.Mock()
-            runner.run.return_value.stdout = json.dumps({"filesystems": [
-                {"target": "/", "children": [{"target": mounted}]},
-            ]})
-            with self.subTest(mounted=mounted), self.assertRaisesRegex(OperationsError, "mounted filesystem"):
-                _assert_capture_unmounted(runner, path)
-        runner.run.return_value.stdout = json.dumps({"filesystems": [{"target": "/runtime/manual-example-other"}]})
+            for field in ("target", "fsroot"):
+                runner = mock.Mock()
+                mount = {"target": "/elsewhere/readback", "fsroot": "/unrelated", "maj:min": "8:1", field: mounted}
+                runner.run.return_value.stdout = json.dumps({"filesystems": [{**base, "children": [mount]}]})
+                with self.subTest(mounted=mounted, field=field), self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+                    _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/elsewhere", "fsroot": "/runtime/manual-example-other", "maj:min": "8:1"},
+            {"target": "/broad-management", "fsroot": "/runtime", "maj:min": "8:1"},
+            {"target": "/other-device", "fsroot": path, "maj:min": "8:2"}]})
         _assert_capture_unmounted(runner, path)
+        # A separate storage mount changes the filesystem-relative capture root.
+        path = "/srv/storage/runtime/example"
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/srv/storage", "fsroot": "/", "maj:min": "8:2"},
+            {"target": "/qa", "fsroot": "/runtime/example/durable", "maj:min": "8:2"}]})
+        with self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+            _assert_capture_unmounted(runner, path)
         runner.run.return_value.stdout = "{}"
         with self.assertRaisesRegex(OperationsError, "inventory is invalid"):
             _assert_capture_unmounted(runner, path)
@@ -4910,6 +4921,26 @@ class CohortContractTests(unittest.TestCase):
         runner.run.side_effect = [
             subprocess.CompletedProcess([], 0, "a" * 12, ""),
             subprocess.CompletedProcess([], 0, json.dumps([{"Source": "/"}]), ""),
+            subprocess.CompletedProcess([], 0, "", ""),
+        ]
+        _assert_capture_not_bound(runner, path)
+
+    def test_legacy_retirement_preserves_named_volume_devices_even_without_a_container(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for source in (path, path + "/durable"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "retained-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Name": "retained-volume", "Mountpoint": "/docker/volumes/retained/_data", "Options": {"type": "none", "o": "bind,ro", "device": source}}), ""),
+            ]
+            with self.subTest(source=source), self.assertRaisesRegex(OperationsError, "named volume"):
+                _assert_capture_not_bound(runner, path)
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, "", ""),
+            subprocess.CompletedProcess([], 0, "other-volume\n", ""),
+            subprocess.CompletedProcess([], 0, json.dumps({"Name": "other-volume", "Options": {"device": path + "-other"}}), ""),
         ]
         _assert_capture_not_bound(runner, path)
 
