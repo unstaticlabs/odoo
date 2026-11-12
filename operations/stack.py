@@ -3856,7 +3856,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     services = _compose_services(target, identity, runner)
     runner.run(compose_command(
         identity,
-        ["create", "--force-recreate", "--no-deps", *services],
+        ["up", "--no-start", "--force-recreate", "--no-deps", *services],
     ))
     legacy = runner.run(
         [

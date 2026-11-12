@@ -6521,13 +6521,22 @@ class CohortContractTests(unittest.TestCase):
             },
         ), mock.patch("operations.stack._wait_compose_services"):
             _start_rollback_identity(target, runner, legacy)
-        create = next(command for command in runner.commands if "create" in command)
+        create = next(command for command in runner.commands if "up" in command and "--no-start" in command)
         start = next(command for command in runner.commands if "start" in command)
         self.assertIn("--force-recreate", create)
-        self.assertIn(["docker", "network", "disconnect", "cloudflare", "legacy-id"], runner.commands)
-        self.assertNotIn("gateway", create[create.index("create") + 1:])
+        self.assertIn("--no-deps", create)
+        detach = ["docker", "network", "disconnect", "cloudflare", "legacy-id"]
+        self.assertIn(detach, runner.commands)
+        self.assertLess(runner.commands.index(create), runner.commands.index(detach))
+        self.assertLess(runner.commands.index(detach), runner.commands.index(start))
+        self.assertNotIn("gateway", create[create.index("up") + 1:])
         self.assertIn("odoo", start)
-        self.assertFalse(any("up" in command for command in runner.commands))
+        self.assertTrue(all("--no-start" in command for command in runner.commands if "up" in command))
+        import shutil
+        if shutil.which("docker"):
+            help_text = subprocess.check_output(["docker", "compose", "up", "--help"], text=True)
+            for option in ("--no-start", "--no-deps", "--force-recreate"):
+                self.assertIn(option, help_text)
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)
