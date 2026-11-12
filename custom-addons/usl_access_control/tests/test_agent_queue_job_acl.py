@@ -53,6 +53,7 @@ class TestAgentKeepsSettingsAcrossQueueJobAcl(TransactionCase):
             {}, "init", False, "data",
         )
         self.env["res.users"]._usl_validate_all_agent_capabilities()
+        self.env["usl.agent"]._reconcile_all()
 
         self.assertIn(system, user.all_group_ids)
         self.assertEqual(sorted(agent.approved_effective_group_ids.ids), approved)
