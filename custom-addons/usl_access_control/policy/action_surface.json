@@ -1721683,11 +1721683,11 @@
       "version": "saas~19.3.1.8.12"
     },
     {
-      "manifest_sha256": "6777b173d541dd3c023f7fdf00be663a56f3440d59aa58d1170d6bd351c0e0bf",
+      "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "33a146a68825d27792d22be8ece007beaee7acc7fadfa204e988b9491f705da8",
-      "version": "saas~19.3.2.2.20"
+      "source_sha256": "1e415bcc8a04e3a4d554829a2c27e4d462085dcaa1aa28082ed328a59fdf978c",
+      "version": "saas~19.3.2.2.21"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",

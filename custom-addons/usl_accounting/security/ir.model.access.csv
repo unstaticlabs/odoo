@@ -41,3 +41,4 @@ access_purchase_mail_grouping_review,purchase mail grouping review,model_usl_pur
 access_purchase_mail_grouping_review_billing,purchase mail grouping billing review,model_usl_purchase_mail_grouping_review,account.group_account_invoice,1,1,1,1
 access_purchase_mail_grouping_review_line,purchase mail grouping document choice,model_usl_purchase_mail_grouping_review_line,base.group_user,1,1,1,1
 access_purchase_mail_grouping_review_line_billing,purchase mail grouping billing document choice,model_usl_purchase_mail_grouping_review_line,account.group_account_invoice,1,1,1,1
+access_queue_job_settings_admin,queue job settings administrator,queue_job.model_queue_job,base.group_system,1,1,0,0
