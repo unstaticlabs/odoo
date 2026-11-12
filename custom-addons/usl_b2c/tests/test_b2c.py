@@ -627,6 +627,68 @@ class TestB2cFoundation(TransactionCase):
         ):
             self.assertNotIn('widget="percentage"', self.env.ref(xmlid).arch_db)
 
+    def test_session_at_full_coverage_stays_draft_and_names_the_review_step(self):
+        session = self.env["b2c.accounting.session"].create(
+            {
+                "company_id": self.company.id,
+                "channel_id": self.channel.id,
+                "period_start": "2026-08-01",
+            },
+        )
+        self.assertIn("Refresh", session.review_next_step)
+        self.assertEqual(session.review_status, "Not refreshed")
+        # French users must see French: an entry without a source reference is skipped on load.
+        self.env["res.lang"]._activate_lang("fr_FR")
+        self.env["ir.module.module"]._load_module_terms(["usl_b2c"], ["fr_FR"], overwrite=True)
+        french = session.with_context(lang="fr_FR")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "Non actualisée")
+        order = self.env["b2c.order"].create(self._order_values("review-step"))
+        order.accounting_link_state = "not_applicable"
+        session.action_refresh()
+        self.assertEqual(session.accounting_link_coverage_percent, 100)
+        self.assertEqual(session.pending_link_count, 0)
+        # Full coverage is evidence for the reviewer, never a review.
+        self.assertEqual(session.state, "draft")
+        self.assertIn("not a review", session.review_next_step)
+        self.assertIn("Mark Reviewed", session.review_next_step)
+        # The list cell is a short label, not the sentence.
+        self.assertEqual(session.review_status, "Awaiting review")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "À vérifier")
+
+        order.accounting_link_state = "pending"
+        session.action_refresh()
+        self.assertEqual(session.state, "draft")
+        self.assertIn("1 record", session.review_next_step)
+        self.assertNotIn("not a review", session.review_next_step)
+        self.assertEqual(session.review_status, "1 open gap")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "1 écart ouvert")
+        self.assertEqual(session.state, "draft")
+
+        second = self.env["b2c.order"].create(self._order_values("review-step-2"))
+        second.accounting_link_state = "pending"
+        session.action_refresh()
+        self.assertEqual(session.review_status, "2 open gaps")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "2 écarts ouverts")
+
+        session.action_mark_reviewed()
+        self.assertIn("Lock", session.review_next_step)
+        self.assertEqual(session.review_status, "Ready to lock")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "Prête à verrouiller")
+        session.action_lock()
+        self.assertIn("locked", session.review_next_step.lower())
+        self.assertNotIn("Mark Reviewed", session.review_next_step)
+        self.assertEqual(session.review_status, "Locked")
+        french.invalidate_recordset(["review_status", "review_next_step"])
+        self.assertEqual(french.review_status, "Verrouillée")
+        self.assertIn("déverrouiller", french.review_next_step)
+        for label in ("Not refreshed", "Awaiting review", "1 open gap", "Ready to lock", "Locked"):
+            self.assertLess(len(label), 20, "list labels must fit a phone-width cell")
+
     def test_acl_and_company_isolation(self):
         order = self.env["b2c.order"].create(self._order_values("acl"))
         self.assertEqual(order.with_user(self.reader).name, "B2C-acl")

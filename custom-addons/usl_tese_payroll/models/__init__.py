@@ -1,6 +1,7 @@
 # ruff: noqa: I001 - Documents extends the payslip model declared above
 from . import (
     account_move,
+    account_partial_reconcile,
     hr_employee,
     res_company,
     tese_diagnostic,

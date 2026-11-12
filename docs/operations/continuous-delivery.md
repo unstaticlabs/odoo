@@ -354,7 +354,40 @@ stored state, and merged titles are given to the model as untrusted data.
 
 The operations image includes a pinned Docker client and Compose plugin, so the
 fixed host launcher does not depend on whatever client happens to be installed
-inside another application image.
+inside another application image. Docker CLI remains at 28.5.1; Compose is
+pinned separately to the official 5.5.0 multi-architecture image, with release
+binary SHA-256 checks for amd64 and arm64. Compose 5.5.0 first includes
+[the native `config --hash` env_file fix](https://github.com/docker/compose/pull/14002).
+The previous 2.40.3 plugin hashes an unresolved service environment while `up`
+hashes its resolved values. A service using `env_file` can therefore fail the
+post-recreation identity check even after its correct container starts.
+
+Keep the native configuration-hash, image, mount and network comparisons. Do
+not work around this defect by rendering configuration and parsing it again:
+that introduces another secret-bearing representation and can reinterpret
+literal dollar signs or relative paths. The pinned plugin handles those inputs
+through Compose's normal resolution. The
+[5.5.0 release notes](https://github.com/docker/compose/releases/tag/v5.5.0)
+also describe a possible first-up recreation after image-digest reconciliation
+changes; the existing serialized cohort reconciliation handles this transition.
+
+The disposable recovery proof must use the plugin from the built operations
+image, rather than the workstation plugin:
+
+```bash
+docker build -f docker/backup.Dockerfile -t usl-operations-qa .
+USL_RUNTIME_DOCKER_QA=1 USL_RUNTIME_QA_OPERATIONS_IMAGE=usl-operations-qa \
+  python3 -m unittest scripts.tests.test_staging_wake_docker -v
+```
+
+It exercises the admitted A / failed B / desired C recovery with service-level
+relative `env_file` and bind paths, literal dollars, empty and absent values,
+inline precedence, a rejected volume identity mismatch, independent MCP
+retention, matching container IDs, network drift and unchanged marker volumes.
+Set `USL_RUNTIME_QA_PREVIOUS_OPERATIONS_IMAGE` to the previous operations image
+to seed B with its shipped plugin and qualify the version transition too. The
+fixture owns and removes only its generated containers, images, networks and
+marker volumes; no Odoo database or provider is involved.
 
 ## Read-only observation
 
@@ -383,13 +416,20 @@ Health and smoke share their MCP check with releases. A release provisions the
 authority override (`authorities/mcp-<sha256>.json`) from the launcher's
 pinned GitOps checkout. An observer does not have that checkout, which is why
 `smoke` used to stop with "exact GitOps identity is missing", and it must not
-provision anything. It reads the identity the running cohort was started from
-instead: the Compose working directory names the immutable
-`gitops-runs/<commit>.<id>` run, whose `.usl-gitops-commit` marker, MCP ledger
-and manifest it reads back to derive the authority digest. It then requires
-that exact override to be the final Compose file and to name the GitOps MCP
-image. A working directory outside a pinned run reports the missing identity
-and attempts nothing.
+provision anything. It follows MCP's own captured Compose labels, since an
+independent MCP deployment may advance separately from Odoo. A final override's
+`.source.json` binds the immutable GitOps run, exact commit marker and image to
+the ledger and manifest that derive its authority digest. This permits recovery
+of an older Odoo base while retaining a compatible, independently admitted MCP.
+
+Older overrides without source metadata retain the same-base validation path.
+For a split historical source, observation can resolve the exact authority
+digest or the independent launcher's fixed candidate/rollback YAML against
+retained immutable ledgers. One fixed read-only host probe inventories at most
+1,000 runs under the fixed GitOps root, avoiding one SSH request per archive.
+The observer permits only that exact program and a staging or production argument;
+all checks remain read-only. A missing or invalid source fails with recovery
+context, and observation never creates provenance or rewrites an admission.
 
 `smoke` under observation also validates the immutable receipt of the running
 generation, `generations/<generation>/admission.json`: schema, `admitted`

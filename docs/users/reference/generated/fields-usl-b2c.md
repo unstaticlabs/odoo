@@ -77,12 +77,14 @@ false
 | **Refreshed At** (`refreshed_at`) | datetime |  |  |
 | **Refund Company Amount** (`refund_company_amount`) | monetary |  |  |
 | **Revenue Company Amount** (`revenue_company_amount`) | monetary |  |  |
+| **Review Next Step** (`review_next_step`) | char |  | What stands between this session and the next state. Coverage percentages measure evidence; moving from Draft to Reviewed is a person's decision and never follows from a percentage. |
 | **Review Note** (`review_note`) | text |  |  |
+| **Review Status** (`review_status`) | char |  | Short answer to "is this month incomplete, or just not reviewed?" for lists. The sentence on the form says what to do about it. |
 | **Reviewed At** (`reviewed_at`) | datetime |  |  |
 | **Reviewed By** (`reviewed_by_id`) | many2one → `res.users` |  |  |
 | **Session Key** (`session_key`) | char |  |  |
 | **Source Provider** (`source_provider`) | selection |  | Leave empty for all commerce and processor providers. Values: **Etsy**, **Legacy Goodboys / Medusa**, **Medusa**, **Stripe**, **Revolut Merchant**, **Printful**, **Manual**, **Other**. |
-| **State** (`state`) | selection | yes | Values: **Draft**, **Reviewed**, **Locked**. |
+| **State** (`state`) | selection | yes | Draft: totals computed, not yet reviewed by a person. Reviewed: a B2C operator checked the totals and evidence. Locked: the month is frozen. Coverage percentages never change this state by themselves. Values: **Draft**, **Reviewed**, **Locked**. |
 | **Unallocated Revenue Company Amount** (`unallocated_revenue_company_amount`) | monetary |  |  |
 | **Units Sold** (`units_sold`) | float |  |  |
 | **Unknown Amount Company Amount** (`unknown_amount_company_amount`) | monetary |  |  |

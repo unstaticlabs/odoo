@@ -357,7 +357,7 @@ secret capture and must not be used as complete production recovery points.
 
 
 After a failed candidate, recovery also handles the case where the generation
-never switched: it resumes the existing containers, proves the baseline healthy,
+never switched: it restores the recorded active cohort, proves the baseline healthy,
 and archives the failed claim under `aborted-attempts`. The same release inputs
 can then be retried without deleting the failure evidence. Production that has
 crossed activation is repaired forward; this abort path cannot roll it back.

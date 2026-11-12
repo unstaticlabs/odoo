@@ -1333,9 +1333,11 @@ msgid "Lock Session"
 msgstr "Verrouiller la session"
 
 #. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
 #: model:ir.model.fields.selection,name:usl_b2c.selection__b2c_accounting_session__state__locked
 msgid "Locked"
-msgstr "Verrouillé"
+msgstr "Verrouillée"
 
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__locked_at
@@ -2235,6 +2237,7 @@ msgid "Review State"
 msgstr "État de la vérification"
 
 #. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_status
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
 msgid "Review Status"
 msgstr "État de la vérification"
@@ -2722,7 +2725,7 @@ msgstr "Montant inconnu en devise de la société"
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_form
 msgid "Unlock"
-msgstr "Débloquer"
+msgstr "Déverrouiller"
 
 #. module: usl_b2c
 #. odoo-python
@@ -3062,3 +3065,106 @@ msgstr "Les commandes B2C historiques ne peuvent pas créer de transactions de p
 #. module: usl_b2c
 msgid "Historical B2C orders cannot be linked to payment transactions."
 msgstr "Les commandes B2C historiques ne peuvent pas être liées à des transactions de paiement."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Locked: the session is closed and immutable. A B2C manager can unlock it."
+msgstr "Verrouillée : la session est close et immuable. Un responsable B2C peut la déverrouiller."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Reviewed by %(user)s. Next step: Lock the session to freeze the month."
+msgstr "Vérifiée par %(user)s. Étape suivante : verrouiller la session pour figer le mois."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Not refreshed yet. Refresh the evidenced totals, then review them."
+msgstr "Pas encore actualisée. Actualisez les totaux justifiés, puis vérifiez-les."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "%(count)s record(s) without an accounting disposition"
+msgstr "%(count)s enregistrement(s) sans traitement comptable"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "%(count)s order line(s) not mapped"
+msgstr "%(count)s ligne(s) de commande non rapprochée(s)"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "%(count)s record(s) awaiting currency conversion"
+msgstr "%(count)s enregistrement(s) en attente de conversion de devise"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Draft, awaiting review. Still open: %(gaps)s. Resolve them, then a B2C operator presses Mark Reviewed."
+msgstr "Brouillon, en attente de vérification. Reste à traiter : %(gaps)s. Après cela, un opérateur B2C clique sur « Marquer comme vérifié »."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Draft, awaiting review. Every record has an accounting disposition, but coverage is not a review: a B2C operator checks the totals, then presses Mark Reviewed."
+msgstr "Brouillon, en attente de vérification. Chaque enregistrement a un traitement comptable, mais la couverture n'est pas une vérification : un opérateur B2C contrôle les totaux, puis clique sur « Marquer comme vérifié »."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__state
+msgid "Draft: totals computed, not yet reviewed by a person. Reviewed: a B2C operator checked the totals and evidence. Locked: the month is frozen. Coverage percentages never change this state by themselves."
+msgstr "Brouillon : totaux calculés, pas encore vérifiés par une personne. Vérifiée : un opérateur B2C a contrôlé les totaux et les justificatifs. Verrouillée : le mois est figé. Les taux de couverture ne changent jamais cet état d'eux-mêmes."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_next_step
+msgid "What stands between this session and the next state. Coverage percentages measure evidence; moving from Draft to Reviewed is a person's decision and never follows from a percentage."
+msgstr "Ce qui sépare cette session de l'état suivant. Les taux de couverture mesurent les justificatifs ; passer de Brouillon à Vérifiée est une décision humaine qui ne découle jamais d'un pourcentage."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_next_step
+msgid "Review Next Step"
+msgstr "Prochaine étape de vérification"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "Awaiting Review"
+msgstr "En attente de vérification"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_status
+msgid "Short answer to \"is this month incomplete, or just not reviewed?\" for lists. The sentence on the form says what to do about it."
+msgstr "Réponse courte à « ce mois est-il incomplet, ou simplement pas vérifié ? » pour les listes. La phrase du formulaire dit quoi faire."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Awaiting review"
+msgstr "À vérifier"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Ready to lock"
+msgstr "Prête à verrouiller"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Not refreshed"
+msgstr "Non actualisée"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "1 open gap"
+msgstr "1 écart ouvert"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "%(count)s open gaps"
+msgstr "%(count)s écarts ouverts"
