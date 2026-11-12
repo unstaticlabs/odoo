@@ -194,9 +194,11 @@ class RuntimeReconciliationTests(unittest.TestCase):
         from scripts.tests.test_usl_stack_runtime import release_manifest
         host = CohortHost()
         host.files[host.active["release_manifest"]] = json.dumps(release_manifest("usl-release/v2"))
+        del host.containers["mcp"]
         before = {name: value["Id"] for name, value in host.containers.items()}
         _start_runtime(host.target, host, host.runtime(), mcp_authority=False)
-        self.assertEqual({name: value["Id"] for name, value in host.containers.items()}, before)
+        self.assertEqual({name: host.containers[name]["Id"] for name in before}, before)
+        self.assertIn("mcp", host.containers)
 
     def test_failed_reconciliation_reports_the_generation_service_and_mismatch(self):
         host = CohortHost()
@@ -265,6 +267,14 @@ class WakeReconciliationTests(unittest.TestCase):
         host.refuse_recreate = False
         self.assertEqual(self.wake(host)["status"], "woken")
         self.assertIsNone(self.state(host)["last_error"])
+
+    def test_adopted_layout_can_bootstrap_missing_mcp_without_v3_authority(self):
+        host = CohortHost()
+        host.active = None
+        del host.containers["mcp"]
+        with mock.patch("operations.stack._mcp_runtime_compose_identity", side_effect=AssertionError("adopted bootstrap consulted v3 source")):
+            self.assertEqual(self.wake(host)["status"], "woken")
+        self.assertIn("mcp", host.containers)
 
     def test_adopted_layout_keeps_existing_start_semantics(self):
         host = CohortHost()
@@ -336,6 +346,24 @@ class WakeMcpAuthorityTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "required_actions exceed Odoo support"):
                 _runtime_start_authority(host.target, host, host.runtime(), release, pinned=False)
         self.assertEqual(host.commands, [])
+
+    def test_missing_independent_mcp_never_borrows_odoo_a_authority(self):
+        host = CohortHost()
+        host.target.value["environment"] = "staging"
+        del host.containers["mcp"]
+        release, documents = self.documents()
+        old_odoo_authority = {
+            **_mcp_authority_from_gitops("staging", "a" * 40, lambda relative: documents[relative]),
+            "image": release["mcp"]["image"], "runtime_gitops_root": "/retained/old-odoo-a",
+        }
+        with (
+            mock.patch("operations.stack._observed_mcp_authority", return_value=(old_odoo_authority, {})) as observe,
+            mock.patch("operations.stack._load_deployed_gitops_json", side_effect=lambda runner, root, relative: documents[relative]),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "MCP container is missing.*independently admitted"):
+                _runtime_start_authority(host.target, host, host.runtime(), release, pinned=False)
+        observe.assert_not_called()
+        self.assertFalse(any("up" in command or "stop" in command or command[0] == "python3" for command in host.commands))
 
     def test_release_wake_retains_actual_mcp_even_with_a_newer_launcher_checkout(self):
         host = CohortHost()

@@ -969,6 +969,8 @@ def _generation_base_compose_identity(target, runner, active: dict, captured: di
     if recorded.returncode == 0:
         try:
             value = json.loads(recorded.stdout)
+            if not isinstance(value, dict):
+                raise ValueError
             body = {key: item for key, item in value.items() if key != "sha256"}
             digest = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             if (
@@ -2699,7 +2701,13 @@ def _mcp_runtime_compose_identity(target, runner, fallback: dict) -> dict:
         "--filter", f"label=com.docker.compose.service={service}", "--format", "{{.ID}}",
     ]).stdout.split()
     if not containers:
-        return fallback
+        # Odoo's anchor can still name A's old MCP authority after an independent
+        # M deployment. Neither that label nor the newest retained candidate
+        # proves the latest admitted source once the MCP container is gone.
+        raise RuntimeError(
+            "MCP container is missing; restore the independently admitted MCP "
+            "through its recovery procedure before retrying wake",
+        )
     if len(containers) != 1:
         raise RuntimeError("MCP Compose identity is ambiguous")
     try:

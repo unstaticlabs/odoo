@@ -108,6 +108,16 @@ revision label follow the selected MCP commit. The MCP override's
 Existing authority overrides and independent candidate/rollback YAML remain
 valid when retained evidence proves their source. An unavailable source produces
 an actionable failure; wake never substitutes the failed cohort's context.
+If the independently managed MCP container itself is missing, recover it before
+waking an admitted v3 generation. Use the last successful independent MCP
+deployment's retained execution evidence to establish its exact image, GitOps
+source and Compose override. Restore that service against the active generation's
+MCP OAuth volume and verify readiness, then retry wake. If that admission cannot
+be established, restore the evidence before recreating the service. Odoo's older
+anchor labels and the newest retained candidate do not prove the current MCP
+admission. Wake stops before any Compose mutation instead of choosing either one.
+This does not affect local, adopted, legacy v2 or new-generation
+activation/bootstrap paths.
 
 The pre-receipt compatibility path can still start a generation from its own
 captured Compose files. Adopted and legacy v2 layouts retain their existing

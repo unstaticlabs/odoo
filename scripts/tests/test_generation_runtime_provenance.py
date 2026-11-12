@@ -156,6 +156,14 @@ class GenerationBaseProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "not direct"):
             self.resolve()
 
+    def test_non_object_generation_provenance_has_a_precise_error(self):
+        path = self.generation_root + "/compose.identity.json"
+        for value in ([], None, "invalid", 1, True):
+            with self.subTest(value=value):
+                self.host.files[path] = json.dumps(value)
+                with self.assertRaisesRegex(RuntimeError, "generation Compose provenance is invalid: gadmitted-a"):
+                    self.resolve()
+
     def test_future_generation_records_existing_compose_provenance_fields(self):
         _record_generation_compose_identity(self.target, self.host, self.generation, self.release, self.base)
         path = self.generation_root + "/compose.identity.json"
