@@ -1382,7 +1382,7 @@ def wake_staging(
                 }
         started = time.monotonic()
         try:
-            current = inspect_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner, for_start=True)
             plan = _runtime_start_plan(target, runner, current, mcp_authority=False)
             _identity, _config, services, drift, states = plan
             matches = (
@@ -3856,7 +3856,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     services = _compose_services(target, identity, runner)
     runner.run(compose_command(
         identity,
-        ["create", "--force-recreate", "--no-deps", *services],
+        ["up", "--no-start", "--force-recreate", "--no-deps", *services],
     ))
     legacy = runner.run(
         [
@@ -10458,11 +10458,11 @@ def _recovery_proof_command_locked(
     return 0
 
 
-def _cleanup_runtime(target, runner) -> dict:
-    """Inventory admitted sleeping resources without starting an application.
+def _inspect_runtime_or_admitted(target, runner, *, for_start: bool = False) -> dict:
+    """Recover on-demand inventory from admission when its anchor is absent.
 
-    Normal runtime inspection remains strict. Only housekeeping on an on-demand
-    target may use the retained admission when its anchor is entirely absent.
+    Normal inspection remains strict and cheap. Cold wake additionally resolves
+    only the recorded generation's Compose provenance, never desired files.
     """
     try:
         return inspect_runtime(target, runner)
@@ -10473,11 +10473,11 @@ def _cleanup_runtime(target, runner) -> dict:
             raise
     active = read_active_state(target, runner)
     if active is None:
-        raise RuntimeError("sleeping cleanup requires an admitted generation")
-    read_active_release(target, runner, active)
+        raise RuntimeError("retained runtime requires an admitted generation")
+    release = read_active_release(target, runner, active)
     definitions, generation = effective_volumes(target, runner)
     if generation != active["generation"]:
-        raise RuntimeError("sleeping cleanup generation changed during inspection")
+        raise RuntimeError("retained runtime generation changed during inspection")
     for role, definition in definitions.items():
         volume = _volume_inspect(runner, definition["name"])
         labels = volume.get("Labels") or {}
@@ -10490,7 +10490,7 @@ def _cleanup_runtime(target, runner) -> dict:
         if volume.get("Name") != definition["name"] or any(
             labels.get(key) != expected for key, expected in expected_labels.items()
         ):
-            raise RuntimeError("sleeping cleanup volume ownership differs from admission")
+            raise RuntimeError("retained runtime volume ownership differs from admission")
     identifiers = runner.run([
         "docker", "ps", "--all", "--filter",
         f"label=com.docker.compose.project={target.project}", "--format", "{{.ID}}",
@@ -10502,13 +10502,17 @@ def _cleanup_runtime(target, runner) -> dict:
         value = json.loads(runner.run(["docker", "inspect", identifier, "--format", template]).stdout)
         identifier, state, service = value
         if service == anchor:
-            raise RuntimeError("sleeping cleanup anchor appeared during inspection")
+            raise RuntimeError("retained runtime anchor appeared during inspection")
         containers.append({"ID": identifier, "State": state, "Service": service})
     current = {
         "volumes": definitions, "generation": generation,
         "active_state": active, "containers": containers,
     }
     _observed_admission_receipt(target, runner, current)
+    if for_start:
+        if release["schema"] != "usl-release/v3" or _generation_compose_contract(target) is None:
+            raise RuntimeError("cold wake requires retained generation Compose provenance")
+        current["compose"] = _generation_base_compose_identity(target, runner, active, {}, release)
     return current
 
 
@@ -10737,20 +10741,51 @@ def _historical_capture_retirement(
     }
 
 
+def _canonical_filesystem_paths(runner, paths: list[str]) -> list[str]:
+    values = runner.run(["readlink", "-m", "--", *paths]).stdout.splitlines()
+    if len(values) != len(paths) or any(not value.startswith("/") for value in values):
+        raise RuntimeError("capture filesystem references are invalid")
+    return values
+
+
 def _assert_capture_unmounted(runner, path: str) -> None:
-    # st_dev and os.path.ismount miss bind mounts on the same filesystem.
-    # Read the kernel mount inventory, including descendants, before deleting.
+    # Mount targets alone miss captures bound elsewhere on the same filesystem.
+    # Compare kernel filesystem roots as well, without treating broad ancestor
+    # management mounts as references to every file they can see.
+    path = _canonical_filesystem_paths(runner, [path])[0]
     try:
-        mounts = json.loads(runner.run(["findmnt", "--json", "--output", "TARGET"]).stdout)
-        pending = list(mounts["filesystems"])
+        inventory = json.loads(runner.run([
+            "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN,FSTYPE",
+        ]).stdout)
+        pending = list(inventory["filesystems"])
+        mounts = []
         while pending:
             mount = pending.pop()
-            destination = mount["target"]
-            if not isinstance(destination, str):
-                raise ValueError("invalid mount target")
+            destination, root, device, filesystem = (mount[key] for key in ("target", "fsroot", "maj:min", "fstype"))
+            if (
+                not isinstance(destination, str) or not destination.startswith("/")
+                or not isinstance(root, str) or not isinstance(filesystem, str) or not filesystem
+                or (not root.startswith("/") and filesystem not in {"nsfs", "anon_inodefs", "pipefs", "sockfs"})
+                or not isinstance(device, str) or not re.fullmatch(r"[0-9]+:[0-9]+", device)
+            ):
+                raise ValueError("invalid mount identity")
             if destination == path or destination.startswith(path + "/"):
                 raise RuntimeError("legacy capture contains a mounted filesystem")
+            if root.startswith("/"):
+                mounts.append(mount)
             pending.extend(mount.get("children", []))
+        ancestors = [m for m in mounts if path.startswith(m["target"].rstrip("/") + "/")]
+        if not ancestors:
+            raise ValueError("capture filesystem is missing")
+        base = max(ancestors, key=lambda m: len(m["target"]))
+        relative = path[len(base["target"].rstrip("/")):].lstrip("/")
+        capture_root = base["fsroot"].rstrip("/") + "/" + relative
+        for mount in mounts:
+            root = mount["fsroot"]
+            if mount["maj:min"] == base["maj:min"] and (
+                root == capture_root or root.startswith(capture_root + "/")
+            ):
+                raise RuntimeError("legacy capture contains a mounted filesystem source")
     except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
         raise RuntimeError("legacy capture mount inventory is invalid") from error
 
@@ -10761,14 +10796,13 @@ def _assert_capture_not_bound(runner, path: str) -> None:
     Broad host-management mounts do not classify every host file as in use;
     native host operations are serialized by the lifecycle lock instead.
     """
+    sources = []
     containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
-    if not containers:
-        return
     if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
         raise RuntimeError("legacy capture container inventory is invalid")
     try:
-        listing = runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers])
-        lines = listing.stdout.splitlines()
+        lines = (runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers]).stdout.splitlines()
+                 if containers else [])
         if len(lines) != len(containers):
             raise ValueError("incomplete container mounts")
         for line in lines:
@@ -10778,8 +10812,33 @@ def _assert_capture_not_bound(runner, path: str) -> None:
                     raise ValueError("invalid bind source")
                 if source == path or source.startswith(path + "/"):
                     raise RuntimeError("legacy capture is bound by a retained container")
+                if source.startswith("/"):
+                    sources.append(source)
     except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
         raise RuntimeError("legacy capture container mounts are invalid") from error
+    # A local named volume can alias a capture through Options.device while
+    # containers report only Docker's _data mountpoint. Preserve even an unused
+    # retained volume: it may be needed by a stopped or future recovery runtime.
+    names = runner.run(["docker", "volume", "ls", "--quiet"]).stdout.split()
+    for name in names:
+        volume = _volume_inspect(runner, name)
+        options = volume.get("Options") or {}
+        if not isinstance(options, dict):
+            raise RuntimeError("legacy capture volume options are invalid")
+        flags = {flag.strip() for flag in str(options.get("o", "")).split(",")}
+        if options.get("type") in ("nfs", "nfs4", "cifs", "smb", "smb3") and not flags & {"bind", "rbind"}:
+            continue  # Explicit bind flags still identify local paths, regardless of type.
+        device = options.get("device", "")
+        if not isinstance(device, str):
+            raise RuntimeError("legacy capture volume device is invalid")
+        if device == path or device.startswith(path + "/"):
+            raise RuntimeError("legacy capture is referenced by a retained named volume")
+        if device.startswith("/"):
+            sources.append(device)
+    canonical = _canonical_filesystem_paths(runner, [path, *sources])
+    capture = canonical[0]
+    if any(source == capture or source.startswith(capture + "/") for source in canonical[1:]):
+        raise RuntimeError("legacy capture is referenced through a filesystem source alias")
 
 
 def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:
@@ -10808,10 +10867,13 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         raise RuntimeError("legacy retirement apply requires exact --confirm")
     run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
     with runtime_lock(target, runner, "cleanup", run_id):
-        current = _cleanup_runtime(target, runner)
+        current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         protected_commits = set()
-        for generation in inventory["protected_generations"]:
+        generations = inventory["protected_generations"]
+        if archive_path:
+            generations = inventory.get("historical_capture_protected_generations", generations)
+        for generation in generations:
             path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
             release = validate_release(json.loads(runner.run(["cat", path]).stdout))
             protected_commits.add(release["source"]["commit"])
@@ -11070,6 +11132,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         previous_generation = (state.get("previous") or {}).get("generation")
         if previous_generation:
             protected_generations.add(previous_generation)
+    historical_capture_generations = set(protected_generations)
     # Compose may reuse sidecars across rollback; their config labels still
     # reference candidate files even when the database has returned to baseline.
     prefix = f"{target.value['state_directory']}/generations/"
@@ -11095,6 +11158,11 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
                 if not GENERATION_NAME.fullmatch(generation):
                     raise RuntimeError("running service generation label is invalid")
                 protected_generations.add(generation)
+                # The stable gateway can retain old Compose labels indefinitely.
+                # Keep that provenance/config protected, without treating an
+                # independently archived backup copy as current business data.
+                if container.get("Service") != "gateway":
+                    historical_capture_generations.add(generation)
                 active.update(generation_volume_names(target, generation).values())
                 protected_networks.add(f"{target.project}-{generation}-recovery")
     inventory = runner.run(
@@ -11131,6 +11199,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "protected_volumes": sorted(active | previous),
         "protected_networks": sorted(protected_networks),
         "protected_generations": sorted(protected_generations),
+        "historical_capture_protected_generations": sorted(historical_capture_generations),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
@@ -11326,6 +11395,8 @@ def _validated_cleanup_resources(
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup workspace became invalid: {workspace}")
+        _assert_capture_unmounted(runner, workspace)
+        _assert_capture_not_bound(runner, workspace)
     return containers, volumes, networks
 
 
@@ -11345,6 +11416,8 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
             raise RuntimeError(f"cleanup capture became invalid: {path}")
         if _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
+        _assert_capture_unmounted(runner, path)
+        _assert_capture_not_bound(runner, path)
         paths.append(path)
     return paths
 
@@ -11396,7 +11469,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            current = _cleanup_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner)
             inventory = _cleanup_inventory(target, runner, current)
             retention_plan = None
             if target.value["environment"] == "production" and not getattr(
@@ -11437,7 +11510,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
-        current = _cleanup_runtime(target, runner)
+        current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         retention_plan = None
         if target.value["environment"] == "production" and not getattr(

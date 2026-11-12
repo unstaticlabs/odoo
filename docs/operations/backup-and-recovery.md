@@ -440,9 +440,11 @@ receipt, retaining both the archival and retirement receipts. Immediately before
 removal it also checks that the exact immutable remote snapshot still exists
 with the archive tag and expected source path, using the existing production
 backup credential context. An unreachable or missing anchor preserves the local
-payload. It preserves the
-same active/previous release, mount, container-reference and lifecycle-lock
-checks. It does not require a modern replacement because it relocates the same
+payload. It preserves active and previous releases, data-cohort references,
+mount sources, named-volume devices and lifecycle locks. A stable gateway's
+old Compose label alone does not make a separately archived capture current
+business data. Ordinary cleanup still protects that gateway generation and its
+configuration; any physical reference to the capture still prevents retirement. It does not require a modern replacement because it relocates the same
 historical copy; it explicitly reports `modern_recovery_certified: false`.
 The modern replacement path above retains its newer-qualified-cohort requirement.
 Neither path removes active runtime data or modifies original historical evidence.
