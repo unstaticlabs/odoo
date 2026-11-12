@@ -51,6 +51,8 @@ false
 | **API keys** (`credential_ids`) | one2many → `usl.agent.credential` |  |  |
 | **Application access** (`delegated_group_ids`) | many2many → `res.groups` |  |  |
 | **May record receipt decisions** (`expense_receipt_waiver_authority`) | boolean |  | Continuing an expense without a receipt is a documented decision rather than ordinary data entry, so an Agent cannot take it on its own. Enabling this is the owner's explicit acceptance that this Agent may record the decision on their authority. The Agent still has to preview the decision and confirm it in a second call, and the owner stays accountable for what it records. |
+| **Avatar (128px)** (`image_128`) | binary |  |  |
+| **Avatar** (`image_1920`) | binary |  | The picture shown for this Agent wherever it appears, such as chatter. |
 | **Last Used At** (`last_used_at`) | datetime |  |  |
 | **Name** (`name`) | char | yes |  |
 | **Needs Attention** (`needs_attention`) | boolean |  |  |
