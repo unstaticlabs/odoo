@@ -41,6 +41,53 @@ TARGETS = ROOT / "operations/targets"
 PROOF_ID = "daily-20260904-0400"
 
 
+class RecoveryProofCapacityTests(unittest.TestCase):
+    def setUp(self):
+        from operations.stack import MINIMUM_FREE_BYTES
+        self.minimum = MINIMUM_FREE_BYTES
+        self.gib = 1024 ** 3
+        self.target = load_target("production", ROOT / "operations/targets-host")
+        self.docker_root = "/synthetic/docker"
+
+    def capacity(self, docker_source, available, tier_sources, candidate):
+        from operations.stack import _recovery_proof_capacity
+        paths = {item["path"]: tier_sources[tier]
+                 for tier, item in self.target.value["storage"]["tiers"].items()}
+        def filesystem(_runner, path):
+            return (docker_source if path == self.docker_root else paths[path], available)
+        class Runner:
+            def run(inner, command):
+                self.assertEqual(command, ["docker", "info", "--format", "{{.DockerRootDir}}"])
+                return subprocess.CompletedProcess(command, 0, self.docker_root + "\n", "")
+        with patch("operations.stack._filesystem_capacity", side_effect=filesystem), \
+                patch("operations.stack._measure_candidate_bytes", return_value=candidate):
+            return _recovery_proof_capacity(self.target, Runner(), "synthetic-tool", {})
+
+    def test_bulk_proof_retains_the_configured_fifteen_gib_reserve(self):
+        from operations.runtime import RuntimeError as OperationsError
+        sources = dict(bulk="/dev/bulk", database="/dev/nvme", local="/dev/nvme")
+        with self.assertRaisesRegex(OperationsError, "15.0 GiB reserve"):
+            self.capacity("/dev/bulk", 16 * self.gib, sources, {"bulk": 2 * self.gib})
+        result = self.capacity("/dev/bulk", 17 * self.gib, sources, {"bulk": 2 * self.gib})
+        self.assertEqual(result["reserve_bytes"], 15 * self.gib)
+        self.assertEqual(result["required_bytes"], 17 * self.gib)
+
+    def test_shared_filesystem_uses_maximum_configured_reserve_not_sum(self):
+        self.target.value["storage"]["tiers"]["database"]["reserve_bytes"] = 21 * self.gib
+        sources = dict.fromkeys(self.target.value["storage"]["tiers"], "/dev/shared")
+        result = self.capacity("/dev/shared", 22 * self.gib, sources, {"bulk": self.gib})
+        self.assertEqual(result["reserve_bytes"], 21 * self.gib)
+        self.assertEqual(result["required_bytes"], 22 * self.gib)
+
+    def test_local_or_unmatched_docker_filesystem_keeps_the_two_gib_floor(self):
+        sources = dict(bulk="/dev/bulk", database="/dev/nvme", local="/dev/nvme")
+        for source in ("/dev/nvme", "/dev/docker-other"):
+            with self.subTest(source=source):
+                result = self.capacity(source, 4 * self.gib, sources, {"bulk": self.gib})
+                self.assertEqual(result["reserve_bytes"], self.minimum)
+                self.assertEqual(result["required_bytes"], self.gib + self.minimum)
+
+
 class ResourceRunner:
     def __init__(self) -> None:
         self.resources: dict[tuple[str, str], dict[str, str]] = {}
