@@ -1375076,7 +1375076,7 @@
         "rpc:usl.enablebanking.connection.check_access",
         "rpc:usl.enablebanking.connection.ensure_one"
       ],
-      "digest": "fc38e98811a1136d9bc26a25929e688bd04d2050a1571f20c5e7ecbcc2c952dc",
+      "digest": "da8e7fb0c868bf3eb9910ab3634f2bbb723fb055e2cff82e7b75f7f75d7f101b",
       "guards": [],
       "key": "rpc:usl.enablebanking.connection.action_accounts",
       "kind": "rpc",
@@ -1375087,7 +1375087,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "190048c9c44b42a9ffeb12390d6a16d072ff02d8b14d0a1f06a39f60c11d19e3",
+      "runtime_digest": "3f5b3c5abca8550351fb6e852617963903233a12e1500631b07b1eb453668de4",
       "sinks": [],
       "sources": [
         {
@@ -1738078,7 +1738078,7 @@
       "manifest_sha256": "8838b910069352148af0bac7fa4ea34d054fe0a864f2940de83788351175a8d1",
       "name": "usl_enablebanking",
       "origin": "custom",
-      "source_sha256": "b892edd02977e1a8269f777211ae18b698e078dc9f3e19e5822024012a87b9d6",
+      "source_sha256": "2d8325bcff80ee89f39b70c51221206685fce2eb72d3bd59f5d6c6abd2e83e41",
       "version": "saas~19.3.1.0.0"
     },
     {

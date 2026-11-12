@@ -199,4 +199,4 @@ class EnableBankingConnection(models.Model):
     def action_accounts(self):
         self._check_company_access()
         return {"type": "ir.actions.act_window", "name": self.env._("Bank accounts"), "res_model": "usl.enablebanking.account",
-                "view_mode": "list,form", "domain": [("connection_id", "=", self.id)], "context": {"default_connection_id": self.id}}
+                "view_mode": "list,kanban,form", "mobile_view_mode": "kanban", "domain": [("connection_id", "=", self.id)], "context": {"default_connection_id": self.id}}

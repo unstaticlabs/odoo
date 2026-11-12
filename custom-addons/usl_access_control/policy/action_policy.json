@@ -209572,7 +209572,7 @@
         "rpc:usl.enablebanking.balance.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:usl.enablebanking.balance.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:usl.enablebanking.balance.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:usl.enablebanking.connection.action_accounts": "fc38e98811a1136d9bc26a25929e688bd04d2050a1571f20c5e7ecbcc2c952dc",
+        "rpc:usl.enablebanking.connection.action_accounts": "da8e7fb0c868bf3eb9910ab3634f2bbb723fb055e2cff82e7b75f7f75d7f101b",
         "rpc:usl.enablebanking.connection.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:usl.enablebanking.connection.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
         "rpc:usl.enablebanking.connection.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",

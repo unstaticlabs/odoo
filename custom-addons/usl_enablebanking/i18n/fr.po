@@ -1021,3 +1021,23 @@ msgstr ""
 #: code:addons/usl_enablebanking/models/account.py:0
 msgid "Renew bank access on the connection before retrying."
 msgstr "Renouvelez l’accès bancaire depuis la connexion avant de réessayer."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "<span class=\"text-muted\">Journal</span>"
+msgstr "<span class=\"text-muted\">Journal</span>"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "<span>Last successful import</span>:"
+msgstr "<span>Dernier import réussi</span> :"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "No journal selected"
+msgstr "Aucun journal sélectionné"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "Unavailable in this session"
+msgstr "Indisponible dans cette session"
