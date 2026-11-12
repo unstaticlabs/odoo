@@ -21,6 +21,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from operations import backup_maintenance
+from operations import historical_capture
 from operations import staging_lifecycle as lifecycle
 from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
@@ -94,6 +95,7 @@ from operations.runtime import (
     Target,
     compose_command,
     compose_identity,
+    effective_volumes,
     inspect_runtime,
     load_target,
     read_active_release,
@@ -10447,6 +10449,60 @@ def _recovery_proof_command_locked(
     return 0
 
 
+def _cleanup_runtime(target, runner) -> dict:
+    """Inventory admitted sleeping resources without starting an application.
+
+    Normal runtime inspection remains strict. Only housekeeping on an on-demand
+    target may use the retained admission when its anchor is entirely absent.
+    """
+    try:
+        return inspect_runtime(target, runner)
+    except RuntimeError as error:
+        anchor = target.value["compose"]["anchor_service"]
+        missing = f"expected one {target.project}/{anchor} container, found 0"
+        if target.value["lifecycle"]["mode"] != "on_demand" or str(error) != missing:
+            raise
+    active = read_active_state(target, runner)
+    if active is None:
+        raise RuntimeError("sleeping cleanup requires an admitted generation")
+    read_active_release(target, runner, active)
+    definitions, generation = effective_volumes(target, runner)
+    if generation != active["generation"]:
+        raise RuntimeError("sleeping cleanup generation changed during inspection")
+    for role, definition in definitions.items():
+        volume = _volume_inspect(runner, definition["name"])
+        labels = volume.get("Labels") or {}
+        expected_labels = {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+            "com.unstaticlabs.runtime.role": role,
+        }
+        if volume.get("Name") != definition["name"] or any(
+            labels.get(key) != expected for key, expected in expected_labels.items()
+        ):
+            raise RuntimeError("sleeping cleanup volume ownership differs from admission")
+    identifiers = runner.run([
+        "docker", "ps", "--all", "--filter",
+        f"label=com.docker.compose.project={target.project}", "--format", "{{.ID}}",
+    ]).stdout.split()
+    containers = []
+    template = ('[{{json .Id}},{{json .State.Status}},'
+                '{{json (index .Config.Labels "com.docker.compose.service")}}]')
+    for identifier in identifiers:
+        value = json.loads(runner.run(["docker", "inspect", identifier, "--format", template]).stdout)
+        identifier, state, service = value
+        if service == anchor:
+            raise RuntimeError("sleeping cleanup anchor appeared during inspection")
+        containers.append({"ID": identifier, "State": state, "Service": service})
+    current = {
+        "volumes": definitions, "generation": generation,
+        "active_state": active, "containers": containers,
+    }
+    _observed_admission_receipt(target, runner, current)
+    return current
+
+
 def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list[str]:
     state_root = target.value["state_directory"]
     generations_root = f"{state_root}/generations"
@@ -10571,6 +10627,235 @@ def _qualified_capture(target, runner, run_id: str) -> dict | None:
     ):
         return None
     return {"created_at": created_at}
+
+
+def _legacy_capture_retirement(
+    target, runner, run_id: str, replacement: str, protected_commits: set[str],
+) -> dict:
+    """Review one explicitly named legacy payload; never infer ownership from age.
+
+    This only retires local copies. Qualified remote snapshots and retained
+    receipts remain under the cohort retention policy.
+    """
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or run_id == replacement
+        or _capture_attempt(target, run_id) is not None or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("legacy capture identity is invalid or already managed")
+    if _capture_attempt(target, replacement) is None and not _proof_capture(target, replacement):
+        raise RuntimeError("replacement must be a managed qualified capture")
+    identities = {}
+    dates = {}
+    for label, name in (("capture", run_id), ("replacement", replacement)):
+        root = f"{target.value['state_directory']}/{name}"
+        probe = runner.run(
+            ["find", root, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"{label} must be a real directory")
+        capture = _qualified_capture(target, runner, name)
+        if capture is None:
+            raise RuntimeError(f"{label} is not qualified")
+        raw = runner.run(["cat", f"{root}/manifest.json"]).stdout
+        manifest = validate_cohort_manifest(json.loads(raw))
+        state = json.loads(runner.run(["cat", f"{root}/state.json"]).stdout)
+        if label == "capture" and manifest["release"]["commit"] in protected_commits:
+            raise RuntimeError("legacy capture belongs to a protected release")
+        identities[label] = {
+            "manifest_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+            "durable_snapshot_id": state["durable_snapshot_id"],
+            "cache_snapshot_id": state["cache_snapshot_id"],
+            "release_commit": manifest["release"]["commit"],
+        }
+        dates[label] = capture["created_at"]
+    if dates["replacement"] <= dates["capture"]:
+        raise RuntimeError("replacement must be newer than the legacy capture")
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "replacement": replacement,
+        "capture_identity": identities["capture"], "replacement_identity": identities["replacement"],
+    }
+
+
+def _historical_capture_retirement(
+    target, runner, run_id: str, protected_commits: set[str], archive: dict,
+    repository: str, image: str,
+) -> dict:
+    """Relocate historical bytes using their own exact offsite archive anchor."""
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures", "historical-archives"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or _capture_attempt(target, run_id) is not None
+        or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("historical capture identity is invalid or already managed")
+    path = f"{target.value['state_directory']}/{run_id}"
+    probe = runner.run([
+        "find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n",
+    ], check=False)
+    if probe.returncode or probe.stdout.strip() != "d":
+        raise RuntimeError("historical capture must be a real directory")
+    identity = historical_capture.capture_identity(
+        runner.run(["cat", f"{path}/manifest.json"]).stdout,
+        json.loads(runner.run(["cat", f"{path}/state.json"]).stdout),
+        target=target.name, capture=run_id,
+    )
+    if identity["release_commit"] in protected_commits:
+        raise RuntimeError("historical capture belongs to a protected release")
+    program = (
+        "import json;from pathlib import Path;from operations.cohort import tree_identity;"
+        "from operations.historical_capture import metadata_identity;"
+        "p=Path('/capture');print(json.dumps({'tree':tree_identity(p),"
+        "'metadata_sha256':metadata_identity(p)}))"
+    )
+    tree = json.loads(runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL",
+        "--cap-add", "DAC_OVERRIDE", "--user", "0:0", "--volume", f"{path}:/capture:ro", "--entrypoint", "python3", image, "-c", program,
+    ]).stdout)
+    historical_capture.validate_archive(
+        archive, target=target.name, capture=run_id, manifest_sha256=identity["manifest_sha256"],
+        repository=repository, actual_tree=tree["tree"],
+        actual_metadata_sha256=tree["metadata_sha256"],
+    )
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "capture_identity": identity,
+        "historical_archive": archive, "preservation_kind": "exact-historical-archive",
+        "modern_recovery_certified": False,
+    }
+
+
+def _assert_capture_unmounted(runner, path: str) -> None:
+    # st_dev and os.path.ismount miss bind mounts on the same filesystem.
+    # Read the kernel mount inventory, including descendants, before deleting.
+    try:
+        mounts = json.loads(runner.run(["findmnt", "--json", "--output", "TARGET"]).stdout)
+        pending = list(mounts["filesystems"])
+        while pending:
+            mount = pending.pop()
+            destination = mount["target"]
+            if not isinstance(destination, str):
+                raise ValueError("invalid mount target")
+            if destination == path or destination.startswith(path + "/"):
+                raise RuntimeError("legacy capture contains a mounted filesystem")
+            pending.extend(mount.get("children", []))
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("legacy capture mount inventory is invalid") from error
+
+
+def _assert_capture_not_bound(runner, path: str) -> None:
+    """Keep a capture explicitly mounted by any retained container.
+
+    Broad host-management mounts do not classify every host file as in use;
+    native host operations are serialized by the lifecycle lock instead.
+    """
+    containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
+    if not containers:
+        return
+    if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
+        raise RuntimeError("legacy capture container inventory is invalid")
+    try:
+        listing = runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers])
+        lines = listing.stdout.splitlines()
+        if len(lines) != len(containers):
+            raise ValueError("incomplete container mounts")
+        for line in lines:
+            for mount in json.loads(line):
+                source = mount.get("Source", "")
+                if not isinstance(source, str):
+                    raise ValueError("invalid bind source")
+                if source == path or source.startswith(path + "/"):
+                    raise RuntimeError("legacy capture is bound by a retained container")
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
+        raise RuntimeError("legacy capture container mounts are invalid") from error
+
+
+def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:
+    _secret_file(target, runner)
+    program = (
+        "import json,sys;from operations.historical_capture import verify_remote_archive;"
+        "verify_remote_archive(json.load(sys.stdin))"
+    )
+    runner.run([
+        "docker", "run", "--rm", "--interactive", "--read-only", "--cap-drop", "ALL",
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env", f"RESTIC_REPOSITORY={archive['repository']}",
+        "--env", "RESTIC_CACHE_DIR=/cache", "--tmpfs", "/cache:rw,size=67108864",
+        "--entrypoint", "python3", image, "-c", program,
+    ], input_text=json.dumps(archive))
+
+
+def _retire_legacy_capture(arguments, target, runner) -> dict:
+    archive_path = getattr(arguments, "historical_archive_receipt", None)
+    if not all((arguments.capture, arguments.owner, arguments.reason)):
+        raise RuntimeError("legacy retirement requires --capture, --owner and --reason")
+    if bool(archive_path) == bool(arguments.replacement):
+        raise RuntimeError("choose exactly one --replacement or --historical-archive-receipt")
+    apply = arguments.action == "retire-apply"
+    if apply and arguments.confirm != target.name:
+        raise RuntimeError("legacy retirement apply requires exact --confirm")
+    run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+    with runtime_lock(target, runner, "cleanup", run_id):
+        current = _cleanup_runtime(target, runner)
+        inventory = _cleanup_inventory(target, runner, current)
+        protected_commits = set()
+        for generation in inventory["protected_generations"]:
+            path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+            release = validate_release(json.loads(runner.run(["cat", path]).stdout))
+            protected_commits.add(release["source"]["commit"])
+        payload = f"{target.value['state_directory']}/{arguments.capture}"
+        _assert_capture_unmounted(runner, payload)
+        _assert_capture_not_bound(runner, payload)
+        archive = None
+        if archive_path:
+            expected = f"{target.value['state_directory']}/historical-archives/{arguments.capture}.json"
+            if str(archive_path) != expected:
+                raise RuntimeError("historical archive receipt path differs from the capture")
+            archive = json.loads(runner.run(["cat", expected]).stdout)
+            production = load_target("production", arguments.targets)
+            repository = production.value["backup"]["durable_repository"]
+            release, _sha, _raw = _release(target, runner, None)
+            image = _operations_image(release)
+
+        def review():
+            if archive is not None:
+                plan = _historical_capture_retirement(
+                    target, runner, arguments.capture, protected_commits, archive, repository, image,
+                )
+                _assert_historical_archive_remote(production, runner, image, archive)
+                return plan
+            return _legacy_capture_retirement(
+                target, runner, arguments.capture, arguments.replacement, protected_commits,
+            )
+
+        plan = review()
+        size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
+        if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
+            raise RuntimeError("legacy capture allocation could not be measured")
+        plan.update({
+            "owner": arguments.owner, "reason": arguments.reason,
+            "reviewed_at": datetime.now(UTC).isoformat(),
+            "payload_allocated_bytes": int(size[0]),
+        })
+        if apply:
+            # Persist the identities before removing anything. Re-evaluate under
+            # the same lifecycle lock, then retain a second durable completion.
+            receipt = f"{target.value['state_directory']}/retired-captures/{arguments.capture}.json"
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "prepared"})
+            checked = review()
+            if any(checked[key] != plan[key] for key in checked):
+                raise RuntimeError("legacy capture changed during retirement")
+            _assert_capture_unmounted(runner, payload)
+            _assert_capture_not_bound(runner, payload)
+            runner.run(["rm", "-rf", "--one-file-system", "--", payload])
+            if runner.run(["test", "!", "-e", payload], check=False).returncode:
+                raise RuntimeError("legacy capture payload remains after retirement")
+            plan["payload_remaining_bytes"] = 0
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "retired"})
+        return {**plan, "status": "retired" if apply else "planned"}
 
 
 def _unfinished_release_attempts(target, runner) -> set[str]:
@@ -11093,12 +11378,16 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     retention_image = None
+    if arguments.action in {"retire-plan", "retire-apply"}:
+        plan = _retire_legacy_capture(arguments, target, runner)
+        print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            current = inspect_runtime(target, runner)
+            current = _cleanup_runtime(target, runner)
             inventory = _cleanup_inventory(target, runner, current)
             retention_plan = None
             if target.value["environment"] == "production" and not getattr(
@@ -11139,7 +11428,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
-        current = inspect_runtime(target, runner)
+        current = _cleanup_runtime(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         retention_plan = None
         if target.value["environment"] == "production" and not getattr(
@@ -12389,9 +12678,17 @@ def build_parser() -> argparse.ArgumentParser:
     recovery_proof.add_argument("--json", action="store_true")
     recovery_proof.set_defaults(handler=recovery_proof_command)
     cleanup = commands.add_parser("cleanup")
-    cleanup.add_argument("action", choices=("plan", "apply"))
+    cleanup.add_argument("action", choices=("plan", "apply", "retire-plan", "retire-apply"))
     cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
+    cleanup.add_argument("--capture", help="explicit legacy local capture identity")
+    cleanup.add_argument("--replacement", help="newer managed qualified recovery capture")
+    cleanup.add_argument(
+        "--historical-archive-receipt", type=Path,
+        help="exact raw historical archive read-back receipt; does not certify modern recovery",
+    )
+    cleanup.add_argument("--owner", help="person or task responsible for retirement")
+    cleanup.add_argument("--reason", help="why this local legacy payload is obsolete")
     cleanup.add_argument(
         "--runtime-only",
         action="store_true",

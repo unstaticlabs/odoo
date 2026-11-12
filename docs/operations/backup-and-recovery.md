@@ -286,7 +286,13 @@ scripts/usl-stack cleanup apply --target staging --confirm staging --json
 ```
 
 The active and immediately previous generations are protected. The command
-uses exact Docker labels and never deletes foreign projects or volumes. On
+uses exact Docker labels and never deletes foreign projects or volumes.
+Housekeeping can also inspect an admitted on-demand target after its application
+anchor container has been removed: it validates the retained admission and every
+active volume's exact ownership, and protects any remaining retained containers.
+It neither wakes that target nor reports it healthy. A missing or corrupt
+admission, foreign volume, or ordinary production runtime error still refuses
+cleanup. Normal wake and release identity checks remain unchanged. On
 production, the same plan also applies paired Restic retention: 14 daily, 8
 weekly, 24 monthly, and 10 yearly recovery points. A retained durable snapshot
 always protects its exact reusable-cache snapshot. Cache snapshots are also
@@ -336,6 +342,102 @@ Retention manages only the run names that the release launcher creates:
 lists or deletes other entries of the state directory. Before it deletes a
 directory, `cleanup apply` checks again that the path is a directory, not a
 symlink, and that the capture is still `qualified`.
+
+### Retire an explicitly reviewed legacy capture
+
+Ordinary retention deliberately ignores manual and historical capture names.
+Do not rename those directories to make them look managed, or delete them by
+age. Review one exact legacy capture against a newer qualified managed capture:
+
+```bash
+scripts/usl-stack cleanup retire-plan --target production \
+  --capture manual-example --replacement proof-daily-0123456789abcdef \
+  --owner 'CIO #2374' --reason 'Superseded local upload workspace' --json
+```
+
+After checking the identities, run the same command with `retire-apply` and
+`--confirm production`. Both operations take the existing lifecycle lock.
+The tool refuses symlinks, mounted capture roots or descendants (including
+same-filesystem bind mounts), unmanaged replacements, unqualified or older
+replacements, and captures from the active or previous release commit. It
+persists exact manifest and paired snapshot identities before deletion,
+rechecks them under the lock, and retains the completion receipt in
+`retired-captures/<capture>.json` outside the retired payload. The plan records
+allocated payload bytes; the completion verifies the directory is gone and
+records zero remaining payload bytes. These are scoped payload measurements,
+not a promise that host-wide free space rises by the same amount.
+
+Only the named local capture directory is removed. Remote Restic snapshots,
+current/previous generation data, the replacement capture and frozen historical
+source packages are untouched. A successful upload by itself is insufficient:
+`qualified` must already record the cohort tool's restore and verification of
+both snapshots. These local retirement checks do not establish that a remote
+repository still exists or meets the recovery objective; check the current
+recovery proof and remote inventory before operational retirement.
+
+Receipts contain recovery metadata and belong on the private host and Odoo
+tracking card, not in a public pull request. The synthetic regression exercises
+backup, restore, cleanup and a second restore, plus a receipt-write failure.
+It does not certify a private production restore or current fleet-wide RPO/RTO.
+
+### Relocate an exact historical archive
+
+Some historical v2 captures predate the keys now required for complete modern
+recovery, even though their original receipt says `qualified`. Keep modern
+cohort validation strict. Do not rewrite those manifests, relabel them as
+current recovery points, or require a new staging runtime simply to move an
+identical historical copy off the VPS.
+
+For an explicitly reviewed historical payload, the native helper
+`python3 -m operations.historical_capture` uses ordinary encrypted Restic. Under
+the target's existing operation lock, mount only that source read-only, provide
+owned disposable scratch and a separate private receipt directory, and use the
+existing production durable repository and its normal backup environment:
+
+```bash
+python3 -m operations.historical_capture /historical-capture \
+  --scratch /owned-scratch --receipt /receipts/manual-example.json \
+  --target staging --capture manual-example \
+  --repository '<existing-production-durable-repository>'
+```
+
+The helper uploads all original bytes, including `manifest.json`, `state.json`,
+embedded release, database dumps, keys and cache. It restores the new snapshot
+independently and compares native file-tree identity plus modes, ownership,
+modification times and extended attributes. It also verifies the source did not
+change during archival. A successful retry reuses the verified snapshot; a
+failed read-back leaves scratch for the owner's bounded investigation window.
+The caller must classify that scratch using the disposable-artifact policy.
+
+Archive snapshots carry `usl-historical-capture-archive`, `cio-2374`, target and
+capture tags. They carry **no** `usl-cohort`, `durable` or `recovery-eligible`
+tags. Native cohort retention ignores them; their referenced packs remain
+protected during scoped Restic pruning. These finite historical preservation
+anchors are retained until a maintainer explicitly reviews their own retention.
+This does not introduce another periodic backup stream.
+
+Store the verified, fsynced receipt at
+`<target-state-directory>/historical-archives/<capture>.json`. Then review:
+
+```bash
+scripts/usl-stack cleanup retire-plan --target staging \
+  --capture manual-example \
+  --historical-archive-receipt /var/lib/usl-odoo/runtime/staging/historical-archives/manual-example.json \
+  --owner 'CIO #2374' --reason 'Exact historical bytes verified in encrypted archive' --json
+```
+
+Apply the reviewed plan with `retire-apply --confirm staging`. This path binds
+the exact local byte and metadata fingerprint to the separate remote archive
+receipt, retaining both the archival and retirement receipts. Immediately before
+removal it also checks that the exact immutable remote snapshot still exists
+with the archive tag and expected source path, using the existing production
+backup credential context. An unreachable or missing anchor preserves the local
+payload. It preserves the
+same active/previous release, mount, container-reference and lifecycle-lock
+checks. It does not require a modern replacement because it relocates the same
+historical copy; it explicitly reports `modern_recovery_certified: false`.
+The modern replacement path above retains its newer-qualified-cohort requirement.
+Neither path removes active runtime data or modifies original historical evidence.
 
 ## Service-level objective
 
