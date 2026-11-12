@@ -45,11 +45,20 @@ separate contracts.
 ## Action review
 
 Runtime discovery on the canonical 166-module database records 57,698 actions,
-including 48,916 runtime actions. The upstream integration adds or removes no
-action keys: 43 implementation digests and 230 source-position records change.
-Every implementation change was reviewed against its source delta. The combined
-guide merge's tracked surface exactly matches a subsequent real runtime
-rediscovery.
+including 48,916 runtime actions. Two comparison ranges have different scope:
+
+- The additional 50 commits, compared with the inherited #416 merge
+  `43e368e79b6aaf1fed1b6e728236ef1c47e7444b`, change 43 implementation digests
+  and 230 source-position records, with no action keys added or removed.
+- The whole pull request, compared with admitted recovery source
+  `49bb0449241210f1d1c873a34f595e9bee4dfe31`, changes 169 implementation
+  digests, adds seven action keys and removes five: 57,696 becomes 57,698.
+  This includes the earlier 235-commit delta inherited from #416 and its reused
+  qualification evidence, plus the reset and guide changes below.
+
+Implementation changes were reviewed against their corresponding source delta.
+The combined guide merge's tracked surface exactly matches a subsequent real
+runtime rediscovery.
 
 Five native reset entry points actually restore XML template content and
 translations: `mail.template.reset_template`, `sms.template.reset_template`,
@@ -61,7 +70,7 @@ semantics; writable delegates retain ordinary native authority. No additional
 business approval or Agent-only restriction is introduced. The protected runtime
 policy is byte-identical to the upstream integration's starting policy.
 
-The combined qualified surface/policy digest at product source
+The complete action artifact-set digest at product source
 `8b8fe485f111ffc24407d191dab7d9c86afe6151` is
 `64f5e05c00b92aecbc978171eeadeeff93b46ae92c283e9d81e453fc58850a70`.
 
@@ -101,6 +110,7 @@ name separate runs and may overlap; they are not a deduplicated total.
 | Repository operations suite | 998 tests; 21 explicit environment skips |
 | Real non-admin Purchase browser journey | 4 native Chromium cases; shared filter, saved favorite and resulting records pass at 1280 × 800 and 390 × 844 |
 | Combined runtime discovery | Exact tracked surface equality; 166 modules / 48,916 runtime actions |
+| Host-only representative private restore | Native materialization and neutralization; forward and repeated upgrades of 166 modules; original-row and financial controls pass; zero pending modules |
 | Source checks | Action inventory, product/migration boundary, Python compilation, documentation and whitespace pass |
 
 The template-reset contract fails eight subcases with the old readonly metadata,
@@ -132,29 +142,63 @@ private data, credentials, browser address bars or local paths. Images illustrat
 UI state; the native assertions establish behavior. They are retained in the
 [task captures branch](https://github.com/unstaticlabs/odoo/tree/captures/codex/burn-upstream-193-20261112).
 
-## Required private restore and release boundary
+## Representative private restore and release boundary
 
-The host-only representative restore qualification is still pending. The
-approved fixture is a three-day-old qualified production snapshot, not a fresh
-or current backup. Private payloads, identifiers and detailed logs remain in
-task-owned isolated scratch on the production host; no private backup is exported
-to a local checkout or temporary directory.
+The host-only representative qualification passed on 12 November 2026 against
+source `25fa93bf41b90060a8fc11ac6d61d26c45478229`. The fixture is a
+**three-day-old qualified production snapshot from 9 November**, captured from
+`622ac94fe16977b90307d76fe7ec21d6cf377f5a`. It is a legitimate historical
+resumed capture with a completed writer interval, not a current backup. The live
+production source during this rehearsal was
+`a843d304aa203e6e6e1677ce544943fc9f46ad7b`.
 
-The approved rehearsal uses exact candidate source on the cached production
-foundation only after its source binding and immediate resource budget are
-verified. Dockerfile, requirements, constraints, entrypoint, pre-upgrade helper,
-configuration templates and setup.py are byte-identical between production
-`622ac94fe16977b90307d76fe7ec21d6cf377f5a` and this candidate. All old code,
-add-ons, documentation and bytecode must be removed before the exact public
-candidate trees are copied. The resulting source tree and resolved OCA bundle
-must be verified independently. This proves candidate source on that foundation;
-it does not establish admission of the final published image.
+The rehearsal uses exact candidate source on the cached, qualified production
+foundation. Dockerfile, requirements, constraints, entrypoint, pre-upgrade helper,
+configuration templates and setup.py are byte-identical between source `622ac94`
+and this candidate. All old code, add-ons, documentation and bytecode were removed
+before copying the exact public candidate trees. Independent verification checks
+30,229 files, canonical file modes and symlinks, the resolved OCA bundle and all
+700 add-on resolutions. The resulting AMD64 QA image is
+`sha256:053cb5ba0c77fe85e87e834fb5d5b0308a848c756fb84e497758c145a865c077`.
+This proves candidate source on that cached foundation; admission of the final
+published image remains a separate release step.
 
-No production mutation, deployment or new backup capture is part of this
-qualification. Host work remains serialized behind staging recovery admission,
-a free QA slot and fresh memory/disk checks. Bulk storage retains its 15 GiB
-reserve and existing rollback resources; root storage retains its reserve.
-Forward and repeated upgrades must preserve the original baseline and financial
-controls. A later production mutation still requires the existing automations to
-verify a current qualified, restorable backup. Delivery uses the normal protected
-staging-to-production path and the native generation rollback procedure.
+Native materialization verified the exact durable/cache trees and dump hashes,
+then replayed both Odoo and Paperless SQL. Native neutralization ran before any
+candidate Odoo process. Forward and repeated upgrades each updated 166 modules;
+both preserve the same original-row baseline and pass the scoped financial and
+control checks. The final database has 166 installed modules and no pending
+module changes. The QA harness initially assumed neutralization disables every
+cron; upstream intentionally retains its housekeeping cron. The corrected
+assertion verifies the native exception and neutralized flag, while runtime cron
+threads remain zero. Continuation reused the original baseline without replaying
+or rebaselining the successful restore.
+
+Allocation was serialized: a 512 MiB materializer and two 384 MiB PostgreSQL
+containers, then Paperless PostgreSQL stopped before a 1,280 MiB Odoo process
+used the remaining 384 MiB PostgreSQL container. Each phase enforced a fresh
+1,792 MiB available-memory threshold before allocation and a 512 MiB runtime
+stop margin. Bulk/root reserves stayed above 15/2 GiB, with owned footprints
+inside their reviewed caps. All task-owned containers were verified stopped at
+completion. Existing rollback and unrelated resources were preserved.
+
+A newer qualified receipt was considered first, but its exact durable snapshot
+was no longer retained when checked; its cache remained. This is a metadata
+observation, not evidence of a particular prune event. The lead explicitly
+returned to the already approved 9 November fixture after both exact references
+and their same-run lineage were checked. Before allocating QA databases, recheck
+both durable and cache references: a qualified historical receipt does not pin
+retention. This changes the rehearsal procedure, not product gates or retention
+policy.
+
+Private payloads, backup identifiers and detailed logs remain in task-owned
+isolated host scratch; no private backup was exported locally. The sanitized
+qualification receipt SHA-256 is
+`ce98ba77f0c65d579d3877bba520f28c26e294170823fedcbaf45fc797c27250`;
+the private evidence index SHA-256 is
+`f3e4d68187ea63d42db86adcdf95d4fc638911acf2cee56383792831e689c8ea`.
+
+No production mutation, deployment or new backup capture was part of this
+qualification. A later production mutation still requires the existing
+automations to verify a current qualified, restorable backup. Delivery uses the
+normal protected staging-to-production path and native generation rollback.
