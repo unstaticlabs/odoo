@@ -1,0 +1,11 @@
+diff --git a/account_statement_import_online/models/online_bank_statement_provider.py b/account_statement_import_online/models/online_bank_statement_provider.py
+--- a/account_statement_import_online/models/online_bank_statement_provider.py
++++ b/account_statement_import_online/models/online_bank_statement_provider.py
+@@ -50,6 +50,6 @@ class OnlineBankStatementProvider(models.Model):
+     currency_id = fields.Many2one(related="journal_id.currency_id")
+     account_number = fields.Char(
+-        related="journal_id.bank_account_id.sanitized_acc_number"
++        related="journal_id.bank_account_id.sanitized_account_number"
+     )
+     tz = fields.Selection(
+         selection=_tz_get,
