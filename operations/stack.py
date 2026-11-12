@@ -10624,6 +10624,24 @@ def _legacy_capture_retirement(
     }
 
 
+def _assert_capture_unmounted(runner, path: str) -> None:
+    # st_dev and os.path.ismount miss bind mounts on the same filesystem.
+    # Read the kernel mount inventory, including descendants, before deleting.
+    try:
+        mounts = json.loads(runner.run(["findmnt", "--json", "--output", "TARGET"]).stdout)
+        pending = list(mounts["filesystems"])
+        while pending:
+            mount = pending.pop()
+            destination = mount["target"]
+            if not isinstance(destination, str):
+                raise ValueError("invalid mount target")
+            if destination == path or destination.startswith(path + "/"):
+                raise RuntimeError("legacy capture contains a mounted filesystem")
+            pending.extend(mount.get("children", []))
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("legacy capture mount inventory is invalid") from error
+
+
 def _retire_legacy_capture(arguments, target, runner) -> dict:
     if not all((arguments.capture, arguments.replacement, arguments.owner, arguments.reason)):
         raise RuntimeError("legacy retirement requires --capture, --replacement, --owner and --reason")
@@ -10643,6 +10661,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             target, runner, arguments.capture, arguments.replacement, protected_commits,
         )
         payload = f"{target.value['state_directory']}/{arguments.capture}"
+        _assert_capture_unmounted(runner, payload)
         size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
         if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
             raise RuntimeError("legacy capture allocation could not be measured")
@@ -10661,7 +10680,8 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             )
             if any(checked[key] != plan[key] for key in checked):
                 raise RuntimeError("legacy capture changed during retirement")
-            runner.run(["rm", "-rf", "--", payload])
+            _assert_capture_unmounted(runner, payload)
+            runner.run(["rm", "-rf", "--one-file-system", "--", payload])
             if runner.run(["test", "!", "-e", payload], check=False).returncode:
                 raise RuntimeError("legacy capture payload remains after retirement")
             plan["payload_remaining_bytes"] = 0

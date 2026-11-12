@@ -351,7 +351,8 @@ scripts/usl-stack cleanup retire-plan --target production \
 
 After checking the identities, run the same command with `retire-apply` and
 `--confirm production`. Both operations take the existing lifecycle lock.
-The tool refuses symlinks, unmanaged replacements, unqualified or older
+The tool refuses symlinks, mounted capture roots or descendants (including
+same-filesystem bind mounts), unmanaged replacements, unqualified or older
 replacements, and captures from the active or previous release commit. It
 persists exact manifest and paired snapshot identities before deletion,
 rechecks them under the lock, and retains the completion receipt in

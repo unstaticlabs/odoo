@@ -4743,6 +4743,22 @@ class CohortContractTests(unittest.TestCase):
             self.assertEqual(receipt["capture_identity"]["durable_snapshot_id"], "1" * 64)
             restore_and_check(Path(temporary) / "restore-after")
 
+    def test_legacy_retirement_rejects_descendant_and_same_filesystem_bind_mounts(self) -> None:
+        from operations.stack import _assert_capture_unmounted
+        path = "/runtime/manual-example"
+        for mounted in (path, path + "/durable/database"):
+            runner = mock.Mock()
+            runner.run.return_value.stdout = json.dumps({"filesystems": [
+                {"target": "/", "children": [{"target": mounted}]},
+            ]})
+            with self.subTest(mounted=mounted), self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+                _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = json.dumps({"filesystems": [{"target": "/runtime/manual-example-other"}]})
+        _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = "{}"
+        with self.assertRaisesRegex(OperationsError, "inventory is invalid"):
+            _assert_capture_unmounted(runner, path)
+
     def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
         target = load_target("production", TARGETS)
         attempt = "intent-" + "a" * 48
