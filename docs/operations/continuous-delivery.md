@@ -405,7 +405,8 @@ is retained. An unhealthy resume keeps maintenance enabled for recovery.
 | Release-owned or legacy maintenance | Preserve the existing marker through capture, resume and errors. |
 | Successful `--leave-quiesced` capture | Preserve maintenance and leave writers quiesced for the caller. |
 | Failed capture or partial stop | Attempt the existing healthy writer resume; remove only the capture's marker after success. |
-| Unsafe resume or changed recovery baseline | Retain the capture's marker. |
+| Unhealthy resume | Retain the capture's marker. |
+| Changed baseline during quiesced upload/verification recovery | Retain the capture's marker. |
 | Concurrent backup/release operation | The existing runtime lock refuses overlap before writer or marker changes. |
 | Local/bootstrap runtime without a gateway | Retain the existing capture/resume behavior; no gateway is provisioned. |
 | Upload/verification retry from an existing capture | No new writer freeze or maintenance claim. |
