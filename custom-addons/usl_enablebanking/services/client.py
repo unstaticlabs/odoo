@@ -6,6 +6,7 @@ from urllib.parse import quote, urlparse
 
 import httpx
 from jose import jwt
+from jose.exceptions import JOSEError
 
 from .protocol import ProviderDataError
 
@@ -28,7 +29,7 @@ class EnableBankingClient:
                 {"iss": "enablebanking.com", "aud": "api.enablebanking.com", "iat": now, "exp": now + 300},
                 key, algorithm="RS256", headers={"kid": self.app_id, "typ": "JWT"},
             )
-        except (OSError, ValueError, jwt.JWTError) as error:
+        except (OSError, ValueError, JOSEError) as error:
             raise ProviderDataError("signing_not_configured") from error
 
     def request(self, method, path, *, params=None, data=None):
@@ -44,7 +45,7 @@ class EnableBankingClient:
                     code = None
                 if code == "ASPSP_PSU_ACTION_REQUIRED":
                     raise ProviderDataError("consent_renewal_required")
-                if code in EXPIRED_CODES:
+                if isinstance(code, str) and code in EXPIRED_CODES:
                     raise ProviderDataError("consent_expired")
                 raise ProviderDataError("provider_unavailable")
             value = response.json()

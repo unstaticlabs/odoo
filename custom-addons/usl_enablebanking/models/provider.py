@@ -46,11 +46,11 @@ class OnlineBankStatementProvider(models.Model):
             if self.env.context.get("account_statement_online_import_debug"):
                 provider.enablebanking_account_id._check_account_access()
                 try:
-                    result, balances = provider._fetch_bank_period(start, end)
+                    result, balances, balance_error = provider._fetch_bank_period(start, end)
                 except ProviderDataError as error:
                     raise UserError(self.env._("The bank preview could not be fetched reliably. No transaction or import checkpoint was changed.")) from error
                 debug_data.append({"booked_transactions": result.transactions, "provider_balances": balances,
-                                   "repeated_entries": result.duplicate_count, "nonbooked_excluded": result.pending_count})
+                                   "repeated_entries": result.duplicate_count, "nonbooked_excluded": result.pending_count, "balance_warning_code": balance_error})
             else:
                 provider._pull_bank_account(start, end)
         return debug_data
@@ -90,13 +90,19 @@ class OnlineBankStatementProvider(models.Model):
                 params["continuation_key"] = cursor
             return client.transactions(uid, params)
         result = normalise_transactions(collect_transaction_pages(page), account.currency_id.name, date_since=start.isoformat(), date_until=end.isoformat())
-        balances = client.balances(uid).get("balances")
-        return result, self._balance_values(balances)
+        try:
+            response = client.balances(uid)
+            if not isinstance(response, dict):
+                raise ProviderDataError("invalid_balance")
+            balances = self._balance_values(response.get("balances"))
+        except ProviderDataError as error:
+            return result, None, str(error)
+        return result, balances, False
 
     def _import_complete_period(self, start, end):
         self.ensure_one()
         account = self.enablebanking_account_id
-        result, balance_values = self._fetch_bank_period(start, end)
+        result, balance_values, balance_error = self._fetch_bank_period(start, end)
         receipts = self.env["usl.enablebanking.import"]
         Line = self.env["account.bank.statement.line"]
         new_rows, matched_rows, skipped = [], [], result.duplicate_count
@@ -150,12 +156,15 @@ class OnlineBankStatementProvider(models.Model):
                                     "booking_date": transaction["booking_date"], "value_date": transaction["value_date"],
                                     "amount": transaction["amount"], "currency_id": account.currency_id.id,
                                     "imported_at": fields.Datetime.now()})
-        account.balance_ids.sudo().unlink()
-        self.env["usl.enablebanking.balance"].sudo().create(balance_values)
+        if balance_values is not None:
+            account.balance_ids.sudo().unlink()
+            self.env["usl.enablebanking.balance"].sudo().create(balance_values)
         moment = fields.Datetime.now()
         account.sudo().write({"last_import_at": moment, "last_imported_count": len(new_rows),
-                              "last_duplicate_count": skipped, "last_pending_count": result.pending_count, "last_error_code": False})
+                              "last_duplicate_count": skipped, "last_pending_count": result.pending_count, "last_error_code": False, "balance_error_code": balance_error})
         self.write({"last_successful_run": moment, "next_run": moment + self._get_next_run_period()})
+        if balance_error in {"consent_expired", "consent_renewal_required"}:
+            account.connection_id._set_error(balance_error)
 
     def _balance_values(self, balances):
         if not isinstance(balances, list):
@@ -163,14 +172,24 @@ class OnlineBankStatementProvider(models.Model):
         values = []
         for balance in balances:
             try:
-                amount = Decimal(balance["balance_amount"]["amount"])
+                if not isinstance(balance, dict) or not isinstance(balance.get("balance_amount"), dict):
+                    raise ValueError
+                amount = Decimal(str(balance["balance_amount"]["amount"]))
                 currency = self.env["res.currency"].with_context(active_test=False).search([("name", "=", balance["balance_amount"]["currency"])], limit=1)
-                if not amount.is_finite() or not currency or not balance.get("name") or not balance.get("balance_type"):
+                if (not amount.is_finite() or abs(amount) > Decimal("999999999999999") or Decimal(str(float(amount))) != amount
+                        or not currency or not isinstance(balance.get("name"), str) or not balance["name"]
+                        or not isinstance(balance.get("balance_type"), str) or not balance["balance_type"]):
                     raise ValueError
                 changed = balance.get("last_change_date_time")
-                changed = datetime.fromisoformat(changed.replace("Z", "+00:00")).astimezone(timezone.utc).replace(tzinfo=None) if changed else False
+                if changed:
+                    changed = datetime.fromisoformat(changed.replace("Z", "+00:00"))
+                    if not changed.tzinfo:
+                        raise ValueError
+                    changed = changed.astimezone(timezone.utc).replace(tzinfo=None)
+                else:
+                    changed = False
                 reference = fields.Date.to_date(balance.get("reference_date"))
-            except (KeyError, TypeError, ValueError, InvalidOperation) as error:
+            except (AttributeError, KeyError, TypeError, ValueError, InvalidOperation) as error:
                 raise ProviderDataError("invalid_balance") from error
             values.append({"account_id": self.enablebanking_account_id.id, "name": balance["name"], "balance_type": balance["balance_type"],
                            "amount": float(amount), "currency_id": currency.id, "reference_date": reference,

@@ -147,11 +147,59 @@ class TestEnableBanking(TransactionCase):
         self.assertEqual((balance.balance_type, balance.currency_id, balance.reference_date, balance.amount), ("CLAV", self.currency, fields.Date.to_date("2026-10-01"), 90.0))
         self.assertFalse(self.imports().line_id.statement_id)
 
-    def test_balance_failure_leaves_no_native_partial_import(self):
+    def test_balance_failure_keeps_prior_cache_and_imports_complete_booked_period(self):
+        self.assertTrue(self.pull())
+        self.env.flush_all()
+        self.env.cr.execute("SELECT to_jsonb(b) FROM usl_enablebanking_balance b WHERE account_id = %s ORDER BY id", [self.account.id])
+        before = self.env.cr.fetchall()
+        self.client.transactions.return_value = {"transactions": [movement("another-booked-entry")], "continuation_key": None}
         self.client.balances.side_effect = ProviderDataError("provider_unavailable")
-        self.assertFalse(self.pull())
+        action = self.account.with_user(self.accountant).action_import()
+        self.assertEqual(action["params"]["type"], "warning")
+        self.assertEqual(len(self.imports()), 2)
+        self.assertEqual(self.account.last_imported_count, 1)
+        self.assertFalse(self.account.last_error_code)
+        self.assertEqual(self.account.balance_error_code, "provider_unavailable")
+        self.assertIn("original dates", self.account.balance_warning)
+        self.assertTrue(self.provider.last_successful_run)
+        self.env.flush_all()
+        self.env.cr.execute("SELECT to_jsonb(b) FROM usl_enablebanking_balance b WHERE account_id = %s ORDER BY id", [self.account.id])
+        self.assertEqual(self.env.cr.fetchall(), before)
+        self.client.balances.side_effect = None
+        self.assertTrue(self.pull())
+        self.assertFalse(self.account.balance_warning)
+        self.assertFalse(self.account.balance_error_code)
+        self.assertEqual(len(self.imports()), 2)
+
+    def test_malformed_balances_warn_without_discarding_valid_booked_transactions(self):
+        for index, balances in enumerate((None, {"balances": None}, {"balances": [None]}, {"balances": [{"balance_amount": {"amount": "Infinity", "currency": "EUR"}}]})):
+            with self.subTest(index=index):
+                self.client.transactions.return_value = {"transactions": [movement(f"valid-entry-{index}")], "continuation_key": None}
+                self.client.balances.return_value = balances
+                self.assertTrue(self.pull())
+                self.assertEqual(self.account.balance_error_code, "invalid_balance")
+                self.assertFalse(self.account.last_error_code)
+        self.assertEqual(len(self.imports()), 4)
+        self.assertFalse(self.account.balance_ids)
+
+    def test_balance_consent_expiry_retains_complete_booked_import_and_prompts_renewal(self):
+        self.client.balances.side_effect = ProviderDataError("consent_expired")
+        self.assertTrue(self.pull())
+        self.assertEqual(len(self.imports()), 1)
+        self.assertTrue(self.provider.last_successful_run)
+        self.assertEqual(self.connection.last_error_code, "consent_expired")
+        self.assertIn("Renew bank access", self.account.balance_warning)
+        self.assertFalse(self.account.last_error_code)
+
+    def test_native_preview_balance_failure_does_not_change_cache_or_checkpoint(self):
+        before = (self.provider.next_run, self.provider.last_successful_run)
+        self.client.balances.side_effect = ProviderDataError("provider_unavailable")
+        result = self.provider.with_user(self.accountant).with_context(account_statement_online_import_debug=True)._pull(datetime(2026, 10, 1), datetime(2026, 10, 2))
+        self.assertEqual(len(result[0]["booked_transactions"]), 1)
+        self.assertEqual(result[0]["balance_warning_code"], "provider_unavailable")
         self.assertFalse(self.imports())
-        self.assertFalse(self.env["account.bank.statement.line"].search([("journal_id", "=", self.journal.id)]))
+        self.assertFalse(self.account.balance_error_code)
+        self.assertEqual((self.provider.next_run, self.provider.last_successful_run), before)
 
     def test_readonly_and_foreign_company_calls_are_refused_before_provider_request(self):
         for user in (self.other_manager, self.outsider, self.reader):
@@ -228,6 +276,18 @@ class TestEnableBanking(TransactionCase):
                 self.assertFalse(self.pull())
                 self.assertFalse(self.imports())
                 self.assertEqual(self.account.last_error_code, expected)
+
+    def test_malformed_status_or_direction_leaves_no_partial_native_import_or_checkpoint(self):
+        before = (self.provider.next_run, self.provider.last_successful_run)
+        for field in ("status", "credit_debit_indicator"):
+            for value in ([], {}):
+                with self.subTest(field=field, value=value):
+                    self.client.transactions.return_value = {"transactions": [movement("valid-first"), movement("invalid-second", **{field: value})], "continuation_key": None}
+                    self.assertFalse(self.pull())
+                    self.assertFalse(self.imports())
+                    self.assertFalse(self.env["account.bank.statement.line"].search([("journal_id", "=", self.journal.id)]))
+                    self.assertFalse(self.account.last_import_at)
+                    self.assertEqual((self.provider.next_run, self.provider.last_successful_run), before)
 
     def test_one_number_with_distinct_currency_resources_retains_both(self):
         self.env.ref("base.USD").active = True

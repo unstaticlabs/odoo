@@ -57,3 +57,8 @@ Reported balances keep the bank's label, type, currency and reference time.
 They are separate from the Odoo ledger balance. An available balance does not
 certify a bank statement, and importing transactions does not reconcile them.
 Native Bank Matching and ordinary accounting corrections remain available.
+
+If balances cannot be refreshed, complete booked transactions can still import.
+Odoo keeps the previous bank balances with their original dates and shows a
+refresh warning. Retry later, or renew bank access when prompted. A failed
+transaction batch keeps its import checkpoint and existing entries unchanged.

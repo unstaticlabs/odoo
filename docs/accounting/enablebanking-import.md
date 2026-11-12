@@ -75,11 +75,16 @@ indicators determine the sign. Amounts must be finite, representable without
 loss in Odoo's numeric field, and valid for the account currency's precision.
 A currency mismatch refuses the batch rather than creating an invented rate.
 
-All pages and balances are retrieved and validated before native line creation.
-A savepoint covers the complete account import, its provenance, displayed
-balances and checkpoint. A later-page failure, repeated cursor, conflict or
+All transaction pages are retrieved and validated before native line creation.
+A savepoint covers the complete booked-transaction import, its provenance and
+checkpoint. A later-page failure, repeated cursor, conflict or transaction
 validation failure leaves no partial batch and does not advance either schedule
-or successful-import checkpoint. Company/connection and account row locks
+or successful-import checkpoint. Balances are ancillary: a failed or malformed
+balance response leaves previously retrieved balances and their original dates
+untouched, with a separate refresh warning. Complete valid booked transactions
+still import and advance their checkpoint. A subsequent valid balance refresh
+replaces the cache and clears the warning; an expired balance consent also
+prompts renewal without undoing a complete booked import. Company/connection and account row locks
 serialize imports and reconnects; SQL uniqueness backs the provenance key.
 
 OCA's existing scheduler dispatches the provider. Its preview path fetches data
