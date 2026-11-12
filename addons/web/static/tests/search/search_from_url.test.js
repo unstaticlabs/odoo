@@ -503,7 +503,7 @@ test("hotkey sharing copies complex search to clipboard", async () => {
 
 test("URL with filter keeps the saved favorites available", async () => {
     redirect("?domain=" + encodeURIComponent('[["state", "=", "sent"]]'));
-    await mountWithSearch(SearchBar, {
+    await mountSearchFromCurrentRoute({
         resModel: "mock.purchase.order",
         searchMenuTypes: ["filter", "favorite"],
         searchViewId: false,
