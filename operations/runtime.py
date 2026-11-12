@@ -412,6 +412,14 @@ def _curl_problem(command: list[str]) -> str | None:
     return None if urls == 1 else "curl without exactly one URL"
 
 
+def release_run_inventory_command(root: str) -> list[str]:
+    """List only one directory's release-state names and file types."""
+    return [
+        "find", root, "-mindepth", "1", "-maxdepth", "1",
+        "-name", "release-*.json", "-printf", "%f\\t%y\\n",
+    ]
+
+
 def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
     """Return why ``command`` may write, or None when it is a known read."""
     if input_text is not None:
@@ -420,6 +428,13 @@ def read_only_command_problem(command: list[str], input_text: str | None = None)
         return "empty command"
     head = command[0]
     if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if (
+        len(command) == 10 and command[0] == "find"
+        and Path(command[1]).is_absolute() and ".." not in Path(command[1]).parts
+        and command[1].endswith("/runs")
+        and command == release_run_inventory_command(command[1])
+    ):
         return None
     if (
         len(command) == 4 and command[:3] == ["python3", "-c", MCP_RETAINED_LEDGER_SCAN]

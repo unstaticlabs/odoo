@@ -1,12 +1,13 @@
 {
     "name": "USL Documentation",
     "summary": "Serve the release's user guide and prove it against browser journeys",
-    "version": "saas~19.3.1.1.0",
+    "version": "saas~19.3.1.1.1",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": ["web", "web_tour", "usl_locale"],
     "data": [
+        "security/ir.model.access.csv",
         "views/templates.xml",
     ],
     "assets": {

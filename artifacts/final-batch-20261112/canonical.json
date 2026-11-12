@@ -1,0 +1,39 @@
+{
+  "architecture": "linux/amd64",
+  "canonical_modules": 166,
+  "canonical_product_database_boundary": "passed",
+  "canonical_runtime_actions": 48916,
+  "clean_install": "passed",
+  "component_input_sha256": "f3cd48ac327515cbc88ed84905242a79c434c409d9f6bf4916d0bcdff5c9caef",
+  "harness_note": "All native phases passed; final event printer had a duplicate status keyword. Receipt finalized from retained passing logs without rerunning tests.",
+  "image_id": "sha256:9a56368dacdac9309d0c560836a3992ff011548fa0afe2bbef4a8633af503241",
+  "image_native_sources_only": true,
+  "log_sha256": {
+    "clean-install.log": "53beb5187ac3fe4f3f305e749e43980beae6076031894d7a7ffc791ef80381bd",
+    "pillow-native-tests.log": "13f76d129672212e6bc176c0e649a4b3ad8b4f3f835cce30e6b10ea3272102a6",
+    "pillow-registry-probes.log": "0369023280ae39c3b0f49de4036fceeb05f6067314433f0499610766695adb21",
+    "runtime-boundary.log": "42597ac296f6aa329c05763469fced346f22f84094f98b86221a71de7e50d6e9",
+    "scope-enforcement.log": "e7be87dd28ee22533f3dfd3528d8cb345a95e5d23089a577349a7dc0a49e6e89",
+    "upgrade-1.log": "17f22b6277b3a9b2f62f0c003bdb987910225f0d8c49705e4b5f7bd1d6fd8ef3",
+    "upgrade-2.log": "4162ed8e548dd9f72fe21cab5d1de93f49c6e9e4bc8def85f65e7a1f95da6415"
+  },
+  "native_image_pdf_sign_tests": 25,
+  "oca_sha256": "3bd27482029279c1232a352f7dbff2b2ecf6b9c134f24b69d582488d55b350ed",
+  "original_postgres_stopped": true,
+  "owned_running_containers": 0,
+  "pending_modules": 0,
+  "pillow_registry_probes": 3,
+  "policy_sha256": "91c0e1a73240940e6ef782cd65f719c56d552df4c170a6d9ce978a15450daef2",
+  "repeated_upgrades": 2,
+  "reviewed_optional_scope_enforcement": "passed",
+  "runtime": {
+    "pillow": "13.0.0",
+    "python": "3.12.16"
+  },
+  "schema": "usl-backend-canonical-qualification-public/v1",
+  "scope": "Synthetic canonical/foundation registry using the final normal AMD64 Distribution image",
+  "source_commit": "80a3a1bcadb55821eb8ef6c28f77a30facb4018b",
+  "source_receipt_sha256": "9cf84c94ced2d98dc0b8ed5b1caf4cb6f4a181cd0c79d518ab54f12005a927e0",
+  "status": "passed",
+  "temporary_network_removed": true
+}

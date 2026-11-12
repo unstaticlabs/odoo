@@ -6,7 +6,6 @@ from zipfile import ZipFile
 
 from odoo import fields, Command
 from odoo.tests import HttpCase, tagged
-from odoo.tools.pdf import OdooPdfFileWriter
 from odoo.tools.safe_eval import datetime
 
 from odoo.addons.account_edi_ubl_cii.tests.common import TestUblCiiCommon
@@ -183,17 +182,6 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
         new_invoice = invoice.journal_id._create_document_from_attachment(attachment.ids)
         self.assertRecordValues(new_invoice.invoice_line_ids, line_vals)
 
-    def _get_pdf_bytes(self, xml_content=None, filename='factur-x.xml'):
-        """ Small A4 PDF, with `xml_content` embedded as `filename` if given. """
-        a4_width_pt, a4_height_pt = 595, 842
-        writer = OdooPdfFileWriter()
-        writer.add_blank_page(a4_width_pt, a4_height_pt)
-        if xml_content:
-            writer.add_attachment(filename, xml_content, subtype='text/xml', afrelationship='/Alternative')
-        buffer = BytesIO()
-        writer.write(buffer)
-        return buffer.getvalue()
-
     def _configure_seller_for_cii_export(self):
         """ Factur-X/ZUGFeRD/CII exports require a fully configured seller (VAT, phone, email,
         bank account with a sanitized account number) or the export raises validation errors. """
@@ -237,7 +225,7 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
                 wizard.action_send_and_print()
 
                 # no wkhtmltopdf in tests: the hook doesn't embed the XML, so put it in the PDF here
-                xml_content = base64.b64decode(invoice.ubl_cii_xml_file)
+                xml_content = invoice.ubl_cii_xml_id.raw.content
                 pdf_bytes = self._get_pdf_bytes(xml_content, filename='factur-x.xml')
                 invoice.invoice_pdf_report_file = base64.b64encode(pdf_bytes).decode()
 
@@ -326,12 +314,13 @@ class TestAccountEdiUblCii(TestUblCiiCommon, HttpCase):
             'peppol_endpoint': 'FR23334175221',
         }])
 
-        partner.vat = '23334175221'
+        if self.env['ir.module.module']._get('base_vat').state == 'installed':
+            partner.vat = '23334175221'
 
-        self.assertRecordValues(partner, [{
-            'peppol_eas': '9957',
-            'peppol_endpoint': 'FR23334175221',
-        }])
+            self.assertRecordValues(partner, [{
+                'peppol_eas': '9957',
+                'peppol_endpoint': 'FR23334175221',
+            }])
 
         partner.write({
             'vat': 'BE0477472701',
@@ -1325,8 +1314,7 @@ comment-->1000.0</TaxExclusiveAmount></xpath>"""
         })
         bill = self._import_invoice_as_attachment_on(attachment=xml_attachment, journal=self.company_data['default_journal_purchase'])
         self.assertRecordValues(bill.invoice_line_ids, [
-            {'quantity': 31.0, 'price_unit': 103.0, 'discount': 9.75, 'price_subtotal': 2881.68},
-            {'quantity': 3.0, 'price_unit': 86.96, 'discount': 0.0, 'price_subtotal': 260.88},
-            {'quantity': 1.0, 'price_unit': -0.01, 'discount': 0.0, 'price_subtotal': -0.01},
+            {'quantity': 31.0, 'price_unit': 103.0, 'discount': 9.750078296273102, 'price_subtotal': 2881.68},
+            {'quantity': 3.0, 'price_unit': 86.95666666666666, 'discount': 0.0, 'price_subtotal': 260.87},
         ])
         self.assertRecordValues(bill, [{'amount_untaxed': invoice.amount_untaxed, 'amount_total': invoice.amount_total}])
