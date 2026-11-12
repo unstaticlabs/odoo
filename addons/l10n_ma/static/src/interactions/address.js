@@ -8,7 +8,7 @@ patch(CustomerAddress.prototype, {
         if (this._getSelectedCountryCode() === 'MA') {
             if (this.addressForm.company_registry) {
                 this._showInput('company_registry');
-            } 
+            }
         } else if (this.addressForm.company_registry) {
             this.addressForm.company_registry.value = '';
             this._hideInput('company_registry');
