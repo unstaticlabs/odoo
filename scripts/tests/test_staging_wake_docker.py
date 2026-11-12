@@ -1,6 +1,8 @@
 """Opt-in Docker proof using disposable images, networks and marker volumes.
 
-USL_RUNTIME_DOCKER_QA=1 python3 -m unittest scripts.tests.test_staging_wake_docker -v
+Build docker/backup.Dockerfile first, then run:
+USL_RUNTIME_DOCKER_QA=1 USL_RUNTIME_QA_OPERATIONS_IMAGE=<built-image> \
+    python3 -m unittest scripts.tests.test_staging_wake_docker -v
 """
 from __future__ import annotations
 
@@ -14,22 +16,45 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from operations.runtime import CommandRunner, compose_command
+from operations.runtime import CommandRunner, RuntimeError, compose_command
 from operations.stack import _start_runtime
 from scripts.tests.test_release_manifest import manifest
 from scripts.tests.test_generation_runtime_provenance import digested
 
 
+class OperationsComposeRunner(CommandRunner):
+    """Exercise the shipped plugin against only the disposable fixture directory."""
+
+    def __init__(self, image: str, root: Path, project: str):
+        super().__init__()
+        self.image, self.root, self.project = image, root, project
+
+    def run(self, command, *, check=True, input_text=None):
+        if command[:2] == ["docker", "compose"]:
+            command = [
+                "docker", "run", "--rm", "--network", "none", "--read-only",
+                "--label", "com.unstaticlabs.wake-qa=" + self.project,
+                "--volume", "/var/run/docker.sock:/var/run/docker.sock",
+                "--volume", f"{self.root}:{self.root}", "--entrypoint", "docker",
+                self.image, *command[1:],
+            ]
+        return super().run(command, check=check, input_text=input_text)
+
+
 @unittest.skipUnless(os.environ.get("USL_RUNTIME_DOCKER_QA") == "1", "disposable Docker QA is opt-in")
 class StagingWakeDockerTests(unittest.TestCase):
     def test_admitted_a_stale_b_desired_c_and_matching_sleep(self):
-        runner = CommandRunner()
+        operations_image = os.environ.get("USL_RUNTIME_QA_OPERATIONS_IMAGE")
+        self.assertTrue(operations_image, "set USL_RUNTIME_QA_OPERATIONS_IMAGE to a built docker/backup.Dockerfile image")
         project = "usl-wake-qa-" + uuid.uuid4().hex[:10]
         owner = "com.unstaticlabs.wake-qa"
         images, volumes, networks = [], [], []
         identity = None
         with tempfile.TemporaryDirectory(prefix="usl-wake-qa-") as directory:
             root = Path(directory).resolve()
+            runner = OperationsComposeRunner(operations_image, root, project)
+            version = runner.run(["docker", "compose", "version", "--short"]).stdout.strip()
+            print("Docker QA shipped Compose version:", version)
             try:
                 base_image = os.environ.get("USL_RUNTIME_QA_BASE_IMAGE", "python:3.12-slim-bookworm")
                 runner.run(["docker", "image", "inspect", base_image])
@@ -62,9 +87,9 @@ class StagingWakeDockerTests(unittest.TestCase):
                     }))
                 base = {
                     "services": {name: {
-                        "image": images[2], "init": True, "command": ["python", "-c", "import time;time.sleep(3600)"],
+                        "image": images[2], "init": True, "mem_limit": "128m", "cpus": 0.25, "pids_limit": 64, "command": ["python", "-c", "import time;time.sleep(3600)"],
                         "healthcheck": {"test": ["CMD", "python", "-c", "pass"], "interval": "1s", "timeout": "1s", "retries": 5},
-                        **({"volumes": ["postgres-data:/data"]} if name == "db" else {}),
+                        "volumes": ["./fixture:/fixture:ro", *(["postgres-data:/data"] if name == "db" else [])],
                     } for name in ("odoo", "db", "mcp")},
                     "volumes": {"postgres-data": {"name": volumes[2], "external": True}},
                     "networks": {"default": {"name": networks[2], "external": True}},
@@ -81,7 +106,16 @@ class StagingWakeDockerTests(unittest.TestCase):
                     definition = json.loads(json.dumps(base))
                     for service in definition["services"].values():
                         service["image"] = images[index]
-                        service["environment"] = {"QA_BASE_COHORT": cohort}
+                        service["env_file"] = ["./settings dir/cohort.env"]
+                        service["environment"] = {"QA_OVERRIDE": "inline", "QA_INLINE_DOLLAR": "inline$$escaped"}
+                    settings = working / "settings dir"
+                    settings.mkdir()
+                    (settings / "cohort.env").write_text(
+                        f"QA_BASE_COHORT={cohort}\nQA_DOLLAR='literal$cash$$'\nQA_EMPTY=\n"
+                        "QA_OVERRIDE=from-file\nQA_DEFAULTED=${QA_NOT_SET:-fallback}\nQA_ABSENT\n"
+                    )
+                    (working / "fixture").mkdir()
+                    (working / "fixture/cohort").write_text("synthetic-" + cohort)
                     definition["volumes"]["postgres-data"]["name"] = volumes[index]
                     definition["networks"]["default"]["name"] = networks[index]
                     base_path = working / "compose.json"
@@ -126,9 +160,13 @@ class StagingWakeDockerTests(unittest.TestCase):
                 })
                 (state_root / "generations/gadmitted-a/admission.json").write_text(json.dumps(receipt))
                 stale = {**identity, "compose_files": [str(bases[1]), str(state_root / "generations/gfailed-b/compose.generation.json")]}
-                runner.run(compose_command(stale, ["up", "--detach", "--wait", "--wait-timeout", "30", "--no-deps", "db", "odoo", "mcp"]))
+                previous_image = os.environ.get("USL_RUNTIME_QA_PREVIOUS_OPERATIONS_IMAGE", operations_image)
+                seed_runner = OperationsComposeRunner(previous_image, root, project)
+                seed_version = seed_runner.run(["docker", "compose", "version", "--short"]).stdout.strip()
+                print("Docker QA previous Compose version:", seed_version)
+                seed_runner.run(compose_command(stale, ["up", "--detach", "--wait", "--wait-timeout", "30", "--no-deps", "db", "odoo", "mcp"]))
                 stale_ids = self.container_ids(runner, project)
-                runner.run(compose_command(stale, ["stop", "--timeout", "2", "db", "odoo", "mcp"]))
+                seed_runner.run(compose_command(stale, ["stop", "--timeout", "2", "db", "odoo", "mcp"]))
                 target = SimpleNamespace(name="staging", project=project, value={
                     "environment": "local", "state_directory": str(state_root),
                     "compose": {"resource_overlay": None, "anchor_service": "odoo", "profiles": [], "canonical": {
@@ -144,8 +182,14 @@ class StagingWakeDockerTests(unittest.TestCase):
                     mock.patch("operations.stack._runtime_start_authority", return_value=authority, create=True),
                     mock.patch("operations.stack._independent_mcp_image", return_value=images[3]),
                 ):
+                    wrong_volume = {**current, "active_state": {**active, "volumes": {"odoo_postgres": volumes[1]}}}
+                    with self.assertRaisesRegex(RuntimeError, "volume differs from active generation"):
+                        _start_runtime(target, runner, wrong_volume, mcp_authority=False, wait_timeout=30)
+                    self.assertEqual(self.container_ids(runner, project), stale_ids)
+                    for identifier in stale_ids.values():
+                        self.assertEqual(runner.run(["docker", "inspect", identifier, "--format", "{{.State.Status}}"]).stdout.strip(), "exited")
                     restored = _start_runtime(target, runner, current, mcp_authority=False, wait_timeout=30)
-                    self.assert_runtime(runner, project, images, volumes[0], networks[0])
+                    self.assert_runtime(runner, project, images, volumes[0], networks[0], bases[0].parent)
                     restored_ids = self.container_ids(runner, project)
                     self.assertNotEqual(stale_ids, restored_ids)
                     runner.run(compose_command(restored, ["stop", "--timeout", "2", "db", "odoo", "mcp"]))
@@ -153,7 +197,7 @@ class StagingWakeDockerTests(unittest.TestCase):
                     self.assertEqual(self.container_ids(runner, project), restored_ids)
                     runner.run(["docker", "network", "disconnect", networks[0], restored_ids["odoo"]])
                     _start_runtime(target, runner, current, mcp_authority=False, wait_timeout=30)
-                    self.assert_runtime(runner, project, images, volumes[0], networks[0])
+                    self.assert_runtime(runner, project, images, volumes[0], networks[0], bases[0].parent)
                 self.assertEqual(hashlib.sha256(active_path.read_bytes()).hexdigest(), active_sha)
                 self.assertEqual(hashlib.sha256(desired.read_bytes()).hexdigest(), desired_sha)
                 for cohort, volume in zip(("a", "b", "c"), volumes):
@@ -162,7 +206,7 @@ class StagingWakeDockerTests(unittest.TestCase):
                         images[0], "python", "-c", "from pathlib import Path;print(Path('/data/marker').read_text())",
                     ]).stdout.strip()
                     self.assertEqual(marker, "synthetic-" + cohort)
-                print("Docker QA: admitted A base/settings/images restored via receipt and claim; stale B replaced; desired C unchanged; independent MCP retained; matching IDs retained; network drift repaired; A/B/C marker volumes unchanged")
+                print("Docker QA: admitted A base/settings/images restored via receipt and claim; identity mismatch rejected before starting; stale B replaced; desired C unchanged; independent MCP retained; matching IDs retained; relative env_file/bind paths, literal dollars and empty values preserved; network drift repaired; A/B/C marker volumes unchanged")
             finally:
                 if identity is not None:
                     runner.run(compose_command(identity, ["down", "--remove-orphans", "--timeout", "2"]), check=False)
@@ -178,13 +222,21 @@ class StagingWakeDockerTests(unittest.TestCase):
         output = runner.run(["docker", "ps", "-a", "--filter", f"label=com.docker.compose.project={project}", "--format", "{{.Label \"com.docker.compose.service\"}} {{.ID}}"])
         return dict(line.split() for line in output.stdout.splitlines())
 
-    def assert_runtime(self, runner, project, images, volume, network):
+    def assert_runtime(self, runner, project, images, volume, network, working):
         ids = self.container_ids(runner, project)
         for name, identifier in ids.items():
             value = json.loads(runner.run(["docker", "inspect", identifier]).stdout)[0]
             expected = images[3] if name == "mcp" else images[0]
             self.assertEqual(value["Config"]["Image"], expected)
-            self.assertIn("QA_BASE_COHORT=a", value["Config"]["Env"])
+            for expected_env in (
+                "QA_BASE_COHORT=a", "QA_DOLLAR=literal$cash$$", "QA_EMPTY=",
+                "QA_OVERRIDE=inline", "QA_INLINE_DOLLAR=inline$escaped", "QA_DEFAULTED=fallback",
+            ):
+                self.assertIn(expected_env, value["Config"]["Env"])
+            self.assertFalse(any(entry.startswith("QA_ABSENT=") for entry in value["Config"]["Env"]))
+            binding = next(item for item in value["Mounts"] if item["Destination"] == "/fixture")
+            self.assertEqual(binding["Source"], str(working / "fixture"))
+            self.assertFalse(binding["RW"])
             if name == "mcp":
                 self.assertIn("MCP_BUILD_ID=" + "d" * 40, value["Config"]["Env"])
                 self.assertEqual(value["Config"]["Labels"]["org.opencontainers.image.revision"], "d" * 40)
