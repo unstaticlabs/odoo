@@ -245,6 +245,14 @@ principals to equal the active SQLite row count with zero unavailable entries.
 An empty vault is recorded explicitly. Durable samples require at least one
 file and hash its bytes rather than its pathname.
 
+Before allocating the restored proof, capacity includes the capture that has
+already been written. All disposable proof volumes use Docker's filesystem:
+the proof reserves the largest configured storage-tier reserve on that same
+filesystem (15 GiB when Docker lives on the production bulk disk). Shared tiers
+do not add their reserves together. A local or unmatched Docker filesystem
+retains the existing 2 GiB minimum. An optional rehearsal must fit this budget;
+it does not borrow the deployment reserve or change backup retention.
+
 The command has a hard 1,800-second total deadline. Cleanup runs after success
 and failure. Before final cleanup it enters a durable `finalizing` phase and
 arms a failure receipt, so cleanup, production runtime-CAS, or final receipt

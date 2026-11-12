@@ -8762,22 +8762,31 @@ def _recovery_proof_capacity(target, runner, tool_image: str, runtime: dict) -> 
     if not docker_root.startswith("/"):
         raise RuntimeError("recovery proof Docker storage root is invalid")
     source, available = _filesystem_capacity(runner, docker_root)
+    # Disposable proof volumes all live on Docker's filesystem. Honour the
+    # largest configured reserve for that filesystem without adding the same
+    # reserve twice when several storage tiers share it.
+    reserve = MINIMUM_FREE_BYTES
+    for definition in target.value["storage"]["tiers"].values():
+        tier_source, tier_available = _filesystem_capacity(runner, definition["path"])
+        if tier_source == source:
+            reserve = max(reserve, definition["reserve_bytes"])
+            available = min(available, tier_available)
     candidate = _measure_candidate_bytes(target, runner, tool_image, runtime)
     candidate_bytes = sum(candidate.values())
-    required = candidate_bytes + MINIMUM_FREE_BYTES
+    required = candidate_bytes + reserve
     if available < required:
         raise RuntimeError(
             "recovery proof capacity refused on "
             f"{source}: {available / 1024**3:.1f} GiB free, "
             f"{candidate_bytes / 1024**3:.1f} GiB measured cohort, "
-            f"{MINIMUM_FREE_BYTES / 1024**3:.1f} GiB reserve",
+            f"{reserve / 1024**3:.1f} GiB reserve",
         )
     return {
         "schema": "usl-recovery-proof-capacity/v1",
         "source": source,
         "available_bytes": available,
         "candidate_bytes": candidate_bytes,
-        "reserve_bytes": MINIMUM_FREE_BYTES,
+        "reserve_bytes": reserve,
         "required_bytes": required,
         "status": "passed",
     }
