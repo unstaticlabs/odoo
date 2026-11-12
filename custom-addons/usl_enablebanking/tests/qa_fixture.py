@@ -22,13 +22,13 @@ class FakeClient:
         return {"balances": [{"name": "Synthetic available balance", "balance_type": "CLAV", "balance_amount": {"amount": "90.00", "currency": "EUR"}, "reference_date": "2026-10-01"}]}
 
 
-def seed(env):
+def seed(env, *, login="banking-qa", company_name="Banking QA"):
     currency = env.ref("base.EUR")
     currency.active = True
-    company = env["res.company"].with_context(install_demo=True).create({"name": "Banking QA", "currency_id": currency.id, "country_id": env.ref("base.fr").id})
+    company = env["res.company"].with_context(install_demo=True, chart_template_load=True).create({"name": company_name, "currency_id": currency.id, "country_id": env.ref("base.fr").id})
     env["account.chart.template"].try_loading("generic_coa", company=company, install_demo=False)
     company.write({"currency_id": currency.id, "account_fiscal_country_id": env.ref("base.fr").id})
-    user = new_test_user(env, name="Banking QA User", login="banking-qa", password="qa",
+    user = new_test_user(env, name="Banking QA User", login=login, password="qa",
                          groups="account.group_account_user,account.group_account_manager",
                          company_id=company.id, company_ids=[Command.set(company.ids)])
     user.lang = "en_US"
