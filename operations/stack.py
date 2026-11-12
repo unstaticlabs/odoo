@@ -87,12 +87,14 @@ from operations.release_controller import (
 from operations.release_manifest import ReleaseManifestError
 from operations.release_manifest import validate as validate_release
 from operations.runtime import (
+    MCP_RETAINED_LEDGER_SCAN,
     RuntimeError,
     Target,
     compose_command,
     compose_identity,
     inspect_runtime,
     load_target,
+    read_active_release,
     read_active_state,
     validate_secret_text,
 )
@@ -919,13 +921,289 @@ SLEEP_STOP_TIMEOUT_SECONDS = 60
 STALE_TRANSITION_FACTOR = 3
 
 
-def _start_runtime(target, runner, current: dict, *, mcp_authority: bool = True, wait_timeout: int | None = None) -> dict:
+def _generation_compose_contract(target) -> dict | None:
+    contract = target.value["compose"].get("canonical")
+    if contract is None and target.value["environment"] != "local":
+        contract = load_target(target.name, ROOT / "operations/targets-host").value["compose"].get("canonical")
+    return contract
+
+
+def _retained_compose_identity(target, runner, root: str, commit: str, contract: dict) -> dict:
+    """Admit only the target's canonical files inside one direct immutable run."""
+    runs = f"{Path(target.value['state_directory']).parents[1]}/gitops-runs"
+    if not re.fullmatch(re.escape(runs) + "/" + re.escape(commit) + r"\.[A-Za-z0-9._-]+", root):
+        raise RuntimeError("generation Compose archive is outside the retained GitOps root")
+    working = f"{root}/{contract['working_directory']}"
+    files = [f"{working}/{name}" for name in contract["compose_files"]]
+    marker = f"{root}/.usl-gitops-commit"
+    paths = [root, marker, working, *files, contract["environment_file"]]
+    for path in paths:
+        directory = path in {root, working}
+        if runner.run(["test", "-d" if directory else "-f", path], check=False).returncode:
+            raise RuntimeError(f"generation Compose context is missing: {path}")
+        if runner.run(["readlink", "-f", "--", path]).stdout.strip() != path:
+            raise RuntimeError(f"generation Compose context is not direct: {path}")
+    if runner.run(["cat", marker]).stdout.strip() != commit:
+        raise RuntimeError("generation Compose archive marker differs")
+    return {
+        "project": target.project, "working_directory": working,
+        "environment_file": contract["environment_file"], "compose_files": files,
+        "profiles": target.value["compose"]["profiles"],
+        "anchor_service": target.value["compose"]["anchor_service"],
+    }
+
+
+def _generation_base_compose_identity(target, runner, active: dict, captured: dict, release: dict) -> dict:
+    """Restore historical base files through admission's digested attempt claim.
+
+    New generations record the same captured Compose provenance already used
+    for legacy rollback. Older admitted generations resolve the retained run
+    named by their claim; a stale anchor is never a substitute for that run.
+    """
+    contract = _generation_compose_contract(target)
+    if release["schema"] != "usl-release/v3" or contract is None:
+        return _base_compose_identity(target, captured)
+    generation = active["generation"]
+    generation_root = f"{target.value['state_directory']}/generations/{generation}"
+    recorded = runner.run(["cat", f"{generation_root}/compose.identity.json"], check=False)
+    if recorded.returncode == 0:
+        try:
+            value = json.loads(recorded.stdout)
+            body = {key: item for key, item in value.items() if key != "sha256"}
+            digest = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+            if (
+                set(value) != {"schema", "target", "generation", "release", "compose", "sha256"}
+                or value["schema"] != "usl-generation-compose/v1" or value["target"] != target.name
+                or value["generation"] != generation or value["release"] != release["identity"]
+                or value["sha256"] != digest
+            ):
+                raise ValueError
+            identity = value["compose"]
+            working = identity["working_directory"]
+            suffix = "/" + contract["working_directory"]
+            if not working.endswith(suffix):
+                raise ValueError
+            root = working.removesuffix(suffix)
+            commit = Path(root).name.split(".", 1)[0]
+            if not GIT_COMMIT.fullmatch(commit):
+                raise ValueError
+            expected = _retained_compose_identity(target, runner, root, commit, contract)
+            if identity != expected:
+                raise ValueError
+            return identity
+        except (KeyError, TypeError, ValueError) as error:
+            raise RuntimeError(f"generation Compose provenance is invalid: {generation}") from error
+    admission = runner.run(["cat", f"{generation_root}/admission.json"], check=False)
+    if admission.returncode:
+        # Pre-receipt generations and an interrupted first activation remain
+        # startable from their own captured context. They cannot borrow B's
+        # context merely because B occupies the anchor container name.
+        own_overlay = f"{generation_root}/compose.generation.json"
+        if own_overlay not in captured["compose_files"]:
+            raise RuntimeError(f"generation Compose provenance is unavailable for {generation}; retain its admitted GitOps context before retrying")
+        return _base_compose_identity(target, captured)
+    try:
+        value = json.loads(admission.stdout)
+        attempt = _release_attempt(value.get("attempt"), release["identity"])
+        receipt = _validate_release_boundary_receipt(
+            value, schema="usl-release-admission/v1", status="admitted", target=target,
+            attempt=attempt, release=release["identity"],
+        )
+        claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
+        claim = _release_attempt_claim(json.loads(runner.run(["cat", claim_path]).stdout), target=target, attempt=attempt, release=release["identity"])
+        _require_same_attempt_boundary(claim, receipt, generation=generation, snapshot=active["snapshot"])
+    except (json.JSONDecodeError, AttributeError) as error:
+        raise RuntimeError(f"generation admission provenance is invalid: {generation}") from error
+    commit = claim["gitops_commit"]
+    if commit is None:
+        if f"{generation_root}/compose.generation.json" in captured["compose_files"]:
+            return _base_compose_identity(target, captured)
+        raise RuntimeError(f"generation admission has no GitOps commit: {generation}")
+    runs = f"{Path(target.value['state_directory']).parents[1]}/gitops-runs"
+    roots = sorted(runner.run([
+        "find", runs, "-mindepth", "1", "-maxdepth", "1", "-type", "d", "-name", commit + ".*", "-print",
+    ]).stdout.splitlines())
+    selected, definitions = None, None
+    for root in roots:
+        identity = _retained_compose_identity(target, runner, root, commit, contract)
+        content = tuple(hashlib.sha256(runner.run(["cat", path]).stdout.encode()).hexdigest() for path in identity["compose_files"])
+        if definitions is not None and definitions != content:
+            raise RuntimeError(f"retained GitOps definitions are ambiguous for {generation}: {commit}")
+        selected, definitions = selected or identity, content
+    if selected is None:
+        raise RuntimeError(f"admitted GitOps context is missing for {generation}: {commit}; restore the retained run before retrying")
+    return selected
+
+
+def _record_generation_compose_identity(target, runner, generation: str, release: dict, identity: dict) -> None:
+    contract = _generation_compose_contract(target)
+    if contract is None or release["schema"] != "usl-release/v3":
+        return
+    # Store the canonical base only. Generation overlays already have fixed
+    # paths, and independent MCP authority can advance without changing Odoo.
+    working = identity["working_directory"]
+    base = {
+        **_recorded_compose_identity(identity),
+        "compose_files": [f"{working}/{name}" for name in contract["compose_files"]],
+    }
+    value = _digested_document({
+        "schema": "usl-generation-compose/v1", "target": target.name,
+        "generation": generation, "release": release["identity"], "compose": base,
+    })
+    _write_remote(target, runner, f"{target.value['state_directory']}/generations/{generation}/compose.identity.json", json.dumps(value, indent=2, sort_keys=True) + "\n", "0444")
+
+
+def _runtime_start_authority(target, runner, current: dict, release: dict, *, pinned: bool) -> dict | None:
+    """Keep the independent MCP ledger authoritative when restoring an older Odoo."""
+    if target.value["environment"] == "local":
+        return None
+    if pinned:
+        if release["schema"] == "usl-release/v3":
+            return _candidate_mcp_authority(target, release)
+        return _mcp_runtime_authority(target)
+    # The daemon has no launcher checkout, and Odoo's historical base may
+    # differ from the independently deployed MCP source.
+    captured = _mcp_runtime_compose_identity(target, runner, current["compose"])
+    authority, _observation = _observed_mcp_authority(target, runner, captured)
+    root = authority["runtime_gitops_root"]
+    if release["schema"] == "usl-release/v3":
+        manifest = _load_deployed_gitops_json(runner, root, f"komodo/releases/usl-odoo-{target.value['environment']}-mcp-manifest.json")
+        _validate_candidate_mcp_support(release, manifest.get("compatibility") or {})
+    return authority
+
+
+def _runtime_start_config(target, runner, current: dict, identity: dict) -> dict:
+    """Check the restored Compose model before any stopped container can run."""
+    try:
+        config = json.loads(runner.run(compose_command(identity, ["config", "--format", "json"])).stdout)
+        services = config["services"]
+        if not isinstance(services, dict):
+            raise TypeError
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("runtime start Compose model is invalid") from error
+    active = current["active_state"]
+    for role, expected in active["volumes"].items():
+        logical = VOLUME_LOGICAL_NAMES[role]
+        if (config.get("volumes", {}).get(logical) or {}).get("name") != expected:
+            raise RuntimeError(f"runtime start volume differs from active generation: {role}")
+    if target.value["environment"] != "local":
+        release = read_active_release(target, runner, active)
+        for component, role in RELEASE_RUNTIME_SERVICES.items():
+            if component != "renderer" and component not in release["components"]:
+                continue
+            service = target.value["services"][role]
+            if (services.get(service) or {}).get("image") != _release_image(release, component):
+                raise RuntimeError(f"runtime start {component} image differs from active generation")
+    return config
+
+
+def _runtime_service_drift(target, runner, identity: dict, config: dict, services: list[str]) -> tuple[dict, dict]:
+    """Compare native Compose hashes and actual image, mounts and networks.
+
+    Only safe identity fields are inspected. Container environment values and
+    rendered secrets never enter diagnostics or the lifecycle state.
+    """
+    try:
+        hashes = dict(line.split() for line in runner.run(
+            compose_command(identity, ["config", "--hash", "*"]),
+        ).stdout.splitlines() if line.strip())
+    except ValueError as error:
+        raise RuntimeError("runtime start Compose hashes are invalid") from error
+    drift, states = {}, {}
+    image_ids = {}
+    for name in services:
+        expected = config["services"][name]
+        listing = runner.run([
+            "docker", "ps", "-a", "--filter", f"label=com.docker.compose.project={target.project}",
+            "--filter", f"label=com.docker.compose.service={name}", "--format", "{{.ID}}",
+        ]).stdout.split()
+        if len(listing) > 1:
+            raise RuntimeError(f"runtime start service identity is ambiguous: {name}")
+        if not listing:
+            drift[name] = ["missing"]
+            states[name] = "missing"
+            continue
+        template = (
+            '[{{json .Config.Image}},{{json .Image}},{{json (index .Config.Labels "com.docker.compose.config-hash")}},'
+            "{{json .Mounts}},{{json .NetworkSettings.Networks}},{{json .State.Status}}]"
+        )
+        try:
+            image, image_id, config_hash, mounts, networks, state = json.loads(runner.run([
+                "docker", "inspect", listing[0], "--format", template,
+            ]).stdout)
+        except (ValueError, TypeError) as error:
+            raise RuntimeError(f"runtime start container inspection is invalid: {name}") from error
+        differences = []
+        reference = expected["image"]
+        if reference not in image_ids:
+            probe = runner.run(["docker", "image", "inspect", reference, "--format", "{{.Id}}"], check=False)
+            image_ids[reference] = probe.stdout.strip() if probe.returncode == 0 else None
+        if image != reference or image_id != image_ids[reference]:
+            differences.append("image")
+        if not hashes.get(name) or config_hash != hashes[name]:
+            differences.append("configuration")
+        actual_mounts = {item["Destination"]: item for item in mounts}
+        for mount in expected.get("volumes", []):
+            if mount["type"] not in {"volume", "bind"}:
+                continue
+            source = mount.get("source")
+            if mount["type"] == "volume" and source:
+                source = config["volumes"][source]["name"]
+            actual = actual_mounts.get(mount["target"], {})
+            if (
+                actual.get("Type") != mount["type"]
+                or (source and actual.get("Name" if mount["type"] == "volume" else "Source") != source)
+                or actual.get("RW") != (not mount.get("read_only", False))
+            ):
+                differences.append("mount:" + mount["target"])
+        expected_networks = {config["networks"][key]["name"] for key in expected.get("networks", {})}
+        if set(networks or {}) != expected_networks:
+            differences.append("networks")
+        states[name] = state
+        if differences:
+            drift[name] = differences
+    return drift, states
+
+
+def _runtime_start_plan(target, runner, current: dict, *, mcp_authority: bool) -> tuple[dict, dict, list[str], dict, dict]:
+    if current["active_state"] is not None:
+        release = read_active_release(target, runner, current["active_state"])
+        if release["schema"] == "usl-release/v2":
+            identity = _active_generation_identity(target, runner, current, mcp_authority=mcp_authority)
+            return identity, {}, _compose_services(target, identity, runner), {}, {}
+        base = _generation_base_compose_identity(target, runner, current["active_state"], current["compose"], release)
+        identity = _active_generation_identity(target, runner, {**current, "compose": base}, mcp_authority=False)
+        authority = _runtime_start_authority(target, runner, current, release, pinned=mcp_authority)
+        identity = _with_mcp_runtime_authority(target, runner, identity, authority)
+        config = _runtime_start_config(target, runner, current, identity)
+        services = _compose_services(target, identity, runner)
+        drift, states = _runtime_service_drift(target, runner, identity, config, services)
+        return identity, config, services, drift, states
+    # Adopted layouts have no generation contract to reconcile against. Preserve
+    # their existing start semantics and the exact captured legacy anchor.
     identity = _active_generation_identity(target, runner, current, mcp_authority=mcp_authority)
+    return identity, {}, _compose_services(target, identity, runner), {}, {}
+
+
+def _start_runtime(target, runner, current: dict, *, mcp_authority: bool = True, wait_timeout: int | None = None, plan=None) -> dict:
+    identity, config, services, drift, _states = plan or _runtime_start_plan(
+        target, runner, current, mcp_authority=mcp_authority,
+    )
     wait = ["--wait-timeout", str(wait_timeout)] if wait_timeout else []
+    if drift:
+        _report("wake", "identity", "reconciling", json.dumps(drift, sort_keys=True))
+        # Stop the complete cohort before rebinding any database. Starting only
+        # selected replacements could run an A application against a stale B DB.
+        runner.run(compose_command(identity, ["stop", "--timeout", "60", *services]))
     runner.run(compose_command(
         identity,
-        ["up", "--detach", "--wait", *wait, "--no-recreate", "--no-deps", *_compose_services(target, identity, runner)],
+        ["up", "--detach", "--wait", *wait, "--force-recreate" if drift else "--no-recreate", "--no-deps", *services],
     ))
+    if config:
+        remaining, _states = _runtime_service_drift(target, runner, identity, config, services)
+        if remaining:
+            generation = current["active_state"]["generation"]
+            raise RuntimeError(f"runtime start identity differs for {generation}: " + json.dumps(remaining, sort_keys=True))
     return identity
 
 
@@ -1089,14 +1367,6 @@ def wake_staging(
         containers = _service_container_states(target, runner)
         running = [name for name, value in containers.items() if value == "running"]
         state = _read_lifecycle(target, runner) or lifecycle.new_state(now())
-        if state["state"] == "active" and len(running) == len(containers):
-            # Already awake: still counts as activity, so a pipeline arriving
-            # in the last minute of the grace period extends it.
-            _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
-                {**value, _activity_key(reason): lifecycle.stamp(moment)},
-                moment, "wake-noop", reason=reason,
-            ), now=now)
-            return {"schema": "usl-staging-wake/v1", "status": "already-active", "reason": reason}
         if not may_resume:
             busy = _lifecycle_busy(target, runner)
             if busy:
@@ -1104,17 +1374,32 @@ def wake_staging(
                     "schema": "usl-staging-wake/v1", "status": "deferred", "reason": reason,
                     "detail": "; ".join(busy) + ": recover the release first",
                 }
-        _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
-            {**value, "state": "waking", "since": lifecycle.stamp(moment), "last_error": None},
-            moment, "wake-started", reason=reason,
-        ), now=now)
         started = time.monotonic()
         try:
-            _report("wake", "services", "started", reason)
             current = inspect_runtime(target, runner)
+            plan = _runtime_start_plan(target, runner, current, mcp_authority=False)
+            _identity, _config, services, drift, states = plan
+            matches = (
+                not drift and all(states.get(name) == "running" for name in services)
+                if _config
+                else len(running) == len(containers)
+            )
+            if state["state"] == "active" and matches:
+                # A running count alone cannot distinguish the admitted cohort
+                # from containers left behind by an interrupted activation.
+                _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+                    {**value, _activity_key(reason): lifecycle.stamp(moment)},
+                    moment, "wake-noop", reason=reason,
+                ), now=now)
+                return {"schema": "usl-staging-wake/v1", "status": "already-active", "reason": reason}
+            _update_lifecycle(target, runner, lambda value, moment: lifecycle.record(
+                {**value, "state": "waking", "since": lifecycle.stamp(moment), "last_error": None},
+                moment, "wake-started", reason=reason,
+            ), now=now)
+            _report("wake", "services", "started", reason)
             _start_runtime(
                 target, runner, current, mcp_authority=False,
-                wait_timeout=config["wake_timeout_seconds"],
+                wait_timeout=config["wake_timeout_seconds"], plan=plan,
             )
             _wait_odoo_ready(target, runner, config["wake_timeout_seconds"])
         except BaseException as error:
@@ -2242,10 +2527,11 @@ def _mcp_runtime_authority(target) -> dict | None:
     if target.value["environment"] == "local":
         return None
     root, gitops_commit = _gitops_root()
-    return _mcp_authority_from_gitops(
+    authority = _mcp_authority_from_gitops(
         target.value["environment"], gitops_commit,
         lambda relative: _load_gitops_json(root, relative),
     )
+    return {**authority, "runtime_gitops_root": str(root)}
 
 
 def _mcp_authority_from_gitops(environment: str, gitops_commit: str, load) -> dict:
@@ -2405,51 +2691,173 @@ def _load_deployed_gitops_json(runner, root: str, relative: str) -> dict:
     return value
 
 
-def _observed_mcp_authority(target, runner, identity: dict) -> tuple[dict | None, dict]:
-    """Prove the deployed MCP authority without creating or changing it.
+def _mcp_runtime_compose_identity(target, runner, fallback: dict) -> dict:
+    """Independent MCP deployments may have newer Compose labels than Odoo."""
+    service = target.value["services"]["mcp"]
+    containers = runner.run([
+        "docker", "ps", "-a", "--filter", f"label=com.docker.compose.project={target.project}",
+        "--filter", f"label=com.docker.compose.service={service}", "--format", "{{.ID}}",
+    ]).stdout.split()
+    if not containers:
+        return fallback
+    if len(containers) != 1:
+        raise RuntimeError("MCP Compose identity is ambiguous")
+    try:
+        labels = json.loads(runner.run(["docker", "inspect", containers[0], "--format", "{{json .Config.Labels}}"]).stdout)
+        if labels.get("com.docker.compose.project") != target.project or labels.get("com.docker.compose.service") != service:
+            raise ValueError
+        files = labels["com.docker.compose.project.config_files"].split(",")
+        working = labels["com.docker.compose.project.working_dir"]
+        environment = labels["com.docker.compose.project.environment_file"]
+        if not files or not all(path.startswith("/") for path in [working, *files, *environment.split(",")]):
+            raise ValueError
+    except (KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("MCP Compose provenance is invalid") from error
+    return {**fallback, "working_directory": working, "compose_files": files, "environment_file": environment}
 
-    The launcher path (``_with_mcp_runtime_authority``) writes the override and
-    appends it. An observer only checks that the running cohort was started
-    with exactly the override its GitOps commit implies, already in place as
-    the final Compose file.
-    """
+
+def _mcp_source_authority(target, runner, value: object) -> dict:
+    """Validate safe MCP provenance shared with the independent GitOps launcher."""
+    try:
+        body = {key: item for key, item in value.items() if key != "sha256"}
+        digest = hashlib.sha256(json.dumps(body, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+        if (
+            set(value) != {"schema", "target", "gitops_root", "gitops_commit", "image", "sha256"}
+            or value["schema"] != "usl-mcp-runtime-source/v1" or value["target"] != target.name
+            or value["sha256"] != digest
+        ):
+            raise ValueError
+        root, commit = _deployed_gitops_run(target, runner, {"working_directory": value["gitops_root"] + "/authority"})
+        if root != value["gitops_root"] or commit != value["gitops_commit"]:
+            raise ValueError
+        for path in (root, root + "/.usl-gitops-commit"):
+            if runner.run(["readlink", "-f", "--", path]).stdout.strip() != path:
+                raise ValueError
+        authority = _mcp_authority_from_gitops(
+            target.value["environment"], commit,
+            lambda relative: _load_deployed_gitops_json(runner, root, relative),
+        )
+        if authority["image"] != value["image"]:
+            raise ValueError
+    except (AttributeError, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("deployed MCP source provenance is invalid") from error
+    return {**authority, "runtime_gitops_root": root}
+
+
+def _mcp_authority_service(authority: dict) -> dict:
+    settings = {"image": authority["image"]}
+    commit = authority.get("commit")
+    if GIT_COMMIT.fullmatch(str(commit or "")):
+        settings.update({
+            "environment": {"MCP_BUILD_ID": commit},
+            "labels": {"org.opencontainers.image.revision": commit},
+        })
+    return settings
+
+
+def _independent_mcp_override(authority: dict) -> str:
+    """The existing independent launcher's fixed candidate/rollback YAML."""
+    image, commit = authority["image"], authority["commit"]
+    return (
+        "services:\n"
+        "  odoo-mcp:\n"
+        f"    image: {image}\n    environment:\n      MCP_BUILD_ID: {commit}\n    labels:\n      org.opencontainers.image.revision: {commit}\n"
+        f"  odoo-mcp-oauth-init:\n    image: {image}\n"
+    )
+
+
+def _legacy_mcp_source(target, runner, path: str, content: str, *, authority_digest: str | None) -> dict:
+    """Recover existing split authority from immutable retained GitOps ledgers."""
+    try:
+        candidates = json.loads(runner.run(["python3", "-c", MCP_RETAINED_LEDGER_SCAN, target.value["environment"]]).stdout)
+        if not isinstance(candidates, list) or len(candidates) > 1000:
+            raise ValueError
+    except (TypeError, ValueError) as error:
+        raise RuntimeError("retained MCP authority inventory is invalid") from error
+    matches = []
+    for candidate in candidates:
+        try:
+            root, commit, ledger = candidate["root"], candidate["gitops_commit"], candidate["ledger"]
+            match = GITOPS_RUN_ROOT.fullmatch(root + "/")
+            if match is None or match["commit"] != commit or not isinstance(ledger, dict):
+                raise ValueError
+        except (KeyError, TypeError, ValueError) as error:
+            raise RuntimeError("retained MCP authority inventory is invalid") from error
+        # Discard unrelated archives before reading their manifests.
+        if authority_digest is None:
+            if content != _independent_mcp_override({"image": ledger.get("image"), "commit": ledger.get("commit")}):
+                continue
+        elif _digested_document({**ledger, "gitops_commit": commit})["sha256"] != authority_digest:
+            continue
+        source = _digested_document({
+            "schema": "usl-mcp-runtime-source/v1", "target": target.name,
+            "gitops_root": root, "gitops_commit": commit, "image": ledger.get("image"),
+        })
+        authority = _mcp_source_authority(target, runner, source)
+        if authority_digest is not None and authority["sha256"] != authority_digest:
+            continue
+        matches.append(authority)
+    if not matches:
+        raise RuntimeError(f"deployed MCP source is unavailable for {path}; restore its retained GitOps context before retrying")
+    identities = {json.dumps({key: item for key, item in value.items() if key not in {"gitops_commit", "sha256", "runtime_gitops_root"}}, sort_keys=True) for value in matches}
+    if len(identities) != 1:
+        raise RuntimeError("retained independent MCP authority is ambiguous")
+    return matches[0]
+
+
+def _observed_mcp_authority(target, runner, identity: dict) -> tuple[dict | None, dict]:
+    """Prove MCP authority independently from the restored Odoo base, without writes."""
     if target.value["environment"] == "local":
         return None, {"source": "local"}
-    # Always the deployed run, even where launcher variables happen to be set:
-    # a launcher checkout can be newer than what runs.
     root, commit = _deployed_gitops_run(target, runner, identity)
-    authority = _mcp_authority_from_gitops(
-        target.value["environment"], commit,
-        lambda relative: _load_deployed_gitops_json(runner, root, relative),
-    )
-    source = "deployed-gitops-run"
-    path = f"{target.value['state_directory']}/authorities/mcp-{authority['sha256']}.json"
     files = identity.get("compose_files") or []
-    if not files or files[-1] != path:
-        raise RuntimeError(
-            "deployed MCP authority differs from GitOps "
-            f"{authority['gitops_commit'][:12]}: {path} is not the final Compose file",
-        )
+    path = files[-1] if files else ""
+    authority_path = re.fullmatch(re.escape(target.value["state_directory"]) + r"/authorities/mcp-([0-9a-f]{64})\.json", path)
+    independent_path = re.fullmatch(
+        re.escape(str(Path(target.value["state_directory"]).parent))
+        + r"/mcp/" + re.escape(target.name) + r"/rollbacks/[0-9a-f]{12}-[A-Za-z0-9_-]+/(?:candidate|rollback)\.yaml", path,
+    )
+    if not authority_path and not independent_path:
+        raise RuntimeError("deployed MCP authority is not the final Compose file")
     process = runner.run(["cat", path], check=False)
-    try:
-        override = json.loads(process.stdout) if process.returncode == 0 else None
-    except json.JSONDecodeError:
-        override = None
-    services = override.get("services") if isinstance(override, dict) else None
-    mcp_service = target.value["services"]["mcp"]
-    if (
-        not isinstance(services, dict)
-        or set(override) != {"services"}
-        or mcp_service not in services
-        or set(services) - {mcp_service, "odoo-mcp-oauth-init"}
-        or any(value != {"image": authority["image"]} for value in services.values())
-    ):
+    if process.returncode:
         raise RuntimeError(f"deployed MCP authority override is unreadable or differs: {path}")
-    return authority, {
-        "source": source,
-        "gitops_commit": authority["gitops_commit"],
-        "override": path,
-    }
+    provenance = runner.run(["cat", path + ".source.json"], check=False)
+    if provenance.returncode == 0:
+        try:
+            authority = _mcp_source_authority(target, runner, json.loads(provenance.stdout))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("deployed MCP source provenance is invalid") from error
+        source = "recorded-gitops-run"
+    else:
+        authority = _mcp_authority_from_gitops(
+            target.value["environment"], commit,
+            lambda relative: _load_deployed_gitops_json(runner, root, relative),
+        )
+        authority = {**authority, "runtime_gitops_root": root}
+        source = "deployed-gitops-run"
+        if (authority_path and authority["sha256"] != authority_path[1]) or (independent_path and process.stdout != _independent_mcp_override(authority)):
+            authority = _legacy_mcp_source(target, runner, path, process.stdout, authority_digest=authority_path[1] if authority_path else None)
+            source = "retained-gitops-run"
+    if authority_path:
+        if authority["sha256"] != authority_path[1]:
+            raise RuntimeError("deployed MCP authority digest differs from its source")
+        try:
+            override = json.loads(process.stdout)
+        except json.JSONDecodeError:
+            override = None
+        services = override.get("services") if isinstance(override, dict) else None
+        mcp_service = target.value["services"]["mcp"]
+        if (
+            not isinstance(services, dict) or set(override) != {"services"}
+            or mcp_service not in services or set(services) - {mcp_service, "odoo-mcp-oauth-init"}
+            or services[mcp_service] not in ({"image": authority["image"]}, _mcp_authority_service(authority))
+            or any(value != {"image": authority["image"]} for name, value in services.items() if name != mcp_service)
+        ):
+            raise RuntimeError(f"deployed MCP authority override is unreadable or differs: {path}")
+    elif process.stdout != _independent_mcp_override(authority):
+        raise RuntimeError("independent MCP override differs from its admitted source")
+    return authority, {"source": source, "gitops_commit": authority["gitops_commit"], "override": path}
 
 
 def _observed_admission_receipt(target, runner, runtime: dict) -> dict:
@@ -2512,7 +2920,7 @@ def _with_mcp_runtime_authority(target, runner, identity: dict, authority: dict 
     mcp_service = target.value["services"]["mcp"]
     if mcp_service not in services:
         raise RuntimeError("MCP service is absent from Compose")
-    overridden = {mcp_service: {"image": authority["image"]}}
+    overridden = {mcp_service: _mcp_authority_service(authority)}
     if "odoo-mcp-oauth-init" in services:
         overridden["odoo-mcp-oauth-init"] = {"image": authority["image"]}
     root = f"{target.value['state_directory']}/authorities"
@@ -2523,6 +2931,13 @@ def _with_mcp_runtime_authority(target, runner, identity: dict, authority: dict 
         json.dumps({"services": overridden}, indent=2, sort_keys=True) + "\n",
         "0444",
     )
+    source_root = authority.get("runtime_gitops_root")
+    if source_root is not None:
+        source = _digested_document({
+            "schema": "usl-mcp-runtime-source/v1", "target": target.name,
+            "gitops_root": source_root, "gitops_commit": authority["gitops_commit"], "image": authority["image"],
+        })
+        _write_remote(target, runner, path + ".source.json", json.dumps(source, indent=2, sort_keys=True) + "\n", "0444")
     result = {**base_identity, "compose_files": [*base_identity["compose_files"], path]}
     rendered = _runtime_images(runner, result)
     _independent_mcp_image(target, rendered, authority)
@@ -4047,12 +4462,18 @@ def _validate_sign_readiness(value: object) -> dict:
 
 def _runtime_admission_evidence(target, runner, identity) -> dict:
     observation = None
+    mcp_identity = identity
     if getattr(runner, "read_only", False):
-        authority, observation = _observed_mcp_authority(target, runner, identity)
+        # Validate the Odoo context first, then follow MCP's own labels when an
+        # independent deployment has advanced only that service.
+        _deployed_gitops_run(target, runner, identity) if target.value["environment"] != "local" else None
+        mcp_identity = _mcp_runtime_compose_identity(target, runner, identity) if target.value["environment"] != "local" else identity
+        authority, observation = _observed_mcp_authority(target, runner, mcp_identity)
     else:
         authority = _mcp_runtime_authority(target)
         identity = _with_mcp_runtime_authority(target, runner, identity, authority)
-    images = _runtime_images(runner, identity)
+        mcp_identity = identity
+    images = _runtime_images(runner, mcp_identity)
     expected_mcp = _independent_mcp_image(target, images, authority)
     service = target.value["services"]["mcp"]
     containers = runner.run([
@@ -6194,10 +6615,9 @@ def _active_generation_identity(
 ) -> dict:
     """Resolve the recorded active generation even when the anchor is still legacy.
 
-    ``mcp_authority=False`` skips the MCP image override.  The override only
-    matters when Compose may create or recreate a container; the lifecycle
-    commands start and stop containers that already exist (``--no-recreate``),
-    so they need the generation files and nothing from the pinned GitOps tree.
+    ``mcp_authority=False`` returns the generation files without consulting the
+    launcher's pinned GitOps tree. Runtime start then restores the independent
+    MCP authority from the deployed run before it may recreate a container.
     """
     active = current["active_state"]
     if active is None:
@@ -7652,6 +8072,7 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     generation_identity = _with_mcp_runtime_authority(
         target, target_runner, generation_identity, mcp_authority,
     )
+    _record_generation_compose_identity(target, target_runner, generation, release, generation_identity)
     previous = _previous_generation_record(target, current)
     active_path = f"{target.value['state_directory']}/active.json"
 

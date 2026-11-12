@@ -383,13 +383,20 @@ Health and smoke share their MCP check with releases. A release provisions the
 authority override (`authorities/mcp-<sha256>.json`) from the launcher's
 pinned GitOps checkout. An observer does not have that checkout, which is why
 `smoke` used to stop with "exact GitOps identity is missing", and it must not
-provision anything. It reads the identity the running cohort was started from
-instead: the Compose working directory names the immutable
-`gitops-runs/<commit>.<id>` run, whose `.usl-gitops-commit` marker, MCP ledger
-and manifest it reads back to derive the authority digest. It then requires
-that exact override to be the final Compose file and to name the GitOps MCP
-image. A working directory outside a pinned run reports the missing identity
-and attempts nothing.
+provision anything. It follows MCP's own captured Compose labels, since an
+independent MCP deployment may advance separately from Odoo. A final override's
+`.source.json` binds the immutable GitOps run, exact commit marker and image to
+the ledger and manifest that derive its authority digest. This permits recovery
+of an older Odoo base while retaining a compatible, independently admitted MCP.
+
+Older overrides without source metadata retain the same-base validation path.
+For a split historical source, observation can resolve the exact authority
+digest or the independent launcher's fixed candidate/rollback YAML against
+retained immutable ledgers. One fixed read-only host probe inventories at most
+1,000 runs under the fixed GitOps root, avoiding one SSH request per archive.
+The observer permits only that exact program and a staging or production argument;
+all checks remain read-only. A missing or invalid source fails with recovery
+context, and observation never creates provenance or rewrites an admission.
 
 `smoke` under observation also validates the immutable receipt of the running
 generation, `generations/<generation>/admission.json`: schema, `admitted`

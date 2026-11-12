@@ -96,6 +96,14 @@ class Host:
         if command[:2] == ["docker", "ps"]:
             return subprocess.CompletedProcess(command, 0, "abc123\n", "")
         if command[:2] == ["docker", "inspect"]:
+            if command[-1] == "{{json .Config.Labels}}":
+                return subprocess.CompletedProcess(command, 0, json.dumps({
+                    "com.docker.compose.project": self.target.project,
+                    "com.docker.compose.service": self.target.value["services"]["mcp"],
+                    "com.docker.compose.project.config_files": ",".join(self.identity["compose_files"]),
+                    "com.docker.compose.project.working_dir": self.identity["working_directory"],
+                    "com.docker.compose.project.environment_file": self.identity["environment_file"],
+                }), "")
             return subprocess.CompletedProcess(command, 0, MCP_IMAGE + "\n", "")
         if command[0] == "curl":
             return subprocess.CompletedProcess(command, 0, json.dumps({

@@ -3686,7 +3686,7 @@ class CohortContractTests(unittest.TestCase):
     def test_mcp_authority_override_is_last_after_historical_generation(self) -> None:
         target = load_target("staging", TARGETS)
         image = "ghcr.io/unstaticlabs/odoo-mcp@sha256:" + "b" * 64
-        authority = {"image": image, "sha256": "c" * 64}
+        authority = {"image": image, "sha256": "c" * 64, "commit": "e" * 40}
 
         class Runner:
             def __init__(self):
@@ -3722,6 +3722,8 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/authorities/mcp-" + "c" * 64, result["compose_files"][-1])
         value = json.loads(runner.writes[result["compose_files"][-1]])
         self.assertEqual(value["services"]["odoo-mcp"]["image"], image)
+        self.assertEqual(value["services"]["odoo-mcp"]["environment"]["MCP_BUILD_ID"], "e" * 40)
+        self.assertEqual(value["services"]["odoo-mcp"]["labels"]["org.opencontainers.image.revision"], "e" * 40)
         self.assertEqual(value["services"]["odoo-mcp-oauth-init"]["image"], image)
 
     def test_rollback_reapplies_mcp_authority_after_historical_overlay(self) -> None:
@@ -5502,7 +5504,7 @@ class CohortContractTests(unittest.TestCase):
             "operations.stack.load_target", return_value=target,
         ), mock.patch(
             "operations.stack.inspect_runtime",
-            side_effect=[{"compose": identity}, {"compose": identity}],
+            side_effect=[{"compose": identity, "active_state": None}, {"compose": identity}],
         ), mock.patch(
             "operations.stack._active_generation_identity", return_value=identity,
         ):

@@ -5,10 +5,12 @@ holds about 1.7 GB of RAM across 13 service containers. It therefore sleeps by d
 every application service is stopped, everything that is *state* is kept, and
 it wakes when a pipeline or a person needs it.
 
-The lifecycle extends `usl-stack runtime`; it does not deploy anything. Waking
-and sleeping use the same Compose identity, the same locks and the same
-`--no-recreate` starts as `runtime start` and `runtime stop`, so a woken
-staging is exactly the generation that was running when it went to sleep.
+The lifecycle extends `usl-stack runtime`. Waking restores the recorded active
+generation; it never selects the desired next release. An exact match starts
+with `--no-recreate`, preserving container IDs. If a failed activation left a
+different cohort behind, wake stops the application cohort and recreates it
+against the active generation's original base Compose files, images, volumes
+and networks. The gateway and persistent data stay in place.
 
 ## What it saves
 
@@ -39,8 +41,8 @@ returns that to production.
 
 The state lives in `/var/lib/usl-odoo/runtime/staging/lifecycle.json` on the
 host, with the last 30 events. `runtime status` and `runtime lifecycle` print
-it. Nothing else decides: containers are believed over the file, so a staging
-started behind the lifecycle's back is simply recorded as `active`.
+it. Container identity is checked against the active generation before a wake
+reports `already-active`; a running count cannot prove which cohort is running.
 
 ## What is kept, what is stopped
 
@@ -88,6 +90,35 @@ attempt is unfinished, because a failed rollback may have left the cohort
 stopped on purpose, waiting to be resumed. `touch` only records activity.
 Every write to `lifecycle.json` re-reads the file under a short lock, so a
 lease, a sweep and a release never overwrite one another with a stale copy.
+
+## Recovery identity
+
+A current generation records its canonical Compose provenance in
+`generations/<generation>/compose.identity.json`. Older admitted generations
+resolve their original GitOps commit through the digested admission receipt and
+its matching attempt claim. Wake accepts only direct canonical paths and an
+exact commit marker in the retained GitOps run. When several runs of the same
+commit exist, identical canonical definitions are selected deterministically;
+different definitions report an ambiguity.
+
+Wake keeps independently admitted MCP authority, after checking that its
+compatibility contract fits the active Odoo release. Its image, build ID and
+revision label follow the selected MCP commit. The MCP override's
+`.source.json` records its immutable GitOps source separately from Odoo's base.
+Existing authority overrides and independent candidate/rollback YAML remain
+valid when retained evidence proves their source. An unavailable source produces
+an actionable failure; wake never substitutes the failed cohort's context.
+
+The pre-receipt compatibility path can still start a generation from its own
+captured Compose files. Adopted and legacy v2 layouts retain their existing
+start semantics. These paths do not invent an admission receipt or change
+`active.json`.
+
+For a mismatch, logs and `lifecycle.json` name the active generation, affected
+services and differing identity fields. A failed attempt releases its locks and
+remains retryable after the missing context or runtime problem is repaired.
+`--may-resume` permits recovery under a release's existing lock; it does not
+change the selected generation or remove maintenance.
 
 ## Locks
 
