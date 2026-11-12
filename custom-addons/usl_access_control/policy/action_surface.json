@@ -1330554,7 +1330554,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 72,
+          "line": 71,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1330825,7 +1330825,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 53,
+          "line": 52,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1330936,7 +1330936,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 40,
+          "line": 39,
           "path": "custom-addons/usl_docs/models/guide.py"
         },
         {
@@ -1721677,11 +1721677,11 @@
       "version": "saas~19.3.1.3.2"
     },
     {
-      "manifest_sha256": "966138d5a3b1d477c972dbdc20f3adf32bf9effc1c64748e211e805bb9392a11",
+      "manifest_sha256": "605d1d50e2e6773536c3486634c981ce128539cc3490e2424a533942e70d9a58",
       "name": "usl_docs",
       "origin": "custom",
-      "source_sha256": "b36c32ccc824b2748ffdf3a6ea4bbac7e0b54688902a9dbec96f9e0ef981fd2e",
-      "version": "saas~19.3.1.1.0"
+      "source_sha256": "fcfc3d68c8a34cfefe48d19b3963f6127683944ea32c36923a5711705997ea7a",
+      "version": "saas~19.3.1.1.1"
     },
     {
       "manifest_sha256": "bf9bcefb3f3b92cb7ffaec57a229c482fe363380db2edfd9bc7c0130abc07ad4",
