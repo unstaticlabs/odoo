@@ -4,7 +4,9 @@ This report records completed local checks for product source
 `f239c79870fda63c9e78728cdf5c9e9951f18549` in [PR430](https://github.com/unstaticlabs/odoo/pull/430).
 It includes literal qualified product `80a3a1bcadb55821eb8ef6c28f77a30facb4018b`
 and `usl_accounting` version `saas~19.3.2.2.21`. The report checkpoint is separate from that frozen product
-source and changes no component input or image build context.
+source. The original report-only checkpoint
+`cd01a9928b30a2989b4547d08d501e433c65464d` changed no component input or image build context;
+the later cron-policy correction below changes only backup-tool input.
 
 ## Completed synthetic qualification
 
@@ -40,6 +42,35 @@ The complete delivered policy-artifact seal is
 `4925e1ab3fbec5f84b2a22c3162b26dfda3e9e65fb8d0f42ef5e3f034f985fff`;
 these identify different scopes. Existing foreign decisions remain preserved.
 
+## CI registration correction
+
+[Hosted run 43197466120](https://github.com/unstaticlabs/odoo/actions/runs/43197466120)
+for report-only checkpoint cd01 failed the existing pinned-OCA cron coverage
+check. It identified the missing policy registration for
+`account_statement_import_online.ir_cron_account_pull_online_bank_statements`.
+The correction adds that exact hourly OCA job to the existing `always` policy;
+it adds no gate or provider configuration. Native scheduling selects active,
+due configured providers, and the adapter checks account availability and
+consent before fetching. An installation without configured providers makes
+no bank request.
+
+After the correction, the 9 existing cron-policy tests and the complete
+1,031-test compatibility suite passed locally, with 25 skips. The first local
+suite attempt hit sandbox restrictions on 13 temporary loopback HTTP tests;
+the normal-permission rerun passed. Source/action checks, product/migration
+source boundary, governance contracts, action pins, documentation, XML and
+skill-lock validation also passed. The separate MCP repository documentation
+check was not rerun locally; hosted qualification remains responsible for it.
+The optional private-evidence check remained skipped.
+
+Recomputing all six component identities changes only **backup-tool**, from
+`b4eae4804f86e70a71a2224766b1d430508814b05d3b1ea4f7d48b4da111e7f5`
+to `8734f14fe58b3272c5cf5556e903f887a91b06ba75004355b8f89dd1369b7f22`,
+because that component packages the cron-policy file. Distribution and the
+other four component inputs are unchanged. No backup-tool image build is
+claimed. The frozen f239 Distribution image, source overlays and prepared
+private-proof program are unchanged.
+
 ## Pending private and provider proof
 
 **Representative private banking first-install and repeated-upgrade proof is
@@ -68,7 +99,8 @@ personally inspected and contains selected code/image/proof identities,
 synthetic test counts and scope limits only. The inspected local qualification
 receipt SHA256 is `5dd6ab92c359a3dee1218b70d74ea5c7a7f9d2a2a8ca34a39ed2df161553b1fd`.
 
-Hosted qualification of the report head is **pending at this checkpoint**;
-consult the actual PR check before claiming a hosted pass. The product source,
-normal image and prepared private-proof program remain frozen independently of
-this report-only commit.
+Hosted qualification after the cron-policy correction is **pending at this
+checkpoint**; the earlier cd01 run failed as recorded above. Consult the actual
+PR check before claiming a hosted pass. The f239 Distribution source, normal
+image and prepared private-proof program remain frozen independently of this
+policy/report correction.

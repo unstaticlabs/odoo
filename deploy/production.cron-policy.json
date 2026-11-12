@@ -24,6 +24,7 @@
     "account_peppol.ir_cron_peppol_get_participant_status": {"gate": "pdp_reception", "reason": "Refresh registered invoice-exchange participant status."},
     "account_peppol.ir_cron_peppol_webhook_keepalive": {"gate": "pdp_reception", "reason": "Keep the admitted invoice-reception webhook registration alive."},
     "account_peppol_response.ir_cron_peppol_auto_register_services": {"gate": "pdp_ereporting", "reason": "Maintain regulatory response services only after e-reporting is admitted."},
+    "account_statement_import_online.ir_cron_account_pull_online_bank_statements": {"gate": "always", "reason": "Run native scheduled imports for configured bank-account providers using their consent, company and duplicate checks."},
     "auth_signup.ir_cron_auth_signup_send_pending_user_reminder": {"gate": null, "reason": "Historical users do not yet all have Pocket ID identities."},
     "base.autovacuum_job": {"gate": "always", "reason": "Run Odoo internal retention and vacuum maintenance."},
     "base.ir_cron_res_users_deletion": {"gate": "always", "reason": "Complete deferred portal-user deletion requests."},
