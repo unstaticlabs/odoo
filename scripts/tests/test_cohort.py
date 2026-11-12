@@ -4369,6 +4369,30 @@ class CohortContractTests(unittest.TestCase):
             with self.subTest(path=forbidden), self.assertRaises(RuntimeError):
                 _recovery_proof_root(target, Path(forbidden), "proof-20260905-test")
 
+    def test_workspace_cleanup_preserves_foreign_physical_bindings(self) -> None:
+        from operations.stack import _validated_cleanup_resources
+        target = load_target("staging", TARGETS)
+        workspace = target.value["state_directory"] + "/generations/g20260903-stale/work"
+        inventory = {"delete_volumes": [], "delete_networks": [], "protected_volumes": [],
+                     "protected_networks": [], "delete_workspaces": [workspace]}
+        for bound in (True, False):
+            class Runner:
+                def run(self, command, **kwargs):
+                    if command[:2] == ["docker", "info"]: value = "/var/lib/docker"
+                    elif command[0] == "find": value = "d\n"
+                    elif command[0] == "readlink": value = "\n".join(command[3:]) + "\n"
+                    elif command[0] == "findmnt": value = json.dumps({"filesystems": [{"target": "/", "fsroot": "/", "maj:min": "8:1", "fstype": "ext4"}]})
+                    elif command[:3] == ["docker", "ps", "--all"]: value = "a" * 12
+                    elif command[:2] == ["docker", "inspect"]: value = json.dumps([{"Source": workspace if bound else "/unrelated"}])
+                    else: value = ""
+                    return subprocess.CompletedProcess(command, 0, value, "")
+            with self.subTest(bound=bound):
+                if bound:
+                    with self.assertRaisesRegex(OperationsError, "bound by"):
+                        _validated_cleanup_resources(target, Runner(), inventory)
+                else:
+                    self.assertEqual(_validated_cleanup_resources(target, Runner(), inventory), ([], [], []))
+
     def test_cleanup_workspace_inventory_rejects_symlinks_and_keeps_runs(self) -> None:
         target = load_target("staging", TARGETS)
 

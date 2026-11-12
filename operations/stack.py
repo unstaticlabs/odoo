@@ -11392,6 +11392,8 @@ def _validated_cleanup_resources(
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup workspace became invalid: {workspace}")
+        _assert_capture_unmounted(runner, workspace)
+        _assert_capture_not_bound(runner, workspace)
     return containers, volumes, networks
 
 
