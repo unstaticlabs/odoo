@@ -4912,24 +4912,37 @@ class CohortContractTests(unittest.TestCase):
     def test_legacy_retirement_rejects_mount_targets_and_sources(self) -> None:
         from operations.stack import _assert_capture_unmounted
         path = "/runtime/manual-example"
-        base = {"target": "/", "fsroot": "/", "maj:min": "8:1"}
+        base = {"target": "/", "fsroot": "/", "fstype": "ext4", "maj:min": "8:1"}
         for mounted in (path, path + "/durable/database"):
             for field in ("target", "fsroot"):
                 runner = mock.Mock()
-                mount = {"target": "/elsewhere/readback", "fsroot": "/unrelated", "maj:min": "8:1", field: mounted}
+                mount = {"target": "/elsewhere/readback", "fsroot": "/unrelated", "fstype": "ext4", "maj:min": "8:1", field: mounted}
                 runner.run.return_value.stdout = json.dumps({"filesystems": [{**base, "children": [mount]}]})
                 with self.subTest(mounted=mounted, field=field), self.assertRaisesRegex(OperationsError, "mounted filesystem"):
                     _assert_capture_unmounted(runner, path)
         runner.run.return_value.stdout = json.dumps({"filesystems": [base,
-            {"target": "/elsewhere", "fsroot": "/runtime/manual-example-other", "maj:min": "8:1"},
-            {"target": "/broad-management", "fsroot": "/runtime", "maj:min": "8:1"},
-            {"target": "/other-device", "fsroot": path, "maj:min": "8:2"}]})
+            {"target": "/elsewhere", "fsroot": "/runtime/manual-example-other", "fstype": "ext4", "maj:min": "8:1"},
+            {"target": "/broad-management", "fsroot": "/runtime", "fstype": "ext4", "maj:min": "8:1"},
+            {"target": "/other-device", "fsroot": path, "fstype": "ext4", "maj:min": "8:2"}]})
         _assert_capture_unmounted(runner, path)
+        # Docker namespace mounts use opaque roots, not filesystem paths.
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/run/docker/netns/synthetic", "fsroot": "net:[4026532860]", "maj:min": "0:4", "fstype": "nsfs"}]})
+        _assert_capture_unmounted(runner, path)
+        for filesystem in ("ext4", "unknown"):
+            runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+                {"target": "/qa", "fsroot": "opaque-malformed", "maj:min": "8:2", "fstype": filesystem}]})
+            with self.subTest(filesystem=filesystem), self.assertRaisesRegex(OperationsError, "inventory is invalid"):
+                _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": path + "/namespace", "fsroot": "net:[4026532860]", "maj:min": "0:4", "fstype": "nsfs"}]})
+        with self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+            _assert_capture_unmounted(runner, path)
         # A separate storage mount changes the filesystem-relative capture root.
         path = "/srv/storage/runtime/example"
         runner.run.return_value.stdout = json.dumps({"filesystems": [base,
-            {"target": "/srv/storage", "fsroot": "/", "maj:min": "8:2"},
-            {"target": "/qa", "fsroot": "/runtime/example/durable", "maj:min": "8:2"}]})
+            {"target": "/srv/storage", "fsroot": "/", "fstype": "ext4", "maj:min": "8:2"},
+            {"target": "/qa", "fsroot": "/runtime/example/durable", "fstype": "ext4", "maj:min": "8:2"}]})
         with self.assertRaisesRegex(OperationsError, "mounted filesystem"):
             _assert_capture_unmounted(runner, path)
         runner.run.return_value.stdout = "{}"

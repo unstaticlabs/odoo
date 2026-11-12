@@ -10747,22 +10747,24 @@ def _assert_capture_unmounted(runner, path: str) -> None:
     # management mounts as references to every file they can see.
     try:
         inventory = json.loads(runner.run([
-            "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN",
+            "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN,FSTYPE",
         ]).stdout)
         pending = list(inventory["filesystems"])
         mounts = []
         while pending:
             mount = pending.pop()
-            destination, root, device = (mount[key] for key in ("target", "fsroot", "maj:min"))
+            destination, root, device, filesystem = (mount[key] for key in ("target", "fsroot", "maj:min", "fstype"))
             if (
                 not isinstance(destination, str) or not destination.startswith("/")
-                or not isinstance(root, str) or not root.startswith("/")
+                or not isinstance(root, str) or not isinstance(filesystem, str) or not filesystem
+                or (not root.startswith("/") and filesystem not in {"nsfs", "anon_inodefs", "pipefs", "sockfs"})
                 or not isinstance(device, str) or not re.fullmatch(r"[0-9]+:[0-9]+", device)
             ):
                 raise ValueError("invalid mount identity")
             if destination == path or destination.startswith(path + "/"):
                 raise RuntimeError("legacy capture contains a mounted filesystem")
-            mounts.append(mount)
+            if root.startswith("/"):
+                mounts.append(mount)
             pending.extend(mount.get("children", []))
         ancestors = [m for m in mounts if path.startswith(m["target"].rstrip("/") + "/")]
         if not ancestors:
