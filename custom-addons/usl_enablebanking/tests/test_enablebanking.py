@@ -332,7 +332,7 @@ class TestEnableBanking(TransactionCase):
         agent = self.env["usl.agent"].with_user(self.manager).create({
             "name": "Synthetic banking Agent", "purpose": "Prove the native delegated import contract",
             "company_id": self.company.id, "company_ids": [Command.set(self.company.ids)],
-            "delegated_group_ids": [Command.set(groups.ids)], "access_mode": "read_write",
+            "delegated_group_ids": [Command.set(groups.ids)], "read_only_group_ids": [Command.clear()], "access_mode": "read_write",
         })
         access = UslAgentJson2Controller._check_agent_call(agent=agent, model_name=self.account._name, method_name="action_import", kwargs={"ids": self.account.ids})
         self.assertEqual(access, "write")
@@ -344,7 +344,7 @@ class TestEnableBanking(TransactionCase):
         self.account.with_user(agent.user_id).with_context(context).action_import()
         self.assertEqual(self.imports().line_id.ids, native_ids)
         self.assertEqual(self.account.last_duplicate_count, 1)
-        agent.with_user(self.manager).write({"access_mode": "read_only"})
+        agent.with_user(self.manager).write({"read_only_group_ids": [Command.set(groups.ids)]})
         self.client.reset_mock()
         with self.assertRaises(AgentPolicyAccessError):
             UslAgentJson2Controller._check_agent_call(agent=agent, model_name=self.account._name, method_name="action_import", kwargs={"ids": self.account.ids})
