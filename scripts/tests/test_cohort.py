@@ -4723,7 +4723,8 @@ class CohortContractTests(unittest.TestCase):
             def retire():
                 with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
                         mock.patch("operations.stack.inspect_runtime", return_value={}), \
-                        mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}):
+                        mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}), \
+                        mock.patch("operations.stack._assert_capture_not_bound"):
                     return _retire_legacy_capture(arguments, target, runner)
             before = sum(path.stat().st_size for path in (root / old).rglob("*") if path.is_file())
             self.assertGreater(before, 200000)
@@ -4758,6 +4759,23 @@ class CohortContractTests(unittest.TestCase):
         runner.run.return_value.stdout = "{}"
         with self.assertRaisesRegex(OperationsError, "inventory is invalid"):
             _assert_capture_unmounted(runner, path)
+
+    def test_legacy_retirement_preserves_explicit_container_bind_sources(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for source in (path, path + "/durable"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "a" * 12, ""),
+                subprocess.CompletedProcess([], 0, json.dumps([{"Source": source}]), ""),
+            ]
+            with self.subTest(source=source), self.assertRaisesRegex(OperationsError, "bound by"):
+                _assert_capture_not_bound(runner, path)
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, "a" * 12, ""),
+            subprocess.CompletedProcess([], 0, json.dumps([{"Source": "/"}]), ""),
+        ]
+        _assert_capture_not_bound(runner, path)
 
     def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
         target = load_target("production", TARGETS)

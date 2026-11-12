@@ -10642,6 +10642,33 @@ def _assert_capture_unmounted(runner, path: str) -> None:
         raise RuntimeError("legacy capture mount inventory is invalid") from error
 
 
+def _assert_capture_not_bound(runner, path: str) -> None:
+    """Keep a capture explicitly mounted by any retained container.
+
+    Broad host-management mounts do not classify every host file as in use;
+    native host operations are serialized by the lifecycle lock instead.
+    """
+    containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
+    if not containers:
+        return
+    if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
+        raise RuntimeError("legacy capture container inventory is invalid")
+    try:
+        listing = runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers])
+        lines = listing.stdout.splitlines()
+        if len(lines) != len(containers):
+            raise ValueError("incomplete container mounts")
+        for line in lines:
+            for mount in json.loads(line):
+                source = mount.get("Source", "")
+                if not isinstance(source, str):
+                    raise ValueError("invalid bind source")
+                if source == path or source.startswith(path + "/"):
+                    raise RuntimeError("legacy capture is bound by a retained container")
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
+        raise RuntimeError("legacy capture container mounts are invalid") from error
+
+
 def _retire_legacy_capture(arguments, target, runner) -> dict:
     if not all((arguments.capture, arguments.replacement, arguments.owner, arguments.reason)):
         raise RuntimeError("legacy retirement requires --capture, --replacement, --owner and --reason")
@@ -10662,6 +10689,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
         )
         payload = f"{target.value['state_directory']}/{arguments.capture}"
         _assert_capture_unmounted(runner, payload)
+        _assert_capture_not_bound(runner, payload)
         size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
         if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
             raise RuntimeError("legacy capture allocation could not be measured")
@@ -10681,6 +10709,7 @@ def _retire_legacy_capture(arguments, target, runner) -> dict:
             if any(checked[key] != plan[key] for key in checked):
                 raise RuntimeError("legacy capture changed during retirement")
             _assert_capture_unmounted(runner, payload)
+            _assert_capture_not_bound(runner, payload)
             runner.run(["rm", "-rf", "--one-file-system", "--", payload])
             if runner.run(["test", "!", "-e", payload], check=False).returncode:
                 raise RuntimeError("legacy capture payload remains after retirement")
