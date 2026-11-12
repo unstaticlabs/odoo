@@ -86,6 +86,7 @@ from operations.release_controller import (
 )
 from operations.release_manifest import ReleaseManifestError
 from operations.release_manifest import validate as validate_release
+from operations.release_status import observe as observe_release_status
 from operations.runtime import (
     MCP_RETAINED_LEDGER_SCAN,
     RuntimeError,
@@ -11768,18 +11769,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         ))
         return 0
     if arguments.action == "status":
-        state = runner.run(["cat", state_path], check=False)
-        if state.returncode == 0:
-            try:
-                value = parse_release_state(state.stdout)
-            except ReleaseControllerError as error:
-                raise RuntimeError(str(error)) from error
-        else:
-            value = {
-                "schema": "usl-release-run/v1",
-                "target": target.name,
-                "status": "idle",
-            }
+        value = observe_release_status(target, runner)
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "abort":

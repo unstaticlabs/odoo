@@ -412,6 +412,33 @@ announcement audit's `odoo shell`, routed through `run_reviewed_read` because
 its program never commits and the shell rolls back at exit;
 `scripts/tests/test_observation_read_only.py` fails if a second caller appears.
 
+`release` reads the legacy `release-state.json` and the fixed launcher's exact
+`runs/release-<identity>.json` files. The only additional host command allowed
+is a depth-one `find` that prints matching names and file types; mutation and
+execution options remain refused. Failed-attempt archives and sidecars do not
+participate in status selection.
+
+A single running run takes precedence over terminal history. With no running
+run, the validated active generation's release manifest selects the matching
+terminal run. Multiple running runs, malformed state and terminal history
+without an active-release match produce explicit errors; timestamps never
+choose a winner. A legacy/local runtime without fixed runs retains its existing
+response, including `idle` before a run exists.
+
+Fixed-v3 responses use `usl-release-status/v1`, identify
+`source_schema: usl-fixed-release-run/v3`, and include the validated source
+checksum, release, attempt, status, phase, completed stages and stage digests.
+The complete native checksum and every stage digest are checked before
+projection. Private `evidence.value` trees are omitted. Failure metadata and
+recovery boundaries are reported when present. This is observation of launcher
+progress, not a replacement for the separate admission or health checks.
+
+The synthetic `scripts/tests/fixtures/fixed-release-run-v3.json` was emitted by
+GitOps' native `run_stages` on 2026-11-12 with deterministic, disposable stage
+handlers, paused at `post-admission-backup`. The producer source SHA-256 was
+`be20a0f345110a7cd51091ac51d2aa60b131eb7278578ba63436208ee6a18106`.
+No host state or private evidence was copied into the fixture.
+
 Health and smoke share their MCP check with releases. A release provisions the
 authority override (`authorities/mcp-<sha256>.json`) from the launcher's
 pinned GitOps checkout. An observer does not have that checkout, which is why

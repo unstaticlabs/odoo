@@ -1,0 +1,118 @@
+{
+  "attempt": "intent-0123456789abcdef",
+  "checksum": "6d79d040eb1a059f1ce5e2604c5aba1cdc299294f83e913349d7e2d7752a78d0",
+  "completed": [
+    "resolve",
+    "prepare",
+    "preflight",
+    "maintenance",
+    "quiesce",
+    "pre-release-snapshot",
+    "candidate-materialization",
+    "candidate-upgrade",
+    "candidate-qualification",
+    "candidate-snapshot",
+    "activation",
+    "route-switch",
+    "production-admission"
+  ],
+  "evidence": {
+    "activation": {
+      "sha256": "9a2005226a378dc28f692457e7c16d08f6c5efdecbb1123f22b165461ab442c7",
+      "value": {
+        "stage": "activation",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "candidate-materialization": {
+      "sha256": "46bc9c5dda4dcee09c8da7baeb877bef289e216ff423ab7f950455c9b751df3d",
+      "value": {
+        "stage": "candidate-materialization",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "candidate-qualification": {
+      "sha256": "a9d118e130e7c8e6532a02e18b5d4cf3961ca12973f254dc1b7d80b6143292f1",
+      "value": {
+        "stage": "candidate-qualification",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "candidate-snapshot": {
+      "sha256": "b9887133441d4dad1db5c9007b817f4ff6fcf67bd90ba808c74c1914d4cf220a",
+      "value": {
+        "stage": "candidate-snapshot",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "candidate-upgrade": {
+      "sha256": "4028408179e739874e107977eb85b299284cb0fcfb3a5be36f5a4dd9dbaba144",
+      "value": {
+        "stage": "candidate-upgrade",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "maintenance": {
+      "sha256": "e16dae58f1bac256107118f5c19955203465be4dc0b025b2148c61a7b2aa34a4",
+      "value": {
+        "stage": "maintenance",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "pre-release-snapshot": {
+      "sha256": "eab1800d08dff98a38621773ef01e8aabbd0f82c7f1cff97ff8e8963ae324c3c",
+      "value": {
+        "stage": "pre-release-snapshot",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "preflight": {
+      "sha256": "22c4789d73e9cb6d693c4d2bdc12e5ef9aa466cffa8c07156ba82a0390274e7b",
+      "value": {
+        "stage": "preflight",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "prepare": {
+      "sha256": "90846ff04251af9007b01032d3aeb3066a3aa12d5bf78452aca3ee6e36e7c70e",
+      "value": {
+        "stage": "prepare",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "production-admission": {
+      "sha256": "a97da768ad2a15526c619f8ab7e6f1c5319a6b78623439f817d5d0d6665a57bf",
+      "value": {
+        "stage": "production-admission",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "quiesce": {
+      "sha256": "670de30c44b1192fa129b8f35e3072fcd2919392c0ba946cb15e7b889b815708",
+      "value": {
+        "stage": "quiesce",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "resolve": {
+      "sha256": "3b72f23161abdfd3f870d679b1bac3397a6004f8b6d304280468455f279b3c90",
+      "value": {
+        "stage": "resolve",
+        "synthetic_detail": "not-for-status-output"
+      }
+    },
+    "route-switch": {
+      "sha256": "71a8876c9ef0bbed8ef4b0f9501ab8644fc14a645b9f7d8f4c4068619fedc9b2",
+      "value": {
+        "stage": "route-switch",
+        "synthetic_detail": "not-for-status-output"
+      }
+    }
+  },
+  "phase": "post-admission-backup",
+  "release": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "schema": "usl-fixed-release-run/v3",
+  "started_at": "2026-11-12T00:00:00+00:00",
+  "status": "running",
+  "target": "production"
+}
