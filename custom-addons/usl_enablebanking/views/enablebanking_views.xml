@@ -1,0 +1,201 @@
+<odoo>
+    <record id="connection_list" model="ir.ui.view">
+        <field name="name">usl.enablebanking.connection.list</field>
+        <field name="model">usl.enablebanking.connection</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="status" widget="badge" decoration-success="status == 'connected'" decoration-warning="status in ['expired', 'error']"/>
+                <field name="account_count" string="Accounts"/>
+                <field name="consent_until"/>
+            </list>
+        </field>
+    </record>
+    <record id="connection_form" model="ir.ui.view">
+        <field name="name">usl.enablebanking.connection.form</field>
+        <field name="model">usl.enablebanking.connection</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_accounts" type="object" string="Accounts" class="oe_highlight" invisible="not account_count or status != 'connected'"/>
+                    <button name="action_accounts" type="object" string="Accounts" invisible="not account_count or status == 'connected'"/>
+                    <button name="action_connect" type="object" string="Connect bank" class="oe_highlight" groups="account.group_account_manager" invisible="status == 'connected'"/>
+                    <button name="action_connect" type="object" string="Renew bank access" groups="account.group_account_manager" invisible="status != 'connected'"/>
+                    <field name="status" widget="statusbar" statusbar_visible="setup,connected,expired"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" placeholder="Fortuneo"/></h1></div>
+                    <div class="alert alert-warning" role="alert" invisible="not last_error">
+                        <field name="last_error" nolabel="1"/>
+                    </div>
+                    <group>
+                        <group string="Bank access">
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                            <field name="bank_name"/>
+                            <field name="country"/>
+                            <field name="consent_until"/>
+                        </group>
+                        <group string="Application" groups="account.group_account_manager">
+                            <field name="app_id" placeholder="Application ID from Enable Banking"/>
+                            <field name="signing_ready" string="Signing key configured"/>
+                            <field name="callback_url" widget="url"/>
+                        </group>
+                    </group>
+                    <p class="text-muted" style="max-width: 75ch">Own-account mode uses the accounts you link to your Enable Banking application. The bank still asks you to authorize access. Your private signing key is configured by your administrator.</p>
+                    <separator string="Available personal accounts"/>
+                    <p style="max-width: 75ch">Connect to discover every account the bank makes available through Enable Banking. Products the bank does not expose through this service cannot be imported here.</p>
+                    <field name="account_ids" readonly="1" mode="list,kanban">
+                        <list create="0" delete="0">
+                            <field name="name"/>
+                            <field name="product" optional="show"/>
+                            <field name="currency_id"/>
+                            <field name="journal_id"/>
+                            <field name="available" optional="show"/>
+                            <field name="last_import_at" optional="show"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="account_list" model="ir.ui.view">
+        <field name="name">usl.enablebanking.account.list</field>
+        <field name="model">usl.enablebanking.account</field>
+        <field name="arch" type="xml">
+            <list create="0" delete="0">
+                <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="product" optional="show"/>
+                <field name="account_number" optional="hide"/>
+                <field name="currency_id"/>
+                <field name="journal_id"/>
+                <field name="available"/>
+                <field name="last_import_at"/>
+            </list>
+        </field>
+    </record>
+    <record id="account_kanban" model="ir.ui.view">
+        <field name="name">usl.enablebanking.account.kanban</field>
+        <field name="model">usl.enablebanking.account</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="0" quick_create="0" delete="0">
+                <field name="available"/>
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex justify-content-between align-items-start gap-2">
+                            <field name="name" class="fw-bold text-wrap"/>
+                            <field name="currency_id" class="text-muted"/>
+                        </div>
+                        <field name="product" class="text-muted"/>
+                        <field name="account_number" class="text-muted text-break"/>
+                        <field name="company_id" groups="base.group_multi_company" class="text-muted"/>
+                        <div class="mt-2 d-flex justify-content-between gap-2">
+                            <span class="text-muted">Journal</span>
+                            <field t-if="record.journal_id.raw_value" name="journal_id" class="text-wrap"/>
+                            <span t-else="" class="text-muted">No journal selected</span>
+                        </div>
+                        <div t-if="!record.available.raw_value" class="text-warning mt-2">Unavailable in this session</div>
+                        <div t-if="record.last_import_at.raw_value" class="small text-muted mt-2">
+                            <span>Last successful import</span>: <field name="last_import_at"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record id="account_form" model="ir.ui.view">
+        <field name="name">usl.enablebanking.account.form</field>
+        <field name="model">usl.enablebanking.account</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0">
+                <header>
+                    <button name="action_import" type="object" string="Import booked transactions" groups="account.group_account_user" class="oe_highlight" invisible="not journal_id or not available"/>
+                    <button name="action_transactions" type="object" string="View imported transactions"/>
+                    <button name="action_provider" type="object" string="Scheduled import" groups="account.group_account_user" invisible="not journal_id"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <field name="connection_status" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="connection_status != 'expired'">Bank access has expired. Open the bank connection to renew access. Existing imported transactions stay in place.</div>
+                    <div class="alert alert-warning" role="alert" invisible="available">This account is unavailable in the current bank session. Renew access on the connection to check which accounts the bank exposes.</div>
+                    <div class="alert alert-warning" role="alert" invisible="not last_error"><field name="last_error" nolabel="1"/></div>
+                    <div class="alert alert-warning" role="alert" invisible="not balance_warning"><field name="balance_warning" nolabel="1"/></div>
+                    <group>
+                        <group string="Bank account">
+                            <field name="connection_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="account_number"/>
+                            <field name="product"/>
+                            <field name="currency_id"/>
+                            <field name="available" invisible="1"/>
+                            <field name="consent_until"/>
+                        </group>
+                        <group string="Import into Odoo">
+                            <field name="journal_id" context="{'default_type': 'bank', 'default_company_id': company_id, 'default_currency_id': currency_id, 'default_bank_account_number': account_number}"/>
+                            <field name="import_from"/>
+                            <field name="last_import_at"/>
+                            <field name="last_imported_count" string="New in last import"/>
+                            <field name="last_duplicate_count" string="Already imported"/>
+                            <field name="last_pending_count" string="Not booked (excluded)"/>
+                        </group>
+                    </group>
+                    <p class="text-muted" style="max-width: 75ch">Choose the account's bank journal, or create one using the journal selector. Only booked transactions are imported, using the bank's booking date and currency. Repeating a period keeps existing imported entries.</p>
+                    <notebook>
+                    <page string="Bank balances" name="bank_balances">
+                    <separator string="Provider-reported balances"/>
+                    <p class="text-muted" style="max-width: 75ch">These are balances reported by the bank, with their original type, currency and reference time. They are separate from Odoo's ledger balance and do not certify a statement.</p>
+                    <field name="balance_ids" readonly="1">
+                        <list create="0" delete="0">
+                            <field name="name"/>
+                            <field name="balance_type" string="Bank type"/>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                            <field name="reference_date"/>
+                            <field name="changed_at" optional="show"/>
+                            <field name="retrieved_at" optional="show"/>
+                        </list>
+                    </field>
+                    </page>
+                    <page string="Import provenance" name="import_provenance">
+                        <p class="text-muted" style="max-width: 75ch">Each entry keeps its bank reference and the native transaction created by the import. Later journal changes do not move imported history.</p>
+                        <field name="import_ids" readonly="1">
+                            <list create="0" delete="0">
+                                <field name="booking_date"/>
+                                <field name="value_date" optional="show"/>
+                                <field name="entry_reference"/>
+                                <field name="line_origin"/>
+                                <field name="amount"/>
+                                <field name="currency_id"/>
+                                <field name="line_id"/>
+                                <field name="imported_at" optional="show"/>
+                            </list>
+                        </field>
+                    </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="connection_action" model="ir.actions.act_window">
+        <field name="name">Bank connections</field>
+        <field name="res_model">usl.enablebanking.connection</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Connect your personal bank accounts</p>
+            <p>Set up your Enable Banking application, then authorize Fortuneo to discover its available accounts. Map each account to its native Odoo bank journal.</p>
+        </field>
+    </record>
+    <menuitem id="connection_menu" name="Bank connections" parent="account.account_account_menu" action="connection_action" sequence="95" groups="account.group_account_readonly,account.group_account_user"/>
+    <record id="provider_form_enablebanking" model="ir.ui.view">
+        <field name="name">online.bank.statement.provider.enablebanking.form</field>
+        <field name="model">online.bank.statement.provider</field>
+        <field name="inherit_id" ref="account_statement_import_online.online_bank_statement_provider_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='params']/field[@name='service']" position="after">
+                <field name="enablebanking_account_id" invisible="service != 'enablebanking'" readonly="1"/>
+            </xpath>
+            <xpath expr="//group[@name='configuration']" position="attributes"><attribute name="invisible">service == 'enablebanking'</attribute></xpath>
+        </field>
+    </record>
+</odoo>

@@ -11,6 +11,7 @@ source:
   - custom-addons/usl_b2c
   - custom-addons/usl_b2c_ingest
   - custom-addons/usl_documents
+  - custom-addons/usl_enablebanking
   - custom-addons/usl_expense_batch
   - custom-addons/usl_feedback
   - custom-addons/usl_home
@@ -44,6 +45,7 @@ Every menu the product adds, what it opens and who sees it.
 | **Accounting/Configuration/Accounting Framework/Reports** | Accounting Reports | `Accounting / Administrator` |
 | **Accounting/Configuration/Accounting/Account Groups** | Account Groups | `Accounting / Administrator` |
 | **Accounting/Configuration/Accounting/Accounting and Tax Tags** | Accounting and Tax Tags | `Accounting / Administrator` |
+| **Accounting/Configuration/Accounting/Bank connections** | Bank connections | `Show Accounting Features - Readonly`, `Show Full Accounting Features` |
 | **Accounting/Configuration/Accounting/Bank Statement Email Setup** | Bank Statement Email Setup | `Accounting / Administrator` |
 | **Accounting/Configuration/Accounting/Currency Rate Automation** | Currency Rate Automation | `Accounting / Administrator` |
 | **Accounting/Configuration/Accounting/Reconciliation Models** | Bank Matching Rules | `Accounting / Administrator` |

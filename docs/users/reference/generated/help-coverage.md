@@ -13,6 +13,7 @@ source:
   - custom-addons/usl_documents
   - custom-addons/usl_documents_accounting
   - custom-addons/usl_documents_b2c
+  - custom-addons/usl_enablebanking
   - custom-addons/usl_expense_batch
   - custom-addons/usl_feedback
   - custom-addons/usl_home
@@ -45,6 +46,7 @@ documentation work done in the code.
 | `usl_documents` | 42 | 258 | 16 % |
 | `usl_documents_accounting` | 0 | 7 | 0 % |
 | `usl_documents_b2c` | 1 | 1 | 100 % |
+| `usl_enablebanking` | 4 | 55 | 7 % |
 | `usl_expense_batch` | 1 | 50 | 2 % |
 | `usl_feedback` | 2 | 60 | 3 % |
 | `usl_home` | 0 | 19 | 0 % |

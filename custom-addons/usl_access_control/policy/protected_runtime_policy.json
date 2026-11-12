@@ -1885,6 +1885,46 @@
       }
     },
     {
+      "action_key": "rpc:usl.enablebanking.account.alias.unlink",
+      "action_name": "permanently delete usl.enablebanking.account.alias",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.enablebanking.account.alias",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.enablebanking.account.unlink",
+      "action_name": "permanently delete usl.enablebanking.account",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.enablebanking.account",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.enablebanking.connection.unlink",
+      "action_name": "permanently delete usl.enablebanking.connection",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.enablebanking.connection",
+        "operation": "unlink"
+      }
+    },
+    {
+      "action_key": "rpc:usl.enablebanking.import.unlink",
+      "action_name": "permanently delete usl.enablebanking.import",
+      "classification": "protected",
+      "enforcement": {
+        "kind": "model_operation",
+        "model": "usl.enablebanking.import",
+        "operation": "unlink"
+      }
+    },
+    {
       "action_key": "rpc:usl.feedback.agent.run.unlink",
       "classification": "protected",
       "enforcement": {
@@ -2216,6 +2256,10 @@
     },
     {
       "action_key": "server_action:account_reconcile_oca.action_reconcile",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:account_statement_import_online.ir_cron_account_pull_online_bank_statements_ir_actions_server",
       "classification": "operational"
     },
     {
