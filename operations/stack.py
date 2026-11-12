@@ -20,6 +20,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from operations import backup_maintenance
 from operations import staging_lifecycle as lifecycle
 from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
@@ -86,6 +87,7 @@ from operations.release_controller import (
 )
 from operations.release_manifest import ReleaseManifestError
 from operations.release_manifest import validate as validate_release
+from operations.release_status import observe as observe_release_status
 from operations.runtime import (
     MCP_RETAINED_LEDGER_SCAN,
     RuntimeError,
@@ -4102,6 +4104,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
             writers_resumed_at = None
             writer_services = []
             quiescence = None
+            capture_maintenance = None
             baseline_runtime_sha256 = _runtime_cas_sha256(target, runner, runtime)
             if not arguments.resume:
                 identity = compose_identity(target, runner)
@@ -4164,25 +4167,26 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
                 )
                 _record_event(target, runner, run_id, "backup", "capture", "started")
-                runner.run(compose_command(
-                    identity, ["stop", "--timeout", "30", *writer_services],
-                ))
-                writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                stopped_quiescence = _backup_quiescence_receipt(
-                    target=target.name,
-                    run_id=run_id,
-                    baseline=baseline_runtime_sha256,
-                    services=writer_services,
-                    status="quiesced",
-                    prepared_at=prepared_at,
-                    stopped_at=writers_stopped_at,
-                )
-                _write_remote(
-                    target, runner, f"{quiescence_root}/quiesced.json",
-                    json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
-                )
+                capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
                 capture_succeeded = False
                 try:
+                    runner.run(compose_command(
+                        identity, ["stop", "--timeout", "30", *writer_services],
+                    ))
+                    writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                    stopped_quiescence = _backup_quiescence_receipt(
+                        target=target.name,
+                        run_id=run_id,
+                        baseline=baseline_runtime_sha256,
+                        services=writer_services,
+                        status="quiesced",
+                        prepared_at=prepared_at,
+                        stopped_at=writers_stopped_at,
+                    )
+                    _write_remote(
+                        target, runner, f"{quiescence_root}/quiesced.json",
+                        json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                    )
                     captured = capture_phase()
                     _write_remote(
                         target,
@@ -4199,6 +4203,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                             ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                         ))
                         writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                        backup_maintenance.release(runner, capture_maintenance)
                 if leave_quiesced:
                     quiescence = stopped_quiescence
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
@@ -4241,6 +4246,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     target, runner, inspect_runtime(target, runner),
                 ) != baseline_runtime_sha256:
                     raise RuntimeError("writer recovery changed the backup baseline")
+                backup_maintenance.release(runner, capture_maintenance)
             upload_started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "upload", "started")
             try:
@@ -11768,18 +11774,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         ))
         return 0
     if arguments.action == "status":
-        state = runner.run(["cat", state_path], check=False)
-        if state.returncode == 0:
-            try:
-                value = parse_release_state(state.stdout)
-            except ReleaseControllerError as error:
-                raise RuntimeError(str(error)) from error
-        else:
-            value = {
-                "schema": "usl-release-run/v1",
-                "target": target.name,
-                "status": "idle",
-            }
+        value = observe_release_status(target, runner)
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "abort":

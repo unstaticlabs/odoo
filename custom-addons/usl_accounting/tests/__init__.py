@@ -35,3 +35,4 @@ from . import test_reconciliation_review
 from . import test_edi_line_compatibility
 from . import test_purchase_mail_grouping
 from . import test_purchase_mail_grouping_ui
+from . import test_queue_job_admin_access
