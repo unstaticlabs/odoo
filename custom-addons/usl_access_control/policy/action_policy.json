@@ -178103,6 +178103,8 @@
       "action_keys": [
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2",
@@ -178169,6 +178171,13 @@
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": {
           "reachability_proof": "Internal read of model-access metadata used by Agent authorization checks; it has no independent RPC, controller, UI, or scheduled entry point and performs no mutation."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1": {
+          "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
+        },
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1": {
+          "rationale": "Writes the Agent's backing user picture as the service identity, only for the image_1920 field. The manager of an Agent has no right to write its backing user, so the elevation is the feature; it is bounded by the two checks that run before it in the same method: the caller must be allowed to manage this Agent, then the picture must be a raster image.",
+          "reachability_proof": "Underscore inverse of usl.agent.image_1920, not itself an RPC, controller or scheduled entry point, but reached from the My agents form through the public usl.agent create, write and web_save whenever image_1920 is submitted. _inverse_avatar first calls _check_caller_can_manage, which refuses anyone who does not own or administer the Agent, then _check_avatar_is_raster, which refuses SVG and any non-raster payload; only then does it write image_1920 (and no other field) on the backing user. A caller who fails either check never reaches the write."
         },
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": {
           "reachability_proof": "Internal implementation sink with no independent RPC, controller, UI, or scheduled entry point."
@@ -178337,6 +178346,8 @@
       "reviewed_digests": {
         "cron:usl_access_control.ir_cron_usl_agent_authority_reconcile": "68b2784e283cd0bfd8bb2e336dca3df9cefadc486fb46d5ca73fb42574d3067d",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._allows_model_operation:sudo:1": "b4a04c8d4a76665d9874e0292821fa0423f725361add50dcd14a62b0bb38ee00",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._compute_avatar:sudo:1": "a50323293ea3d8d38ed801c4a27daa708984c7371ba007a8249bb055cac313ee",
+        "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._inverse_avatar:orm_write:1": "b6fb9e784476f635b85a95eefaf94cf75c1f548a5aa58f5d08a85a6dc39645f8",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_all:sudo:1": "ab023e5e5e9fa738aea9fc1f8fd6ebde4640654955c4bfd9fb3c3163205a7e91",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:1": "63f0fd894e7cdbc255384ae69ce2a6b81644d237edae395fbe8c1dafdc1392e9",
         "sink:usl_access_control:custom-addons/usl_access_control/models/agent.py:usl.agent._reconcile_authority:orm_write:2": "85b959c52d7c886c7fbc12687186f813682d3f38d547178ad6e93b86c37ec197",
