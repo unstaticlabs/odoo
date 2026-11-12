@@ -437,7 +437,7 @@ class AccountMoveLine(models.Model):
     )
     discount = fields.Float(
         string='Discount (%)',
-        digits='Discount',
+        min_display_digits='Discount',
         default=0.0,
     )
     tax_calculation_rounding_method = fields.Selection(
@@ -2057,11 +2057,18 @@ class AccountMoveLine(models.Model):
         hashed_moves = self.move_id.filtered('inalterable_hash')
         violated_fields = set(vals) & inalterable_fields
         if hashed_moves and violated_fields:
+            if hashed_moves.company_id == self.env.company:
+                entries = '\n'.join(hashed_moves.mapped('name'))
+            else:
+                entries = '\n'.join(
+                    f"{company.name}: {', '.join(moves.mapped('name'))}"
+                    for company, moves in hashed_moves.grouped('company_id').items()
+                )
             raise UserError(_(
                 "You cannot edit the following fields: %(fields)s.\n"
                 "The following entries are already hashed:\n%(entries)s",
                 fields=[f['string'] for f in self.fields_get(violated_fields).values()],
-                entries='\n'.join(hashed_moves.mapped('name')),
+                entries=entries,
             ))
 
         line_to_write = self
@@ -3746,7 +3753,7 @@ class AccountMoveLine(models.Model):
         Intended to be overriden in localization.
         """
         self.ensure_one()
-        return self.move_id.state == 'posted'
+        return self.move_id.state == 'posted' or self.move_id.payment_state == 'invoicing_legacy'
 
     def _get_aml_vals(self, hide_taxes):
         self.ensure_one()
@@ -3873,7 +3880,7 @@ class AccountMoveLine(models.Model):
         """Return a formatted list of dicts representing the child lines of the given section or subsection."""
         self.ensure_one()
 
-        children_lines = self.move_id.invoice_line_ids.filtered(lambda l: self in {l.parent_id, l.parent_id.parent_id})
+        children_lines = self.move_id.invoice_line_ids.filtered(lambda l: self in {l.parent_id, l.parent_id.parent_id}).sorted('sequence')
         subsection_lines = children_lines.filtered(lambda l: l.display_type == 'line_subsection')
         direct_children_lines = children_lines.filtered(lambda l: l.parent_id == self and l.display_type != 'line_subsection')
 

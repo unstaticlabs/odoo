@@ -5,12 +5,11 @@ An agent connected through MCP reaches public model methods with the generic
 release readable without a browser and without a second server. They read
 the same committed pages the viewer renders and never write anything.
 
-The model is abstract and has no access rows, so the Agent gate of
-``usl_access_control`` (``_allows_model_operation``) would refuse every call.
-``_usl_agent_shared_model_access`` is the hook that gate consults for shared
-technical models: it grants *read* to any Agent whose delegated groups
-include the internal user group, which is what reading the guide means for a
-person too. Writes are never granted; the model has nothing to write.
+The native ACL declares internal-user read access so API documentation can
+expose the methods and their readonly metadata. The shared technical-model
+hook preserves the same delegated internal-user access for Agents. Both paths
+retain the guide's native internal-user check; this abstract model grants no
+create, write or unlink operation.
 """
 
 from odoo import api, models
