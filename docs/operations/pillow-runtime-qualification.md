@@ -61,12 +61,28 @@ image and verify marker selection for each supported Python version.
 
 ## Qualification boundary
 
-The focused local run used Python 3.12.16, Pillow 13.0.0 and bundled libtiff
-4.7.2. The native Odoo selection reported zero failures/errors in 24 tests;
-all three runtime probes passed. The built dependency image also passed
-`pip check`. This does not replace final Linux amd64 image qualification,
-the coordinated fresh-foundation upgrade/preservation checks, or staging
-admission. Production remains affected until the fixed image is deployed.
+The original Pillow source `42e51b5f4a004981b08225c476c0d4c6f4c9aceb`
+was qualified on the earlier `49bb04492412` foundation. Its ARM64 registry
+selection reported zero failures/errors in 24 native image/PDF/Sign tests;
+all three runtime probes passed. A complete Linux AMD64 Distribution build
+also passed the valid TIFF, native EXIF/image-to-PDF and Sign ReportLab image
+renderer probes plus `pip check`. Both used Python 3.12.16, Pillow 13.0.0 and
+bundled libtiff 4.7.2. That proof belongs to the earlier source.
+
+The integration branch preserves the literal history of PR 425 head
+`25fa93bf41b90060a8fc11ac6d61d26c45478229` together with that original Pillow
+commit. Requirements, constraints, the normal Dockerfile and the three Pillow
+runtime probes retain the scoped dependency change. The exact combined source
+requires its own complete AMD64 Distribution build, component/OCA/action-policy
+input identities and native offline probes; the earlier image cannot stand in
+for its application bytes. Build and probe receipts are recorded on PR 426.
+
+Full registry journeys on the combined image, the fresh-foundation private
+upgrade/preservation checks and staging admission remain pending a coordinated
+resource slot. Do not pull the new image onto a constrained host before its
+placement fits the existing storage reserves. A private fixture owned by
+another qualification remains untouched. Production remains affected until
+the fixed runtime is deployed.
 
 The separate python-jose advisory GHSA-3qf3-8w2g-rqmx remains open. This Pillow
 change neither updates that library nor claims to resolve it. Roll back the
