@@ -3,9 +3,11 @@
 ARG POSTGRES_IMAGE=postgres:16-bookworm@sha256:60f4761b9035e0b8d5218f701a8c3382f641bf12b1604822574cf5be3baeb537
 ARG RESTIC_IMAGE=restic/restic:0.19.1@sha256:136600b6ff6843d61d355f7f71f460a166429f35de6fd11b568fece3c9a4d510
 ARG DOCKER_CLI_IMAGE=docker:28.5.1-cli@sha256:9190b0613792e658a7783cf14b2d5ace5941bb68ede7276922ea36ee457d76ad
+ARG COMPOSE_IMAGE=docker/compose-bin:v5.5.0@sha256:962d5ea7017e5ef425bfa47e492efa2c27d0492e8af58c497011e73b2ce98ee0
 
 FROM ${RESTIC_IMAGE} AS restic
 FROM ${DOCKER_CLI_IMAGE} AS docker-cli
+FROM ${COMPOSE_IMAGE} AS compose
 FROM ${POSTGRES_IMAGE} AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -20,7 +22,18 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 
 COPY --from=restic /usr/bin/restic /usr/local/bin/restic
 COPY --from=docker-cli /usr/local/bin/docker /usr/local/bin/docker
-COPY --from=docker-cli /usr/local/libexec/docker/cli-plugins/docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
+COPY --from=compose /docker-compose /usr/local/libexec/docker/cli-plugins/docker-compose
+
+# Compose 5.5.0 first fixes env_file resolution in config --hash (#14002).
+# Verify the official release binary for each published runtime architecture.
+ARG TARGETARCH
+RUN case "$TARGETARCH" in \
+        amd64) compose_sha256=c57ab918abd5b05ca7e7d0f275875dd1330a695074f309dc9eab1b49efafcd4b ;; \
+        arm64) compose_sha256=ff42489f5a9b879d5d117c5ffea6defc27390b3286da8ad52cbc9c6ab5df590e ;; \
+        *) echo "Unsupported operations architecture: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && echo "$compose_sha256  /usr/local/libexec/docker/cli-plugins/docker-compose" | sha256sum --check --status \
+    && test "$(docker compose version --short)" = "5.5.0"
 COPY operations /opt/usl/operations
 COPY scripts/odoo/production_quarantine.py /opt/usl/scripts/odoo/production_quarantine.py
 COPY scripts/odoo/production_activate.py /opt/usl/scripts/odoo/production_activate.py
