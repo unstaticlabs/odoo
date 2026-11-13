@@ -649,3 +649,26 @@ class RecoveryProofContractTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RecoveryProofWorkflowSchemaTests(unittest.TestCase):
+    def test_v2_receipt_remains_readable_and_v3_binds_typed_workflow_evidence(self):
+        import copy
+        from scripts.tests.test_recovery_workflow_failures import fingerprint
+        original = completion_receipt()
+        _validate_recovery_proof_receipt(original, PROOF_ID)
+        value = copy.deepcopy(original); value.pop("sha256")
+        value["schema"] = "usl-disposable-recovery-proof/v3"
+        failures = fingerprint("invented-row-1:error")
+        value["workflow_failures"] = failures
+        value["smoke"]["controls"].update(workflow_failures=failures, preserved_source_failures=["failed_documents"])
+        _validate_recovery_proof_receipt(_digested_document(value), PROOF_ID)
+        broken = copy.deepcopy(value); broken["smoke"]["controls"]["workflow_failures"]["roles"]["failed_documents"]["sha256"] = "b" * 64
+        # Make the top-level and nested evidence independent before tampering.
+        broken["workflow_failures"] = copy.deepcopy(failures)
+        with self.assertRaisesRegex(RuntimeError, "workflow failure evidence differs"):
+            _validate_recovery_proof_receipt(_digested_document(broken), PROOF_ID)
+        for malformed in (None, {"schema": "forged", "roles": {}}, {"schema": failures["schema"], "roles": {}}):
+            broken = copy.deepcopy(value); broken["workflow_failures"] = malformed
+            with self.subTest(malformed=malformed), self.assertRaises(RuntimeError):
+                _validate_recovery_proof_receipt(_digested_document(broken), PROOF_ID)

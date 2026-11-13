@@ -48,6 +48,9 @@ from operations.control_manifest import (
     ControlManifestError,
     release_definitions_digest,
     validate_restore,
+    validate_recovery_restore,
+    validate_workflow_failures,
+    workflow_failure_sql,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
@@ -8455,6 +8458,11 @@ def _validate_digested_document(value: object, *, schema: str, proof_id: str) ->
             "duration_seconds", "status", "sha256",
         },
     }.get(schema)
+    if schema == "usl-disposable-recovery-proof/v3":
+        fields = {"schema", "proof_id", "source", "release", "backup", "materialization",
+                  "runtime", "health", "smoke", "durable_state", "reusable_cache",
+                  "ownership", "cleanup", "isolation", "started_at", "completed_at",
+                  "duration_seconds", "max_duration_seconds", "status", "sha256", "workflow_failures"}
     if fields is None or set(value) != fields:
         raise RuntimeError("recovery proof evidence fields differ")
     if value.get("proof_id") != proof_id:
@@ -8501,11 +8509,20 @@ def _validate_recovery_proof_nested(value: object, path: str = "receipt") -> Non
 
 
 def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
-    receipt = _validate_digested_document(
-        value,
-        schema="usl-disposable-recovery-proof/v2",
-        proof_id=proof_id,
-    )
+    schema = value.get("schema") if isinstance(value, dict) else None
+    if schema not in {"usl-disposable-recovery-proof/v2", "usl-disposable-recovery-proof/v3"}:
+        raise RuntimeError("recovery proof completion schema is invalid")
+    receipt = _validate_digested_document(value, schema=schema, proof_id=proof_id)
+    if schema == "usl-disposable-recovery-proof/v3":
+        try:
+            failures = validate_workflow_failures(receipt["workflow_failures"])
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
+        controls = receipt.get("smoke", {}).get("controls", {})
+        if (controls.get("workflow_failures") != failures
+                or controls.get("preserved_source_failures") != sorted(
+                    role for role, item in failures["roles"].items() if item["count"])):
+            raise RuntimeError("recovery proof workflow failure evidence differs")
     _validate_recovery_proof_nested(receipt)
     release = receipt["release"]
     backup = receipt["backup"]
@@ -10194,6 +10211,11 @@ def _recovery_proof_command_locked(
         if arguments.failure_after == stage:
             raise RuntimeError(f"injected recovery proof failure after {stage}")
 
+        # The verified dump has been restored, and no application or quarantine
+        # code has run yet. This is the trusted baseline, not a caller assertion.
+        source_workflow_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
         quarantine = _run_production_boundary_script(
             target, runner, release, names["network"], names["volumes"],
             "production_quarantine.py", release["identity"], "USL_PRODUCTION_QUARANTINE=",
@@ -10236,10 +10258,13 @@ def _recovery_proof_command_locked(
             ),
         }
         try:
-            control_validation = validate_restore(
-                materialized["controls"],
-                restored_controls,
-                require_unchanged_release=True,
+            restored_workflow_failures = _recovery_proof_query(
+                target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+            )
+            control_validation = validate_recovery_restore(
+                materialized["controls"], restored_controls,
+                source_failures=source_workflow_failures,
+                restored_failures=restored_workflow_failures,
             )
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
@@ -10384,7 +10409,8 @@ def _recovery_proof_command_locked(
         runner,
         receipt_path,
         {
-            "schema": "usl-disposable-recovery-proof/v2",
+            "schema": "usl-disposable-recovery-proof/v3",
+            "workflow_failures": source_workflow_failures,
             "proof_id": proof_id,
             "source": "production",
             "release": {

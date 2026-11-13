@@ -513,3 +513,21 @@ crossed activation is repaired forward; this abort path cannot roll it back.
 The operations image includes the boundary scripts and `rsync` used to preserve
 staging's OAuth vault during a production-data refresh. The copy verifier is
 exercised as a real subprocess in repository tests.
+
+
+### Existing failed work in an isolated recovery proof
+
+A usable-service recovery proof checks that source workflow failures survive
+unchanged. It reads typed identity, state and error fingerprints from the
+verified restored database before quarantine or application startup, and checks
+them again afterward. A replacement row, changed error, missing failure or new
+failure rejects the proof even when the total count stays the same. PostgreSQL
+returns only counts and SHA-256 fingerprints; record IDs and error text remain
+inside the database. Cron activation is excluded because quarantine disables
+jobs; job identity, failure counters and first-failure timestamps remain checked.
+
+Completed proofs use `usl-disposable-recovery-proof/v3` and retain the preserved
+source failures as private context. Existing v2 passed receipts remain readable.
+This recovery comparison does not clear, retry or acknowledge business work.
+Generic release, admission and smoke validation retain their zero-failed-work
+rule, so the existing backlog still needs its own operational follow-up.
