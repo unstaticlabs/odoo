@@ -22,6 +22,7 @@ from urllib.parse import urlsplit
 
 from operations import backup_maintenance
 from operations import historical_capture
+from operations import host_filesystem
 from operations import staging_lifecycle as lifecycle
 from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
@@ -10742,6 +10743,9 @@ def _historical_capture_retirement(
 
 
 def _canonical_filesystem_paths(runner, paths: list[str]) -> list[str]:
+    observed = host_filesystem.observe(runner, paths)
+    if observed is not None:
+        return observed["canonical_paths"]
     values = runner.run(["readlink", "-m", "--", *paths]).stdout.splitlines()
     if len(values) != len(paths) or any(not value.startswith("/") for value in values):
         raise RuntimeError("capture filesystem references are invalid")
@@ -10752,9 +10756,10 @@ def _assert_capture_unmounted(runner, path: str) -> None:
     # Mount targets alone miss captures bound elsewhere on the same filesystem.
     # Compare kernel filesystem roots as well, without treating broad ancestor
     # management mounts as references to every file they can see.
-    path = _canonical_filesystem_paths(runner, [path])[0]
+    observed = host_filesystem.observe(runner, [path])
+    path = observed["canonical_paths"][0] if observed is not None else _canonical_filesystem_paths(runner, [path])[0]
     try:
-        inventory = json.loads(runner.run([
+        inventory = {"filesystems": observed["mounts"]} if observed is not None else json.loads(runner.run([
             "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN,FSTYPE",
         ]).stdout)
         pending = list(inventory["filesystems"])

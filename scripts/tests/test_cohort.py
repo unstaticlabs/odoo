@@ -4819,7 +4819,7 @@ class CohortContractTests(unittest.TestCase):
             root = Path(temporary) / "runtime"
             value = {**configured.value, "state_directory": str(root)}
             target = Target(configured.path, value)
-            runner = CommandRunner()
+            runner = CommandRunner(filesystem_scope="namespace")
             old, replacement = "manual-synthetic-legacy", "proof-daily-" + "a" * 16
             for name, date in ((old, "2026-09-01T00:00:00Z"), (replacement, "2026-11-12T00:00:00Z")):
                 for relative, content in self._capture_files(target, name, created_at=date).items():
@@ -4881,7 +4881,7 @@ class CohortContractTests(unittest.TestCase):
             manifest_path.write_text(json.dumps(value))
             payload = b"synthetic historical bytes" * 10000
             (root / name / "payload").write_bytes(payload)
-            self.assertIsNone(_qualified_capture(target, CommandRunner(), name))
+            self.assertIsNone(_qualified_capture(target, CommandRunner(filesystem_scope="namespace"), name))
             tree = cohort.tree_identity(root / name)
             backup_path = Path(temporary) / "offsite-fixture"
             shutil.copytree(root / name, backup_path)
@@ -4924,15 +4924,15 @@ class CohortContractTests(unittest.TestCase):
                 original_stat = (root / name / "payload").stat()
                 (root / name / "payload").write_bytes(b"changed")
                 with self.assertRaisesRegex(historical.HistoricalCaptureError, "exact payload"):
-                    _retire_legacy_capture(arguments, target, FixtureRunner())
+                    _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
                 self.assertTrue((root / name).exists())
                 (root / name / "payload").write_bytes(payload)
                 os.utime(root / name / "payload", ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
                 with mock.patch("operations.stack._assert_historical_archive_remote", side_effect=OperationsError("archive unavailable")):
                     with self.assertRaisesRegex(OperationsError, "archive unavailable"):
-                        _retire_legacy_capture(arguments, target, FixtureRunner())
+                        _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
                 self.assertTrue((root / name / "payload").exists())
-                result = _retire_legacy_capture(arguments, target, FixtureRunner())
+                result = _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
             self.assertFalse(result["modern_recovery_certified"])
             self.assertFalse((root / name).exists())
             self.assertTrue(receipt.exists())
