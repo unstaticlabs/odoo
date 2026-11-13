@@ -301,14 +301,15 @@ def release_digest(controls: object) -> str:
     return _digest(classify(controls)["release"])
 
 
-def validate_restore(
+def _validate_restore_fields(
     before: object,
     after: object,
     *,
     expected_release_sha256: str | None = None,
     require_unchanged_release: bool = False,
+    preserved_failures: bool = False,
 ) -> dict[str, Any]:
-    """Validate preserved data, queue monotonicity, and release-owned policy."""
+    """Compare controls after the caller has selected its failure policy."""
     baseline = classify(before)
     candidate = classify(after)
     if baseline["schema"] == SCHEMA and candidate["schema"] == SCHEMA_V1:
@@ -350,7 +351,7 @@ def validate_restore(
         for key in sorted(failed_keys)
         if candidate_queues[key]
     }
-    if failed:
+    if failed and not preserved_failures:
         raise ControlManifestError(
             "restored runtime has failed queues or crons: "
             + json.dumps(failed, sort_keys=True),
@@ -403,3 +404,69 @@ def release_definitions_digest(value: object) -> str:
             rows, key=lambda row: json.dumps(row, sort_keys=True, separators=(",", ":")),
         )
     return _digest(sections)
+
+
+WORKFLOW_FAILURE_SCHEMA = "usl-recovery-workflow-failures/v1"
+# Hash at the database boundary: record identities and error text never leave it.
+# Cron activation is deliberately excluded: quarantine disables it, but must not
+# change the job identity, failure counter or first-failure evidence.
+_FAILED_WORKFLOW_DEFINITIONS = {
+    "failed_mail": ("mail_mail", "state = 'exception'", ("id", "state", "failure_type", "failure_reason")),
+    "failed_documents": ("usl_document_operation", "state = 'failed'", ("id", "state", "error_message")),
+    "bank_failed": ("account_bank_ingestion", "state = 'failed'", ("id", "state", "last_error")),
+    "payment_failed": ("payment_transaction", "state = 'error'", ("id", "state", "state_message")),
+    "sign_archive_failed": ("sign_oca_request", "archive_status = 'failed'", ("id", "archive_status", "archive_last_error")),
+    "cron_failures": ("ir_cron", "failure_count > 0", ("id", "failure_count", "first_failure_date")),
+}
+
+
+def workflow_failure_sql() -> str:
+    sections = []
+    for role, (table, predicate, fields) in sorted(_FAILED_WORKFLOW_DEFINITIONS.items()):
+        columns = ", ".join(f"'{field}', {field}" for field in fields)
+        sections.append(
+            f"'{role}', (SELECT json_build_object('count', count(*), 'sha256', "
+            f"encode(sha256(convert_to(coalesce(string_agg(jsonb_build_object({columns})::text, "
+            f"chr(10) ORDER BY id), ''), 'UTF8')), 'hex')) FROM {table} WHERE {predicate})"
+        )
+    return "SELECT json_build_object('schema', '" + WORKFLOW_FAILURE_SCHEMA + "', 'roles', json_build_object(" + ", ".join(sections) + "));"
+
+
+def validate_workflow_failures(value: object) -> dict:
+    if not isinstance(value, dict) or set(value) != {"schema", "roles"} or value.get("schema") != WORKFLOW_FAILURE_SCHEMA:
+        raise ControlManifestError("recovery workflow failure evidence is invalid")
+    roles = value["roles"]
+    if not isinstance(roles, dict) or set(roles) != FAILED_QUEUE_KEYS:
+        raise ControlManifestError("recovery workflow failure roles differ")
+    for role, item in roles.items():
+        if (not isinstance(item, dict) or set(item) != {"count", "sha256"}
+                or type(item.get("count")) is not int or item["count"] < 0
+                or not isinstance(item.get("sha256"), str) or len(item["sha256"]) != 64
+                or any(c not in "0123456789abcdef" for c in item["sha256"])):
+            raise ControlManifestError(f"recovery workflow failure evidence is invalid: {role}")
+    return value
+
+
+def validate_restore(before: object, after: object, *, expected_release_sha256: str | None = None,
+                     require_unchanged_release: bool = False) -> dict[str, Any]:
+    """Keep release/admission/smoke's existing zero-failed-work rule."""
+    return _validate_restore_fields(before, after, expected_release_sha256=expected_release_sha256,
+                                    require_unchanged_release=require_unchanged_release)
+
+
+def validate_recovery_restore(before: object, after: object, *, source_failures: object,
+                              restored_failures: object) -> dict[str, Any]:
+    """Prove same-release recovery faithfully retains existing workflow failures."""
+    source = validate_workflow_failures(source_failures)
+    restored = validate_workflow_failures(restored_failures)
+    if source != restored:
+        raise ControlManifestError("recovery changed failed-work identity, state or error evidence")
+    baseline, candidate = classify(before), classify(after)
+    for role in FAILED_QUEUE_KEYS - {"cron_failures"}:
+        if (baseline["queues"]["odoo"][role] != source["roles"][role]["count"]
+                or candidate["queues"]["odoo"][role] != restored["roles"][role]["count"]):
+            raise ControlManifestError(f"recovery failed-work count differs from its identity evidence: {role}")
+    result = _validate_restore_fields(before, after, require_unchanged_release=True, preserved_failures=True)
+    result["workflow_failures"] = source
+    result["preserved_source_failures"] = sorted(role for role, item in source["roles"].items() if item["count"])
+    return result

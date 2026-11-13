@@ -48,6 +48,9 @@ from operations.control_manifest import (
     ControlManifestError,
     release_definitions_digest,
     validate_restore,
+    validate_recovery_restore,
+    validate_workflow_failures,
+    workflow_failure_sql,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
@@ -2293,6 +2296,14 @@ def _cohort_command(
     *,
     volumes=None,
 ) -> list[str]:
+    if action == "anchor-verify":
+        # Metadata-only verification never mounts application data or creates a
+        # missing source volume while another proof is being published.
+        return ["docker", "run", "--rm", "--network", target.value["compose"]["default_network"],
+                "--env-file", target.value["secrets"]["env_file"],
+                "--env", f"RESTIC_REPOSITORY={target.value['backup']['durable_repository']}",
+                "--env", f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
+                "--env", f"USL_TARGET={target.name}", *_local_restic_mounts(target), image, action, *arguments]
     volumes = volumes or target.value["volumes"]
     paths = target.value["paths"]
     command = [
@@ -2391,7 +2402,17 @@ def _run_cohort(
     volumes=None,
     input_text: str | None = None,
 ):
+    if target.value["environment"] == "production" and action in {"retention-plan", "retention-apply"}:
+        anchor = _usable_recovery_anchor(target, runner)
+        arguments = [*arguments, "--protected-anchor-json", json.dumps(anchor, sort_keys=True)]
     command = _cohort_command(target, image, action, arguments, volumes=volumes)
+    if action == "anchor-verify" and type(getattr(runner, "deadline_monotonic", None)) in (int, float):
+        remaining = runner.deadline_monotonic - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError("recovery anchor publication exhausted its proof deadline; previous anchor preserved")
+        insertion = command.index(image)
+        command[insertion:insertion] = ["--entrypoint", "/usr/bin/timeout"]
+        command[insertion + 3:insertion + 3] = ["--signal=TERM", "--kill-after=5s", f"{remaining:.3f}s", "/usr/local/bin/usl-cohort-runtime"]
     if input_text is not None:
         command.insert(2, "-i")
     if environment:
@@ -8455,6 +8476,11 @@ def _validate_digested_document(value: object, *, schema: str, proof_id: str) ->
             "duration_seconds", "status", "sha256",
         },
     }.get(schema)
+    if schema == "usl-disposable-recovery-proof/v3":
+        fields = {"schema", "proof_id", "source", "release", "backup", "materialization",
+                  "runtime", "health", "smoke", "durable_state", "reusable_cache",
+                  "ownership", "cleanup", "isolation", "started_at", "completed_at",
+                  "duration_seconds", "max_duration_seconds", "status", "sha256", "workflow_failures"}
     if fields is None or set(value) != fields:
         raise RuntimeError("recovery proof evidence fields differ")
     if value.get("proof_id") != proof_id:
@@ -8501,11 +8527,26 @@ def _validate_recovery_proof_nested(value: object, path: str = "receipt") -> Non
 
 
 def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
-    receipt = _validate_digested_document(
-        value,
-        schema="usl-disposable-recovery-proof/v2",
-        proof_id=proof_id,
-    )
+    schema = value.get("schema") if isinstance(value, dict) else None
+    if schema not in {"usl-disposable-recovery-proof/v2", "usl-disposable-recovery-proof/v3"}:
+        raise RuntimeError("recovery proof completion schema is invalid")
+    receipt = _validate_digested_document(value, schema=schema, proof_id=proof_id)
+    if schema == "usl-disposable-recovery-proof/v3":
+        smoke_context = receipt.get("smoke")
+        if not isinstance(smoke_context, dict):
+            raise RuntimeError("recovery proof workflow smoke container is invalid")
+        controls = smoke_context.get("controls")
+        if not isinstance(controls, dict):
+            raise RuntimeError("recovery proof workflow smoke controls container is invalid")
+        try:
+            failures = validate_workflow_failures(receipt["workflow_failures"])
+            smoke_failures = validate_workflow_failures(controls.get("workflow_failures"))
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
+        if (smoke_failures != failures
+                or controls.get("preserved_source_failures") != sorted(
+                    role for role, item in failures["roles"].items() if item["count"])):
+            raise RuntimeError("recovery proof workflow failure evidence differs")
     _validate_recovery_proof_nested(receipt)
     release = receipt["release"]
     backup = receipt["backup"]
@@ -9586,6 +9627,29 @@ def _recovery_proof_runtime_health(
     raise RuntimeError(f"recovery proof runtime did not become ready: {last_error}") from last_error
 
 
+def _validate_recovered_services(
+    target, runner, names: dict, release: dict, backup: dict, proof_root: str,
+    images: dict, source_failures: dict, *, started: float, deadline_at: str,
+) -> tuple[dict, dict, dict, dict]:
+    """Finish service journeys before attesting that source failures stayed exact."""
+    health, smoke = _recovery_proof_runtime_health(
+        target, runner, names, release, started=started, deadline_at=deadline_at,
+    )
+    durable, cache = _recovery_proof_durable_state(
+        target, runner, names, release, backup, proof_root, images,
+    )
+    try:
+        baseline = validate_workflow_failures(source_failures)
+        final_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
+    except ControlManifestError as error:
+        raise RuntimeError(str(error)) from error
+    if baseline != final_failures:
+        raise RuntimeError("recovery service journeys changed failed-work identity, state or error evidence")
+    return health, smoke, durable, cache
+
+
 def _recovery_proof_isolation(runner, names: dict) -> str:
     network = runner.run([
         "docker", "network", "inspect", names["network"],
@@ -10194,6 +10258,11 @@ def _recovery_proof_command_locked(
         if arguments.failure_after == stage:
             raise RuntimeError(f"injected recovery proof failure after {stage}")
 
+        # The verified dump has been restored, and no application or quarantine
+        # code has run yet. This is the trusted baseline, not a caller assertion.
+        source_workflow_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
         quarantine = _run_production_boundary_script(
             target, runner, release, names["network"], names["volumes"],
             "production_quarantine.py", release["identity"], "USL_PRODUCTION_QUARANTINE=",
@@ -10236,10 +10305,13 @@ def _recovery_proof_command_locked(
             ),
         }
         try:
-            control_validation = validate_restore(
-                materialized["controls"],
-                restored_controls,
-                require_unchanged_release=True,
+            restored_workflow_failures = _recovery_proof_query(
+                target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+            )
+            control_validation = validate_recovery_restore(
+                materialized["controls"], restored_controls,
+                source_failures=source_workflow_failures,
+                restored_failures=restored_workflow_failures,
             )
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
@@ -10261,14 +10333,11 @@ def _recovery_proof_command_locked(
             for role in cache_role_names
         ):
             raise RuntimeError("recovery proof reusable cache classification differs")
-        health, smoke = _recovery_proof_runtime_health(
-            target, runner, names, release,
+        health, smoke, durable_state, cache_roles = _validate_recovered_services(
+            target, runner, names, release, backup, proof_root, images, source_workflow_failures,
             started=started_monotonic, deadline_at=deadline_at,
         )
         health["databases"] = database_health
-        durable_state, cache_roles = _recovery_proof_durable_state(
-            target, runner, names, release, backup, proof_root, images,
-        )
         for role, identity in captured_cache.items():
             cache_roles[role]["capture_identity_sha256"] = hashlib.sha256(json.dumps(
                 identity, sort_keys=True, separators=(",", ":"),
@@ -10384,7 +10453,8 @@ def _recovery_proof_command_locked(
         runner,
         receipt_path,
         {
-            "schema": "usl-disposable-recovery-proof/v2",
+            "schema": "usl-disposable-recovery-proof/v3",
+            "workflow_failures": source_workflow_failures,
             "proof_id": proof_id,
             "source": "production",
             "release": {
@@ -10447,6 +10517,8 @@ def _recovery_proof_command_locked(
         )
         if persisted != receipt:
             raise RuntimeError("recovery proof final receipt read-back differs")
+        _require_recovery_proof_deadline(started_monotonic, deadline_at)
+        _publish_usable_recovery_anchor(target, runner, receipt, tool_image)
     except Exception as error:
         _write_recovery_proof_failure(
             target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
@@ -11072,8 +11144,8 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
     """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
 
     A capture that is not ``qualified`` is kept: its backup may still resume
-    from it. Nothing reads a qualified proof capture again, because the proof
-    and every restore read the Restic snapshots.
+    from it. The last full usable-service passed proof stays in addition to
+    these newest data-qualified captures, even after later service proofs fail.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11083,12 +11155,148 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
             protected.add(run_id)
         else:
             qualified[run_id] = capture["created_at"]
+    if len(qualified) > PROOF_CAPTURE_KEEP and target.value["environment"] == "production":
+        # Refuse before a deletion plan can be applied: an unknown anchor is
+        # an observable preservation hold, not successful garbage collection.
+        anchor = _usable_recovery_anchor(target, runner)
+        protected.add(anchor["run_id"])
     newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
     protected.update(newest[:PROOF_CAPTURE_KEEP])
     return {
         "protected_captures": sorted(protected),
         "delete_captures": sorted(set(qualified) - protected),
     }
+
+
+def _read_usable_anchor_document(runner, path: str) -> dict | None:
+    # Full proof/backup receipts contain bounded control summaries, not dumps or
+    # the embedded release contract. Reject unexpected types/oversized evidence
+    # before reading it; missing legacy pointers can use canonical receipts.
+    program = """import json,pathlib,stat,sys
+p=pathlib.Path(sys.argv[1])
+try: kind=p.lstat().st_mode
+except FileNotFoundError:
+    print('null');raise SystemExit(0)
+if not stat.S_ISREG(kind):raise SystemExit('anchor evidence is not a regular file')
+with p.open('rb') as stream:raw=stream.read(1024*1024+1)
+if len(raw)>1024*1024:raise SystemExit('anchor evidence exceeds its bound')
+value=json.loads(raw)
+if not isinstance(value,dict):raise SystemExit('anchor evidence is not an object')
+print(json.dumps(value))
+"""
+    result = runner.run(["python3", "-c", program, path], check=False)
+    if result.returncode:
+        raise RuntimeError("full usable recovery anchor evidence is unreadable, unsafe or oversized")
+    try:
+        value = json.loads(result.stdout)
+    except (ValueError, TypeError) as error:
+        raise RuntimeError("full usable recovery anchor evidence is invalid JSON") from error
+    if value is not None and not isinstance(value, dict):
+        raise RuntimeError("full usable recovery anchor evidence is not an object")
+    return value
+
+
+class RecoveryAnchorUnavailable(RuntimeError):
+    """No complete published/legacy passed proof can authorize retention."""
+
+
+def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
+    proof_id = candidate.get("proof_id")
+    if not isinstance(proof_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{7,95}", proof_id):
+        raise RuntimeError("full usable recovery anchor proof identity is invalid")
+    receipt = _validate_recovery_proof_receipt(candidate, proof_id)
+    backup = receipt["backup"]
+    root = f"{target.value['state_directory']}/backup-runs/{backup['run_id']}"
+    value = _read_usable_anchor_document(runner, root + "/receipt.json")
+    bound = _backup_run_receipt(value, target="production", run_id=backup["run_id"])
+    if (bound["sha256"] != backup["receipt_sha256"]
+            or bound["qualification"]["durable_snapshot_id"] != backup["durable_snapshot_id"]
+            or bound["qualification"]["cache_snapshot_id"] != backup["cache_snapshot_id"]
+            or bound["capture"]["release"]["identity"] != receipt["release"]["identity"]
+            or bound["capture"]["release"]["manifest_sha256"] != receipt["release"]["manifest_sha256"]):
+        raise RuntimeError("full usable recovery anchor backup binding differs")
+    quiesced = _read_usable_anchor_document(runner, root + "/quiesced.json")
+    if quiesced is not None:
+        quiesced = _validate_backup_quiescence_receipt(
+            quiesced, target="production", run_id=backup["run_id"], services=quiesced.get("writer_services"),
+        )
+        if quiesced["status"] != "quiesced" or (bound["writers_stopped_at"] is not None
+                and quiesced["stopped_at"] != bound["writers_stopped_at"]):
+            raise RuntimeError("full usable recovery anchor capture interval differs")
+        captured_at = quiesced["prepared_at"]
+    else:
+        # Older complete receipts retain their sealed writer-stop boundary.
+        captured_at = bound["writers_stopped_at"]
+    _recovery_proof_timestamp(captured_at, "anchor captured_at")
+    return {
+        "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,
+        "proof_receipt_sha256": receipt["sha256"], "backup_receipt_sha256": backup["receipt_sha256"],
+        "run_id": backup["run_id"], "durable_snapshot_id": backup["durable_snapshot_id"],
+        "cache_snapshot_id": backup["cache_snapshot_id"], "captured_at": captured_at,
+    }
+
+
+def _usable_recovery_anchor(target, runner) -> dict:
+    """Read published authority; adopt complete legacy passes without writes."""
+    pointer = f"{target.value['state_directory']}/recovery-anchor.json"
+    current = _read_usable_anchor_document(runner, pointer)
+    if current is not None:
+        return _usable_anchor_binding(target, runner, current)
+    root = f"{Path(target.value['state_directory']).parents[1]}/recovery-proofs"
+    listing = runner.run(["find", root, "-mindepth", "2", "-maxdepth", "2", "-type", "f", "-name", "receipt.json", "-print"], check=False)
+    paths = listing.stdout.splitlines() if listing.returncode == 0 else []
+    if len(paths) > 10000:
+        raise RuntimeError("full usable recovery anchor inventory exceeds its bound")
+    checked, rejected = [], 0
+    for path in paths:
+        relative = Path(path).relative_to(root)
+        if len(relative.parts) != 2 or relative.parts[1] != "receipt.json":
+            raise RuntimeError("full usable recovery anchor path differs")
+        # A final receipt can exist while publication is still armed, or after
+        # a later finalization failure. It has not become legacy authority.
+        if runner.run(["test", "-e", str(Path(path).with_name("failure.json"))], check=False).returncode == 0:
+            rejected += 1
+            continue
+        try:
+            receipt = _read_usable_anchor_document(runner, path)
+            if receipt is None or receipt.get("proof_id") != relative.parts[0]:
+                raise RuntimeError("full usable recovery anchor proof directory differs")
+            checked.append(_usable_anchor_binding(target, runner, receipt))
+        except (RuntimeError, ValueError, TypeError, KeyError):
+            rejected += 1
+    if rejected:
+        print(f"legacy recovery anchor: {rejected} incomplete or unpublished receipts ignored; preserve and review their metadata", file=sys.stderr)
+    if not checked:
+        raise RecoveryAnchorUnavailable("no full usable-service recovery anchor with complete backing metadata; preserve snapshots and restore the receipts or run a new proof")
+    return max(checked, key=lambda value: (_recovery_proof_timestamp(value["captured_at"], "captured_at"), value["proof_id"]))
+
+
+def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -> dict:
+    # Native cleanup and capture already use this mutex. The outer proof lease
+    # precedes it, just as it does during backup, so there is no inverse order.
+    with runtime_lock(target, runner, "recovery-anchor", receipt["proof_id"]):
+        candidate = _usable_anchor_binding(target, runner, receipt)
+        try:
+            current = _usable_recovery_anchor(target, runner)
+        except RecoveryAnchorUnavailable:
+            current = None
+        verified = _run_cohort(target, runner, image, "anchor-verify", [
+            "--protected-anchor-json", json.dumps(candidate, sort_keys=True),
+        ])
+        if (verified.get("schema") != "usl-usable-recovery-anchor-verification/v1"
+                or verified.get("status") != "verified" or verified.get("anchor") != candidate):
+            raise RuntimeError("full usable recovery anchor remote pair could not be verified; previous anchor preserved")
+        if current is not None:
+            old_time = _recovery_proof_timestamp(current["captured_at"], "captured_at")
+            new_time = _recovery_proof_timestamp(candidate["captured_at"], "captured_at")
+            if new_time < old_time or (new_time == old_time and current["proof_id"] != candidate["proof_id"]):
+                print("recovery anchor publication retained a newer captured point", file=sys.stderr)
+                return {"status": "retained_newer", "anchor": current}
+        path = f"{target.value['state_directory']}/recovery-anchor.json"
+        _write_remote(target, runner, path, json.dumps(receipt, indent=2, sort_keys=True) + "\n", "0600")
+        if _read_usable_anchor_document(runner, path) != receipt:
+            raise RuntimeError("recovery proof anchor read-back differs")
+        return {"status": "published", "anchor": candidate}
 
 
 def _retain_recovery_proof_captures(target) -> dict:
@@ -11412,6 +11620,9 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
     for run_id in inventory["delete_captures"]:
         if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
+        if target.value["environment"] == "production" and _proof_capture(target, run_id):
+            if _usable_recovery_anchor(target, runner)["run_id"] == run_id:
+                raise RuntimeError("cleanup cannot delete the last full usable recovery anchor capture")
         path = f"{state_root}/{run_id}"
         probe = runner.run(
             ["find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
