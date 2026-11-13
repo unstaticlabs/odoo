@@ -71,8 +71,14 @@ class HistoricalArchiveTests(unittest.TestCase):
                            USL_BACKUP_CACHE_REPOSITORY="/synthetic/cache",
                            RESTIC_PASSWORD="synthetic-password-1234567890",
                            USL_BACKUP_CACHE_PASSWORD="synthetic-password-1234567890")
-        with mock.patch.dict(os.environ, environment), mock.patch.object(cohort, "_inventory", side_effect=[[archive], []]):
-            plan = cohort.plan_retention()
+        from scripts.tests.test_usable_recovery_anchor import anchor
+        protected = anchor()
+        tags = ["usl-cohort", "target-production", "run-" + protected["run_id"]]
+        durable = {"id": protected["durable_snapshot_id"], "time": "2026-11-12T12:00:00Z",
+                   "tags": [*tags, "durable", "recovery-eligible"]}
+        cache = {"id": protected["cache_snapshot_id"], "time": durable["time"], "tags": [*tags, "cache"]}
+        with mock.patch.dict(os.environ, environment), mock.patch.object(cohort, "_inventory", side_effect=[[archive, durable], [cache]]):
+            plan = cohort.plan_retention(protected_anchor=protected)
         self.assertEqual(plan["delete_durable"], [])
         self.assertEqual(plan["delete_cache"], [])
 
