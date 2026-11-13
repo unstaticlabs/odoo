@@ -3,6 +3,7 @@ import json
 import socket
 import tempfile
 import threading
+import time
 from contextlib import contextmanager
 from pathlib import Path
 import os
@@ -47,7 +48,7 @@ class ExecutionScopeTests(unittest.TestCase):
 
 
 @contextmanager
-def provider(reply):
+def provider(reply, fragment_delay=0):
     requests = []
     with tempfile.TemporaryDirectory(prefix="usl-meta-", dir="/tmp") as temporary:
         path = str(Path(temporary) / "observe.sock")
@@ -70,7 +71,11 @@ def provider(reply):
                     requests.append(request)
                     value = reply(request, len(requests))
                     encoded = value if isinstance(value, bytes) else (json.dumps(value) + "\n").encode()
-                    try: connection.sendall(encoded)
+                    try:
+                        size = max(1, len(encoded) // 8) if fragment_delay else len(encoded)
+                        for start in range(0, len(encoded), size):
+                            connection.sendall(encoded[start:start + size])
+                            if fragment_delay: time.sleep(fragment_delay)
                     except (BrokenPipeError, ConnectionResetError): pass
         thread = threading.Thread(target=serve, daemon=True); thread.start()
         try:
@@ -128,6 +133,12 @@ class HostObservationTests(unittest.TestCase):
             with self.subTest(variant=variants.index(variant)), provider(lambda request, number: variant(request)):
                 with self.assertRaisesRegex(RuntimeError, "host filesystem metadata"):
                     _assert_capture_unmounted(self.runner, "/capture")
+
+    def test_continuous_fragments_cannot_reset_the_total_rpc_deadline(self):
+        with provider(lambda request, number: response(request), fragment_delay=0.04), \
+                mock.patch.object(host, "RPC_TIMEOUT_SECONDS", 0.1, create=True):
+            with self.assertRaisesRegex(RuntimeError, "metadata.*deadline"):
+                _canonical_filesystem_paths(self.runner, ["/capture"])
 
     def test_oversized_response_is_bounded_before_parsing(self):
         with provider(lambda request, number: b"x" * 1025 + b"\n"), mock.patch.object(host, "MAX_RESPONSE_BYTES", 1024):

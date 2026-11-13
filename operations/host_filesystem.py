@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import json
 import os
 import socket
+import time
 
 from operations.runtime import CommandRunner, ReadOnlyRunner, RuntimeError
 
@@ -14,6 +15,7 @@ MAX_PATHS = 128
 MAX_PATH_BYTES = 4096
 MAX_REQUEST_BYTES = 128 * 1024
 MAX_RESPONSE_BYTES = 8 * 1024 * 1024
+RPC_TIMEOUT_SECONDS = 5
 ERRORS = {"unauthorized", "invalid_request", "request_too_large", "wrong_namespace", "observation_failed", "deadline"}
 
 
@@ -56,13 +58,21 @@ def _chunks(paths: list[str]):
 
 
 def _receive(paths: list[str]) -> dict:
+    deadline = time.monotonic() + RPC_TIMEOUT_SECONDS
+    def remaining():
+        value = deadline - time.monotonic()
+        if value <= 0:
+            raise TimeoutError("host metadata deadline expired")
+        return value
     try:
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-            client.settimeout(5)
+            client.settimeout(remaining())
             client.connect(SOCKET_PATH)
+            client.settimeout(remaining())
             client.sendall(_request(paths))
             payload = bytearray()
             while b"\n" not in payload:
+                client.settimeout(remaining())
                 part = client.recv(min(65536, MAX_RESPONSE_BYTES + 1 - len(payload)))
                 if not part:
                     raise ValueError("incomplete response")
@@ -73,6 +83,8 @@ def _receive(paths: list[str]) -> dict:
             if trailing.strip():
                 raise ValueError("multiple responses")
             value = json.loads(line)
+    except TimeoutError as error:
+        raise RuntimeError("host filesystem metadata deadline expired; verify the observation service before cleanup") from error
     except (OSError, ValueError, UnicodeError) as error:
         raise RuntimeError("host filesystem metadata unavailable; install and verify the root-only observation service before cleanup") from error
     if not isinstance(value, dict) or value.get("schema") != SCHEMA:
@@ -103,6 +115,8 @@ def _receive(paths: list[str]) -> dict:
         raise RuntimeError("host filesystem metadata observation time differs") from error
     if not isinstance(inode, int) or isinstance(inode, bool) or inode <= 0:
         raise RuntimeError("host filesystem metadata namespace identity differs")
+    if time.monotonic() >= deadline:
+        raise RuntimeError("host filesystem metadata deadline expired before validation completed")
     return value
 
 

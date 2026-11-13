@@ -467,10 +467,12 @@ The service accepts bounded absolute paths and returns canonical paths plus a
 fresh structured mount inventory. It checks that its own mount namespace is
 PID 1's before and after observing. The interface returns metadata and has no
 file-content, command-execution or filesystem-write operation. Requests time out
-after five seconds and are chunked by path count and encoded size.
+after five seconds of total monotonic elapsed time and are chunked by path count
+and encoded size. Protocol v1 response fields remain stable; future metadata
+extensions use a coordinated versioned provider and client.
 
-Capture and workspace deletion plans refuse unavailable or malformed observations and observations
-from the wrong namespace before removing data. A real local image executor with
+Validation before capture and workspace deletion refuses unavailable or malformed
+observations and observations from the wrong namespace before removing data. A real local image executor with
 an older custom target must declare its scope explicitly; native host and SSH
 readers continue accepting older target files. Missing-provider errors name the
 host observation service as the next repair. The cleanup guard does not infer
