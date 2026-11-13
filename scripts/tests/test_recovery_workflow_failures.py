@@ -70,3 +70,66 @@ class RecoveryWorkflowFailureTests(unittest.TestCase):
             compare(before, after, failures, changed)
         cron_sql = controls.workflow_failure_sql().split("FROM ir_cron WHERE ", 1)[1].split(")", 1)[0]
         self.assertEqual(cron_sql, "failure_count > 0")
+
+
+    def test_failure_created_during_health_journey_cannot_receive_a_passed_proof(self):
+        from unittest import mock
+        from operations.stack import _validate_recovered_services
+        before = controls_v2(); before["odoo"]["failed_documents"] = 1
+        original = fingerprint("invented-row-1:error")
+        # The initial restored control boundary passes before services run.
+        compare(before, before, original, original)
+        live = {"failures": original}
+        def health(*args, **kwargs):
+            # A later startup/health journey replaces the failure, same count.
+            live["failures"] = fingerprint("invented-row-2:late-error")
+            return {"status": "passed"}, {"status": "passed"}
+        with mock.patch("operations.stack._recovery_proof_runtime_health", side_effect=health), \
+                mock.patch("operations.stack._recovery_proof_durable_state", return_value=({}, {})), \
+                mock.patch("operations.stack._recovery_proof_query", side_effect=lambda *a: live["failures"]):
+            with self.assertRaisesRegex(RuntimeError, "service journeys changed"):
+                _validate_recovered_services(None, None, {"containers": {"odoo_db": "invented-db"}},
+                    {}, {}, "/invented-proof", {}, original, started=0, deadline_at="fixture")
+
+
+@unittest.skipUnless(__import__('shutil').which('initdb') and __import__('os').geteuid() != 0,
+                     'PostgreSQL server tools and a non-root disposable test user required')
+class PostgreSQLWorkflowFailureTests(unittest.TestCase):
+    def test_real_sql_preserves_cron_activation_and_detects_replacement_error_and_new_failure(self):
+        import json
+        import subprocess
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory(prefix='workflow-2374-') as temporary:
+            root=Path(temporary);data=root/'data';socket=root/'socket';socket.mkdir()
+            subprocess.run(['initdb','-D',str(data),'--auth=trust','--username=recovery_fixture_user',
+                            '--no-instructions','--no-locale','--encoding=UTF8'],capture_output=True,text=True,check=True)
+            subprocess.run(['pg_ctl','-D',str(data),'-l',str(root/'server.log'),'-o',
+                f"-c listen_addresses='' -c unix_socket_directories='{socket}' -c shared_buffers=16MB -c max_connections=10",
+                '--wait','--timeout=30','start'],capture_output=True,text=True,check=True)
+            def sql(statement):
+                p=subprocess.run(['psql','-h',str(socket),'-U','recovery_fixture_user','-d','postgres',
+                    '-Atq','-v','ON_ERROR_STOP=1'],input=statement,capture_output=True,text=True,check=True)
+                return p.stdout
+            try:
+                sql("""CREATE TABLE mail_mail(id bigint,state text,failure_type text,failure_reason text);
+CREATE TABLE usl_document_operation(id bigint,state text,error_message text);
+CREATE TABLE account_bank_ingestion(id bigint,state text,last_error text);
+CREATE TABLE payment_transaction(id bigint,state text,state_message text);
+CREATE TABLE sign_oca_request(id bigint,archive_status text,archive_last_error text);
+CREATE TABLE ir_cron(id bigint,active boolean,failure_count int,first_failure_date timestamp);
+INSERT INTO usl_document_operation VALUES(1,'failed','Invented invalid file');
+INSERT INTO ir_cron VALUES(1,true,3,'2026-01-01');""")
+                def observe():return controls.validate_workflow_failures(json.loads(sql(controls.workflow_failure_sql())))
+                original=observe()
+                sql('UPDATE ir_cron SET active=false;');self.assertEqual(observe(),original)
+                sql("UPDATE usl_document_operation SET error_message='Invented changed error';")
+                self.assertNotEqual(observe()['roles']['failed_documents']['sha256'],original['roles']['failed_documents']['sha256'])
+                sql("UPDATE usl_document_operation SET error_message='Invented invalid file',id=2;")
+                replacement=observe();self.assertEqual(replacement['roles']['failed_documents']['count'],1)
+                self.assertNotEqual(replacement['roles']['failed_documents']['sha256'],original['roles']['failed_documents']['sha256'])
+                sql("INSERT INTO usl_document_operation VALUES(3,'failed',NULL);")
+                self.assertEqual(observe()['roles']['failed_documents']['count'],2)
+            finally:
+                subprocess.run(['pg_ctl','-D',str(data),'--wait','--timeout=15','-m','fast','stop'],capture_output=True,text=True,check=True)
+                self.assertFalse((data/'postmaster.pid').exists())

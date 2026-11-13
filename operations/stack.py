@@ -8517,12 +8517,13 @@ def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
         raise RuntimeError("recovery proof completion schema is invalid")
     receipt = _validate_digested_document(value, schema=schema, proof_id=proof_id)
     if schema == "usl-disposable-recovery-proof/v3":
+        controls = receipt.get("smoke", {}).get("controls", {})
         try:
             failures = validate_workflow_failures(receipt["workflow_failures"])
+            smoke_failures = validate_workflow_failures(controls.get("workflow_failures"))
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
-        controls = receipt.get("smoke", {}).get("controls", {})
-        if (controls.get("workflow_failures") != failures
+        if (smoke_failures != failures
                 or controls.get("preserved_source_failures") != sorted(
                     role for role, item in failures["roles"].items() if item["count"])):
             raise RuntimeError("recovery proof workflow failure evidence differs")
@@ -9606,6 +9607,29 @@ def _recovery_proof_runtime_health(
     raise RuntimeError(f"recovery proof runtime did not become ready: {last_error}") from last_error
 
 
+def _validate_recovered_services(
+    target, runner, names: dict, release: dict, backup: dict, proof_root: str,
+    images: dict, source_failures: dict, *, started: float, deadline_at: str,
+) -> tuple[dict, dict, dict, dict]:
+    """Finish service journeys before attesting that source failures stayed exact."""
+    health, smoke = _recovery_proof_runtime_health(
+        target, runner, names, release, started=started, deadline_at=deadline_at,
+    )
+    durable, cache = _recovery_proof_durable_state(
+        target, runner, names, release, backup, proof_root, images,
+    )
+    try:
+        baseline = validate_workflow_failures(source_failures)
+        final_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
+    except ControlManifestError as error:
+        raise RuntimeError(str(error)) from error
+    if baseline != final_failures:
+        raise RuntimeError("recovery service journeys changed failed-work identity, state or error evidence")
+    return health, smoke, durable, cache
+
+
 def _recovery_proof_isolation(runner, names: dict) -> str:
     network = runner.run([
         "docker", "network", "inspect", names["network"],
@@ -10289,14 +10313,11 @@ def _recovery_proof_command_locked(
             for role in cache_role_names
         ):
             raise RuntimeError("recovery proof reusable cache classification differs")
-        health, smoke = _recovery_proof_runtime_health(
-            target, runner, names, release,
+        health, smoke, durable_state, cache_roles = _validate_recovered_services(
+            target, runner, names, release, backup, proof_root, images, source_workflow_failures,
             started=started_monotonic, deadline_at=deadline_at,
         )
         health["databases"] = database_health
-        durable_state, cache_roles = _recovery_proof_durable_state(
-            target, runner, names, release, backup, proof_root, images,
-        )
         for role, identity in captured_cache.items():
             cache_roles[role]["capture_identity_sha256"] = hashlib.sha256(json.dumps(
                 identity, sort_keys=True, separators=(",", ":"),

@@ -672,3 +672,16 @@ class RecoveryProofWorkflowSchemaTests(unittest.TestCase):
             broken = copy.deepcopy(value); broken["workflow_failures"] = malformed
             with self.subTest(malformed=malformed), self.assertRaises(RuntimeError):
                 _validate_recovery_proof_receipt(_digested_document(broken), PROOF_ID)
+
+
+    def test_v3_smoke_boolean_count_is_rejected_even_when_equal_to_top_integer(self):
+        import copy
+        from scripts.tests.test_recovery_workflow_failures import fingerprint
+        value = completion_receipt(); value.pop("sha256")
+        value["schema"] = "usl-disposable-recovery-proof/v3"
+        value["workflow_failures"] = fingerprint("invented-row-1:error")
+        smoke = copy.deepcopy(value["workflow_failures"])
+        smoke["roles"]["failed_documents"]["count"] = True
+        value["smoke"]["controls"].update(workflow_failures=smoke, preserved_source_failures=["failed_documents"])
+        with self.assertRaisesRegex(RuntimeError, "workflow failure evidence is invalid"):
+            _validate_recovery_proof_receipt(_digested_document(value), PROOF_ID)
