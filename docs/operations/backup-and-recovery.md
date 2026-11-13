@@ -449,6 +449,42 @@ historical copy; it explicitly reports `modern_recovery_certified: false`.
 The modern replacement path above retains its newer-qualified-cohort requirement.
 Neither path removes active runtime data or modifies original historical evidence.
 
+## Host filesystem observations during cleanup
+
+The operations image declares its execution context. Each target declares
+`filesystem_scope`: `host` for the deployment host, or `namespace` for local
+development data. Native host and SSH execution read their own host metadata;
+explicit namespace targets keep their own filesystem view.
+
+A host-scoped local operations image obtains canonical paths and the current
+host mount table through the root-only Unix socket at
+`/var/lib/usl-odoo/host-filesystem-metadata/observe.sock`. GitOps installs and
+smoke-tests that native host service before publishing an operations image
+that requires it. The existing state-directory bind carries the socket into
+both current and retained operations constructors.
+
+The service accepts bounded absolute paths and returns canonical paths plus a
+fresh structured mount inventory. It checks that its own mount namespace is
+PID 1's before and after observing. The interface returns metadata and has no
+file-content, command-execution or filesystem-write operation. Requests time out
+after five seconds of total monotonic elapsed time and are chunked by path count
+and encoded size. Protocol v1 response fields remain stable; future metadata
+extensions use a coordinated versioned provider and client.
+
+Validation before capture and workspace deletion refuses unavailable or malformed
+observations and observations from the wrong namespace before removing data. A real local image executor with
+an older custom target must declare its scope explicitly; native host and SSH
+readers continue accepting older target files. Missing-provider errors name the
+host observation service as the next repair. The cleanup guard does not infer
+host visibility from the container's mount table or resolve host aliases inside
+the image's filesystem.
+
+Qualification includes a host-global bind created after the operations executor
+has started, an unused volume referencing an external host symlink, and the same
+fixtures after their exact references are removed. Evidence records the tested
+executor as well as the source revision. Synthetic namespace fixtures declare
+their placement explicitly and do not certify host cleanup.
+
 ## Service-level objective
 
 The first clean production-to-staging benchmark completed on 2 September 2026

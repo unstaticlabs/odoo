@@ -66,6 +66,7 @@ class Runner(Protocol):
 class CommandRunner:
     prefix: tuple[str, ...] = ()
     deadline_monotonic: float | None = None
+    filesystem_scope: str | None = None
 
     @contextmanager
     def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
@@ -552,9 +553,12 @@ class Target:
     def runner(self) -> CommandRunner | ReadOnlyRunner:
         transport = self.value["transport"]
         if transport["type"] == "local":
-            runner = CommandRunner()
+            runner = CommandRunner(filesystem_scope=self.value.get("filesystem_scope"))
         else:
-            runner = CommandRunner(("ssh", transport["host"], "--"))
+            runner = CommandRunner(
+                ("ssh", transport["host"], "--"),
+                filesystem_scope=self.value.get("filesystem_scope"),
+            )
         return ReadOnlyRunner(runner) if _OBSERVATION_ONLY else runner
 
 
@@ -585,7 +589,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "secrets",
             "state_directory",
             "lifecycle",
-        },
+        } | ({"filesystem_scope"} if isinstance(payload, dict) and "filesystem_scope" in payload else set()),
         "target",
     )
     if root["schema"] != SCHEMA:
@@ -596,6 +600,12 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("target.environment is invalid")
     if not isinstance(root["protected"], bool):
         raise RuntimeError("target.protected must be boolean")
+
+    if "filesystem_scope" in root and (
+        not isinstance(root["filesystem_scope"], str)
+        or root["filesystem_scope"] not in {"host", "namespace"}
+    ):
+        raise RuntimeError("target.filesystem_scope must be host or namespace")
 
     transport = root["transport"]
     if not isinstance(transport, dict) or transport.get("type") not in {"local", "ssh"}:

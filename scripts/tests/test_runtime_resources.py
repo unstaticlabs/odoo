@@ -54,10 +54,14 @@ class RuntimeResourceTests(unittest.TestCase):
                 encoding="utf-8",
             ),
         )
-        self.assertEqual(set(schema["required"]), set(schema["properties"]))
+        self.assertEqual(set(schema["required"]), set(schema["properties"]) - {"filesystem_scope"})
+        self.assertEqual(schema["properties"]["filesystem_scope"], {"enum": ["host", "namespace"]})
         for target_name in ("local", "production", "staging"):
             target = json.loads((TARGETS / f"{target_name}.json").read_text(encoding="utf-8"))
             self.assertEqual(set(target), set(schema["properties"]))
+            # The published contract continues accepting pre-scope target files.
+            legacy = {key: value for key, value in target.items() if key != "filesystem_scope"}
+            self.assertEqual(set(legacy), set(schema["required"]))
 
 
 if __name__ == "__main__":

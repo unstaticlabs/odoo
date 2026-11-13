@@ -3,6 +3,7 @@
   "name": "production",
   "environment": "production",
   "protected": true,
+  "filesystem_scope": "host",
   "transport": {"type": "local"},
   "compose": {
     "project": "usl-odoo-production-main",

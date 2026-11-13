@@ -3,6 +3,7 @@
   "name": "local",
   "environment": "local",
   "protected": false,
+  "filesystem_scope": "namespace",
   "transport": {"type": "local"},
   "compose": {
     "project": "usl-odoo-local",
