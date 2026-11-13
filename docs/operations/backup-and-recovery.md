@@ -531,3 +531,26 @@ source failures as private context. Existing v2 passed receipts remain readable.
 This recovery comparison does not clear, retry or acknowledge business work.
 Generic release, admission and smoke validation retain their zero-failed-work
 rule, so the existing backlog still needs its own operational follow-up.
+
+### Keep the last usable-service proof
+
+Production retention keeps the last validated full usable-service recovery point
+in addition to its normal calendar buckets. Its exact durable snapshot and
+paired reusable-cache snapshot must still exist and belong to the same run.
+The local capture also stays alongside the two newest data-qualified proof
+captures. A newer backup that passes file verification but fails service startup
+does not replace this anchor.
+
+A successful proof atomically copies its validated completion receipt to
+`<state-directory>/recovery-anchor.json`. The first run can read existing v2 or
+v3 passed receipts from the canonical recovery-proof directory and verify their
+backing backup receipts. No snapshot is retagged and no immutable snapshot ID is
+rewritten. Custom proof roots publish through the same canonical pointer after
+a successful proof.
+
+Missing, corrupt or mismatched anchor evidence stops production retention before
+it deletes anything. Backups can still run and establish a first usable proof;
+this hold does not stop the application. Keep the private completion and backup
+receipts together. Preserved workflow failures remain operational work to
+investigate, including capacity or processing failures; a recovery pass does not
+resolve them or make release admission ignore them.

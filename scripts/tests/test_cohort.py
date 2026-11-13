@@ -1647,7 +1647,7 @@ class CohortContractTests(unittest.TestCase):
                 "tags": [
                     "usl-cohort", classification, "target-production",
                     "recovery-eligible" if classification == "durable" else release,
-                    f"run-2026-run-{index:02d}",
+                    "run-proof-daily-" + f"{index:016x}",
                 ],
             }
 
@@ -1659,7 +1659,10 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
             cohort, "_inventory", side_effect=environments
         ):
-            plan = cohort.plan_retention(now)
+            from scripts.tests.test_usable_recovery_anchor import anchor
+            plan = cohort.plan_retention(now, protected_anchor=anchor(
+                proof_id="daily-" + f"{1:016x}", run_id="proof-daily-" + f"{1:016x}",
+                durable_snapshot_id=durable[0]["id"], cache_snapshot_id=cache[0]["id"]))
         self.assertIn(durable[0]["id"], plan["retain_durable"])
         self.assertIn(cache[0]["id"], plan["retain_cache"])
         self.assertNotIn(cache[0]["id"], plan["delete_cache"])
@@ -1671,13 +1674,14 @@ class CohortContractTests(unittest.TestCase):
             "time": now.isoformat(),
             "tags": [
                 "usl-cohort", "durable", "target-production", "recovery-eligible",
-                "run-20260903t120000z-deadbeef",
+                "run-proof-daily-" + "a" * 16,
             ],
         }]
         with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
             cohort, "_inventory", side_effect=[durable, []]
-        ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
-            cohort.plan_retention(now)
+        ), self.assertRaisesRegex(cohort.CohortError, "cache snapshot is missing"):
+            from scripts.tests.test_usable_recovery_anchor import anchor
+            cohort.plan_retention(now, protected_anchor=anchor())
 
     def test_staging_retention_expires_both_repositories_after_24_hours(self) -> None:
         now = datetime(2026, 9, 5, 12, tzinfo=UTC)
@@ -4665,11 +4669,13 @@ class CohortContractTests(unittest.TestCase):
         target = load_target("production", TARGETS)
         runner, proofs, uploading = self._proof_state_root(target)
 
-        result = _cleanup_captures(target, runner, set())
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
+            result = _cleanup_captures(target, runner, set())
 
         self.assertEqual(result["delete_captures"], proofs[:2])
         self.assertEqual(result["protected_captures"], sorted([*proofs[2:], uploading]))
-        paths = _validated_cleanup_captures(target, runner, result)
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
+            paths = _validated_cleanup_captures(target, runner, result)
         self.assertEqual(
             paths, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
         )
@@ -4686,7 +4692,8 @@ class CohortContractTests(unittest.TestCase):
         target = load_target("production", TARGETS)
         runner, proofs, _uploading = self._proof_state_root(target)
         with mock.patch.object(type(target), "runner", return_value=runner), \
-                mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()):
+                mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
             result = _retain_recovery_proof_captures(target)
         self.assertEqual(result, {"status": "applied", "deleted_captures": proofs[:2]})
         self.assertEqual(
