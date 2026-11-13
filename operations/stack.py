@@ -8532,7 +8532,12 @@ def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
         raise RuntimeError("recovery proof completion schema is invalid")
     receipt = _validate_digested_document(value, schema=schema, proof_id=proof_id)
     if schema == "usl-disposable-recovery-proof/v3":
-        controls = receipt.get("smoke", {}).get("controls", {})
+        smoke_context = receipt.get("smoke")
+        if not isinstance(smoke_context, dict):
+            raise RuntimeError("recovery proof workflow smoke container is invalid")
+        controls = smoke_context.get("controls")
+        if not isinstance(controls, dict):
+            raise RuntimeError("recovery proof workflow smoke controls container is invalid")
         try:
             failures = validate_workflow_failures(receipt["workflow_failures"])
             smoke_failures = validate_workflow_failures(controls.get("workflow_failures"))

@@ -330,3 +330,28 @@ class AnchorVerificationBoundaryTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'exhausted its proof deadline'):
             _run_cohort(target,runner,'invented-image','anchor-verify',[])
         runner.run.assert_not_called()
+
+
+class MalformedV3LegacyHistoryTests(unittest.TestCase):
+    def test_malformed_v3_containers_do_not_shadow_a_valid_v2_legacy_pass(self):
+        from pathlib import Path
+        from operations.stack import _usable_recovery_anchor,_digested_document
+        for malformed in (None, {"controls":None}, {"controls":[]}, {"controls":"invalid"}):
+            target,runner,files,proof,backup=PassedProofAuthorityTests().fixture()
+            files.pop(target.value['state_directory']+'/recovery-anchor.json')
+            root=str(Path(target.value['state_directory']).parents[1])+'/recovery-proofs'
+            files[root+'/'+proof['proof_id']+'/receipt.json']=proof
+            bad=copy.deepcopy(proof);bad.pop('sha256');bad.update(schema='usl-disposable-recovery-proof/v3',
+                proof_id='daily-corrupt-0001',smoke=malformed,workflow_failures={})
+            files[root+'/daily-corrupt-0001/receipt.json']=_digested_document(bad)
+            with self.subTest(malformed=malformed):
+                self.assertEqual(_usable_recovery_anchor(target,runner)['proof_id'],proof['proof_id'])
+
+    def test_corrupt_authoritative_v3_pointer_is_an_actionable_refusal(self):
+        from operations.stack import _usable_recovery_anchor,_digested_document
+        target,runner,files,proof,_=PassedProofAuthorityTests().fixture()
+        bad=copy.deepcopy(proof);bad.pop('sha256');bad.update(schema='usl-disposable-recovery-proof/v3',
+            smoke=None,workflow_failures={})
+        files[target.value['state_directory']+'/recovery-anchor.json']=_digested_document(bad)
+        with self.assertRaisesRegex(RuntimeError,'workflow smoke'):
+            _usable_recovery_anchor(target,runner)
