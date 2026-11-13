@@ -2296,6 +2296,14 @@ def _cohort_command(
     *,
     volumes=None,
 ) -> list[str]:
+    if action == "anchor-verify":
+        # Metadata-only verification never mounts application data or creates a
+        # missing source volume while another proof is being published.
+        return ["docker", "run", "--rm", "--network", target.value["compose"]["default_network"],
+                "--env-file", target.value["secrets"]["env_file"],
+                "--env", f"RESTIC_REPOSITORY={target.value['backup']['durable_repository']}",
+                "--env", f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
+                "--env", f"USL_TARGET={target.name}", *_local_restic_mounts(target), image, action, *arguments]
     volumes = volumes or target.value["volumes"]
     paths = target.value["paths"]
     command = [
@@ -2398,6 +2406,13 @@ def _run_cohort(
         anchor = _usable_recovery_anchor(target, runner)
         arguments = [*arguments, "--protected-anchor-json", json.dumps(anchor, sort_keys=True)]
     command = _cohort_command(target, image, action, arguments, volumes=volumes)
+    if action == "anchor-verify" and type(getattr(runner, "deadline_monotonic", None)) in (int, float):
+        remaining = runner.deadline_monotonic - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError("recovery anchor publication exhausted its proof deadline; previous anchor preserved")
+        insertion = command.index(image)
+        command[insertion:insertion] = ["--entrypoint", "/usr/bin/timeout"]
+        command[insertion + 3:insertion + 3] = ["--signal=TERM", "--kill-after=5s", f"{remaining:.3f}s", "/usr/local/bin/usl-cohort-runtime"]
     if input_text is not None:
         command.insert(2, "-i")
     if environment:
@@ -10497,12 +10512,8 @@ def _recovery_proof_command_locked(
         )
         if persisted != receipt:
             raise RuntimeError("recovery proof final receipt read-back differs")
-        # Publish the exact validated passed receipt atomically. Failed proofs
-        # never reach this point and cannot replace the last usable anchor.
-        anchor_path = f"{target.value['state_directory']}/recovery-anchor.json"
-        _write_remote(target, runner, anchor_path, json.dumps(receipt, indent=2, sort_keys=True) + "\n", "0600")
-        if _read_recovery_proof_evidence(target, runner, anchor_path) != receipt:
-            raise RuntimeError("recovery proof anchor read-back differs")
+        _require_recovery_proof_deadline(started_monotonic, deadline_at)
+        _publish_usable_recovery_anchor(target, runner, receipt, tool_image)
     except Exception as error:
         _write_recovery_proof_failure(
             target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
@@ -11180,62 +11191,107 @@ print(json.dumps(value))
     return value
 
 
-def _usable_recovery_anchor(target, runner) -> dict:
-    """Resolve a full-service passed proof, never just a data-qualified capture.
+class RecoveryAnchorUnavailable(RuntimeError):
+    """No complete published/legacy passed proof can authorize retention."""
 
-    A new proof keeps an exact copy in the target state. Before this pointer
-    existed, native proofs used the bounded canonical proof directory; retain
-    those v2 receipts without inventing a new admission or rewriting Restic IDs.
-    """
+
+def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
+    proof_id = candidate.get("proof_id")
+    if not isinstance(proof_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{7,95}", proof_id):
+        raise RuntimeError("full usable recovery anchor proof identity is invalid")
+    receipt = _validate_recovery_proof_receipt(candidate, proof_id)
+    backup = receipt["backup"]
+    root = f"{target.value['state_directory']}/backup-runs/{backup['run_id']}"
+    value = _read_usable_anchor_document(runner, root + "/receipt.json")
+    bound = _backup_run_receipt(value, target="production", run_id=backup["run_id"])
+    if (bound["sha256"] != backup["receipt_sha256"]
+            or bound["qualification"]["durable_snapshot_id"] != backup["durable_snapshot_id"]
+            or bound["qualification"]["cache_snapshot_id"] != backup["cache_snapshot_id"]
+            or bound["capture"]["release"]["identity"] != receipt["release"]["identity"]
+            or bound["capture"]["release"]["manifest_sha256"] != receipt["release"]["manifest_sha256"]):
+        raise RuntimeError("full usable recovery anchor backup binding differs")
+    quiesced = _read_usable_anchor_document(runner, root + "/quiesced.json")
+    if quiesced is not None:
+        quiesced = _validate_backup_quiescence_receipt(
+            quiesced, target="production", run_id=backup["run_id"], services=quiesced.get("writer_services"),
+        )
+        if quiesced["status"] != "quiesced" or (bound["writers_stopped_at"] is not None
+                and quiesced["stopped_at"] != bound["writers_stopped_at"]):
+            raise RuntimeError("full usable recovery anchor capture interval differs")
+        captured_at = quiesced["prepared_at"]
+    else:
+        # Older complete receipts retain their sealed writer-stop boundary.
+        captured_at = bound["writers_stopped_at"]
+    _recovery_proof_timestamp(captured_at, "anchor captured_at")
+    return {
+        "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,
+        "proof_receipt_sha256": receipt["sha256"], "backup_receipt_sha256": backup["receipt_sha256"],
+        "run_id": backup["run_id"], "durable_snapshot_id": backup["durable_snapshot_id"],
+        "cache_snapshot_id": backup["cache_snapshot_id"], "captured_at": captured_at,
+    }
+
+
+def _usable_recovery_anchor(target, runner) -> dict:
+    """Read published authority; adopt complete legacy passes without writes."""
     pointer = f"{target.value['state_directory']}/recovery-anchor.json"
     current = _read_usable_anchor_document(runner, pointer)
-    candidates = []
     if current is not None:
-        candidates.append(current)
-    else:
-        root = f"{Path(target.value['state_directory']).parents[1]}/recovery-proofs"
-        listing = runner.run(["find", root, "-mindepth", "2", "-maxdepth", "2", "-type", "f", "-name", "receipt.json", "-print"], check=False)
-        if listing.returncode == 0:
-            paths = listing.stdout.splitlines()
-            if len(paths) > 10000:
-                raise RuntimeError("full usable recovery anchor inventory exceeds its bound")
-            for path in paths:
-                relative = Path(path).relative_to(root)
-                if len(relative.parts) != 2 or relative.parts[1] != "receipt.json":
-                    raise RuntimeError("full usable recovery anchor path differs")
-                receipt = _read_usable_anchor_document(runner, path)
-                if receipt is None:
-                    raise RuntimeError("full usable recovery anchor receipt cannot be read")
-                if receipt.get("proof_id") != relative.parts[0]:
-                    raise RuntimeError("full usable recovery anchor proof directory differs")
-                candidates.append(receipt)
-    if not candidates:
-        raise RuntimeError("no full usable-service recovery anchor; preserve captures and remote snapshots until a proof passes")
-    checked = []
-    for candidate in candidates:
-        proof_id = candidate.get("proof_id")
-        if not isinstance(proof_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{7,95}", proof_id):
-            raise RuntimeError("full usable recovery anchor proof identity is invalid")
-        receipt = _validate_recovery_proof_receipt(candidate, proof_id)
-        backup = receipt["backup"]
-        path = f"{target.value['state_directory']}/backup-runs/{backup['run_id']}/receipt.json"
-        value = _read_usable_anchor_document(runner, path)
-        bound = _backup_run_receipt(value, target="production", run_id=backup["run_id"])
-        if (bound["sha256"] != backup["receipt_sha256"]
-                or bound["qualification"]["durable_snapshot_id"] != backup["durable_snapshot_id"]
-                or bound["qualification"]["cache_snapshot_id"] != backup["cache_snapshot_id"]
-                or bound["capture"]["release"]["identity"] != receipt["release"]["identity"]
-                or bound["capture"]["release"]["manifest_sha256"] != receipt["release"]["manifest_sha256"]):
-            raise RuntimeError("full usable recovery anchor backup binding differs")
-        checked.append(receipt)
-    latest = max(checked, key=lambda value: (_recovery_proof_timestamp(value["completed_at"], "completed_at"), value["proof_id"]))
-    backup = latest["backup"]
-    return {
-        "schema": "usl-usable-recovery-anchor/v1", "proof_id": latest["proof_id"],
-        "proof_receipt_sha256": latest["sha256"], "backup_receipt_sha256": backup["receipt_sha256"],
-        "run_id": backup["run_id"], "durable_snapshot_id": backup["durable_snapshot_id"],
-        "cache_snapshot_id": backup["cache_snapshot_id"],
-    }
+        return _usable_anchor_binding(target, runner, current)
+    root = f"{Path(target.value['state_directory']).parents[1]}/recovery-proofs"
+    listing = runner.run(["find", root, "-mindepth", "2", "-maxdepth", "2", "-type", "f", "-name", "receipt.json", "-print"], check=False)
+    paths = listing.stdout.splitlines() if listing.returncode == 0 else []
+    if len(paths) > 10000:
+        raise RuntimeError("full usable recovery anchor inventory exceeds its bound")
+    checked, rejected = [], 0
+    for path in paths:
+        relative = Path(path).relative_to(root)
+        if len(relative.parts) != 2 or relative.parts[1] != "receipt.json":
+            raise RuntimeError("full usable recovery anchor path differs")
+        # A final receipt can exist while publication is still armed, or after
+        # a later finalization failure. It has not become legacy authority.
+        if runner.run(["test", "-e", str(Path(path).with_name("failure.json"))], check=False).returncode == 0:
+            rejected += 1
+            continue
+        try:
+            receipt = _read_usable_anchor_document(runner, path)
+            if receipt is None or receipt.get("proof_id") != relative.parts[0]:
+                raise RuntimeError("full usable recovery anchor proof directory differs")
+            checked.append(_usable_anchor_binding(target, runner, receipt))
+        except (RuntimeError, ValueError, TypeError, KeyError):
+            rejected += 1
+    if rejected:
+        print(f"legacy recovery anchor: {rejected} incomplete or unpublished receipts ignored; preserve and review their metadata", file=sys.stderr)
+    if not checked:
+        raise RecoveryAnchorUnavailable("no full usable-service recovery anchor with complete backing metadata; preserve snapshots and restore the receipts or run a new proof")
+    return max(checked, key=lambda value: (_recovery_proof_timestamp(value["captured_at"], "captured_at"), value["proof_id"]))
+
+
+def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -> dict:
+    # Native cleanup and capture already use this mutex. The outer proof lease
+    # precedes it, just as it does during backup, so there is no inverse order.
+    with runtime_lock(target, runner, "recovery-anchor", receipt["proof_id"]):
+        candidate = _usable_anchor_binding(target, runner, receipt)
+        try:
+            current = _usable_recovery_anchor(target, runner)
+        except RecoveryAnchorUnavailable:
+            current = None
+        verified = _run_cohort(target, runner, image, "anchor-verify", [
+            "--protected-anchor-json", json.dumps(candidate, sort_keys=True),
+        ])
+        if (verified.get("schema") != "usl-usable-recovery-anchor-verification/v1"
+                or verified.get("status") != "verified" or verified.get("anchor") != candidate):
+            raise RuntimeError("full usable recovery anchor remote pair could not be verified; previous anchor preserved")
+        if current is not None:
+            old_time = _recovery_proof_timestamp(current["captured_at"], "captured_at")
+            new_time = _recovery_proof_timestamp(candidate["captured_at"], "captured_at")
+            if new_time < old_time or (new_time == old_time and current["proof_id"] != candidate["proof_id"]):
+                print("recovery anchor publication retained a newer captured point", file=sys.stderr)
+                return {"status": "retained_newer", "anchor": current}
+        path = f"{target.value['state_directory']}/recovery-anchor.json"
+        _write_remote(target, runner, path, json.dumps(receipt, indent=2, sort_keys=True) + "\n", "0600")
+        if _read_usable_anchor_document(runner, path) != receipt:
+            raise RuntimeError("recovery proof anchor read-back differs")
+        return {"status": "published", "anchor": candidate}
 
 
 def _retain_recovery_proof_captures(target) -> dict:

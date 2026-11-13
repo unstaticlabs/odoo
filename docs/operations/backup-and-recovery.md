@@ -554,3 +554,15 @@ this hold does not stop the application. Keep the private completion and backup
 receipts together. Preserved workflow failures remain operational work to
 investigate, including capacity or processing failures; a recovery pass does not
 resolve them or make release admission ignore them.
+
+
+Anchor publication shares the target's native backup/retention mutex. It checks
+the exact remote pair again before updating the pointer and compares captured
+point age, using the earlier quiescence preparation timestamp when available,
+not the order in which parallel service proofs finish. A slow older proof cannot
+replace a fresher anchor. A pruned candidate or a busy target leaves the prior
+pointer intact and reports the publication failure. Legacy v2 receipts can use
+their sealed writer-stop timestamp when the earlier phase was not retained.
+Incomplete or unpublished legacy receipts are reported and preserved; they do
+not shadow another fully validated legacy pass. An invalid authoritative pointer
+still requires repair before retention proceeds.

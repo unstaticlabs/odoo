@@ -11,7 +11,7 @@ from operations import cohort
 def anchor(**updates):
     value = {"schema":"usl-usable-recovery-anchor/v1","proof_id":"daily-"+"a"*16,
             "run_id":"proof-daily-"+"a"*16,"proof_receipt_sha256":"c"*64,
-            "backup_receipt_sha256":"d"*64,"durable_snapshot_id":"a"*64,"cache_snapshot_id":"b"*64}
+            "backup_receipt_sha256":"d"*64,"durable_snapshot_id":"a"*64,"cache_snapshot_id":"b"*64,"captured_at":"2026-11-12T08:00:00Z"}
     return {**value, **updates}
 
 
@@ -50,20 +50,28 @@ class UsableRecoveryAnchorTests(unittest.TestCase):
 
 
 class PassedProofAuthorityTests(unittest.TestCase):
-    def fixture(self):
+    def fixture(self, proof_id=None, captured_at="2026-09-04T04:01:00Z", completed_at="2026-09-04T04:10:00Z"):
         import subprocess
         from scripts.tests.test_cohort import backup_receipt
         from scripts.tests.test_recovery_proof import completion_receipt,PROOF_ID,TARGETS
         from operations.runtime import load_target
         from operations.stack import _digested_document,_backup_run_receipt
         target=load_target("production",TARGETS)
-        backup=backup_receipt(target="production",run_id="proof-"+PROOF_ID)
+        proof_id = proof_id or PROOF_ID
+        backup=backup_receipt(target="production",run_id="proof-"+proof_id)
         backup.update(writers_quiesced=False,writer_interval_complete=True,quiescence=None,
-                      writers_resumed_at="2026-09-04T00:00:01Z")
+                      writers_stopped_at=captured_at, writers_resumed_at="2026-09-04T04:05:00Z")
+        backup["capture"]["created_at"] = captured_at
+        import hashlib
+        backup["qualification"]["durable_snapshot_id"] = hashlib.sha256((proof_id+"durable").encode()).hexdigest()
+        for part in ("upload", "qualification"):
+            backup[part]["cache_snapshot_id"] = hashlib.sha256((proof_id+"cache").encode()).hexdigest()
         backup["performance"].update(writer_freeze_seconds=1,writer_freeze_sla_passed=True)
         backup.pop("sha256");backup=_digested_document(backup)
         _backup_run_receipt(backup,target="production")
-        proof=completion_receipt();proof.pop("sha256")
+        proof=completion_receipt(proof_id);proof.pop("sha256")
+        proof["completed_at"] = completed_at
+        proof["duration_seconds"] = (datetime.fromisoformat(completed_at.replace("Z", "+00:00")) - datetime.fromisoformat(proof["started_at"].replace("Z", "+00:00"))).total_seconds()
         proof["backup"].update(receipt_sha256=backup["sha256"],
             durable_snapshot_id=backup["qualification"]["durable_snapshot_id"],
             cache_snapshot_id=backup["qualification"]["cache_snapshot_id"])
@@ -201,8 +209,124 @@ class ResticAnchorRoundtripTests(unittest.TestCase):
             with mock.patch.dict(os.environ,{'RESTIC_REPOSITORY':durable_env['RESTIC_REPOSITORY'],
                     'RESTIC_PASSWORD':password,'USL_BACKUP_CACHE_REPOSITORY':cache_env['RESTIC_REPOSITORY'],
                     'USL_BACKUP_CACHE_PASSWORD':password,'USL_TARGET':'production'}):
+                import argparse
+                verified=cohort.verify_usable_anchor(argparse.Namespace(protected_anchor_json=protected))
+                self.assertEqual(verified['status'],'verified')
                 result=cohort.apply_retention(datetime(2026,12,4,tzinfo=UTC),protected_anchor=protected)
+                self.assertEqual(cohort.verify_usable_anchor(argparse.Namespace(protected_anchor_json=protected))['anchor'],protected)
             self.assertIn(identities[0]['durable'],result['retain_durable'])
             self.assertIn(identities[0]['cache'],result['retain_cache'])
             self.assertIn(identities[1]['durable'],result['delete_durable'])
             self.assertEqual(restore_pair('after'),before)
+
+
+class AnchorPublicationOrderingTests(unittest.TestCase):
+    def context(self):
+        import contextlib
+        import threading
+        import subprocess
+        from operations.stack import _publish_usable_recovery_anchor
+        make = PassedProofAuthorityTests().fixture
+        target, runner, files, old, _ = make("daily-"+"a"*16, "2026-09-04T04:01:00Z", "2026-09-04T04:12:00Z")
+        _, _, new_files, new, _ = make("daily-"+"b"*16, "2026-09-04T04:02:00Z", "2026-09-04T04:10:00Z")
+        files.update(new_files);pointer=target.value["state_directory"]+"/recovery-anchor.json";files.pop(pointer)
+        lock=threading.Lock();remote={old["backup"]["durable_snapshot_id"],old["backup"]["cache_snapshot_id"],new["backup"]["durable_snapshot_id"],new["backup"]["cache_snapshot_id"]}
+        @contextlib.contextmanager
+        def lease(*args):
+            if not lock.acquire(blocking=False):raise RuntimeError("target operation already owns cleanup/publication")
+            try:yield
+            finally:lock.release()
+        def verify(*args,**kwargs):
+            self.assertTrue(lock.locked())
+            value=json.loads(args[4][1])
+            if not {value["durable_snapshot_id"],value["cache_snapshot_id"]} <= remote:
+                raise RuntimeError("candidate remote pair was pruned")
+            return {"schema":"usl-usable-recovery-anchor-verification/v1","anchor":value,"status":"verified"}
+        def write(_target,_runner,path,content,_mode):
+            self.assertTrue(lock.locked());files[path]=json.loads(content)
+        return target,runner,files,old,new,pointer,lock,remote,lease,verify,write
+
+    def test_older_capture_finishing_later_cannot_replace_a_fresher_pass(self):
+        from operations.stack import _publish_usable_recovery_anchor
+        target,runner,files,old,new,pointer,lock,remote,lease,verify,write=self.context()
+        with mock.patch("operations.stack.runtime_lock",side_effect=lease),mock.patch("operations.stack._run_cohort",side_effect=verify),mock.patch("operations.stack._write_remote",side_effect=write):
+            self.assertEqual(_publish_usable_recovery_anchor(target,runner,new,"invented-image")["status"],"published")
+            self.assertEqual(_publish_usable_recovery_anchor(target,runner,old,"invented-image")["status"],"retained_newer")
+        self.assertEqual(files[pointer]["proof_id"],new["proof_id"])
+
+    def test_pruned_candidate_or_busy_target_preserves_the_previous_pointer(self):
+        from operations.stack import _publish_usable_recovery_anchor
+        target,runner,files,old,new,pointer,lock,remote,lease,verify,write=self.context()
+        files[pointer]=old
+        with mock.patch("operations.stack.runtime_lock",side_effect=lease),mock.patch("operations.stack._run_cohort",side_effect=verify),mock.patch("operations.stack._write_remote",side_effect=write):
+            # Cleanup wins the common lock and prunes the unanchored new pair.
+            with lease():remote.remove(new["backup"]["durable_snapshot_id"])
+            with self.assertRaisesRegex(RuntimeError,"was pruned"):
+                _publish_usable_recovery_anchor(target,runner,new,"invented-image")
+            self.assertEqual(files[pointer],old)
+            with lease(),self.assertRaisesRegex(RuntimeError,"already owns"):
+                _publish_usable_recovery_anchor(target,runner,new,"invented-image")
+            self.assertEqual(files[pointer],old)
+
+    def test_a_cleanup_contender_cannot_prune_during_live_pair_verification(self):
+        from operations.stack import _publish_usable_recovery_anchor
+        target,runner,files,old,new,pointer,lock,remote,lease,verify,write=self.context()
+        files[pointer]=old
+        def racing_verify(*args,**kwargs):
+            # An ordinary nonblocking cleanup request shares the same mutex.
+            with self.assertRaisesRegex(RuntimeError,"already owns"):
+                with lease():remote.remove(new["backup"]["durable_snapshot_id"])
+            return verify(*args,**kwargs)
+        with mock.patch("operations.stack.runtime_lock",side_effect=lease),mock.patch("operations.stack._run_cohort",side_effect=racing_verify),mock.patch("operations.stack._write_remote",side_effect=write):
+            _publish_usable_recovery_anchor(target,runner,new,"invented-image")
+        self.assertEqual(files[pointer],new)
+        self.assertIn(new["backup"]["durable_snapshot_id"],remote)
+
+    def test_incomplete_old_legacy_history_does_not_shadow_a_valid_latest_pass(self):
+        from pathlib import Path
+        from operations.stack import _usable_recovery_anchor
+        target,runner,files,old,new,pointer,*_=self.context()
+        root=str(Path(target.value["state_directory"]).parents[1])+"/recovery-proofs"
+        files[root+"/"+new["proof_id"]+"/receipt.json"]=new
+        files[root+"/"+old["proof_id"]+"/receipt.json"]=old
+        files.pop(target.value["state_directory"]+"/backup-runs/"+old["backup"]["run_id"]+"/receipt.json")
+        self.assertEqual(_usable_recovery_anchor(target,runner)["proof_id"],new["proof_id"])
+
+
+class AnchorVerificationBoundaryTests(unittest.TestCase):
+    def test_metadata_verification_uses_no_application_volume_mounts(self):
+        from scripts.tests.test_recovery_proof import TARGETS
+        from operations.runtime import load_target
+        from operations.stack import _cohort_command
+        target=load_target('production',TARGETS)
+        command=_cohort_command(target,'invented-image','anchor-verify',[])
+        self.assertFalse(any('/source/' in item for item in command))
+        self.assertNotIn('/var/run/docker.sock',command)
+
+    def test_prepared_phase_is_the_conservative_source_age_when_available(self):
+        from operations.stack import _usable_recovery_anchor,_backup_quiescence_receipt,BACKUP_WRITER_SERVICE_ROLES
+        target,runner,files,proof,backup=PassedProofAuthorityTests().fixture()
+        prepared='2026-09-04T04:00:30Z'
+        q=_backup_quiescence_receipt(target='production',run_id=backup['run_id'],baseline='e'*64,
+            services=[target.value['services'][role] for role in BACKUP_WRITER_SERVICE_ROLES],status='quiesced',
+            prepared_at=prepared,stopped_at=backup['writers_stopped_at'])
+        files[target.value['state_directory']+'/backup-runs/'+backup['run_id']+'/quiesced.json']=q
+        self.assertEqual(_usable_recovery_anchor(target,runner)['captured_at'],prepared)
+
+
+    def test_remote_anchor_verification_cannot_outlive_the_native_proof_budget(self):
+        import subprocess,time
+        from operations.runtime import load_target
+        from operations.stack import _run_cohort
+        from scripts.tests.test_recovery_proof import TARGETS
+        target=load_target('production',TARGETS)
+        runner=mock.Mock();runner.deadline_monotonic=time.monotonic()+20
+        runner.run.return_value=subprocess.CompletedProcess([],0,'{}','')
+        _run_cohort(target,runner,'invented-image','anchor-verify',[])
+        command=runner.run.call_args.args[0]
+        self.assertEqual(command[command.index('--entrypoint')+1],'/usr/bin/timeout')
+        self.assertEqual(command[command.index('invented-image')+1:][:2],['--signal=TERM','--kill-after=5s'])
+        runner.reset_mock();runner.deadline_monotonic=time.monotonic()-1
+        with self.assertRaisesRegex(RuntimeError,'exhausted its proof deadline'):
+            _run_cohort(target,runner,'invented-image','anchor-verify',[])
+        runner.run.assert_not_called()
