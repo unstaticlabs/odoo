@@ -3,6 +3,7 @@
   "name": "staging",
   "environment": "staging",
   "protected": false,
+  "filesystem_scope": "host",
   "transport": {"type": "ssh", "host": "odoo"},
   "compose": {
     "project": "usl-odoo-staging-main",

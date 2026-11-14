@@ -261,6 +261,28 @@ class ReleaseManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ReleaseManifestError, "MCP support contract digest differs"):
             validate(_sign(value))
 
+    def test_created_release_advertises_guide_support_independently_of_legacy_client_pin(self):
+        value = self.create_release()
+        contract = value["mcp_contract"]
+        surface = json.loads((ROOT / "custom-addons/usl_access_control/policy/action_surface.json").read_text())
+        qualified_modules = sorted(item["name"] for item in surface["modules"])
+        self.assertEqual(contract["required_modules"], qualified_modules)
+        self.assertIn("usl_docs", contract["required_modules"])
+        guide_methods = {
+            "usl.docs.guide.search_pages",
+            "usl.docs.guide.read_page",
+            "usl.docs.guide.list_pages",
+        }
+        self.assertTrue(guide_methods <= set(contract["public_methods"]))
+        self.assertTrue(guide_methods <= set(contract["actions"]))
+        # The older embedded MCP remains independently pinned and compatible;
+        # its minimum requirements do not define everything Odoo can support.
+        from operations.mcp_release import load_release
+        legacy = load_release(ROOT)
+        self.assertEqual(value["mcp"]["commit"], legacy["commit"])
+        self.assertEqual(value["mcp"]["compatibility_sha256"], legacy["compatibility_sha256"])
+        self.assertEqual(validate(value)["identity"], value["identity"])
+
     def test_accepts_complete_content_addressed_release(self) -> None:
         self.assertEqual(validate(manifest(), commit=COMMIT)["schema"], "usl-release/v3")
 

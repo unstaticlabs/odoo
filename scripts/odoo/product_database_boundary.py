@@ -42,6 +42,7 @@ EXCLUDED_AUTO_INSTALL_MODULES = {
     "hr_gamification",
     "hr_skills_survey",
     "html_builder",
+    "l10n_fr_pdp_penalty_rate",
     "link_tracker",
     "mail_plugin",
     "mass_mailing",

@@ -380,6 +380,46 @@ class CommandTests(unittest.TestCase):
         self.assertIn("--no-recreate", up)
         self.assertIn("--no-deps", up)
 
+    def test_missing_anchor_wake_starts_only_the_retained_admitted_context(self) -> None:
+        host = FakeHost(self.target, running=False)
+        host.files[self.path] = lifecycle.dumps(active_state(state="sleeping"))
+        original_run = host.run
+        def run(command, **kwargs):
+            if command[:2] == ["docker", "ps"] and not any(str(x).startswith("label=com.docker.compose.service=") for x in command):
+                return host.completed(command, "")
+            return original_run(command, **kwargs)
+        host.run = run
+        active = {"generation": "g20261112-admitted"}
+        definition = {"odoo_postgres": {"name": "retained-database"}}
+        volume = {"Name": "retained-database", "Labels": {
+            "com.unstaticlabs.runtime.project": self.target.project,
+            "com.unstaticlabs.runtime.target": "staging",
+            "com.unstaticlabs.runtime.generation": active["generation"],
+            "com.unstaticlabs.runtime.role": "odoo_postgres"}}
+        recorded = {"anchor_service": "odoo-staging", "working_directory": "/retained/admitted-source"}
+        seen = []
+        def compose(identity, arguments):
+            seen.append(identity)
+            return ["docker", "compose", *arguments]
+        services = list(self.target.value["services"].values())
+        with mock.patch("operations.stack.inspect_runtime", side_effect=StackRuntimeError(
+                f"expected one {self.target.project}/odoo-staging container, found 0")), \
+                mock.patch("operations.stack.read_active_state", return_value=active), \
+                mock.patch("operations.stack.read_active_release", return_value={"schema": "usl-release/v3"}), \
+                mock.patch("operations.stack.effective_volumes", return_value=(definition, active["generation"])), \
+                mock.patch("operations.stack._volume_inspect", return_value=volume), \
+                mock.patch("operations.stack._observed_admission_receipt", return_value={"status": "verified"}), \
+                mock.patch("operations.stack._generation_base_compose_identity", return_value=recorded), \
+                mock.patch("operations.stack._runtime_start_plan", side_effect=lambda target, runner, current, **kwargs:
+                           (current["compose"], {}, services, {}, {})), \
+                mock.patch("operations.stack.compose_command", side_effect=compose):
+            result = wake_staging(self.target, host, reason="recovery:synthetic", now=lambda: at(0))
+        self.assertEqual(result["status"], "woken")
+        self.assertEqual(self.state(host)["state"], "active")
+        self.assertTrue(seen)
+        self.assertTrue(all(identity == recorded for identity in seen))
+        self.assertTrue(all(value == "running" for value in host.containers.values()))
+
     def test_wake_of_a_running_staging_is_idempotent_and_counts_as_activity(self) -> None:
         host = FakeHost(self.target)
         host.files[self.path] = lifecycle.dumps(active_state(last_ci_at=lifecycle.stamp(T0)))

@@ -101,6 +101,14 @@ exact commit marker in the retained GitOps run. When several runs of the same
 commit exist, identical canonical definitions are selected deterministically;
 different definitions report an ambiguity.
 
+If the Odoo anchor container was removed while staging slept, wake can recover
+its inventory from the digest-bound admission receipt and owned generation
+volumes. It resolves only that generation's retained Compose provenance, then
+runs the same image, volume and MCP reconciliation as an ordinary wake. Missing
+admission, foreign volume ownership or invalid provenance stops recovery before
+any container is created. This fallback applies only to on-demand staging;
+ordinary inspection and always-on production remain strict.
+
 Wake keeps independently admitted MCP authority, after checking that its
 compatibility contract fits the active Odoo release. Its image, build ID and
 revision label follow the selected MCP commit. The MCP override's

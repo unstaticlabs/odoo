@@ -1,0 +1,1043 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* usl_enablebanking
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-12 02:11+0000\n"
+"PO-Revision-Date: 2026-11-12 00:00+0000\n"
+"Last-Translator: Unstatic Labs\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "%(bank)s / %(account)s: %(message)s"
+msgstr "%(bank)s / %(account)s : %(message)s"
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_usl_enablebanking_account_alias_company_hash_unique
+msgid ""
+"A bank account identification must resolve to one account in each company."
+msgstr ""
+"Un identifiant bancaire doit désigner un seul compte dans chaque société."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "A bank account must belong to its connection's company."
+msgstr "Un compte bancaire doit appartenir à la société de sa connexion."
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_usl_enablebanking_import_entry_unique
+msgid "A bank entry can be imported only once for an account."
+msgstr ""
+"Une écriture bancaire ne peut être importée qu’une seule fois par compte."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"A bank entry reference has conflicting financial details. Nothing from this "
+"import was saved. Check the source transaction before retrying."
+msgstr ""
+"Une référence bancaire présente des données financières contradictoires. "
+"Aucune opération de cet import n’a été enregistrée. Vérifiez l’opération "
+"source avant de réessayer."
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_usl_enablebanking_account_journal_unique
+msgid "A bank journal can be mapped to only one connected account."
+msgstr ""
+"Un journal bancaire ne peut être associé qu’à un seul compte connecté."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"A booked amount cannot be represented at the account currency's precision. "
+"Nothing from this import was saved. Check the bank response before retrying."
+msgstr ""
+"Un montant comptabilisé par la banque ne peut pas être représenté avec la "
+"précision de la devise du compte. Aucune opération de cet import n’a été "
+"enregistrée. Vérifiez la réponse bancaire avant de réessayer."
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_online_bank_statement_provider_enablebanking_account_unique
+msgid "A connected account can have only one online provider."
+msgstr ""
+"Un compte connecté ne peut avoir qu’un seul fournisseur de synchronisation."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"A connection with discovered accounts must stay in its original company."
+msgstr ""
+"Une connexion comportant des comptes découverts doit conserver sa société "
+"d’origine."
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_usl_enablebanking_import_native_line_unique
+msgid "A native bank line can have only one provider provenance record."
+msgstr ""
+"Une opération bancaire Odoo ne peut avoir qu’un seul enregistrement de "
+"traçabilité du fournisseur."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_connection__status__expired
+msgid "Access expired"
+msgstr "Accès expiré"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__consent_until
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__consent_until
+msgid "Access expires"
+msgstr "Expiration de l’accès"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__account_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__account_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__account_id
+msgid "Account"
+msgstr "Compte"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__account_count
+msgid "Account Count"
+msgstr "Nombre de comptes"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__account_type
+msgid "Account Type"
+msgstr "Type de compte"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__account_number
+msgid "Account number"
+msgstr "Numéro de compte"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__account_ids
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_list
+msgid "Accounts"
+msgstr "Comptes"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Accounts are discovered through the bank connection."
+msgstr "Les comptes sont découverts par la connexion bancaire."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_connection__status__error
+msgid "Action needed"
+msgstr "Intervention nécessaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__alias_ids
+msgid "Alias"
+msgstr "Alias"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Already imported"
+msgstr "Déjà importées"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__amount
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__amount
+msgid "Amount"
+msgstr "Montant"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Application"
+msgstr "Application"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__app_id
+msgid "Application ID"
+msgstr "Identifiant de l’application"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Application ID from Enable Banking"
+msgstr "Identifiant de l’application Enable Banking"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_connection__app_id
+msgid ""
+"Application registered in Enable Banking. Its private key is mounted by your"
+" administrator, never entered here."
+msgstr ""
+"Application enregistrée chez Enable Banking. Sa clé privée est montée par "
+"votre administrateur et ne doit jamais être saisie ici."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__available
+msgid "Available"
+msgstr "Disponible"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Available personal accounts"
+msgstr "Comptes personnels disponibles"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__balance_ids
+msgid "Balance"
+msgstr "Solde"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__balance_type
+msgid "Balance Type"
+msgstr "Type de solde"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__bank_name
+msgid "Bank"
+msgstr "Banque"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Bank access"
+msgstr "Accès bancaire"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid ""
+"Bank access has expired. Open the bank connection to renew access. Existing "
+"imported transactions stay in place."
+msgstr ""
+"L’accès bancaire a expiré. Ouvrez la connexion bancaire pour le renouveler. "
+"Les opérations déjà importées sont conservées."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"Bank access has expired. Reconnect to renew access; existing journals and "
+"imported transactions stay in place."
+msgstr ""
+"L’accès bancaire a expiré. Reconnectez-vous pour le renouveler ; les "
+"journaux et les opérations déjà importées sont conservés."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Bank account"
+msgstr "Compte bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_usl_enablebanking_account_alias
+msgid "Bank account identification alias"
+msgstr "Alias d’identification du compte bancaire"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "Bank accounts"
+msgstr "Comptes bancaires"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"Bank authorization was cancelled or did not finish. Existing access is kept "
+"while it remains valid. Connect again to renew access."
+msgstr ""
+"L’autorisation bancaire a été annulée ou n’a pas abouti. L’accès existant "
+"est conservé tant qu’il reste valide. Reconnectez-vous pour le renouveler."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Bank balances"
+msgstr "Soldes bancaires"
+
+#. module: usl_enablebanking
+#: model:ir.actions.act_window,name:usl_enablebanking.connection_action
+#: model:ir.ui.menu,name:usl_enablebanking.connection_menu
+msgid "Bank connections"
+msgstr "Connexions bancaires"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid ""
+"Bank identity and import results are managed by the connection workflow."
+msgstr ""
+"L’identité bancaire et les résultats d’import sont gérés par le processus de"
+" connexion."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Bank import"
+msgstr "Import bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__product
+msgid "Bank product"
+msgstr "Produit bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__entry_reference
+msgid "Bank reference"
+msgstr "Référence bancaire"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "Bank session state is managed by the connection workflow."
+msgstr "L’état de la session bancaire est géré par le processus de connexion."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__line_id
+msgid "Bank transaction"
+msgstr "Opération bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_usl_enablebanking_import
+msgid "Bank transaction import provenance"
+msgstr "Traçabilité d’import de l’opération bancaire"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Bank type"
+msgstr "Type bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__booking_date
+msgid "Booking date"
+msgstr "Date de comptabilisation"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__callback_url
+msgid "Callback URL"
+msgstr "URL de retour"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__changed_at
+msgid "Changed at"
+msgstr "Dernière variation"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Choose a bank journal in this account's company and currency."
+msgstr ""
+"Choisissez un journal bancaire dans la société et la devise de ce compte."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Choose or create a bank journal for this account first."
+msgstr "Choisissez ou créez d’abord un journal bancaire pour ce compte."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid ""
+"Choose the account's bank journal, or create one using the journal selector."
+" Only booked transactions are imported, using the bank's booking date and "
+"currency. Repeating a period keeps existing imported entries."
+msgstr ""
+"Choisissez le journal bancaire du compte ou créez-en un avec le sélecteur de"
+" journal. Seules les opérations comptabilisées par la banque sont importées,"
+" avec leur date de comptabilisation bancaire et leur devise. Réimporter une "
+"période conserve les opérations existantes."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__company_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__company_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__company_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__company_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__company_id
+msgid "Company"
+msgstr "Société"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Connect bank"
+msgstr "Connecter la banque"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid ""
+"Connect to discover every account the bank makes available through Enable "
+"Banking. Products the bank does not expose through this service cannot be "
+"imported here."
+msgstr ""
+"Connectez-vous pour découvrir tous les comptes que la banque rend "
+"disponibles via Enable Banking. Les produits que la banque n’expose pas par "
+"ce service ne peuvent pas être importés ici."
+
+#. module: usl_enablebanking
+#: model_terms:ir.actions.act_window,help:usl_enablebanking.connection_action
+msgid "Connect your personal bank accounts"
+msgstr "Connecter vos comptes bancaires personnels"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_connection__status__connected
+msgid "Connected"
+msgstr "Connecté"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_online_bank_statement_provider__enablebanking_account_id
+msgid "Connected account"
+msgstr "Compte connecté"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_usl_enablebanking_account
+msgid "Connected bank account"
+msgstr "Compte bancaire connecté"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__connection_id
+msgid "Connection"
+msgstr "Connexion"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__country
+msgid "Country"
+msgstr "Pays"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__create_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__create_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__create_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__create_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__create_uid
+msgid "Created by"
+msgstr "Créé par"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__create_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__create_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__create_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__create_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__create_date
+msgid "Created on"
+msgstr "Créé le"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__currency_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__currency_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__currency_id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__currency_id
+msgid "Currency"
+msgstr "Devise"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_online_bank_statement_provider__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_online_bank_statement_pull_wizard__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__display_name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__display_name
+msgid "Display Name"
+msgstr "Nom affiché"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid ""
+"Each entry keeps its bank reference and the native transaction created by "
+"the import. Later journal changes do not move imported history."
+msgstr ""
+"Chaque opération conserve sa référence bancaire et l’opération Odoo créée "
+"par l’import. Un changement ultérieur de journal ne déplace pas l’historique"
+" importé."
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_usl_enablebanking_connection
+msgid "Enable Banking connection"
+msgstr "Connexion Enable Banking"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/provider.py:0
+msgid ""
+"Enable Banking imports booked bank lines in their bank booking date. Keep "
+"its mapped journal, UTC date handling and automatic statements disabled."
+msgstr ""
+"Enable Banking importe les opérations comptabilisées par la banque à leur "
+"date bancaire. Conservez le journal associé, le traitement des dates en UTC "
+"et la création automatique de relevés désactivée."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__financial_sha256
+msgid "Financial Sha256"
+msgstr "Empreinte financière SHA-256"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__import_from
+msgid "First booking date"
+msgstr "Première date de comptabilisation"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_account__import_from
+msgid ""
+"First booking date to request. Repeating an earlier period is safe when the "
+"bank supplies stable entry references."
+msgstr ""
+"Première date de comptabilisation bancaire à demander. Réimporter une "
+"période antérieure est sans doublon lorsque la banque fournit des références"
+" d’écriture stables."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Fortuneo"
+msgstr "Fortuneo"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"Fortuneo personal-account access is unavailable in the provider discovery "
+"response. Try again later."
+msgstr ""
+"L’accès aux comptes personnels Fortuneo est indisponible dans la réponse de "
+"découverte du fournisseur. Réessayez plus tard."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_connection__country__fr
+msgid "France"
+msgstr "France"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_online_bank_statement_provider__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_online_bank_statement_pull_wizard__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__id
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__id
+msgid "ID"
+msgstr "ID"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__identity_hash
+msgid "Identity Hash"
+msgstr "Empreinte d’identité"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Import booked transactions"
+msgstr "Importer les opérations comptabilisées"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid ""
+"Import complete: %(count)s new transactions, %(duplicates)s already "
+"imported."
+msgstr ""
+"Import terminé : %(count)s nouvelles opérations, %(duplicates)s déjà "
+"importées."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Import into Odoo"
+msgstr "Importer dans Odoo"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__import_ids
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Import provenance"
+msgstr "Traçabilité de l’import"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__imported_at
+msgid "Imported at"
+msgstr "Importé le"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Imported bank transactions"
+msgstr "Opérations bancaires importées"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__journal_id
+msgid "Journal"
+msgstr "Journal"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_duplicate_count
+msgid "Last Duplicate Count"
+msgstr "Nombre de doublons au dernier import"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_error
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__last_error
+msgid "Last Error"
+msgstr "Dernière erreur"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_error_code
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__last_error_code
+msgid "Last Error Code"
+msgstr "Code de la dernière erreur"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_imported_count
+msgid "Last Imported Count"
+msgstr "Nombre d’opérations au dernier import"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_pending_count
+msgid "Last Pending Count"
+msgstr "Nombre d’opérations non comptabilisées au dernier import"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__write_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__write_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__write_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__write_uid
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__write_uid
+msgid "Last Updated by"
+msgstr "Mis à jour par"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__write_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account_alias__write_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__write_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__write_date
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__write_date
+msgid "Last Updated on"
+msgstr "Mis à jour le"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__last_import_at
+msgid "Last successful import"
+msgstr "Dernier import réussi"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/provider.py:0
+msgid "Map a discovered bank account before configuring its provider."
+msgstr ""
+"Associez un compte bancaire découvert avant de configurer son fournisseur."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__name
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__name
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "New in last import"
+msgstr "Nouvelles au dernier import"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Not booked (excluded)"
+msgstr "Non comptabilisées (exclues)"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_online_bank_statement_provider
+msgid "Online Bank Statement Provider"
+msgstr "Fournisseur de relevés bancaires en ligne"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_online_bank_statement_pull_wizard
+msgid "Online Bank Statement Pull Wizard"
+msgstr "Assistant d’import de relevés bancaires en ligne"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid ""
+"Own-account mode uses the accounts you link to your Enable Banking "
+"application. The bank still asks you to authorize access. Your private "
+"signing key is configured by your administrator."
+msgstr ""
+"Le mode comptes propres utilise les comptes que vous liez à votre "
+"application Enable Banking. La banque vous demande ensuite une autorisation "
+"d’accès. Votre clé de signature privée est configurée par votre "
+"administrateur."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__provider_ids
+msgid "Provider"
+msgstr "Fournisseur"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Provider-reported balances"
+msgstr "Soldes communiqués par le fournisseur"
+
+#. module: usl_enablebanking
+#: model:ir.model,name:usl_enablebanking.model_usl_enablebanking_balance
+msgid "Provider-reported bank balance"
+msgstr "Solde bancaire communiqué par le fournisseur"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__reference_date
+msgid "Reference date"
+msgstr "Date de référence"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_connection__callback_url
+msgid ""
+"Register this exact HTTPS return URL on the Enable Banking application."
+msgstr ""
+"Enregistrez cette URL HTTPS de retour exacte dans l’application Enable "
+"Banking."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Renew bank access"
+msgstr "Renouveler l’accès bancaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_balance__retrieved_at
+msgid "Retrieved at"
+msgstr "Récupéré le"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Scheduled bank import"
+msgstr "Import bancaire planifié"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "Scheduled import"
+msgstr "Import planifié"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__session_id
+msgid "Session"
+msgstr "Session"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__session_uid
+msgid "Session Uid"
+msgstr "Identifiant de session du compte"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "Set Odoo's public HTTPS base URL before connecting a bank."
+msgstr "Définissez l’URL publique HTTPS d’Odoo avant de connecter une banque."
+
+#. module: usl_enablebanking
+#: model_terms:ir.actions.act_window,help:usl_enablebanking.connection_action
+msgid ""
+"Set up your Enable Banking application, then authorize Fortuneo to discover "
+"its available accounts. Map each account to its native Odoo bank journal."
+msgstr ""
+"Configurez votre application Enable Banking, puis autorisez Fortuneo pour "
+"découvrir les comptes disponibles. Associez chaque compte à son journal "
+"bancaire Odoo."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_connection__status__setup
+msgid "Setup needed"
+msgstr "Configuration nécessaire"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__signing_ready
+msgid "Signing Ready"
+msgstr "Clé de signature prête"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.connection_form
+msgid "Signing key configured"
+msgstr "Clé de signature configurée"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__stable_key
+msgid "Stable Key"
+msgstr "Identifiant stable"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__state_hash
+msgid "State Hash"
+msgstr "Empreinte de l’état de retour"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__state_until
+msgid "State Until"
+msgstr "Expiration de l’état de retour"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__state_user_id
+msgid "State User"
+msgstr "Utilisateur de l’état de retour"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__connection_status
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_connection__status
+msgid "Status"
+msgstr "Statut"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "Switch to the connection's company to continue."
+msgstr "Sélectionnez la société de la connexion pour continuer."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The application signing key is not configured. Ask your administrator to "
+"mount the company key, then reconnect."
+msgstr ""
+"La clé de signature de l’application n’est pas configurée. Demandez à votre "
+"administrateur de monter la clé de la société, puis reconnectez-vous."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The bank account and transaction currencies differ. Nothing from this import"
+" was saved. Check the account and journal currencies."
+msgstr ""
+"Les devises du compte bancaire et de l’opération diffèrent. Aucune opération"
+" de cet import n’a été enregistrée. Vérifiez les devises du compte et du "
+"journal."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/provider.py:0
+msgid ""
+"The bank preview could not be fetched reliably. No transaction or import "
+"checkpoint was changed."
+msgstr ""
+"L’aperçu bancaire n’a pas pu être récupéré de manière fiable. Aucune "
+"opération ni aucun point de reprise d’import n’a été modifié."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The bank returned a booked transaction without a stable entry reference. "
+"Nothing from this import was saved. Use the journal's native manual or file "
+"import while support checks the bank response before retrying."
+msgstr ""
+"La banque a retourné une opération comptabilisée sans référence d’écriture "
+"stable. Aucune opération de cet import n’a été enregistrée. Utilisez la "
+"saisie manuelle ou l’import de fichier du journal pendant que l’assistance "
+"vérifie la réponse bancaire, avant de réessayer."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The bank service could not complete the request. Try again later. The import"
+" checkpoint has not advanced."
+msgstr ""
+"Le service bancaire n’a pas pu terminer la demande. Réessayez plus tard. Le "
+"point de reprise d’import n’a pas avancé."
+
+#. module: usl_enablebanking
+#: model:ir.model.constraint,message:usl_enablebanking.constraint_usl_enablebanking_account_stable_key_unique
+msgid "The connected account identity must be unique."
+msgstr "L’identité du compte connecté doit être unique."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid ""
+"These are balances reported by the bank, with their original type, currency "
+"and reference time. They are separate from Odoo's ledger balance and do not "
+"certify a statement."
+msgstr ""
+"Ces soldes sont communiqués par la banque avec leur type, leur devise et "
+"leur date de référence d’origine. Ils sont distincts du solde comptable Odoo"
+" et ne certifient pas un relevé."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"This account is absent from the current bank session. Renew access on the "
+"connection and check the accounts offered by the bank. Existing imported "
+"history is kept."
+msgstr ""
+"Ce compte est absent de la session bancaire actuelle. Renouvelez l’accès sur"
+" la connexion et vérifiez les comptes proposés par la banque. L’historique "
+"importé est conservé."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid ""
+"This account is unavailable in the current bank session. Renew access on the"
+" connection to check which accounts the bank exposes."
+msgstr ""
+"Ce compte n’est pas disponible dans la session bancaire actuelle. Renouvelez"
+" l’accès sur la connexion pour vérifier les comptes exposés par la banque."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/provider.py:0
+msgid "This bank account is already importing. Try again shortly."
+msgstr ""
+"Un import est déjà en cours pour ce compte bancaire. Réessayez dans un "
+"instant."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"This bank connection return has expired or belongs to another user. Start "
+"Connect again."
+msgstr ""
+"Ce retour bancaire a expiré ou appartient à un autre utilisateur. Relancez "
+"la connexion."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "This connection is already being updated. Try again shortly."
+msgstr ""
+"Cette connexion est déjà en cours de mise à jour. Réessayez dans un instant."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__unique_import_id
+msgid "Unique Import"
+msgstr "Identifiant d’import unique"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_account__journal_id
+msgid ""
+"Use the account's existing bank journal, or create one through the native "
+"journal form."
+msgstr ""
+"Utilisez le journal bancaire existant du compte ou créez-en un avec le "
+"formulaire de journal Odoo."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__value_date
+msgid "Value date"
+msgstr "Date de valeur"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_form
+msgid "View imported transactions"
+msgstr "Voir les opérations importées"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid "connection_id"
+msgstr "Identifiant de connexion"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "id"
+msgstr "Identifiant"
+
+#. module: usl_enablebanking
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"Odoo could not import the bank response reliably. Nothing from this import "
+"was saved. Ask support to check the response."
+msgstr ""
+"Odoo n’a pas pu importer la réponse bancaire de manière fiable. Aucune "
+"opération de cet import n’a été enregistrée. Demandez à l’assistance de "
+"vérifier la réponse."
+
+#. module: usl_enablebanking
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The bank connection could not be started reliably. Check the application "
+"configuration and try again."
+msgstr ""
+"La connexion bancaire n’a pas pu être démarrée de manière fiable. Vérifiez "
+"la configuration de l’application et réessayez."
+
+#. module: usl_enablebanking
+#: code:addons/usl_enablebanking/models/connection.py:0
+msgid ""
+"The bank requires a new authorization. Renew access on the connection, then "
+"retry this account. Existing imported transactions are kept."
+msgstr ""
+"La banque exige une nouvelle autorisation. Renouvelez l’accès sur la "
+"connexion, puis réessayez pour ce compte. Les opérations déjà importées sont"
+" conservées."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_import__line_origin
+msgid "Origin"
+msgstr "Origine"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_import__line_origin__created
+msgid "Created by import"
+msgstr "Créée par l’import"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields.selection,name:usl_enablebanking.selection__usl_enablebanking_import__line_origin__matched_existing
+msgid "Matched existing"
+msgstr "Opération existante associée"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,help:usl_enablebanking.field_usl_enablebanking_import__line_origin
+msgid ""
+"An exact existing import identity may be linked without changing its native "
+"bank transaction."
+msgstr ""
+"Une identité d’import existante exacte peut être associée sans modifier "
+"l’opération bancaire Odoo."
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__balance_error_code
+msgid "Balance Error Code"
+msgstr "Code d’erreur du solde"
+
+#. module: usl_enablebanking
+#: model:ir.model.fields,field_description:usl_enablebanking.field_usl_enablebanking_account__balance_warning
+msgid "Balance Warning"
+msgstr "Avertissement sur les soldes"
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid ""
+"Booked transactions were imported, but bank balances could not be refreshed."
+" Previously retrieved balances, if any, keep their original dates. Try the "
+"import again to refresh balances."
+msgstr ""
+"Les opérations comptabilisées par la banque ont été importées, mais les "
+"soldes bancaires n’ont pas pu être actualisés. Les soldes déjà récupérés, le"
+" cas échéant, conservent leurs dates d’origine. Relancez l’import pour "
+"actualiser les soldes."
+
+#. module: usl_enablebanking
+#. odoo-python
+#: code:addons/usl_enablebanking/models/account.py:0
+msgid "Renew bank access on the connection before retrying."
+msgstr "Renouvelez l’accès bancaire depuis la connexion avant de réessayer."
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "<span class=\"text-muted\">Journal</span>"
+msgstr "<span class=\"text-muted\">Journal</span>"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "<span>Last successful import</span>:"
+msgstr "<span>Dernier import réussi</span> :"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "No journal selected"
+msgstr "Aucun journal sélectionné"
+
+#. module: usl_enablebanking
+#: model_terms:ir.ui.view,arch_db:usl_enablebanking.account_kanban
+msgid "Unavailable in this session"
+msgstr "Indisponible dans cette session"

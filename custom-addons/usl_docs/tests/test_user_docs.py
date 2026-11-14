@@ -258,6 +258,20 @@ class TestUserDocsViewer(GuideFixture, HttpCase):
         self.assertIn("Parce que.", full.text)
         self.assertIn("Pick the signers", full.text)
 
+    def test_native_api_docs_describe_readonly_guide_methods(self):
+        if not self.env["ir.module.module"].search_count([
+            ("name", "=", "api_doc"), ("state", "=", "installed"),
+        ]):
+            self.skipTest("the native API documentation app is not installed")
+        self.reader.group_ids |= self.env.ref("api_doc.group_allow_doc")
+        self._reader()
+        response = self.url_open("/doc/usl.docs.guide.json", allow_redirects=False)
+        self.assertEqual(response.status_code, 200, response.text)
+        document = response.json()
+        self.assertEqual(document["model"], "usl.docs.guide")
+        for method in ("search_pages", "read_page", "list_pages"):
+            self.assertIn("readonly", document["methods"][method]["api"])
+
     def test_the_guide_is_data_too(self):
         self.env["ir.config_parameter"].sudo().set_str("usl.release.commit", COMMIT)
         self._reader()
@@ -360,6 +374,13 @@ class TestGuideModel(GuideFixture, TransactionCase):
         self._mount_guide()
         self.reader = new_test_user(self.env, login="usl-docs-model-reader", groups="base.group_user")
         self.portal = new_test_user(self.env, login="usl-docs-model-portal", groups="base.group_portal")
+
+    def test_native_read_access_does_not_grant_mutations(self):
+        model = self.env["usl.docs.guide"].with_user(self.reader)
+        self.assertTrue(model.has_access("read"))
+        for operation in ("create", "write", "unlink"):
+            self.assertFalse(model.has_access(operation), operation)
+        self.assertFalse(model.with_user(self.portal).has_access("read"))
 
     def test_search_read_and_list(self):
         model = self.env["usl.docs.guide"].with_user(self.reader)

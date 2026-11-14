@@ -13,6 +13,7 @@ source:
   - custom-addons/usl_documents
   - custom-addons/usl_documents_accounting
   - custom-addons/usl_documents_b2c
+  - custom-addons/usl_enablebanking
   - custom-addons/usl_expense_batch
   - custom-addons/usl_feedback
   - custom-addons/usl_home
@@ -153,6 +154,13 @@ The lifecycle values of every product record, in the order the product moves thr
 - **Rejected** (`rejected`)
 - **Duplicate Ignored** (`duplicate`)
 - **Needs Attention** (`technical_error`)
+
+## Enable Banking connection: Status
+
+- **Setup needed** (`setup`)
+- **Connected** (`connected`)
+- **Access expired** (`expired`)
+- **Action needed** (`error`)
 
 ## Expense Bank Match Candidate: State
 

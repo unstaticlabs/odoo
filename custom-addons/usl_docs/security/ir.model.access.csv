@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_usl_docs_guide_internal,USL user guide internal read,model_usl_docs_guide,base.group_user,1,0,0,0

@@ -164,11 +164,14 @@ export class PaymentStripe extends PaymentInterface {
             return false;
         }
         line.setPaymentStatus("waitingCard");
+        const config = this.pos.config;
         const collectPaymentMethod = await this.terminal.collectPaymentMethod(clientSecret, {
             config_override: {
                 enable_customer_cancellation: true,
-                // Odoo does not record a tip chosen on the reader, so Stripe would charge it unseen
-                skip_tipping: true,
+                skip_tipping:
+                    config.self_ordering_mode === "kiosk" ||
+                    config.set_tip_after_payment ||
+                    !(config.iface_tipproduct && config.tip_product_id),
             },
         });
         if (collectPaymentMethod.error) {
@@ -192,6 +195,7 @@ export class PaymentStripe extends PaymentInterface {
                 line.uiState.stripeCardPresentNetwork = paymentMethodDetails?.card_present?.network;
                 line.uiState.stripeOvercaptureSupported =
                     paymentMethodDetails?.card_present?.overcapture_supported;
+                await this.addTerminalTip(line, processPayment.paymentIntent);
 
                 const [captured_card_type, captured_transaction_id] =
                     this._getCapturedCardAndTransactionId(processPayment);
@@ -208,6 +212,21 @@ export class PaymentStripe extends PaymentInterface {
                 line.setPaymentStatus("done");
                 return true;
             }
+        }
+    }
+
+    async addTerminalTip(line, paymentIntent) {
+        const tip = paymentIntent.amount_details?.tip?.amount;
+        if (tip > 0) {
+            const currency = line.pos_order_id.currency;
+            const tipProduct = this.pos.config.tip_product_id;
+            const existingTip = line.pos_order_id.lines.find(
+                (orderLine) => orderLine.product_id.id === tipProduct.id
+            );
+            await this.pos.setTip(
+                (existingTip?.price_unit ?? 0) + currency.round(tip * currency.rounding)
+            );
+            line.setAmount(paymentIntent.amount * currency.rounding);
         }
     }
 
@@ -322,10 +341,16 @@ export class PaymentStripe extends PaymentInterface {
 
     async capturePayment(paymentIntentId, amount = null, context = {}) {
         try {
-            const data = await this.callPaymentMethod("stripe_capture_payment", [paymentIntentId], {
-                amount,
-                context,
-            });
+            // The kiosk patch of callPaymentMethod drops kwargs, only a tip capture needs them
+            const data =
+                amount === null
+                    ? await this.callPaymentMethod("stripe_capture_payment", [paymentIntentId])
+                    : await this.env.services.orm.silent.call(
+                          "pos.payment.method",
+                          "stripe_capture_payment",
+                          [paymentIntentId],
+                          { amount, context }
+                      );
             if (data.error) {
                 throw data.error;
             }

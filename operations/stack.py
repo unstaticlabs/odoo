@@ -20,6 +20,9 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from operations import backup_maintenance
+from operations import historical_capture
+from operations import host_filesystem
 from operations import staging_lifecycle as lifecycle
 from operations import staging_wake_oidc as wake_oidc
 from operations import upgrade_preservation
@@ -45,6 +48,9 @@ from operations.control_manifest import (
     ControlManifestError,
     release_definitions_digest,
     validate_restore,
+    validate_recovery_restore,
+    validate_workflow_failures,
+    workflow_failure_sql,
 )
 from operations.cron_policy import (
     INVENTORY_SQL as CRON_INVENTORY_SQL,
@@ -86,12 +92,14 @@ from operations.release_controller import (
 )
 from operations.release_manifest import ReleaseManifestError
 from operations.release_manifest import validate as validate_release
+from operations.release_status import observe as observe_release_status
 from operations.runtime import (
     MCP_RETAINED_LEDGER_SCAN,
     RuntimeError,
     Target,
     compose_command,
     compose_identity,
+    effective_volumes,
     inspect_runtime,
     load_target,
     read_active_release,
@@ -1378,7 +1386,7 @@ def wake_staging(
                 }
         started = time.monotonic()
         try:
-            current = inspect_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner, for_start=True)
             plan = _runtime_start_plan(target, runner, current, mcp_authority=False)
             _identity, _config, services, drift, states = plan
             matches = (
@@ -2288,6 +2296,14 @@ def _cohort_command(
     *,
     volumes=None,
 ) -> list[str]:
+    if action == "anchor-verify":
+        # Metadata-only verification never mounts application data or creates a
+        # missing source volume while another proof is being published.
+        return ["docker", "run", "--rm", "--network", target.value["compose"]["default_network"],
+                "--env-file", target.value["secrets"]["env_file"],
+                "--env", f"RESTIC_REPOSITORY={target.value['backup']['durable_repository']}",
+                "--env", f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
+                "--env", f"USL_TARGET={target.name}", *_local_restic_mounts(target), image, action, *arguments]
     volumes = volumes or target.value["volumes"]
     paths = target.value["paths"]
     command = [
@@ -2386,7 +2402,17 @@ def _run_cohort(
     volumes=None,
     input_text: str | None = None,
 ):
+    if target.value["environment"] == "production" and action in {"retention-plan", "retention-apply"}:
+        anchor = _usable_recovery_anchor(target, runner)
+        arguments = [*arguments, "--protected-anchor-json", json.dumps(anchor, sort_keys=True)]
     command = _cohort_command(target, image, action, arguments, volumes=volumes)
+    if action == "anchor-verify" and type(getattr(runner, "deadline_monotonic", None)) in (int, float):
+        remaining = runner.deadline_monotonic - time.monotonic()
+        if remaining <= 0:
+            raise RuntimeError("recovery anchor publication exhausted its proof deadline; previous anchor preserved")
+        insertion = command.index(image)
+        command[insertion:insertion] = ["--entrypoint", "/usr/bin/timeout"]
+        command[insertion + 3:insertion + 3] = ["--signal=TERM", "--kill-after=5s", f"{remaining:.3f}s", "/usr/local/bin/usl-cohort-runtime"]
     if input_text is not None:
         command.insert(2, "-i")
     if environment:
@@ -3852,7 +3878,7 @@ def _start_rollback_identity(target, runner, identity: dict) -> None:
     services = _compose_services(target, identity, runner)
     runner.run(compose_command(
         identity,
-        ["create", "--force-recreate", "--no-deps", *services],
+        ["up", "--no-start", "--force-recreate", "--no-deps", *services],
     ))
     legacy = runner.run(
         [
@@ -4102,6 +4128,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
             writers_resumed_at = None
             writer_services = []
             quiescence = None
+            capture_maintenance = None
             baseline_runtime_sha256 = _runtime_cas_sha256(target, runner, runtime)
             if not arguments.resume:
                 identity = compose_identity(target, runner)
@@ -4164,25 +4191,26 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
                 )
                 _record_event(target, runner, run_id, "backup", "capture", "started")
-                runner.run(compose_command(
-                    identity, ["stop", "--timeout", "30", *writer_services],
-                ))
-                writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                stopped_quiescence = _backup_quiescence_receipt(
-                    target=target.name,
-                    run_id=run_id,
-                    baseline=baseline_runtime_sha256,
-                    services=writer_services,
-                    status="quiesced",
-                    prepared_at=prepared_at,
-                    stopped_at=writers_stopped_at,
-                )
-                _write_remote(
-                    target, runner, f"{quiescence_root}/quiesced.json",
-                    json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
-                )
+                capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
                 capture_succeeded = False
                 try:
+                    runner.run(compose_command(
+                        identity, ["stop", "--timeout", "30", *writer_services],
+                    ))
+                    writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                    stopped_quiescence = _backup_quiescence_receipt(
+                        target=target.name,
+                        run_id=run_id,
+                        baseline=baseline_runtime_sha256,
+                        services=writer_services,
+                        status="quiesced",
+                        prepared_at=prepared_at,
+                        stopped_at=writers_stopped_at,
+                    )
+                    _write_remote(
+                        target, runner, f"{quiescence_root}/quiesced.json",
+                        json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                    )
                     captured = capture_phase()
                     _write_remote(
                         target,
@@ -4199,6 +4227,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                             ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
                         ))
                         writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                        backup_maintenance.release(runner, capture_maintenance)
                 if leave_quiesced:
                     quiescence = stopped_quiescence
                 freeze_seconds = round(time.monotonic() - freeze_started, 3)
@@ -4241,6 +4270,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     target, runner, inspect_runtime(target, runner),
                 ) != baseline_runtime_sha256:
                     raise RuntimeError("writer recovery changed the backup baseline")
+                backup_maintenance.release(runner, capture_maintenance)
             upload_started = time.monotonic()
             _record_event(target, runner, run_id, "backup", "upload", "started")
             try:
@@ -8446,6 +8476,11 @@ def _validate_digested_document(value: object, *, schema: str, proof_id: str) ->
             "duration_seconds", "status", "sha256",
         },
     }.get(schema)
+    if schema == "usl-disposable-recovery-proof/v3":
+        fields = {"schema", "proof_id", "source", "release", "backup", "materialization",
+                  "runtime", "health", "smoke", "durable_state", "reusable_cache",
+                  "ownership", "cleanup", "isolation", "started_at", "completed_at",
+                  "duration_seconds", "max_duration_seconds", "status", "sha256", "workflow_failures"}
     if fields is None or set(value) != fields:
         raise RuntimeError("recovery proof evidence fields differ")
     if value.get("proof_id") != proof_id:
@@ -8492,11 +8527,26 @@ def _validate_recovery_proof_nested(value: object, path: str = "receipt") -> Non
 
 
 def _validate_recovery_proof_receipt(value: object, proof_id: str) -> dict:
-    receipt = _validate_digested_document(
-        value,
-        schema="usl-disposable-recovery-proof/v2",
-        proof_id=proof_id,
-    )
+    schema = value.get("schema") if isinstance(value, dict) else None
+    if schema not in {"usl-disposable-recovery-proof/v2", "usl-disposable-recovery-proof/v3"}:
+        raise RuntimeError("recovery proof completion schema is invalid")
+    receipt = _validate_digested_document(value, schema=schema, proof_id=proof_id)
+    if schema == "usl-disposable-recovery-proof/v3":
+        smoke_context = receipt.get("smoke")
+        if not isinstance(smoke_context, dict):
+            raise RuntimeError("recovery proof workflow smoke container is invalid")
+        controls = smoke_context.get("controls")
+        if not isinstance(controls, dict):
+            raise RuntimeError("recovery proof workflow smoke controls container is invalid")
+        try:
+            failures = validate_workflow_failures(receipt["workflow_failures"])
+            smoke_failures = validate_workflow_failures(controls.get("workflow_failures"))
+        except ControlManifestError as error:
+            raise RuntimeError(str(error)) from error
+        if (smoke_failures != failures
+                or controls.get("preserved_source_failures") != sorted(
+                    role for role, item in failures["roles"].items() if item["count"])):
+            raise RuntimeError("recovery proof workflow failure evidence differs")
     _validate_recovery_proof_nested(receipt)
     release = receipt["release"]
     backup = receipt["backup"]
@@ -8754,22 +8804,31 @@ def _recovery_proof_capacity(target, runner, tool_image: str, runtime: dict) -> 
     if not docker_root.startswith("/"):
         raise RuntimeError("recovery proof Docker storage root is invalid")
     source, available = _filesystem_capacity(runner, docker_root)
+    # Disposable proof volumes all live on Docker's filesystem. Honour the
+    # largest configured reserve for that filesystem without adding the same
+    # reserve twice when several storage tiers share it.
+    reserve = MINIMUM_FREE_BYTES
+    for definition in target.value["storage"]["tiers"].values():
+        tier_source, tier_available = _filesystem_capacity(runner, definition["path"])
+        if tier_source == source:
+            reserve = max(reserve, definition["reserve_bytes"])
+            available = min(available, tier_available)
     candidate = _measure_candidate_bytes(target, runner, tool_image, runtime)
     candidate_bytes = sum(candidate.values())
-    required = candidate_bytes + MINIMUM_FREE_BYTES
+    required = candidate_bytes + reserve
     if available < required:
         raise RuntimeError(
             "recovery proof capacity refused on "
             f"{source}: {available / 1024**3:.1f} GiB free, "
             f"{candidate_bytes / 1024**3:.1f} GiB measured cohort, "
-            f"{MINIMUM_FREE_BYTES / 1024**3:.1f} GiB reserve",
+            f"{reserve / 1024**3:.1f} GiB reserve",
         )
     return {
         "schema": "usl-recovery-proof-capacity/v1",
         "source": source,
         "available_bytes": available,
         "candidate_bytes": candidate_bytes,
-        "reserve_bytes": MINIMUM_FREE_BYTES,
+        "reserve_bytes": reserve,
         "required_bytes": required,
         "status": "passed",
     }
@@ -9568,6 +9627,29 @@ def _recovery_proof_runtime_health(
     raise RuntimeError(f"recovery proof runtime did not become ready: {last_error}") from last_error
 
 
+def _validate_recovered_services(
+    target, runner, names: dict, release: dict, backup: dict, proof_root: str,
+    images: dict, source_failures: dict, *, started: float, deadline_at: str,
+) -> tuple[dict, dict, dict, dict]:
+    """Finish service journeys before attesting that source failures stayed exact."""
+    health, smoke = _recovery_proof_runtime_health(
+        target, runner, names, release, started=started, deadline_at=deadline_at,
+    )
+    durable, cache = _recovery_proof_durable_state(
+        target, runner, names, release, backup, proof_root, images,
+    )
+    try:
+        baseline = validate_workflow_failures(source_failures)
+        final_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
+    except ControlManifestError as error:
+        raise RuntimeError(str(error)) from error
+    if baseline != final_failures:
+        raise RuntimeError("recovery service journeys changed failed-work identity, state or error evidence")
+    return health, smoke, durable, cache
+
+
 def _recovery_proof_isolation(runner, names: dict) -> str:
     network = runner.run([
         "docker", "network", "inspect", names["network"],
@@ -10176,6 +10258,11 @@ def _recovery_proof_command_locked(
         if arguments.failure_after == stage:
             raise RuntimeError(f"injected recovery proof failure after {stage}")
 
+        # The verified dump has been restored, and no application or quarantine
+        # code has run yet. This is the trusted baseline, not a caller assertion.
+        source_workflow_failures = validate_workflow_failures(_recovery_proof_query(
+            target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+        ))
         quarantine = _run_production_boundary_script(
             target, runner, release, names["network"], names["volumes"],
             "production_quarantine.py", release["identity"], "USL_PRODUCTION_QUARANTINE=",
@@ -10218,10 +10305,13 @@ def _recovery_proof_command_locked(
             ),
         }
         try:
-            control_validation = validate_restore(
-                materialized["controls"],
-                restored_controls,
-                require_unchanged_release=True,
+            restored_workflow_failures = _recovery_proof_query(
+                target, runner, names["containers"]["odoo_db"], "odoo", workflow_failure_sql(),
+            )
+            control_validation = validate_recovery_restore(
+                materialized["controls"], restored_controls,
+                source_failures=source_workflow_failures,
+                restored_failures=restored_workflow_failures,
             )
         except ControlManifestError as error:
             raise RuntimeError(str(error)) from error
@@ -10243,14 +10333,11 @@ def _recovery_proof_command_locked(
             for role in cache_role_names
         ):
             raise RuntimeError("recovery proof reusable cache classification differs")
-        health, smoke = _recovery_proof_runtime_health(
-            target, runner, names, release,
+        health, smoke, durable_state, cache_roles = _validate_recovered_services(
+            target, runner, names, release, backup, proof_root, images, source_workflow_failures,
             started=started_monotonic, deadline_at=deadline_at,
         )
         health["databases"] = database_health
-        durable_state, cache_roles = _recovery_proof_durable_state(
-            target, runner, names, release, backup, proof_root, images,
-        )
         for role, identity in captured_cache.items():
             cache_roles[role]["capture_identity_sha256"] = hashlib.sha256(json.dumps(
                 identity, sort_keys=True, separators=(",", ":"),
@@ -10366,7 +10453,8 @@ def _recovery_proof_command_locked(
         runner,
         receipt_path,
         {
-            "schema": "usl-disposable-recovery-proof/v2",
+            "schema": "usl-disposable-recovery-proof/v3",
+            "workflow_failures": source_workflow_failures,
             "proof_id": proof_id,
             "source": "production",
             "release": {
@@ -10429,6 +10517,8 @@ def _recovery_proof_command_locked(
         )
         if persisted != receipt:
             raise RuntimeError("recovery proof final receipt read-back differs")
+        _require_recovery_proof_deadline(started_monotonic, deadline_at)
+        _publish_usable_recovery_anchor(target, runner, receipt, tool_image)
     except Exception as error:
         _write_recovery_proof_failure(
             target, final_failure_runner, proof_root, proof_id, "final-write", error, cleanup,
@@ -10439,6 +10529,64 @@ def _recovery_proof_command_locked(
     _retain_recovery_proof_captures(target)
     print(json.dumps(receipt, indent=None if arguments.json else 2, sort_keys=True))
     return 0
+
+
+def _inspect_runtime_or_admitted(target, runner, *, for_start: bool = False) -> dict:
+    """Recover on-demand inventory from admission when its anchor is absent.
+
+    Normal inspection remains strict and cheap. Cold wake additionally resolves
+    only the recorded generation's Compose provenance, never desired files.
+    """
+    try:
+        return inspect_runtime(target, runner)
+    except RuntimeError as error:
+        anchor = target.value["compose"]["anchor_service"]
+        missing = f"expected one {target.project}/{anchor} container, found 0"
+        if target.value["lifecycle"]["mode"] != "on_demand" or str(error) != missing:
+            raise
+    active = read_active_state(target, runner)
+    if active is None:
+        raise RuntimeError("retained runtime requires an admitted generation")
+    release = read_active_release(target, runner, active)
+    definitions, generation = effective_volumes(target, runner)
+    if generation != active["generation"]:
+        raise RuntimeError("retained runtime generation changed during inspection")
+    for role, definition in definitions.items():
+        volume = _volume_inspect(runner, definition["name"])
+        labels = volume.get("Labels") or {}
+        expected_labels = {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": generation,
+            "com.unstaticlabs.runtime.role": role,
+        }
+        if volume.get("Name") != definition["name"] or any(
+            labels.get(key) != expected for key, expected in expected_labels.items()
+        ):
+            raise RuntimeError("retained runtime volume ownership differs from admission")
+    identifiers = runner.run([
+        "docker", "ps", "--all", "--filter",
+        f"label=com.docker.compose.project={target.project}", "--format", "{{.ID}}",
+    ]).stdout.split()
+    containers = []
+    template = ('[{{json .Id}},{{json .State.Status}},'
+                '{{json (index .Config.Labels "com.docker.compose.service")}}]')
+    for identifier in identifiers:
+        value = json.loads(runner.run(["docker", "inspect", identifier, "--format", template]).stdout)
+        identifier, state, service = value
+        if service == anchor:
+            raise RuntimeError("retained runtime anchor appeared during inspection")
+        containers.append({"ID": identifier, "State": state, "Service": service})
+    current = {
+        "volumes": definitions, "generation": generation,
+        "active_state": active, "containers": containers,
+    }
+    _observed_admission_receipt(target, runner, current)
+    if for_start:
+        if release["schema"] != "usl-release/v3" or _generation_compose_contract(target) is None:
+            raise RuntimeError("cold wake requires retained generation Compose provenance")
+        current["compose"] = _generation_base_compose_identity(target, runner, active, {}, release)
+    return current
 
 
 def _cleanup_workspaces(target, runner, protected_generations: set[str]) -> list[str]:
@@ -10565,6 +10713,297 @@ def _qualified_capture(target, runner, run_id: str) -> dict | None:
     ):
         return None
     return {"created_at": created_at}
+
+
+def _legacy_capture_retirement(
+    target, runner, run_id: str, replacement: str, protected_commits: set[str],
+) -> dict:
+    """Review one explicitly named legacy payload; never infer ownership from age.
+
+    This only retires local copies. Qualified remote snapshots and retained
+    receipts remain under the cohort retention policy.
+    """
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or run_id == replacement
+        or _capture_attempt(target, run_id) is not None or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("legacy capture identity is invalid or already managed")
+    if _capture_attempt(target, replacement) is None and not _proof_capture(target, replacement):
+        raise RuntimeError("replacement must be a managed qualified capture")
+    identities = {}
+    dates = {}
+    for label, name in (("capture", run_id), ("replacement", replacement)):
+        root = f"{target.value['state_directory']}/{name}"
+        probe = runner.run(
+            ["find", root, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
+            check=False,
+        )
+        if probe.returncode or probe.stdout.strip() != "d":
+            raise RuntimeError(f"{label} must be a real directory")
+        capture = _qualified_capture(target, runner, name)
+        if capture is None:
+            raise RuntimeError(f"{label} is not qualified")
+        raw = runner.run(["cat", f"{root}/manifest.json"]).stdout
+        manifest = validate_cohort_manifest(json.loads(raw))
+        state = json.loads(runner.run(["cat", f"{root}/state.json"]).stdout)
+        if label == "capture" and manifest["release"]["commit"] in protected_commits:
+            raise RuntimeError("legacy capture belongs to a protected release")
+        identities[label] = {
+            "manifest_sha256": hashlib.sha256(raw.encode()).hexdigest(),
+            "durable_snapshot_id": state["durable_snapshot_id"],
+            "cache_snapshot_id": state["cache_snapshot_id"],
+            "release_commit": manifest["release"]["commit"],
+        }
+        dates[label] = capture["created_at"]
+    if dates["replacement"] <= dates["capture"]:
+        raise RuntimeError("replacement must be newer than the legacy capture")
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "replacement": replacement,
+        "capture_identity": identities["capture"], "replacement_identity": identities["replacement"],
+    }
+
+
+def _historical_capture_retirement(
+    target, runner, run_id: str, protected_commits: set[str], archive: dict,
+    repository: str, image: str,
+) -> dict:
+    """Relocate historical bytes using their own exact offsite archive anchor."""
+    reserved = {"generations", "runs", "attempts", "backup-runs", "retired-captures", "historical-archives"}
+    if (
+        not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}", run_id)
+        or run_id in reserved or _capture_attempt(target, run_id) is not None
+        or _proof_capture(target, run_id)
+    ):
+        raise RuntimeError("historical capture identity is invalid or already managed")
+    path = f"{target.value['state_directory']}/{run_id}"
+    probe = runner.run([
+        "find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n",
+    ], check=False)
+    if probe.returncode or probe.stdout.strip() != "d":
+        raise RuntimeError("historical capture must be a real directory")
+    identity = historical_capture.capture_identity(
+        runner.run(["cat", f"{path}/manifest.json"]).stdout,
+        json.loads(runner.run(["cat", f"{path}/state.json"]).stdout),
+        target=target.name, capture=run_id,
+    )
+    if identity["release_commit"] in protected_commits:
+        raise RuntimeError("historical capture belongs to a protected release")
+    program = (
+        "import json;from pathlib import Path;from operations.cohort import tree_identity;"
+        "from operations.historical_capture import metadata_identity;"
+        "p=Path('/capture');print(json.dumps({'tree':tree_identity(p),"
+        "'metadata_sha256':metadata_identity(p)}))"
+    )
+    tree = json.loads(runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only", "--cap-drop", "ALL",
+        "--cap-add", "DAC_OVERRIDE", "--user", "0:0", "--volume", f"{path}:/capture:ro", "--entrypoint", "python3", image, "-c", program,
+    ]).stdout)
+    historical_capture.validate_archive(
+        archive, target=target.name, capture=run_id, manifest_sha256=identity["manifest_sha256"],
+        repository=repository, actual_tree=tree["tree"],
+        actual_metadata_sha256=tree["metadata_sha256"],
+    )
+    return {
+        "schema": "usl-legacy-capture-retirement/v1", "target": target.name,
+        "capture": run_id, "capture_identity": identity,
+        "historical_archive": archive, "preservation_kind": "exact-historical-archive",
+        "modern_recovery_certified": False,
+    }
+
+
+def _canonical_filesystem_paths(runner, paths: list[str]) -> list[str]:
+    observed = host_filesystem.observe(runner, paths)
+    if observed is not None:
+        return observed["canonical_paths"]
+    values = runner.run(["readlink", "-m", "--", *paths]).stdout.splitlines()
+    if len(values) != len(paths) or any(not value.startswith("/") for value in values):
+        raise RuntimeError("capture filesystem references are invalid")
+    return values
+
+
+def _assert_capture_unmounted(runner, path: str) -> None:
+    # Mount targets alone miss captures bound elsewhere on the same filesystem.
+    # Compare kernel filesystem roots as well, without treating broad ancestor
+    # management mounts as references to every file they can see.
+    observed = host_filesystem.observe(runner, [path])
+    path = observed["canonical_paths"][0] if observed is not None else _canonical_filesystem_paths(runner, [path])[0]
+    try:
+        inventory = {"filesystems": observed["mounts"]} if observed is not None else json.loads(runner.run([
+            "findmnt", "--json", "--output", "TARGET,FSROOT,MAJ:MIN,FSTYPE",
+        ]).stdout)
+        pending = list(inventory["filesystems"])
+        mounts = []
+        while pending:
+            mount = pending.pop()
+            destination, root, device, filesystem = (mount[key] for key in ("target", "fsroot", "maj:min", "fstype"))
+            if (
+                not isinstance(destination, str) or not destination.startswith("/")
+                or not isinstance(root, str) or not isinstance(filesystem, str) or not filesystem
+                or (not root.startswith("/") and filesystem not in {"nsfs", "anon_inodefs", "pipefs", "sockfs"})
+                or not isinstance(device, str) or not re.fullmatch(r"[0-9]+:[0-9]+", device)
+            ):
+                raise ValueError("invalid mount identity")
+            if destination == path or destination.startswith(path + "/"):
+                raise RuntimeError("legacy capture contains a mounted filesystem")
+            if root.startswith("/"):
+                mounts.append(mount)
+            pending.extend(mount.get("children", []))
+        ancestors = [m for m in mounts if path.startswith(m["target"].rstrip("/") + "/")]
+        if not ancestors:
+            raise ValueError("capture filesystem is missing")
+        base = max(ancestors, key=lambda m: len(m["target"]))
+        relative = path[len(base["target"].rstrip("/")):].lstrip("/")
+        capture_root = base["fsroot"].rstrip("/") + "/" + relative
+        for mount in mounts:
+            root = mount["fsroot"]
+            if mount["maj:min"] == base["maj:min"] and (
+                root == capture_root or root.startswith(capture_root + "/")
+            ):
+                raise RuntimeError("legacy capture contains a mounted filesystem source")
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
+        raise RuntimeError("legacy capture mount inventory is invalid") from error
+
+
+def _assert_capture_not_bound(runner, path: str) -> None:
+    """Keep a capture explicitly mounted by any retained container.
+
+    Broad host-management mounts do not classify every host file as in use;
+    native host operations are serialized by the lifecycle lock instead.
+    """
+    sources = []
+    containers = runner.run(["docker", "ps", "--all", "--quiet"]).stdout.split()
+    if any(not re.fullmatch(r"[a-f0-9]{12,64}", identifier) for identifier in containers):
+        raise RuntimeError("legacy capture container inventory is invalid")
+    try:
+        lines = (runner.run(["docker", "inspect", "--format", "{{json .Mounts}}", *containers]).stdout.splitlines()
+                 if containers else [])
+        if len(lines) != len(containers):
+            raise ValueError("incomplete container mounts")
+        for line in lines:
+            for mount in json.loads(line):
+                source = mount.get("Source", "")
+                if not isinstance(source, str):
+                    raise ValueError("invalid bind source")
+                if source == path or source.startswith(path + "/"):
+                    raise RuntimeError("legacy capture is bound by a retained container")
+                if source.startswith("/"):
+                    sources.append(source)
+    except (json.JSONDecodeError, TypeError, ValueError, AttributeError) as error:
+        raise RuntimeError("legacy capture container mounts are invalid") from error
+    # A local named volume can alias a capture through Options.device while
+    # containers report only Docker's _data mountpoint. Preserve even an unused
+    # retained volume: it may be needed by a stopped or future recovery runtime.
+    names = runner.run(["docker", "volume", "ls", "--quiet"]).stdout.split()
+    for name in names:
+        volume = _volume_inspect(runner, name)
+        options = volume.get("Options") or {}
+        if not isinstance(options, dict):
+            raise RuntimeError("legacy capture volume options are invalid")
+        flags = {flag.strip() for flag in str(options.get("o", "")).split(",")}
+        if options.get("type") in ("nfs", "nfs4", "cifs", "smb", "smb3") and not flags & {"bind", "rbind"}:
+            continue  # Explicit bind flags still identify local paths, regardless of type.
+        device = options.get("device", "")
+        if not isinstance(device, str):
+            raise RuntimeError("legacy capture volume device is invalid")
+        if device == path or device.startswith(path + "/"):
+            raise RuntimeError("legacy capture is referenced by a retained named volume")
+        if device.startswith("/"):
+            sources.append(device)
+    canonical = _canonical_filesystem_paths(runner, [path, *sources])
+    capture = canonical[0]
+    if any(source == capture or source.startswith(capture + "/") for source in canonical[1:]):
+        raise RuntimeError("legacy capture is referenced through a filesystem source alias")
+
+
+def _assert_historical_archive_remote(target, runner, image: str, archive: dict) -> None:
+    _secret_file(target, runner)
+    program = (
+        "import json,sys;from operations.historical_capture import verify_remote_archive;"
+        "verify_remote_archive(json.load(sys.stdin))"
+    )
+    runner.run([
+        "docker", "run", "--rm", "--interactive", "--read-only", "--cap-drop", "ALL",
+        "--env-file", target.value["secrets"]["env_file"],
+        "--env", f"RESTIC_REPOSITORY={archive['repository']}",
+        "--env", "RESTIC_CACHE_DIR=/cache", "--tmpfs", "/cache:rw,size=67108864",
+        "--entrypoint", "python3", image, "-c", program,
+    ], input_text=json.dumps(archive))
+
+
+def _retire_legacy_capture(arguments, target, runner) -> dict:
+    archive_path = getattr(arguments, "historical_archive_receipt", None)
+    if not all((arguments.capture, arguments.owner, arguments.reason)):
+        raise RuntimeError("legacy retirement requires --capture, --owner and --reason")
+    if bool(archive_path) == bool(arguments.replacement):
+        raise RuntimeError("choose exactly one --replacement or --historical-archive-receipt")
+    apply = arguments.action == "retire-apply"
+    if apply and arguments.confirm != target.name:
+        raise RuntimeError("legacy retirement apply requires exact --confirm")
+    run_id = f"retire-{datetime.now(UTC):%Y%m%dt%H%M%S}"
+    with runtime_lock(target, runner, "cleanup", run_id):
+        current = _inspect_runtime_or_admitted(target, runner)
+        inventory = _cleanup_inventory(target, runner, current)
+        protected_commits = set()
+        generations = inventory["protected_generations"]
+        if archive_path:
+            generations = inventory.get("historical_capture_protected_generations", generations)
+        for generation in generations:
+            path = f"{target.value['state_directory']}/generations/{generation}/usl-release.json"
+            release = validate_release(json.loads(runner.run(["cat", path]).stdout))
+            protected_commits.add(release["source"]["commit"])
+        payload = f"{target.value['state_directory']}/{arguments.capture}"
+        _assert_capture_unmounted(runner, payload)
+        _assert_capture_not_bound(runner, payload)
+        archive = None
+        if archive_path:
+            expected = f"{target.value['state_directory']}/historical-archives/{arguments.capture}.json"
+            if str(archive_path) != expected:
+                raise RuntimeError("historical archive receipt path differs from the capture")
+            archive = json.loads(runner.run(["cat", expected]).stdout)
+            production = load_target("production", arguments.targets)
+            repository = production.value["backup"]["durable_repository"]
+            release, _sha, _raw = _release(target, runner, None)
+            image = _operations_image(release)
+
+        def review():
+            if archive is not None:
+                plan = _historical_capture_retirement(
+                    target, runner, arguments.capture, protected_commits, archive, repository, image,
+                )
+                _assert_historical_archive_remote(production, runner, image, archive)
+                return plan
+            return _legacy_capture_retirement(
+                target, runner, arguments.capture, arguments.replacement, protected_commits,
+            )
+
+        plan = review()
+        size = runner.run(["du", "-s", "-B1", "--", payload]).stdout.split()
+        if len(size) != 2 or not size[0].isdigit() or size[1] != payload:
+            raise RuntimeError("legacy capture allocation could not be measured")
+        plan.update({
+            "owner": arguments.owner, "reason": arguments.reason,
+            "reviewed_at": datetime.now(UTC).isoformat(),
+            "payload_allocated_bytes": int(size[0]),
+        })
+        if apply:
+            # Persist the identities before removing anything. Re-evaluate under
+            # the same lifecycle lock, then retain a second durable completion.
+            receipt = f"{target.value['state_directory']}/retired-captures/{arguments.capture}.json"
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "prepared"})
+            checked = review()
+            if any(checked[key] != plan[key] for key in checked):
+                raise RuntimeError("legacy capture changed during retirement")
+            _assert_capture_unmounted(runner, payload)
+            _assert_capture_not_bound(runner, payload)
+            runner.run(["rm", "-rf", "--one-file-system", "--", payload])
+            if runner.run(["test", "!", "-e", payload], check=False).returncode:
+                raise RuntimeError("legacy capture payload remains after retirement")
+            plan["payload_remaining_bytes"] = 0
+            _write_recovery_proof_evidence(target, runner, receipt, {**plan, "status": "retired"})
+        return {**plan, "status": "retired" if apply else "planned"}
 
 
 def _unfinished_release_attempts(target, runner) -> set[str]:
@@ -10705,8 +11144,8 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
     """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
 
     A capture that is not ``qualified`` is kept: its backup may still resume
-    from it. Nothing reads a qualified proof capture again, because the proof
-    and every restore read the Restic snapshots.
+    from it. The last full usable-service passed proof stays in addition to
+    these newest data-qualified captures, even after later service proofs fail.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -10716,12 +11155,148 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
             protected.add(run_id)
         else:
             qualified[run_id] = capture["created_at"]
+    if len(qualified) > PROOF_CAPTURE_KEEP and target.value["environment"] == "production":
+        # Refuse before a deletion plan can be applied: an unknown anchor is
+        # an observable preservation hold, not successful garbage collection.
+        anchor = _usable_recovery_anchor(target, runner)
+        protected.add(anchor["run_id"])
     newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
     protected.update(newest[:PROOF_CAPTURE_KEEP])
     return {
         "protected_captures": sorted(protected),
         "delete_captures": sorted(set(qualified) - protected),
     }
+
+
+def _read_usable_anchor_document(runner, path: str) -> dict | None:
+    # Full proof/backup receipts contain bounded control summaries, not dumps or
+    # the embedded release contract. Reject unexpected types/oversized evidence
+    # before reading it; missing legacy pointers can use canonical receipts.
+    program = """import json,pathlib,stat,sys
+p=pathlib.Path(sys.argv[1])
+try: kind=p.lstat().st_mode
+except FileNotFoundError:
+    print('null');raise SystemExit(0)
+if not stat.S_ISREG(kind):raise SystemExit('anchor evidence is not a regular file')
+with p.open('rb') as stream:raw=stream.read(1024*1024+1)
+if len(raw)>1024*1024:raise SystemExit('anchor evidence exceeds its bound')
+value=json.loads(raw)
+if not isinstance(value,dict):raise SystemExit('anchor evidence is not an object')
+print(json.dumps(value))
+"""
+    result = runner.run(["python3", "-c", program, path], check=False)
+    if result.returncode:
+        raise RuntimeError("full usable recovery anchor evidence is unreadable, unsafe or oversized")
+    try:
+        value = json.loads(result.stdout)
+    except (ValueError, TypeError) as error:
+        raise RuntimeError("full usable recovery anchor evidence is invalid JSON") from error
+    if value is not None and not isinstance(value, dict):
+        raise RuntimeError("full usable recovery anchor evidence is not an object")
+    return value
+
+
+class RecoveryAnchorUnavailable(RuntimeError):
+    """No complete published/legacy passed proof can authorize retention."""
+
+
+def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
+    proof_id = candidate.get("proof_id")
+    if not isinstance(proof_id, str) or not re.fullmatch(r"[a-z0-9][a-z0-9._-]{7,95}", proof_id):
+        raise RuntimeError("full usable recovery anchor proof identity is invalid")
+    receipt = _validate_recovery_proof_receipt(candidate, proof_id)
+    backup = receipt["backup"]
+    root = f"{target.value['state_directory']}/backup-runs/{backup['run_id']}"
+    value = _read_usable_anchor_document(runner, root + "/receipt.json")
+    bound = _backup_run_receipt(value, target="production", run_id=backup["run_id"])
+    if (bound["sha256"] != backup["receipt_sha256"]
+            or bound["qualification"]["durable_snapshot_id"] != backup["durable_snapshot_id"]
+            or bound["qualification"]["cache_snapshot_id"] != backup["cache_snapshot_id"]
+            or bound["capture"]["release"]["identity"] != receipt["release"]["identity"]
+            or bound["capture"]["release"]["manifest_sha256"] != receipt["release"]["manifest_sha256"]):
+        raise RuntimeError("full usable recovery anchor backup binding differs")
+    quiesced = _read_usable_anchor_document(runner, root + "/quiesced.json")
+    if quiesced is not None:
+        quiesced = _validate_backup_quiescence_receipt(
+            quiesced, target="production", run_id=backup["run_id"], services=quiesced.get("writer_services"),
+        )
+        if quiesced["status"] != "quiesced" or (bound["writers_stopped_at"] is not None
+                and quiesced["stopped_at"] != bound["writers_stopped_at"]):
+            raise RuntimeError("full usable recovery anchor capture interval differs")
+        captured_at = quiesced["prepared_at"]
+    else:
+        # Older complete receipts retain their sealed writer-stop boundary.
+        captured_at = bound["writers_stopped_at"]
+    _recovery_proof_timestamp(captured_at, "anchor captured_at")
+    return {
+        "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,
+        "proof_receipt_sha256": receipt["sha256"], "backup_receipt_sha256": backup["receipt_sha256"],
+        "run_id": backup["run_id"], "durable_snapshot_id": backup["durable_snapshot_id"],
+        "cache_snapshot_id": backup["cache_snapshot_id"], "captured_at": captured_at,
+    }
+
+
+def _usable_recovery_anchor(target, runner) -> dict:
+    """Read published authority; adopt complete legacy passes without writes."""
+    pointer = f"{target.value['state_directory']}/recovery-anchor.json"
+    current = _read_usable_anchor_document(runner, pointer)
+    if current is not None:
+        return _usable_anchor_binding(target, runner, current)
+    root = f"{Path(target.value['state_directory']).parents[1]}/recovery-proofs"
+    listing = runner.run(["find", root, "-mindepth", "2", "-maxdepth", "2", "-type", "f", "-name", "receipt.json", "-print"], check=False)
+    paths = listing.stdout.splitlines() if listing.returncode == 0 else []
+    if len(paths) > 10000:
+        raise RuntimeError("full usable recovery anchor inventory exceeds its bound")
+    checked, rejected = [], 0
+    for path in paths:
+        relative = Path(path).relative_to(root)
+        if len(relative.parts) != 2 or relative.parts[1] != "receipt.json":
+            raise RuntimeError("full usable recovery anchor path differs")
+        # A final receipt can exist while publication is still armed, or after
+        # a later finalization failure. It has not become legacy authority.
+        if runner.run(["test", "-e", str(Path(path).with_name("failure.json"))], check=False).returncode == 0:
+            rejected += 1
+            continue
+        try:
+            receipt = _read_usable_anchor_document(runner, path)
+            if receipt is None or receipt.get("proof_id") != relative.parts[0]:
+                raise RuntimeError("full usable recovery anchor proof directory differs")
+            checked.append(_usable_anchor_binding(target, runner, receipt))
+        except (RuntimeError, ValueError, TypeError, KeyError):
+            rejected += 1
+    if rejected:
+        print(f"legacy recovery anchor: {rejected} incomplete or unpublished receipts ignored; preserve and review their metadata", file=sys.stderr)
+    if not checked:
+        raise RecoveryAnchorUnavailable("no full usable-service recovery anchor with complete backing metadata; preserve snapshots and restore the receipts or run a new proof")
+    return max(checked, key=lambda value: (_recovery_proof_timestamp(value["captured_at"], "captured_at"), value["proof_id"]))
+
+
+def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -> dict:
+    # Native cleanup and capture already use this mutex. The outer proof lease
+    # precedes it, just as it does during backup, so there is no inverse order.
+    with runtime_lock(target, runner, "recovery-anchor", receipt["proof_id"]):
+        candidate = _usable_anchor_binding(target, runner, receipt)
+        try:
+            current = _usable_recovery_anchor(target, runner)
+        except RecoveryAnchorUnavailable:
+            current = None
+        verified = _run_cohort(target, runner, image, "anchor-verify", [
+            "--protected-anchor-json", json.dumps(candidate, sort_keys=True),
+        ])
+        if (verified.get("schema") != "usl-usable-recovery-anchor-verification/v1"
+                or verified.get("status") != "verified" or verified.get("anchor") != candidate):
+            raise RuntimeError("full usable recovery anchor remote pair could not be verified; previous anchor preserved")
+        if current is not None:
+            old_time = _recovery_proof_timestamp(current["captured_at"], "captured_at")
+            new_time = _recovery_proof_timestamp(candidate["captured_at"], "captured_at")
+            if new_time < old_time or (new_time == old_time and current["proof_id"] != candidate["proof_id"]):
+                print("recovery anchor publication retained a newer captured point", file=sys.stderr)
+                return {"status": "retained_newer", "anchor": current}
+        path = f"{target.value['state_directory']}/recovery-anchor.json"
+        _write_remote(target, runner, path, json.dumps(receipt, indent=2, sort_keys=True) + "\n", "0600")
+        if _read_usable_anchor_document(runner, path) != receipt:
+            raise RuntimeError("recovery proof anchor read-back differs")
+        return {"status": "published", "anchor": candidate}
 
 
 def _retain_recovery_proof_captures(target) -> dict:
@@ -10770,6 +11345,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         previous_generation = (state.get("previous") or {}).get("generation")
         if previous_generation:
             protected_generations.add(previous_generation)
+    historical_capture_generations = set(protected_generations)
     # Compose may reuse sidecars across rollback; their config labels still
     # reference candidate files even when the database has returned to baseline.
     prefix = f"{target.value['state_directory']}/generations/"
@@ -10795,6 +11371,11 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
                 if not GENERATION_NAME.fullmatch(generation):
                     raise RuntimeError("running service generation label is invalid")
                 protected_generations.add(generation)
+                # The stable gateway can retain old Compose labels indefinitely.
+                # Keep that provenance/config protected, without treating an
+                # independently archived backup copy as current business data.
+                if container.get("Service") != "gateway":
+                    historical_capture_generations.add(generation)
                 active.update(generation_volume_names(target, generation).values())
                 protected_networks.add(f"{target.project}-{generation}-recovery")
     inventory = runner.run(
@@ -10831,6 +11412,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "protected_volumes": sorted(active | previous),
         "protected_networks": sorted(protected_networks),
         "protected_generations": sorted(protected_generations),
+        "historical_capture_protected_generations": sorted(historical_capture_generations),
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
@@ -11026,6 +11608,8 @@ def _validated_cleanup_resources(
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup workspace became invalid: {workspace}")
+        _assert_capture_unmounted(runner, workspace)
+        _assert_capture_not_bound(runner, workspace)
     return containers, volumes, networks
 
 
@@ -11036,6 +11620,9 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
     for run_id in inventory["delete_captures"]:
         if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
+        if target.value["environment"] == "production" and _proof_capture(target, run_id):
+            if _usable_recovery_anchor(target, runner)["run_id"] == run_id:
+                raise RuntimeError("cleanup cannot delete the last full usable recovery anchor capture")
         path = f"{state_root}/{run_id}"
         probe = runner.run(
             ["find", path, "-mindepth", "0", "-maxdepth", "0", "-printf", "%y\\n"],
@@ -11045,6 +11632,8 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
             raise RuntimeError(f"cleanup capture became invalid: {path}")
         if _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
+        _assert_capture_unmounted(runner, path)
+        _assert_capture_not_bound(runner, path)
         paths.append(path)
     return paths
 
@@ -11087,12 +11676,16 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     runner = target.runner()
     retention_image = None
+    if arguments.action in {"retire-plan", "retire-apply"}:
+        plan = _retire_legacy_capture(arguments, target, runner)
+        print(json.dumps(plan, indent=None if arguments.json else 2, sort_keys=True))
+        return 0
     if arguments.action == "apply":
         if arguments.confirm != target.name:
             raise RuntimeError("cleanup apply requires exact --confirm")
         run_id = f"cleanup-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "cleanup", run_id):
-            current = inspect_runtime(target, runner)
+            current = _inspect_runtime_or_admitted(target, runner)
             inventory = _cleanup_inventory(target, runner, current)
             retention_plan = None
             if target.value["environment"] == "production" and not getattr(
@@ -11133,7 +11726,7 @@ def cleanup_command(arguments: argparse.Namespace) -> int:
             plan = _cleanup_plan(target, inventory, retention_plan)
         plan["status"] = "applied"
     else:
-        current = inspect_runtime(target, runner)
+        current = _inspect_runtime_or_admitted(target, runner)
         inventory = _cleanup_inventory(target, runner, current)
         retention_plan = None
         if target.value["environment"] == "production" and not getattr(
@@ -11768,18 +12361,7 @@ def release_command(arguments: argparse.Namespace) -> int:
         ))
         return 0
     if arguments.action == "status":
-        state = runner.run(["cat", state_path], check=False)
-        if state.returncode == 0:
-            try:
-                value = parse_release_state(state.stdout)
-            except ReleaseControllerError as error:
-                raise RuntimeError(str(error)) from error
-        else:
-            value = {
-                "schema": "usl-release-run/v1",
-                "target": target.name,
-                "status": "idle",
-            }
+        value = observe_release_status(target, runner)
         print(json.dumps(value, indent=None if arguments.json else 2, sort_keys=True))
         return 0
     if arguments.action == "abort":
@@ -12394,9 +12976,17 @@ def build_parser() -> argparse.ArgumentParser:
     recovery_proof.add_argument("--json", action="store_true")
     recovery_proof.set_defaults(handler=recovery_proof_command)
     cleanup = commands.add_parser("cleanup")
-    cleanup.add_argument("action", choices=("plan", "apply"))
+    cleanup.add_argument("action", choices=("plan", "apply", "retire-plan", "retire-apply"))
     cleanup.add_argument("--target", dest="command_target")
     cleanup.add_argument("--confirm")
+    cleanup.add_argument("--capture", help="explicit legacy local capture identity")
+    cleanup.add_argument("--replacement", help="newer managed qualified recovery capture")
+    cleanup.add_argument(
+        "--historical-archive-receipt", type=Path,
+        help="exact raw historical archive read-back receipt; does not certify modern recovery",
+    )
+    cleanup.add_argument("--owner", help="person or task responsible for retirement")
+    cleanup.add_argument("--reason", help="why this local legacy payload is obsolete")
     cleanup.add_argument(
         "--runtime-only",
         action="store_true",

@@ -16,8 +16,11 @@ from . import (
     test_native_grouping_reads,
     test_delegated_owner_domains,
     test_empty_write,
+    test_agent_avatar,
 )
 from . import test_native_agent_chatter
 
 from . import test_native_action_dispatch
 from . import test_agent_docs_guide
+from . import test_native_template_reset
+from . import test_agent_queue_job_acl

@@ -761,9 +761,56 @@ def _staging_retention(durable: list[dict], cache: list[dict], now: datetime) ->
     return result
 
 
-def plan_retention(now: datetime | None = None) -> dict[str, Any]:
+USABLE_ANCHOR_SCHEMA = "usl-usable-recovery-anchor/v1"
+
+
+def validate_usable_anchor(value: object) -> dict:
+    fields = {"schema", "proof_id", "run_id", "proof_receipt_sha256", "backup_receipt_sha256",
+              "durable_snapshot_id", "cache_snapshot_id", "captured_at"}
+    if (not isinstance(value, dict) or set(value) != fields or value.get("schema") != USABLE_ANCHOR_SCHEMA
+            or not isinstance(value.get("proof_id"), str) or not RUN_ID.fullmatch(value["proof_id"])
+            or value.get("run_id") != "proof-" + value["proof_id"]
+            or not RUN_ID.fullmatch(value["run_id"])
+            or any(not isinstance(value.get(key), str) or not SHA256.fullmatch(value[key]) for key in fields - {"schema", "proof_id", "run_id", "captured_at"})):
+        raise CohortError("a valid full usable-service recovery anchor is required before production retention")
+    try:
+        moment = datetime.fromisoformat(str(value["captured_at"]).replace("Z", "+00:00"))
+    except (ValueError, TypeError) as error:
+        raise CohortError("usable recovery anchor capture timestamp is invalid") from error
+    if moment.tzinfo is None:
+        raise CohortError("usable recovery anchor capture timestamp is invalid")
+    return value
+
+
+def verify_usable_anchor(arguments: argparse.Namespace) -> dict:
+    if os.environ.get("USL_TARGET", "production") != "production":
+        raise CohortError("usable recovery anchor verification is production-only")
+    anchor = validate_usable_anchor(arguments.protected_anchor_json)
+    durable = _inventory(restic_environment("RESTIC_REPOSITORY", "RESTIC_PASSWORD"))
+    cache = _inventory(restic_environment("USL_BACKUP_CACHE_REPOSITORY", "USL_BACKUP_CACHE_PASSWORD"))
+    _validate_remote_usable_anchor(anchor, durable, cache)
+    return {"schema": "usl-usable-recovery-anchor-verification/v1", "anchor": anchor, "status": "verified"}
+
+
+def _validate_remote_usable_anchor(anchor: dict, durable: list[dict], cache: list[dict]) -> None:
+    run_tag = "run-" + anchor["run_id"]
+    for kind, inventory in (("durable", durable), ("cache", cache)):
+        matches = [item for item in inventory if item.get("id") == anchor[kind + "_snapshot_id"]]
+        required = {"usl-cohort", kind, "target-production", run_tag}
+        if kind == "durable":
+            required.add("recovery-eligible")
+        if (len(matches) != 1 or not required <= set(matches[0].get("tags", []))
+                or {tag for tag in matches[0].get("tags", []) if tag.startswith("target-")} != {"target-production"}):
+            raise CohortError(f"full usable-service anchor {kind} snapshot is missing or belongs to another cohort")
+
+
+def plan_retention(now: datetime | None = None, *, protected_anchor: dict | None = None) -> dict[str, Any]:
     """Plan paired durable/cache retention without deleting unqualified evidence."""
     now = (now or datetime.now(UTC)).astimezone(RETENTION_TIMEZONE)
+    target = os.environ.get("USL_TARGET", "production")
+    if target not in {"production", "staging"}:
+        raise CohortError("retention requires a production or staging target")
+    anchor = validate_usable_anchor(protected_anchor) if target == "production" else None
     durable_environment = restic_environment("RESTIC_REPOSITORY", "RESTIC_PASSWORD")
     cache_environment = restic_environment(
         "USL_BACKUP_CACHE_REPOSITORY",
@@ -771,18 +818,17 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     )
     durable = _inventory(durable_environment)
     cache = _inventory(cache_environment)
-    target = os.environ.get("USL_TARGET", "production")
     if target == "staging":
         return _staging_retention(durable, cache, now)
-    if target != "production":
-        raise CohortError("retention requires a production or staging target")
     scoped_durable = [
         item for item in durable
         if {"usl-cohort", "durable", "target-production"} <= set(item.get("tags", []))
     ]
     if any(not SNAPSHOT.fullmatch(str(item.get("id", ""))) for item in scoped_durable):
         raise CohortError("durable snapshot identity is invalid")
+    _validate_remote_usable_anchor(anchor, durable, cache)
     retained_durable = select_retained_snapshots(scoped_durable)
+    retained_durable.add(anchor["durable_snapshot_id"])
     deletable_durable = sorted(
         str(item["id"])
         for item in scoped_durable
@@ -814,6 +860,8 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     for run_tag in retained_runs:
         if len(cache_by_run.get(run_tag, [])) != 1:
             raise CohortError("retained durable snapshot has no unique cache snapshot")
+    if cache_by_run.get("run-" + anchor["run_id"]) != [anchor["cache_snapshot_id"]]:
+        raise CohortError("full usable-service anchor cache pairing differs")
     retained_cache = {
         identity
         for run_tag in retained_runs
@@ -834,6 +882,7 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     return {
         "schema": "usl-retention-plan/v1",
         "policy": {**RETENTION, "cache_minimum_days": CACHE_MINIMUM_DAYS},
+        "protected_usable_anchor": anchor,
         "retain_durable": sorted(retained_durable),
         "delete_durable": deletable_durable,
         "retain_cache": sorted(retained_cache),
@@ -842,8 +891,8 @@ def plan_retention(now: datetime | None = None) -> dict[str, Any]:
     }
 
 
-def apply_retention(now: datetime | None = None) -> dict[str, Any]:
-    plan = plan_retention(now)
+def apply_retention(now: datetime | None = None, *, protected_anchor: dict | None = None) -> dict[str, Any]:
+    plan = plan_retention(now, protected_anchor=protected_anchor)
     for repository_key, password_key, field in (
         ("RESTIC_REPOSITORY", "RESTIC_PASSWORD", "delete_durable"),
         ("USL_BACKUP_CACHE_REPOSITORY", "USL_BACKUP_CACHE_PASSWORD", "delete_cache"),
@@ -1326,12 +1375,13 @@ def parser() -> argparse.ArgumentParser:
         "action",
         choices=(
             "capture", "push", "verify", "qualify", "list", "materialize",
-            "retention-plan", "retention-apply",
+            "retention-plan", "retention-apply", "anchor-verify",
         ),
     )
     command.add_argument("--root", default="/cohort")
     command.add_argument("--run-id")
     command.add_argument("--durable-snapshot")
+    command.add_argument("--protected-anchor-json", type=json.loads)
     return command
 
 
@@ -1344,8 +1394,9 @@ def main() -> int:
             raise CohortError(f"{arguments.action} requires --durable-snapshot")
         handlers = {
             "list": list_snapshots,
-            "retention-plan": lambda _arguments: plan_retention(),
-            "retention-apply": lambda _arguments: apply_retention(),
+            "anchor-verify": verify_usable_anchor,
+            "retention-plan": lambda args: plan_retention(protected_anchor=args.protected_anchor_json),
+            "retention-apply": lambda args: apply_retention(protected_anchor=args.protected_anchor_json),
         }
         handler = handlers.get(arguments.action, globals().get(arguments.action))
         if handler is None:

@@ -389,6 +389,55 @@ to seed B with its shipped plugin and qualify the version transition too. The
 fixture owns and removes only its generated containers, images, networks and
 marker volumes; no Odoo database or provider is involved.
 
+## Backup capture maintenance
+
+An ordinary production or staging backup uses the existing runtime operation
+lock, enables the native gateway's maintenance marker before stopping writers,
+and removes its own marker only after the existing Compose `up --wait` has
+resumed them. The marker is created exclusively. A release-owned, empty or
+legacy marker is preserved byte for byte; a marker replaced by another owner
+is retained. An unhealthy resume keeps maintenance enabled for recovery.
+
+| Input | Maintenance behavior |
+|---|---|
+| Ordinary production backup | Temporary owned marker; production MCP receives the existing JSON 503 and `Retry-After: 60` during capture. |
+| Ordinary staging backup | Temporary owned marker on the existing Odoo/WebSocket gateway. Direct loopback staging MCP remains outside this gateway until its separate routing companion is delivered. |
+| Release-owned or legacy maintenance | Preserve the existing marker through capture, resume and errors. |
+| Successful `--leave-quiesced` capture | Preserve maintenance and leave writers quiesced for the caller. |
+| Failed capture or partial stop | Attempt the existing healthy writer resume; remove only the capture's marker after success. |
+| Unhealthy resume | Retain the capture's marker. |
+| Changed baseline during quiesced upload/verification recovery | Retain the capture's marker. |
+| Concurrent backup/release operation | The existing runtime lock refuses overlap before writer or marker changes. |
+| Local/bootstrap runtime without a gateway | Retain the existing capture/resume behavior; no gateway is provisioned. |
+| Upload/verification retry from an existing capture | No new writer freeze or maintenance claim. |
+
+The 12 November 2026 incident mapped to the ordinary daily-proof class: its
+111-second writer freeze temporarily removed the MCP Docker DNS upstream and
+returned gateway 502. The retained pre-release backup from the same day is the
+other legitimate class: qualified v2 receipt, non-null quiesced evidence,
+`writers_quiesced=true`, and `writer_interval_complete=false`. It must keep
+release-owned maintenance. Tests use synthetic equivalents of both classes;
+private receipts and payloads remain on the host.
+
+The opt-in Docker fixture uses the exact checksum-pinned native production and
+staging gateway configs, a synthetic HTTP writer, no published ports or
+external networks, and its own generated Compose project. It verifies
+200→503→200, the existing body/Retry-After, capture failure recovery, and
+preservation of a pre-existing marker while writers stay quiesced. Production
+MCP and staging Odoo coverage are distinct. Run it against a reviewed GitOps
+checkout:
+
+```bash
+USL_BACKUP_GATEWAY_QA=1 \
+USL_BACKUP_GATEWAY_CONFIG_ROOT=/path/to/gitops/komodo/stacks/prod-odoo-nbg1-2 \
+python3 -m unittest scripts.tests.test_backup_maintenance_docker -v
+```
+
+A controlled 503 signals a real writer outage. It does not promise a particular
+error presentation in an external MCP client or uninterrupted access while
+writers are quiesced. No provider binding, delegation or admission authority
+changes.
+
 ## Read-only observation
 
 `scripts/usl-stack-observe <target> <observation>` is the agent-safe view of a
@@ -411,6 +460,33 @@ is allowed. The one exception is the
 announcement audit's `odoo shell`, routed through `run_reviewed_read` because
 its program never commits and the shell rolls back at exit;
 `scripts/tests/test_observation_read_only.py` fails if a second caller appears.
+
+`release` reads the legacy `release-state.json` and the fixed launcher's exact
+`runs/release-<identity>.json` files. The only additional host command allowed
+is a depth-one `find` that prints matching names and file types; mutation and
+execution options remain refused. Failed-attempt archives and sidecars do not
+participate in status selection.
+
+A single running run takes precedence over terminal history. With no running
+run, the validated active generation's release manifest selects the matching
+terminal run. Multiple running runs, malformed state and terminal history
+without an active-release match produce explicit errors; timestamps never
+choose a winner. A legacy/local runtime without fixed runs retains its existing
+response, including `idle` before a run exists.
+
+Fixed-v3 responses use `usl-release-status/v1`, identify
+`source_schema: usl-fixed-release-run/v3`, and include the validated source
+checksum, release, attempt, status, phase, completed stages and stage digests.
+The complete native checksum and every stage digest are checked before
+projection. Private `evidence.value` trees are omitted. Failure metadata and
+recovery boundaries are reported when present. This is observation of launcher
+progress, not a replacement for the separate admission or health checks.
+
+The synthetic `scripts/tests/fixtures/fixed-release-run-v3.json` was emitted by
+GitOps' native `run_stages` on 2026-11-12 with deterministic, disposable stage
+handlers, paused at `post-admission-backup`. The producer source SHA-256 was
+`be20a0f345110a7cd51091ac51d2aa60b131eb7278578ba63436208ee6a18106`.
+No host state or private evidence was copied into the fixture.
 
 Health and smoke share their MCP check with releases. A release provisions the
 authority override (`authorities/mcp-<sha256>.json`) from the launcher's

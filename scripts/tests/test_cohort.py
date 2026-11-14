@@ -1647,7 +1647,7 @@ class CohortContractTests(unittest.TestCase):
                 "tags": [
                     "usl-cohort", classification, "target-production",
                     "recovery-eligible" if classification == "durable" else release,
-                    f"run-2026-run-{index:02d}",
+                    "run-proof-daily-" + f"{index:016x}",
                 ],
             }
 
@@ -1659,7 +1659,10 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
             cohort, "_inventory", side_effect=environments
         ):
-            plan = cohort.plan_retention(now)
+            from scripts.tests.test_usable_recovery_anchor import anchor
+            plan = cohort.plan_retention(now, protected_anchor=anchor(
+                proof_id="daily-" + f"{1:016x}", run_id="proof-daily-" + f"{1:016x}",
+                durable_snapshot_id=durable[0]["id"], cache_snapshot_id=cache[0]["id"]))
         self.assertIn(durable[0]["id"], plan["retain_durable"])
         self.assertIn(cache[0]["id"], plan["retain_cache"])
         self.assertNotIn(cache[0]["id"], plan["delete_cache"])
@@ -1671,13 +1674,14 @@ class CohortContractTests(unittest.TestCase):
             "time": now.isoformat(),
             "tags": [
                 "usl-cohort", "durable", "target-production", "recovery-eligible",
-                "run-20260903t120000z-deadbeef",
+                "run-proof-daily-" + "a" * 16,
             ],
         }]
         with mock.patch.object(cohort, "restic_environment", return_value={}), mock.patch.object(
             cohort, "_inventory", side_effect=[durable, []]
-        ), self.assertRaisesRegex(cohort.CohortError, "no unique cache"):
-            cohort.plan_retention(now)
+        ), self.assertRaisesRegex(cohort.CohortError, "cache snapshot is missing"):
+            from scripts.tests.test_usable_recovery_anchor import anchor
+            cohort.plan_retention(now, protected_anchor=anchor())
 
     def test_staging_retention_expires_both_repositories_after_24_hours(self) -> None:
         now = datetime(2026, 9, 5, 12, tzinfo=UTC)
@@ -2336,7 +2340,7 @@ class CohortContractTests(unittest.TestCase):
         write_remote.assert_not_called()
 
     def test_candidate_cron_policy_is_applied_through_noninteractive_odoo_shell(self) -> None:
-        policy_path = "/opt/usl/deploy/production.cron-policy.json"
+        policy_path = "/synthetic/nonexistent-production.cron-policy.json"
         policy_raw = json.dumps({
                 "schema": "usl-production-cron-policy-v1",
                 "gates": ["always"],
@@ -4329,6 +4333,35 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(inventory["delete_networks"], ["stale-network"])
         self.assertIn(generation, workspaces.call_args.args[2])
 
+    def test_historical_archive_retirement_distinguishes_gateway_only_from_data_generations(self) -> None:
+        target = load_target("staging", TARGETS)
+        active, previous, legacy = "g20261112-active", "g20261111-previous", "g20260903-gateway"
+        prefix = target.value["state_directory"] + "/generations/"
+        for service, state, generation, expected in (
+            ("gateway", "running", legacy, {active, previous}),
+            (target.value["services"]["mcp"], "running", legacy, {active, previous, legacy}),
+            (target.value["services"]["odoo"], "exited", legacy, {active, previous, legacy}),
+            ("unknown-running-service", "running", legacy, {active, previous, legacy}),
+            ("gateway", "running", active, {active, previous}),
+        ):
+            class Runner:
+                def run(self, command, **kwargs):
+                    if command[0] == "cat":
+                        value = {"generation": active, "previous": {"generation": previous}}
+                    elif command[:2] == ["docker", "inspect"]:
+                        value = {"com.docker.compose.project.config_files": prefix + generation + "/compose.generation.json"}
+                    else:
+                        return subprocess.CompletedProcess(command, 0, "", "")
+                    return subprocess.CompletedProcess(command, 0, json.dumps(value), "")
+            current = {"generation": active, "volumes": {}, "containers": [{"ID": "retained", "State": state, "Service": service}]}
+            with self.subTest(service=service, state=state, generation=generation), \
+                    mock.patch("operations.stack._cleanup_workspaces", return_value=[]), \
+                    mock.patch("operations.stack._cleanup_captures", return_value={}):
+                inventory = _cleanup_inventory(target, Runner(), current)
+                self.assertEqual(set(inventory["historical_capture_protected_generations"]), expected)
+                # Gateway provenance/config remains protected by ordinary cleanup.
+                self.assertIn(generation, inventory["protected_generations"])
+
     def test_recovery_evidence_may_use_its_own_storage_subdirectory(self) -> None:
         from operations.stack import _recovery_proof_root
         target = load_target("production", TARGETS.parent / "targets-host")
@@ -4339,6 +4372,30 @@ class CohortContractTests(unittest.TestCase):
                           target.value["paths"]["sign_secrets"]["path"]):
             with self.subTest(path=forbidden), self.assertRaises(RuntimeError):
                 _recovery_proof_root(target, Path(forbidden), "proof-20260905-test")
+
+    def test_workspace_cleanup_preserves_foreign_physical_bindings(self) -> None:
+        from operations.stack import _validated_cleanup_resources
+        target = load_target("staging", TARGETS)
+        workspace = target.value["state_directory"] + "/generations/g20260903-stale/work"
+        inventory = {"delete_volumes": [], "delete_networks": [], "protected_volumes": [],
+                     "protected_networks": [], "delete_workspaces": [workspace]}
+        for bound in (True, False):
+            class Runner:
+                def run(self, command, **kwargs):
+                    if command[:2] == ["docker", "info"]: value = "/var/lib/docker"
+                    elif command[0] == "find": value = "d\n"
+                    elif command[0] == "readlink": value = "\n".join(command[3:]) + "\n"
+                    elif command[0] == "findmnt": value = json.dumps({"filesystems": [{"target": "/", "fsroot": "/", "maj:min": "8:1", "fstype": "ext4"}]})
+                    elif command[:3] == ["docker", "ps", "--all"]: value = "a" * 12
+                    elif command[:2] == ["docker", "inspect"]: value = json.dumps([{"Source": workspace if bound else "/unrelated"}])
+                    else: value = ""
+                    return subprocess.CompletedProcess(command, 0, value, "")
+            with self.subTest(bound=bound):
+                if bound:
+                    with self.assertRaisesRegex(OperationsError, "bound by"):
+                        _validated_cleanup_resources(target, Runner(), inventory)
+                else:
+                    self.assertEqual(_validated_cleanup_resources(target, Runner(), inventory), ([], [], []))
 
     def test_cleanup_workspace_inventory_rejects_symlinks_and_keeps_runs(self) -> None:
         target = load_target("staging", TARGETS)
@@ -4389,6 +4446,12 @@ class CohortContractTests(unittest.TestCase):
                 self.removed = []
 
             def run(self, command, *, check=True, **_kwargs):
+                if command[0] == "readlink":
+                    return subprocess.CompletedProcess(command, 0, "\n".join(command[3:]) + "\n", "")
+                if command[0] == "findmnt":
+                    return subprocess.CompletedProcess(command, 0, json.dumps({"filesystems": [{"target": "/", "fsroot": "/", "maj:min": "8:1", "fstype": "ext4"}]}), "")
+                if command[:3] == ["docker", "ps", "--all"] or command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(command, 0, "", "")
                 if command[:2] == ["test", "-L"]:
                     return subprocess.CompletedProcess(command, 1, "", "")
                 if command[:3] == ["test", "!", "-e"]:
@@ -4606,11 +4669,13 @@ class CohortContractTests(unittest.TestCase):
         target = load_target("production", TARGETS)
         runner, proofs, uploading = self._proof_state_root(target)
 
-        result = _cleanup_captures(target, runner, set())
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
+            result = _cleanup_captures(target, runner, set())
 
         self.assertEqual(result["delete_captures"], proofs[:2])
         self.assertEqual(result["protected_captures"], sorted([*proofs[2:], uploading]))
-        paths = _validated_cleanup_captures(target, runner, result)
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
+            paths = _validated_cleanup_captures(target, runner, result)
         self.assertEqual(
             paths, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
         )
@@ -4627,7 +4692,8 @@ class CohortContractTests(unittest.TestCase):
         target = load_target("production", TARGETS)
         runner, proofs, _uploading = self._proof_state_root(target)
         with mock.patch.object(type(target), "runner", return_value=runner), \
-                mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()):
+                mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
             result = _retain_recovery_proof_captures(target)
         self.assertEqual(result, {"status": "applied", "deleted_captures": proofs[:2]})
         self.assertEqual(
@@ -4664,6 +4730,349 @@ class CohortContractTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "release run state is invalid"):
             _cleanup_captures(target, runner, set())
 
+    def test_cleanup_can_inventory_admitted_sleeping_target_without_an_anchor(self) -> None:
+        from operations.stack import _inspect_runtime_or_admitted
+        target = load_target("staging", TARGETS)
+        active = {"generation": "gactive", "volumes": {"odoo_postgres": "owned-database"}}
+        runner = mock.Mock()
+        runner.run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        missing = OperationsError(f"expected one {target.project}/{target.value['compose']['anchor_service']} container, found 0")
+        definitions = {"odoo_postgres": {"name": "owned-database", "class": "transient", "tier": "database"}}
+        owned = {"Name": "owned-database", "Labels": {
+            "com.unstaticlabs.runtime.project": target.project,
+            "com.unstaticlabs.runtime.target": target.name,
+            "com.unstaticlabs.runtime.generation": "gactive",
+            "com.unstaticlabs.runtime.role": "odoo_postgres",
+        }}
+        with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
+                mock.patch("operations.stack.read_active_state", return_value=active), \
+                mock.patch("operations.stack.read_active_release", return_value={"schema": "usl-release/v3"}), \
+                mock.patch("operations.stack.effective_volumes", return_value=(definitions, "gactive")), \
+                mock.patch("operations.stack._volume_inspect", return_value=owned), \
+                mock.patch("operations.stack._observed_admission_receipt", return_value={"status": "verified"}):
+            result = _inspect_runtime_or_admitted(target, runner)
+            self.assertEqual(result["volumes"], definitions)
+            self.assertEqual(result["generation"], "gactive")
+            self.assertEqual(result["containers"], [])
+            recorded = {"project": target.project, "working_directory": "/retained/admitted-context"}
+            with mock.patch("operations.stack._generation_base_compose_identity", return_value=recorded) as provenance:
+                started = _inspect_runtime_or_admitted(target, runner, for_start=True)
+            self.assertEqual(started["compose"], recorded)
+            provenance.assert_called_once_with(target, runner, active, {}, {"schema": "usl-release/v3"})
+            with mock.patch("operations.stack._generation_base_compose_identity", side_effect=OperationsError("retained provenance invalid")):
+                with self.assertRaisesRegex(OperationsError, "retained provenance invalid"):
+                    _inspect_runtime_or_admitted(target, runner, for_start=True)
+            owned["Labels"]["com.unstaticlabs.runtime.project"] = "foreign"
+            with self.assertRaisesRegex(OperationsError, "ownership"):
+                _inspect_runtime_or_admitted(target, runner)
+        with mock.patch("operations.stack.inspect_runtime", side_effect=OperationsError("corrupt admitted identity")):
+            with self.assertRaisesRegex(OperationsError, "corrupt admitted identity"):
+                _inspect_runtime_or_admitted(target, runner)
+
+    def test_warm_retained_inventory_keeps_the_existing_fast_path(self) -> None:
+        from operations.stack import _inspect_runtime_or_admitted
+        target = load_target("staging", TARGETS)
+        current = {"compose": {"working_directory": "/already-observed"}, "active_state": {}}
+        with mock.patch("operations.stack.inspect_runtime", return_value=current), \
+                mock.patch("operations.stack._generation_base_compose_identity") as provenance:
+            self.assertIs(_inspect_runtime_or_admitted(target, mock.Mock(), for_start=True), current)
+        provenance.assert_not_called()
+
+    def test_cleanup_missing_anchor_never_bypasses_production_or_missing_admission(self) -> None:
+        from operations.stack import _inspect_runtime_or_admitted
+        for name in ("production", "staging"):
+            target = load_target(name, TARGETS)
+            missing = OperationsError(f"expected one {target.project}/{target.value['compose']['anchor_service']} container, found 0")
+            with mock.patch("operations.stack.inspect_runtime", side_effect=missing), \
+                    mock.patch("operations.stack.read_active_state", return_value=None):
+                with self.subTest(target=name), self.assertRaises(OperationsError):
+                    _inspect_runtime_or_admitted(target, mock.Mock())
+
+    def test_legacy_capture_retirement_requires_exact_qualified_replacement(self) -> None:
+        from operations.stack import _legacy_capture_retirement
+        target = load_target("production", TARGETS)
+        old, replacement = "manual-old-capture", "proof-daily-" + "a" * 16
+        entries = {old: "d", replacement: "d"}
+        files = self._capture_files(target, old, created_at="2026-09-01T00:00:00Z")
+        files.update(self._capture_files(target, replacement, created_at="2026-11-12T00:00:00Z"))
+        runner = self._capture_state_root(target, entries, files)
+        result = _legacy_capture_retirement(target, runner, old, replacement, set())
+        self.assertEqual(result["capture"], old)
+        self.assertEqual(result["replacement"], replacement)
+        self.assertEqual(result["capture_identity"]["durable_snapshot_id"], "1" * 64)
+        self.assertEqual(runner.removed, [])
+        with self.assertRaisesRegex(RuntimeError, "protected release"):
+            _legacy_capture_retirement(target, runner, old, replacement, {"a" * 40})
+        for invalid in ("../generations", "generations", replacement):
+            with self.subTest(invalid=invalid), self.assertRaises(RuntimeError):
+                _legacy_capture_retirement(target, runner, invalid, replacement, set())
+        files.update(self._capture_files(target, replacement, created_at="2026-11-12T00:00:00Z", status="uploaded"))
+        with self.assertRaisesRegex(RuntimeError, "replacement.*qualified"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+        files.update(self._capture_files(target, replacement, created_at="2026-08-12T00:00:00Z"))
+        with self.assertRaisesRegex(RuntimeError, "newer"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+        entries[old] = "l"
+        with self.assertRaisesRegex(RuntimeError, "directory"):
+            _legacy_capture_retirement(target, runner, old, replacement, set())
+
+    @unittest.skipUnless(__import__("sys").platform == "linux", "runtime cleanup uses GNU find on the Linux host")
+    def test_legacy_retirement_real_files_preserves_backup_and_recovery_anchor(self) -> None:
+        import shutil
+        from operations.runtime import CommandRunner, Target
+        from operations.stack import _retire_legacy_capture
+        configured = load_target("production", TARGETS)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            value = {**configured.value, "state_directory": str(root)}
+            target = Target(configured.path, value)
+            runner = CommandRunner(filesystem_scope="namespace")
+            old, replacement = "manual-synthetic-legacy", "proof-daily-" + "a" * 16
+            for name, date in ((old, "2026-09-01T00:00:00Z"), (replacement, "2026-11-12T00:00:00Z")):
+                for relative, content in self._capture_files(target, name, created_at=date).items():
+                    path = root / relative
+                    path.parent.mkdir(parents=True, exist_ok=True)
+                    path.write_text(content)
+                (root / name / "payload").write_bytes(b"synthetic recovery data" * 10000)
+            archive = Path(temporary) / "offsite-fixture"
+            shutil.copytree(root / replacement, archive)
+            def restore_and_check(destination):
+                shutil.copytree(archive, destination / "capture")
+                self.assertEqual((destination / "capture/payload").read_bytes(), b"synthetic recovery data" * 10000)
+            restore_and_check(Path(temporary) / "restore-before")
+            arguments = argparse.Namespace(action="retire-apply", capture=old, replacement=replacement,
+                                           owner="synthetic QA", reason="replaced recovery workspace", confirm=target.name)
+            def retire():
+                with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                        mock.patch("operations.stack.inspect_runtime", return_value={}), \
+                        mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}), \
+                        mock.patch("operations.stack._assert_capture_not_bound"):
+                    return _retire_legacy_capture(arguments, target, runner)
+            before = sum(path.stat().st_size for path in (root / old).rglob("*") if path.is_file())
+            self.assertGreater(before, 200000)
+            # A durable receipt write failure must leave the only payload intact.
+            with mock.patch("operations.stack._write_recovery_proof_evidence", side_effect=OperationsError("disk full")):
+                with self.assertRaisesRegex(OperationsError, "disk full"):
+                    retire()
+            self.assertTrue((root / old / "payload").is_file())
+            result = retire()
+            self.assertEqual(result["status"], "retired")
+            self.assertGreater(result["payload_allocated_bytes"], 200000)
+            self.assertEqual(result["payload_remaining_bytes"], 0)
+            self.assertFalse((root / old).exists())
+            self.assertTrue((root / replacement / "payload").is_file())
+            receipt = json.loads((root / "retired-captures" / (old + ".json")).read_text())
+            self.assertEqual(receipt["status"], "retired")
+            self.assertEqual(receipt["capture_identity"]["durable_snapshot_id"], "1" * 64)
+            restore_and_check(Path(temporary) / "restore-after")
+
+    @unittest.skipUnless(__import__("sys").platform == "linux", "runtime cleanup uses GNU find on the Linux host")
+    def test_historical_archive_relocation_preserves_bytes_without_modern_keys(self) -> None:
+        import shutil
+        from operations import historical_capture as historical
+        from operations.runtime import CommandRunner, Target
+        from operations.stack import _digested_document, _qualified_capture, _retire_legacy_capture
+        configured = load_target("production", TARGETS)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary) / "runtime"
+            target = Target(configured.path, {**configured.value, "state_directory": str(root)})
+            name = "manual-synthetic-historical"
+            for relative, raw in self._capture_files(target, name, created_at="2026-09-01T00:00:00Z").items():
+                path = root / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(raw)
+            manifest_path = root / name / "manifest.json"
+            value = json.loads(manifest_path.read_text())
+            for role in ("mcp_secrets", "renderer_secrets", "paperless_personal_ai_keys"):
+                value["resources"].pop(role, None)
+            manifest_path.write_text(json.dumps(value))
+            payload = b"synthetic historical bytes" * 10000
+            (root / name / "payload").write_bytes(payload)
+            self.assertIsNone(_qualified_capture(target, CommandRunner(filesystem_scope="namespace"), name))
+            tree = cohort.tree_identity(root / name)
+            backup_path = Path(temporary) / "offsite-fixture"
+            shutil.copytree(root / name, backup_path)
+            shutil.copytree(backup_path, Path(temporary) / "readback/capture")
+            restored = cohort.tree_identity(Path(temporary) / "readback/capture")
+            self.assertEqual(tree, restored)
+            archive = _digested_document({
+                "schema": historical.SCHEMA, "target": target.name, "capture": name,
+                "repository": target.value["backup"]["durable_repository"],
+                "snapshot_id": "3" * 64, "tag": historical.TAG, "archive_path": "/historical-capture",
+                "manifest_sha256": hashlib.sha256(manifest_path.read_bytes()).hexdigest(),
+                "source_tree": tree, "restored_tree": restored, "status": "verified",
+                "source_metadata_sha256": historical.metadata_identity(root / name),
+                "restored_metadata_sha256": historical.metadata_identity(root / name),
+                "verified_at": "2026-11-12T21:00:00Z",
+            })
+            receipt = root / "historical-archives" / (name + ".json")
+            receipt.parent.mkdir()
+            receipt.write_text(json.dumps(archive))
+            arguments = argparse.Namespace(action="retire-apply", capture=name, replacement=None,
+                                           historical_archive_receipt=receipt, owner="synthetic QA",
+                                           reason="exact historical relocation", confirm=target.name, targets=TARGETS)
+            class FixtureRunner(CommandRunner):
+                def run(self, command, **kwargs):
+                    if command[:2] == ["docker", "run"]:
+                        # Actual file hashing uses the same native hash inside
+                        # the production tool; no nested Docker is needed here.
+                        return subprocess.CompletedProcess(command, 0, json.dumps({
+                            "tree": cohort.tree_identity(root / name),
+                            "metadata_sha256": historical.metadata_identity(root / name),
+                        }), "")
+                    return super().run(command, **kwargs)
+            release = {"components": {"backup-tool": {"digest_reference": "synthetic-tool"}}}
+            with mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
+                    mock.patch("operations.stack._inspect_runtime_or_admitted", return_value={}), \
+                    mock.patch("operations.stack._cleanup_inventory", return_value={"protected_generations": []}), \
+                    mock.patch("operations.stack._assert_capture_not_bound"), \
+                    mock.patch("operations.stack._release", return_value=(release, "", "")), \
+                    mock.patch("operations.stack._assert_historical_archive_remote"):
+                original_stat = (root / name / "payload").stat()
+                (root / name / "payload").write_bytes(b"changed")
+                with self.assertRaisesRegex(historical.HistoricalCaptureError, "exact payload"):
+                    _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
+                self.assertTrue((root / name).exists())
+                (root / name / "payload").write_bytes(payload)
+                os.utime(root / name / "payload", ns=(original_stat.st_atime_ns, original_stat.st_mtime_ns))
+                with mock.patch("operations.stack._assert_historical_archive_remote", side_effect=OperationsError("archive unavailable")):
+                    with self.assertRaisesRegex(OperationsError, "archive unavailable"):
+                        _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
+                self.assertTrue((root / name / "payload").exists())
+                result = _retire_legacy_capture(arguments, target, FixtureRunner(filesystem_scope="namespace"))
+            self.assertFalse(result["modern_recovery_certified"])
+            self.assertFalse((root / name).exists())
+            self.assertTrue(receipt.exists())
+            shutil.copytree(backup_path, Path(temporary) / "restore-after/capture")
+            self.assertEqual(cohort.tree_identity(Path(temporary) / "restore-after/capture"), tree)
+
+    def test_legacy_retirement_rejects_mount_targets_and_sources(self) -> None:
+        from operations.stack import _assert_capture_unmounted
+        path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
+        base = {"target": "/", "fsroot": "/", "fstype": "ext4", "maj:min": "8:1"}
+        for mounted in (path, path + "/durable/database"):
+            for field in ("target", "fsroot"):
+                runner = mock.Mock()
+                mount = {"target": "/elsewhere/readback", "fsroot": "/unrelated", "fstype": "ext4", "maj:min": "8:1", field: mounted}
+                runner.run.return_value.stdout = json.dumps({"filesystems": [{**base, "children": [mount]}]})
+                with self.subTest(mounted=mounted, field=field), self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+                    _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/elsewhere", "fsroot": "/runtime/manual-example-other", "fstype": "ext4", "maj:min": "8:1"},
+            {"target": "/broad-management", "fsroot": "/runtime", "fstype": "ext4", "maj:min": "8:1"},
+            {"target": "/other-device", "fsroot": path, "fstype": "ext4", "maj:min": "8:2"}]})
+        _assert_capture_unmounted(runner, path)
+        # Docker namespace mounts use opaque roots, not filesystem paths.
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/run/docker/netns/synthetic", "fsroot": "net:[4026532860]", "maj:min": "0:4", "fstype": "nsfs"}]})
+        _assert_capture_unmounted(runner, path)
+        for filesystem in ("ext4", "unknown"):
+            runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+                {"target": "/qa", "fsroot": "opaque-malformed", "maj:min": "8:2", "fstype": filesystem}]})
+            with self.subTest(filesystem=filesystem), self.assertRaisesRegex(OperationsError, "inventory is invalid"):
+                _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": path + "/namespace", "fsroot": "net:[4026532860]", "maj:min": "0:4", "fstype": "nsfs"}]})
+        with self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+            _assert_capture_unmounted(runner, path)
+        # A separate storage mount changes the filesystem-relative capture root.
+        path = "/srv/storage/runtime/example"
+        runner.run.return_value.stdout = json.dumps({"filesystems": [base,
+            {"target": "/srv/storage", "fsroot": "/", "fstype": "ext4", "maj:min": "8:2"},
+            {"target": "/qa", "fsroot": "/runtime/example/durable", "fstype": "ext4", "maj:min": "8:2"}]})
+        with self.assertRaisesRegex(OperationsError, "mounted filesystem"):
+            _assert_capture_unmounted(runner, path)
+        runner.run.return_value.stdout = "{}"
+        with self.assertRaisesRegex(OperationsError, "inventory is invalid"):
+            _assert_capture_unmounted(runner, path)
+
+    def test_legacy_retirement_preserves_explicit_container_bind_sources(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
+        for source in (path, path + "/durable"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "a" * 12, ""),
+                subprocess.CompletedProcess([], 0, json.dumps([{"Source": source}]), ""),
+            ]
+            with self.subTest(source=source), self.assertRaisesRegex(OperationsError, "bound by"):
+                _assert_capture_not_bound(runner, path)
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, "a" * 12, ""),
+            subprocess.CompletedProcess([], 0, json.dumps([{"Source": "/"}]), ""),
+            subprocess.CompletedProcess([], 0, "", ""),
+        ]
+        _assert_capture_not_bound(runner, path)
+
+    def test_legacy_retirement_preserves_named_volume_devices_even_without_a_container(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        canonical_patch = mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths)
+        canonical_patch.start(); self.addCleanup(canonical_patch.stop)
+        for source in (path, path + "/durable"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "retained-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Name": "retained-volume", "Mountpoint": "/docker/volumes/retained/_data", "Options": {"type": "none", "o": "bind,ro", "device": source}}), ""),
+            ]
+            with self.subTest(source=source), self.assertRaisesRegex(OperationsError, "named volume"):
+                _assert_capture_not_bound(runner, path)
+        runner.run.side_effect = [
+            subprocess.CompletedProcess([], 0, "", ""),
+            subprocess.CompletedProcess([], 0, "other-volume\n", ""),
+            subprocess.CompletedProcess([], 0, json.dumps({"Name": "other-volume", "Options": {"device": path + "-other"}}), ""),
+        ]
+        _assert_capture_not_bound(runner, path)
+
+    def test_remote_named_volume_exports_are_not_local_capture_references(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for filesystem in ("nfs", "nfs4", "cifs", "smb", "smb3"):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "remote-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Options": {"type": filesystem, "device": path, "o": "addr=192.0.2.1"}}), ""),
+            ]
+            with self.subTest(filesystem=filesystem), mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths):
+                _assert_capture_not_bound(runner, path)
+
+    def test_remote_filesystem_type_does_not_hide_explicit_bind_devices(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        path = "/runtime/manual-example"
+        for filesystem, option in (("nfs", "bind"), ("cifs", "rbind")):
+            runner = mock.Mock()
+            runner.run.side_effect = [
+                subprocess.CompletedProcess([], 0, "", ""),
+                subprocess.CompletedProcess([], 0, "local-bind-volume\n", ""),
+                subprocess.CompletedProcess([], 0, json.dumps({"Options": {"type": filesystem, "device": path, "o": option}}), ""),
+            ]
+            with self.subTest(filesystem=filesystem, option=option), mock.patch("operations.stack._canonical_filesystem_paths", side_effect=lambda runner, paths: paths):
+                with self.assertRaisesRegex(OperationsError, "named volume"):
+                    _assert_capture_not_bound(runner, path)
+
+    @unittest.skipUnless(__import__("sys").platform == "linux", "native capture guards use GNU readlink")
+    def test_capture_reference_aliases_resolve_host_symlinks_and_dotdot(self) -> None:
+        from operations.stack import _assert_capture_not_bound
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary); capture = root / "capture"; capture.mkdir()
+            (capture / "durable").mkdir(); (root / "alias").symlink_to(capture, target_is_directory=True)
+            for device in (str(root / "alias/durable"), str(root / "unrelated/../capture/durable")):
+                class Runner:
+                    def run(self, command, **kwargs):
+                        if command[0] == "readlink":
+                            return subprocess.run(command, text=True, capture_output=True, check=True)
+                        if command[:3] == ["docker", "volume", "inspect"]:
+                            return subprocess.CompletedProcess(command, 0, json.dumps({"Options": {"device": device}}), "")
+                        return subprocess.CompletedProcess(command, 0, "retained\n" if command[:3] == ["docker", "volume", "ls"] else "", "")
+                with self.subTest(device=device), self.assertRaisesRegex(OperationsError, "source alias"):
+                    _assert_capture_not_bound(Runner(), str(capture))
+
     def test_validated_cleanup_captures_rechecks_paths_before_deletion(self) -> None:
         target = load_target("production", TARGETS)
         attempt = "intent-" + "a" * 48
@@ -4671,10 +5080,18 @@ class CohortContractTests(unittest.TestCase):
         entries = {run_id: "d"}
         files = self._capture_files(target, run_id, created_at="2026-09-01T00:00:00Z")
         runner = self._capture_state_root(target, entries, files)
-        self.assertEqual(
-            _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]}),
-            [f"{target.value['state_directory']}/{run_id}"],
-        )
+        with mock.patch("operations.stack._assert_capture_unmounted"), mock.patch("operations.stack._assert_capture_not_bound"):
+            self.assertEqual(
+                _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]}),
+                [f"{target.value['state_directory']}/{run_id}"],
+            )
+        for guard in ("_assert_capture_unmounted", "_assert_capture_not_bound"):
+            with self.subTest(guard=guard), \
+                    mock.patch("operations.stack._assert_capture_unmounted"), \
+                    mock.patch("operations.stack._assert_capture_not_bound"), \
+                    mock.patch("operations.stack." + guard, side_effect=OperationsError("physical data reference")):
+                with self.assertRaisesRegex(OperationsError, "physical data reference"):
+                    _validated_cleanup_captures(target, runner, {"delete_captures": [run_id]})
         for invalid in ("../attempts", "generations", "release-admitted-intent-x", "proof-daily-0123"):
             with self.subTest(run_id=invalid), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
                 _validated_cleanup_captures(target, runner, {"delete_captures": [invalid]})
@@ -6199,13 +6616,22 @@ class CohortContractTests(unittest.TestCase):
             },
         ), mock.patch("operations.stack._wait_compose_services"):
             _start_rollback_identity(target, runner, legacy)
-        create = next(command for command in runner.commands if "create" in command)
+        create = next(command for command in runner.commands if "up" in command and "--no-start" in command)
         start = next(command for command in runner.commands if "start" in command)
         self.assertIn("--force-recreate", create)
-        self.assertIn(["docker", "network", "disconnect", "cloudflare", "legacy-id"], runner.commands)
-        self.assertNotIn("gateway", create[create.index("create") + 1:])
+        self.assertIn("--no-deps", create)
+        detach = ["docker", "network", "disconnect", "cloudflare", "legacy-id"]
+        self.assertIn(detach, runner.commands)
+        self.assertLess(runner.commands.index(create), runner.commands.index(detach))
+        self.assertLess(runner.commands.index(detach), runner.commands.index(start))
+        self.assertNotIn("gateway", create[create.index("up") + 1:])
         self.assertIn("odoo", start)
-        self.assertFalse(any("up" in command for command in runner.commands))
+        self.assertTrue(all("--no-start" in command for command in runner.commands if "up" in command))
+        import shutil
+        if shutil.which("docker"):
+            help_text = subprocess.check_output(["docker", "compose", "up", "--help"], text=True)
+            for option in ("--no-start", "--no-deps", "--force-recreate"):
+                self.assertIn(option, help_text)
 
     def test_production_generation_activates_restored_sign_secrets(self) -> None:
         target = load_target("production", TARGETS)

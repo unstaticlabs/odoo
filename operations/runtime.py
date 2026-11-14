@@ -66,6 +66,7 @@ class Runner(Protocol):
 class CommandRunner:
     prefix: tuple[str, ...] = ()
     deadline_monotonic: float | None = None
+    filesystem_scope: str | None = None
 
     @contextmanager
     def advisory_lock(self, path: str, timeout: float = 30.0, wait: float = 0.0):
@@ -412,6 +413,14 @@ def _curl_problem(command: list[str]) -> str | None:
     return None if urls == 1 else "curl without exactly one URL"
 
 
+def release_run_inventory_command(root: str) -> list[str]:
+    """List only one directory's release-state names and file types."""
+    return [
+        "find", root, "-mindepth", "1", "-maxdepth", "1",
+        "-name", "release-*.json", "-printf", "%f\\t%y\\n",
+    ]
+
+
 def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
     """Return why ``command`` may write, or None when it is a known read."""
     if input_text is not None:
@@ -420,6 +429,13 @@ def read_only_command_problem(command: list[str], input_text: str | None = None)
         return "empty command"
     head = command[0]
     if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if (
+        len(command) == 10 and command[0] == "find"
+        and Path(command[1]).is_absolute() and ".." not in Path(command[1]).parts
+        and command[1].endswith("/runs")
+        and command == release_run_inventory_command(command[1])
+    ):
         return None
     if (
         len(command) == 4 and command[:3] == ["python3", "-c", MCP_RETAINED_LEDGER_SCAN]
@@ -537,9 +553,12 @@ class Target:
     def runner(self) -> CommandRunner | ReadOnlyRunner:
         transport = self.value["transport"]
         if transport["type"] == "local":
-            runner = CommandRunner()
+            runner = CommandRunner(filesystem_scope=self.value.get("filesystem_scope"))
         else:
-            runner = CommandRunner(("ssh", transport["host"], "--"))
+            runner = CommandRunner(
+                ("ssh", transport["host"], "--"),
+                filesystem_scope=self.value.get("filesystem_scope"),
+            )
         return ReadOnlyRunner(runner) if _OBSERVATION_ONLY else runner
 
 
@@ -570,7 +589,7 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
             "secrets",
             "state_directory",
             "lifecycle",
-        },
+        } | ({"filesystem_scope"} if isinstance(payload, dict) and "filesystem_scope" in payload else set()),
         "target",
     )
     if root["schema"] != SCHEMA:
@@ -581,6 +600,12 @@ def validate_target(payload: object, path: Path = Path("<memory>")) -> Target:
         raise RuntimeError("target.environment is invalid")
     if not isinstance(root["protected"], bool):
         raise RuntimeError("target.protected must be boolean")
+
+    if "filesystem_scope" in root and (
+        not isinstance(root["filesystem_scope"], str)
+        or root["filesystem_scope"] not in {"host", "namespace"}
+    ):
+        raise RuntimeError("target.filesystem_scope must be host or namespace")
 
     transport = root["transport"]
     if not isinstance(transport, dict) or transport.get("type") not in {"local", "ssh"}:

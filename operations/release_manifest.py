@@ -30,6 +30,9 @@ COMPONENTS = {
 MCP_PUBLIC_METHODS = {
     "usl.agent.current_identity",
     "usl.agent.submit_mcp_feedback",
+    "usl.docs.guide.list_pages",
+    "usl.docs.guide.read_page",
+    "usl.docs.guide.search_pages",
 }
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
 COMMIT = re.compile(r"[0-9a-f]{40}\Z")
@@ -395,6 +398,24 @@ def _parse_evidence(values: list[str]) -> dict[str, str]:
     return dict(sorted(evidence.items()))
 
 
+def _mcp_modules() -> list[str]:
+    """Publish runtime-qualified server modules, not an older client's minimums.
+
+    The support contract retains its v1 ``required_modules`` field name for
+    compatibility. Consumers use this list as the server's available modules.
+    The independently pinned embedded MCP keeps its own minimum requirements.
+    """
+    surface = _read_json(
+        ROOT / "custom-addons/usl_access_control/policy/action_surface.json",
+        "qualified Odoo action surface",
+    )
+    return sorted({
+        item["name"]
+        for item in surface.get("modules", [])
+        if isinstance(item, dict) and isinstance(item.get("name"), str)
+    })
+
+
 def _mcp_actions() -> list[str]:
     """Advertise the qualified backend RPC surface, independent of client pins."""
     surface = _read_json(
@@ -467,7 +488,7 @@ def create(arguments: argparse.Namespace) -> int:
         "schema": "usl-odoo-mcp-support/v1",
         "odoo_series": arguments.odoo_series,
         "supported_mcp_major": 1,
-        "required_modules": legacy_contract["required_modules"],
+        "required_modules": _mcp_modules(),
         "public_methods": _mcp_public_methods(identity_contract, actions),
         "actions": actions,
         "agent_identity": identity_contract,
