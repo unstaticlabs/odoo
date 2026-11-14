@@ -1219,6 +1219,21 @@ class UslDocument(models.Model):
             raise ValidationError(_("That Odoo relationship no longer exists."))
         return link._record_action(user_env=self.env)
 
+    def action_open_in_documents(self):
+        """Open this document in the Documents app, where its metadata is edited.
+
+        The record form shows the archive metadata read-only, because it is
+        written through Paperless. The Documents app detail panel is the
+        surface that edits it.
+        """
+        self.ensure_one()
+        self.check_access("read")
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "usl_documents.action_documents_workspace",
+        )
+        action["params"] = {"initial_document_id": self.id}
+        return action
+
     def action_open_paperless(self):
         self.ensure_one()
         self.check_access("read")

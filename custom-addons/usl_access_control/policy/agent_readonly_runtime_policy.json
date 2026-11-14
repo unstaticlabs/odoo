@@ -26737,6 +26737,7 @@
     "rpc:usl.docs.guide.web_name_search",
     "rpc:usl.docs.guide.web_read",
     "rpc:usl.document.action_archive",
+    "rpc:usl.document.action_open_in_documents",
     "rpc:usl.document.action_open_links",
     "rpc:usl.document.action_reschedule_my_next_nextweek",
     "rpc:usl.document.action_reschedule_my_next_today",

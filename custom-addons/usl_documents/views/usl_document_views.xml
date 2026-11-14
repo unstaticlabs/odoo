@@ -142,6 +142,9 @@
                     <button name="action_mark_reviewed" type="object" string="Mark reviewed"
                             title="Confirm that the document and its archive access have been reviewed."
                             class="oe_highlight" invisible="review_state == 'reviewed'"/>
+                    <button name="action_open_in_documents" type="object" string="Open in Documents"
+                            title="Open this document in the Documents app to change its title, correspondent, type, date, or tags."
+                            icon="fa-pencil"/>
                     <button name="action_open_paperless" type="object" string="Open in Paperless"
                             title="Open advanced document tools in Paperless."
                             icon="fa-external-link" invisible="not paperless_url"/>
@@ -174,6 +177,10 @@
                     </div>
                     <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger"
                             invisible="availability_state == 'available'"/>
+                    <div class="alert alert-info" role="status" name="archive_metadata_read_only_note">
+                        <strong>This page is read-only.</strong>
+                        <span class="ms-1">To change the title, correspondent, type, date, or tags, use Open in Documents.</span>
+                    </div>
                     <div class="alert alert-danger" role="alert"
                          invisible="permission_sync_state != 'failed'">
                         <strong>Document access needs attention.</strong>

@@ -33072,6 +33072,7 @@
         "rpc:usl.audit.event.mail_get_partner_fields",
         "rpc:usl.docs.guide.mail_allowed_qweb_expressions",
         "rpc:usl.docs.guide.mail_get_partner_fields",
+        "rpc:usl.document.action_open_in_documents",
         "rpc:usl.document.action_open_links",
         "rpc:usl.document.action_reschedule_my_next_nextweek",
         "rpc:usl.document.action_reschedule_my_next_today",
@@ -36949,6 +36950,7 @@
         "rpc:usl.audit.event.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
         "rpc:usl.docs.guide.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
         "rpc:usl.docs.guide.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.action_open_in_documents": "47281a132fdac0e23e9a9d0c2c3d578a92f71abb58fa82f051278c1aa6bdc637",
         "rpc:usl.document.action_open_links": "5f8b56ef3b092156669e7a521f5b3309ff276b90b1bd1f99dc5d4a6f33f55f41",
         "rpc:usl.document.action_reschedule_my_next_nextweek": "1f8b565136e347fa9e15542d23e050e09462ec69985f610715ed95b84dcef46f",
         "rpc:usl.document.action_reschedule_my_next_today": "62336990f6e0800dc3d5955fc8a573fc20ef2c3a47c7bbe0e75645730322f206",
@@ -193408,6 +193410,7 @@
         "ui:usl_documents.view_usl_document_form:button:object:action_download_original:1",
         "ui:usl_documents.view_usl_document_form:button:object:action_download_original:2",
         "ui:usl_documents.view_usl_document_form:button:object:action_mark_reviewed:1",
+        "ui:usl_documents.view_usl_document_form:button:object:action_open_in_documents:1",
         "ui:usl_documents.view_usl_document_form:button:object:action_open_links:1",
         "ui:usl_documents.view_usl_document_form:button:object:action_open_paperless:1",
         "ui:usl_documents.view_usl_document_form:button:object:action_permanently_delete_from_trash:1",
@@ -194600,6 +194603,11 @@
             "rpc:usl.document.action_mark_reviewed"
           ]
         },
+        "ui:usl_documents.view_usl_document_form:button:object:action_open_in_documents:1": {
+          "targets": [
+            "rpc:usl.document.action_open_in_documents"
+          ]
+        },
         "ui:usl_documents.view_usl_document_form:button:object:action_open_links:1": {
           "targets": [
             "rpc:usl.document.action_open_links"
@@ -195428,6 +195436,7 @@
         "ui:usl_documents.view_usl_document_form:button:object:action_download_original:1": "a07ac004f2a4247c906fd6d9236a8d00612dd4846aeb33db0b92456da2c9b599",
         "ui:usl_documents.view_usl_document_form:button:object:action_download_original:2": "5a3be792cbaa035f3d4cb57b6919ff4f06d4661e549f8c8e55b719f5c0c819eb",
         "ui:usl_documents.view_usl_document_form:button:object:action_mark_reviewed:1": "ea558d578aa81d619174ad23131504c66abaae3bd70c87bba0210eb0680c2ccc",
+        "ui:usl_documents.view_usl_document_form:button:object:action_open_in_documents:1": "27a3b42d5f7c9605d3251a01d587b8f8c2648fcf9718d57b41d43cdca5f007f6",
         "ui:usl_documents.view_usl_document_form:button:object:action_open_links:1": "a064dd27564039e0351c5f39ff15c307b40c2f945cfeaf350f41d9b9d112f185",
         "ui:usl_documents.view_usl_document_form:button:object:action_open_paperless:1": "3bac6d5ff21e8cacda0aa5c8ccadd87e88ef5700df98a87d7dfa0fa57150620b",
         "ui:usl_documents.view_usl_document_form:button:object:action_permanently_delete_from_trash:1": "c23ed20eff54641a332d61267fd1cc88c83098bcfefe158f25da6dc35d96aede",
