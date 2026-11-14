@@ -2098,6 +2098,19 @@ class TestDocuments(TransactionCase):
         self.assertEqual(document.review_state, "reviewed")
         self.assertFalse(document.manual_review_hold)
 
+    def test_service_reviewed_write_clears_manual_review_hold(self):
+        document = self._document(14107, review_state="reviewed")
+        document.with_user(self.manager).write(
+            {"review_state": "needs_attention"},
+        )
+        self.assertTrue(document.manual_review_hold)
+
+        document.sudo().with_context(usl_documents_cache_write=True).write(
+            {"review_state": "reviewed"},
+        )
+        self.assertEqual(document.review_state, "reviewed")
+        self.assertFalse(document.manual_review_hold)
+
     def test_company_change_cannot_conflict_with_an_active_business_link(self):
         self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
         document = self._document(1408, company_id=self.company_a.id)

@@ -901,13 +901,17 @@ class UslDocument(models.Model):
             and self.env.su
         )
         if "review_state" in vals and not self.env.su:
-            # Only explicit reviewer writes set or clear the hold. Sync and
-            # automated classification use the service identity and must not
+            # Only explicit reviewer writes set the hold. Sync and automated
+            # classification use the service identity and must not
             # reinterpret a newly imported Needs attention state as manual.
             vals = {
                 **vals,
                 "manual_review_hold": vals["review_state"] == "needs_attention",
             }
+        elif vals.get("review_state") == "reviewed":
+            # Any writer that marks a document reviewed, accountant evidence
+            # acceptance under sudo included, resolves a manual exception.
+            vals = {**vals, "manual_review_hold": False}
         if cache_fields.intersection(vals) and not cache_write:
             raise AccessError(
                 _("Paperless cache and diagnostic fields cannot be edited manually."),
