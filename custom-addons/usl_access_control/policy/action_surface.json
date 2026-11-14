@@ -963542,7 +963542,7 @@
         "rpc:rebuild.account.external.report.value.search",
         "rpc:rebuild.account.external.report.value.search_count"
       ],
-      "digest": "a02c56c8678a4dec9e07003a7b76a1dc78aea98e3c016acaaf39b85782330d88",
+      "digest": "5da5b1cdc6784500c39101bc2a0856ae269de59f263528060f3edd7cd151049d",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.sync_for_company",
       "kind": "rpc",
@@ -963553,7 +963553,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0871c703afaf9424c7e9e608c1dab465c4d182e410f85ea816ee98cb705d9afb",
+      "runtime_digest": "32e7fe5cc5b9f0b9f6aa7097be6b6c6fbb02c166af0b68e4fb2042598a37a709",
       "sinks": [
         "orm_create",
         "orm_write"
@@ -1619142,7 +1619142,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 451,
+          "line": 487,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1619157,13 +1619157,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 451,
+          "line": 487,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "bec2e31e7782faf6fe1dfee793c00f2de4cfba30ea828f2a6e618657f1c49318",
+      "digest": "e03547dbe2df27a3f5a9cadcdc981f4bb306a2b9fd813ca56c8abecfc7e70d81",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1619172,13 +1619172,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 480,
+          "line": 516,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "7d462dfef9560f5f92c6a9f2eb22d98997426c61fb712126c1c8ff8442776aa8",
+      "digest": "140c472ed1c1720a86dc7de78b0f90e377dccb18b1a380e8f7e3da8adb591e9c",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1619187,13 +1619187,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 480,
+          "line": 516,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "ef5aa996e4285846f62103ff89463aafafc47bd5765f49ba3fc6c93199b3d8fa",
+      "digest": "ccc014c0b53de4aea9dd7c2c4c05daccccd9d1d4baa2729f4095e9596e614573",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1619211,7 +1619211,7 @@
       ]
     },
     {
-      "digest": "dca348dc95d35adaeed2af38ce378c1af438ccf754a18d7a2a70bd917f62ce4e",
+      "digest": "ebf54c812bb230078996e2dd5ec4a36ac18175d1e5767bf514ec374f1dd4fee1",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1737800,11 +1737800,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "ecfe47abe2ac782cf40b602f70af4c36c7f52d523f91c8574ecca8853aa7376d",
+      "manifest_sha256": "a03720408661e49cb7cc3b3d7c3878367ed1e50a3ebab4bba8d9e20ef6762ea3",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "87898da715897692e567860b74e60a05eda090c3c1dcd424c9538359eb2e41a2",
-      "version": "saas~19.3.1.13.44"
+      "source_sha256": "21962645a6c06489ae14028b3519a4a06ca77c844417c46eaeff3a734de19021",
+      "version": "saas~19.3.1.13.45"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
