@@ -1337785,7 +1337785,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1371,
+          "line": 1386,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1337820,7 +1337820,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1362,
+          "line": 1377,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1337900,7 +1337900,42 @@
       ],
       "sources": [
         {
-          "line": 1392,
+          "line": 1407,
+          "path": "custom-addons/usl_documents/models/document.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/document.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one"
+      ],
+      "digest": "47281a132fdac0e23e9a9d0c2c3d578a92f71abb58fa82f051278c1aa6bdc637",
+      "guards": [],
+      "key": "rpc:usl.document.action_open_in_documents",
+      "kind": "rpc",
+      "method": "action_open_in_documents",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "656ab3cd4814f2fab84311ed40a50f5963d494db3826c2ee2c022774c45ce8e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1222,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1337973,7 +1338008,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1380,
+          "line": 1395,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1338010,7 +1338045,7 @@
       ],
       "sources": [
         {
-          "line": 1222,
+          "line": 1237,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1338091,7 +1338126,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1353,
+          "line": 1368,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1338314,7 +1338349,7 @@
       ],
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1656676,7 +1656711,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1392,
+          "line": 1407,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656712,7 +1656747,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1222,
+          "line": 1237,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656874,7 +1656909,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656892,7 +1656927,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656910,7 +1656945,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656928,7 +1656963,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656946,7 +1656981,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656964,7 +1656999,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1656982,7 +1657017,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1265,
+          "line": 1280,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1730975,6 +1731010,31 @@
     },
     {
       "delegates": [
+        "rpc:usl.document.action_open_in_documents"
+      ],
+      "digest": "27a3b42d5f7c9605d3251a01d587b8f8c2648fcf9718d57b41d43cdca5f007f6",
+      "guards": [],
+      "key": "ui:usl_documents.view_usl_document_form:button:object:action_open_in_documents:1",
+      "kind": "ui",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d3f0815675174d1c2cd7c1513c7fc8476ddacfa276c64f9ffd27b996dcdd56e1",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_documents/views/usl_document_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_documents.view_usl_document_form"
+        }
+      ],
+      "xmlid": "usl_documents.view_usl_document_form"
+    },
+    {
+      "delegates": [
         "rpc:usl.document.action_open_links"
       ],
       "digest": "a064dd27564039e0351c5f39ff15c307b40c2f945cfeaf350f41d9b9d112f185",
@@ -1737048,7 +1737108,6 @@
     }
   ],
   "country_codes": [
-    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1738084,11 +1738143,11 @@
       "version": "saas~19.3.1.1.4"
     },
     {
-      "manifest_sha256": "f1fd22d48bc333eea7533fd308f90ad13b1e6bfab7414ab2c6564b9821557857",
+      "manifest_sha256": "8e8cf99d0e2b4acc40905e807911d5c753416028a385c0b2863f6852667bd5dc",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "78948a34b3598c74c6985251a3fc64506d58fcf8f53b423e03b1dd3816fc3603",
-      "version": "saas~19.3.1.10.2"
+      "source_sha256": "c9a99b7e56df6db5d987a607da5e9eb89dc932b1a1f3e47b2e0eb04e8cd9ead1",
+      "version": "saas~19.3.1.10.3"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",

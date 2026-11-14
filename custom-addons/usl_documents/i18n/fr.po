@@ -5931,6 +5931,7 @@ msgstr "Documents indexe ce fichier"
 #: code:addons/usl_documents/models/attachment_bridge.py:0
 #: code:addons/usl_documents/static/src/attachment_list_patch.js:0
 #: code:addons/usl_documents/static/src/attachment_list_patch.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid "Open in Documents"
 msgstr "Ouvrir dans Documents"
 
@@ -6665,3 +6666,26 @@ msgstr " Copie du document archivé n° %(source)s ; l’original est conservé.
 #: code:addons/usl_documents/models/source_evidence.py:0
 msgid "Odoo no longer allows attachments on this approved expense. Keep its original receipt; attach supplementary evidence to its accounting entry instead."
 msgstr "Odoo n’autorise plus l’ajout de pièces jointes sur cette note de frais approuvée. Conservez son justificatif original et joignez les preuves complémentaires à son écriture comptable."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid ""
+"Open this document in the Documents app to change its title, correspondent, "
+"type, date, or tags."
+msgstr ""
+"Ouvrir ce document dans l’application Documents pour modifier son titre, son "
+"correspondant, son type, sa date ou ses étiquettes."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid "This page is read-only."
+msgstr "Cette page est en lecture seule."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
+msgid ""
+"To change the title, correspondent, type, date, or tags, use Open in "
+"Documents."
+msgstr ""
+"Pour modifier le titre, le correspondant, le type, la date ou les étiquettes, "
+"utilisez Ouvrir dans Documents."
