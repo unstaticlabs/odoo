@@ -1371948,7 +1371948,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "78a74eb6e0c92a84b500b5f338971d51f57f84d9110b8642ca70257191af9136",
+      "digest": "0dc591133053ecc3343ef485b0039457c3f45ba3f01758a34e94c2879db3ae49",
       "guards": [],
       "key": "rpc:usl.enablebanking.account.create",
       "kind": "rpc",
@@ -1371961,7 +1371961,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "7745564b9e31b7cdb2e24e3a02b49a79a067734c4915e14797dbd15c3239640e",
+      "runtime_digest": "3d132877db08a53d22fd83fb6ba62cb83ee374911ecba5679d976b2980751552",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1373400,7 +1373400,7 @@
         "rpc:online.bank.statement.provider.with_company",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "5dfab034f7643b03136d7a7f40c91f1c071ab0769f7f2d22feee36a52aa1aca7",
+      "digest": "4fcd935fb2a61f0bf0ebf9b37b9a8d496512513103630f62ecbd9d439a8a0790",
       "guards": [],
       "key": "rpc:usl.enablebanking.account.write",
       "kind": "rpc",
@@ -1373413,7 +1373413,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "1d0180c9b3f390616456f2cbeef5eaaefc62427efeca13a4cb5a0dceb3ce3dd1",
+      "runtime_digest": "431bdad0249f41ad253dfc4f524520a4ecd6ed05c79d30a1a17f7ea18f1d84d4",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1375353,7 +1375353,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "1d45c34b0f89acde277455d3081da6daae6058c66f1758d410ad1d72524deee1",
+      "digest": "8e57e9327e8257cfb086edb56d8f9edf5a979219054afdca7d729c56e52e1b6f",
       "guards": [],
       "key": "rpc:usl.enablebanking.connection.create",
       "kind": "rpc",
@@ -1375366,7 +1375366,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f089698a7c1b697fc2aff45ae35302a3af8e87ac09060dad0b46442e0a8ecfa4",
+      "runtime_digest": "991b3093caecc87f1b7f427d7faf5423a8678aab9e4c8600a57906173c2a58a9",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1376804,7 +1376804,7 @@
       "delegates": [
         "rpc:usl.agent.sudo"
       ],
-      "digest": "23a2bafc52c40d2b0b7ed62120d76c6235854fb6165dd211ade674bdfd59f30c",
+      "digest": "78724350f51b3f5e81993f9f4ee11926d0ec92e97908ac6722700422b5e7ae83",
       "guards": [],
       "key": "rpc:usl.enablebanking.connection.write",
       "kind": "rpc",
@@ -1376817,7 +1376817,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "41bf551c8680ca7e1e54025c7f9bfcc0371f8a21e72c7a2dd04aff322d903aba",
+      "runtime_digest": "64a2086fc515f13e474133c1ae2bb1681be50e92c674876fe28badf3ce8a18fa",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1662093,7 +1662093,7 @@
       ]
     },
     {
-      "digest": "7d38f2124aca4e31d4de4f796b37b75fd8f3a584de208f83f65fd4a009e8233f",
+      "digest": "b7099b50cf2979ea047407694113813aded8528b8124e87d746af6dbb53d645f",
       "key": "sink:usl_enablebanking:custom-addons/usl_enablebanking/models/account.py:usl.enablebanking.account.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1662111,7 +1662111,7 @@
       ]
     },
     {
-      "digest": "892447c938d7d8f9123b2731059be6f769a54952e3e714bac353598011e9d074",
+      "digest": "aa09c75f19a418c522f1c62ef703ae3bc401de76de872a1e6862eefa9ccb50c7",
       "key": "sink:usl_enablebanking:custom-addons/usl_enablebanking/models/account.py:usl.enablebanking.account.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1662405,7 +1662405,7 @@
       ]
     },
     {
-      "digest": "acef55f880eec4a1e63a3bb1c4ba28480598c6188b3213beab47c47ba65bb653",
+      "digest": "b51a2e48fa48af428ffd3d094ee8e7a688df0edc1b21d3179a690a87ea8db2cd",
       "key": "sink:usl_enablebanking:custom-addons/usl_enablebanking/models/connection.py:usl.enablebanking.connection.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1662423,7 +1662423,7 @@
       ]
     },
     {
-      "digest": "4654c77787eb4cf3ecc561f041ce9a2f940710ce7e6949bed79e739fde93082a",
+      "digest": "c9d74f1c7fde261e9e601d8902f2ef3342f657af774452918ece4cad1d132d70",
       "key": "sink:usl_enablebanking:custom-addons/usl_enablebanking/models/connection.py:usl.enablebanking.connection.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1738164,11 +1738164,11 @@
       "version": "saas~19.3.1.0.0"
     },
     {
-      "manifest_sha256": "8838b910069352148af0bac7fa4ea34d054fe0a864f2940de83788351175a8d1",
+      "manifest_sha256": "3561d7e54b9ea2445d849a5de1dcc5669002f316ff9d6ee8c2d6e547aec3c254",
       "name": "usl_enablebanking",
       "origin": "custom",
-      "source_sha256": "2d8325bcff80ee89f39b70c51221206685fce2eb72d3bd59f5d6c6abd2e83e41",
-      "version": "saas~19.3.1.0.0"
+      "source_sha256": "5e0a20c5456cf3c476718b0b71917e56d8a8f69c3bf971aee80b5f62f088b00c",
+      "version": "saas~19.3.1.0.1"
     },
     {
       "manifest_sha256": "7fecbf508c69203c958a7476a0d37cda07e31ac811de40caedc1dbf46d9783d6",

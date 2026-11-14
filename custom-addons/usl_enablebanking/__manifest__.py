@@ -1,7 +1,7 @@
 {
     "name": "USL Enable Banking",
     "summary": "Connect personal bank accounts and import booked transactions",
-    "version": "saas~19.3.1.0.0",
+    "version": "saas~19.3.1.0.1",
     "category": "Accounting/Accounting",
     "author": "Unstatic Labs",
     "license": "AGPL-3",
