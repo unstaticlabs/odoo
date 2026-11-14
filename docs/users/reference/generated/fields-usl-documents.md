@@ -198,6 +198,7 @@ A top-level container used to organize and track a group of related project.task
 | **Link** (`link_ids`) | one2many → `usl.document.link` |  |  |
 | **Employee** (`linked_employee_id`) | many2one → `hr.employee` |  |  |
 | **Linked record** (`linked_record_ref`) | char |  |  |
+| **Manual review hold** (`manual_review_hold`) | boolean |  | An explicit Needs attention decision remains open until a reviewer clears it. Automatic linked-record classification must not approve this document. |
 | **Mapped Contact** (`mapped_contact_id`) | many2one → `res.partner` |  |  |
 | **Metadata Hash** (`metadata_hash`) | char |  |  |
 | **Mime Type** (`mime_type`) | char |  |  |
