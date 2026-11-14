@@ -168,7 +168,7 @@ SELECT json_build_object(
   'queued_mail', (SELECT count(*) FROM mail_mail WHERE state = 'outgoing'),
   'failed_mail', (SELECT count(*) FROM mail_mail WHERE state = 'exception'),
   'pending_documents', (SELECT count(*) FROM usl_document_operation WHERE state IN ('pending','uploading','processing','duplicate')),
-  'failed_documents', (SELECT count(*) FROM usl_document_operation WHERE state = 'failed'),
+  'failed_documents', (SELECT count(*) FROM usl_document_operation WHERE state = 'failed' AND acknowledged IS NOT TRUE),
   'bank_pending', (SELECT count(*) FROM account_bank_ingestion WHERE state IN ('received','processing')),
   'bank_failed', (SELECT count(*) FROM account_bank_ingestion WHERE state = 'failed'),
   'payment_pending', (SELECT count(*) FROM payment_transaction WHERE state IN ('draft','pending','authorized')),

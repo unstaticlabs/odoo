@@ -143,6 +143,36 @@ class ControlManifestTests(unittest.TestCase):
         with self.assertRaisesRegex(ControlManifestError, "pending queues grew"):
             validate_restore(before, after)
 
+    def test_dismissed_document_failures_do_not_block_releases(self):
+        """A failed upload a person dismissed is not unfinished work.
+
+        An archive operation has no resolved state: "Dismiss" only sets
+        ``acknowledged``. Counting it forever made the production smoke fail
+        on two dismissed uploads, and the release preflight refused every
+        release behind them (2026-11-13). Undismissed failures still count.
+        """
+        import re
+        import sqlite3
+
+        match = re.search(
+            r"'failed_documents', \((SELECT count\(\*\) FROM usl_document_operation WHERE .*?)\),\n",
+            ODOO_CONTROL_SQL,
+        )
+        self.assertIsNotNone(match, "failed_documents control is missing")
+        database = sqlite3.connect(":memory:")
+        database.execute("CREATE TABLE usl_document_operation (state TEXT, acknowledged BOOLEAN)")
+        database.executemany(
+            "INSERT INTO usl_document_operation VALUES (?, ?)",
+            [
+                ("failed", None),   # never seen: counts
+                ("failed", False),  # seen, not dismissed: counts
+                ("failed", True),   # dismissed: does not count
+                ("archived", None),
+                ("archived", True),
+            ],
+        )
+        self.assertEqual(database.execute(match.group(1)).fetchone()[0], 2)
+
     def test_failed_work_is_never_admitted(self):
         before = controls()
         after = copy.deepcopy(before)
