@@ -2059,6 +2059,45 @@ class TestDocuments(TransactionCase):
         self.assertEqual(authoritative.review_state, "reviewed")
         self.assertEqual(manual.review_state, "classified")
 
+    def test_manual_needs_attention_survives_link_reconciliation(self):
+        tag = self._tag(14105, "Accounting evidence")
+        document = self._document(
+            14106,
+            review_state="needs_attention",
+            tag_ids=[Command.set(tag.ids)],
+        )
+        document.link_to_record(
+            "res.partner",
+            self.partner_a.id,
+            archive_mode="mandatory",
+            policy_role="evidence",
+            attachment_origin="direct_record",
+            policy_reason="authoritative_test_evidence",
+        )
+        self.assertEqual(document.review_state, "reviewed")
+        self.assertFalse(document.manual_review_hold)
+
+        # A reviewer can reopen an automatically reviewed document.
+        document.with_user(self.manager).write(
+            {"review_state": "needs_attention"},
+        )
+        self.assertTrue(document.manual_review_hold)
+
+        self.env["usl.document"].reconcile_linked_classification(limit=0)
+        self.assertEqual(document.review_state, "needs_attention")
+
+        # The Paperless cache refresh must not erase a reviewer exception.
+        document.sudo().with_context(usl_documents_cache_write=True).write(
+            {"name": "Synced archive title"},
+        )
+        self.env["usl.document"].reconcile_linked_classification(limit=0)
+        self.assertEqual(document.review_state, "needs_attention")
+        self.assertTrue(document.manual_review_hold)
+
+        document.with_user(self.manager).action_mark_reviewed()
+        self.assertEqual(document.review_state, "reviewed")
+        self.assertFalse(document.manual_review_hold)
+
     def test_company_change_cannot_conflict_with_an_active_business_link(self):
         self.manager.write({"company_ids": [Command.link(self.company_b.id)]})
         document = self._document(1408, company_id=self.company_a.id)
