@@ -61,16 +61,16 @@ class EnableBankingAccount(models.Model):
             account.balance_warning = warning
 
     @api.model_create_multi
-    def create(self, values_list):
+    def create(self, vals_list):
         if not self.env.su:
             raise AccessError(self.env._("Accounts are discovered through the bank connection."))
-        return super().create(values_list)
+        return super().create(vals_list)
 
-    def write(self, values):
-        if not self.env.su and ACCOUNT_MANAGED.intersection(values):
+    def write(self, vals):
+        if not self.env.su and ACCOUNT_MANAGED.intersection(vals):
             raise AccessError(self.env._("Bank identity and import results are managed by the connection workflow."))
-        result = super().write(values)
-        if "journal_id" in values:
+        result = super().write(vals)
+        if "journal_id" in vals:
             self._ensure_provider()
         return result
 

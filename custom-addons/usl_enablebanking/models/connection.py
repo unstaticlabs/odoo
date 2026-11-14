@@ -77,18 +77,18 @@ class EnableBankingConnection(models.Model):
         for connection in self:
             connection.callback_url = base.rstrip("/") + "/enablebanking/callback"
 
-    def write(self, values):
-        if not self.env.su and MANAGED.intersection(values):
+    def write(self, vals):
+        if not self.env.su and MANAGED.intersection(vals):
             raise AccessError(self.env._("Bank session state is managed by the connection workflow."))
-        if "company_id" in values and any(c.account_ids for c in self):
+        if "company_id" in vals and any(c.account_ids for c in self):
             raise ValidationError(self.env._("A connection with discovered accounts must stay in its original company."))
-        return super().write(values)
+        return super().write(vals)
 
     @api.model_create_multi
-    def create(self, values_list):
-        if not self.env.su and any(MANAGED.intersection(v) for v in values_list):
+    def create(self, vals_list):
+        if not self.env.su and any(MANAGED.intersection(v) for v in vals_list):
             raise AccessError(self.env._("Bank session state is managed by the connection workflow."))
-        return super().create(values_list)
+        return super().create(vals_list)
 
     def _check_company_access(self, operation="read"):
         self.ensure_one()
