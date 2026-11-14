@@ -310,6 +310,7 @@ class UslDocument(models.Model):
         candidates = self.sudo().search(
             [
                 ("review_state", "in", ("needs_attention", "classified")),
+                ("manual_review_hold", "=", False),
                 ("availability_state", "=", "available"),
                 ("company_id", "!=", False),
                 ("permission_sync_state", "=", "synchronized"),
