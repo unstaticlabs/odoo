@@ -67797,7 +67797,7 @@
         "rpc:usl.home.service.get_accounting_alert_action": "6ef8bbf43e3696ea31a53dc9755037fc16cf5ad9b742205aaf7b06a37b688c36",
         "rpc:usl.home.service.get_accounting_alerts": "a77395509834fc6f732a4d66711fd115517538a4fcd83dc20fb4d0f3a3de2c10",
         "rpc:usl.home.service.get_activities": "a19c72b1c338cf066f2c6f4d6bd87cf8248986146cf917cbc54f52d3a744a1fa",
-        "rpc:usl.home.service.get_ai_attention": "2e9960ae1df04fda062060816e5a591bf5afb7dcf83eeecddee5558cb35a5901",
+        "rpc:usl.home.service.get_ai_attention": "2a7a28b9db6da6c6d8fecac32c742697058ebceb3dbbf9ebe8218a888509e439",
         "rpc:usl.home.service.get_ai_workspace_action": "6f62617b114b4969d3581362208947dda226b515c57098e019d9c4de9d5c6d6a",
         "rpc:usl.home.service.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
         "rpc:usl.home.service.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",

@@ -248,6 +248,31 @@ class TestUslHome(TransactionCase):
         self.assertEqual([item["id"] for item in result["items"]], [failed.id, review.id])
         self.assertEqual([item["status"] for item in result["items"]], ["failed", "review"])
 
+    def test_ai_attention_ranks_tasks_with_and_without_deadline(self):
+        # project.task.date_deadline is a Datetime: a task without a deadline
+        # must sort after dated ones without comparing a date to a datetime.
+        failed_tag = self.env["project.tags"].search(
+            [("name", "=", "Agent Failed")], limit=1,
+        ) or self.env["project.tags"].create({"name": "Agent Failed"})
+        undated = self._task(
+            "Failed without deadline",
+            tag_ids=[Command.set([failed_tag.id])],
+        )
+        dated = self._task(
+            "Failed with deadline",
+            tag_ids=[Command.set([failed_tag.id])],
+            date_deadline=fields.Datetime.now() + timedelta(days=2),
+        )
+        result = self.env["usl.home.service"].with_user(
+            self.project_user,
+        ).get_ai_attention()
+        self.assertEqual([item["id"] for item in result["items"]], [dated.id, undated.id])
+        self.assertEqual(
+            result["items"][0]["deadline"],
+            fields.Date.to_string(dated.date_deadline),
+        )
+        self.assertFalse(result["items"][1]["deadline"])
+
     def test_favorites_are_private_and_unavailable_targets_are_generic(self):
         favorite = self.env["usl.home.favorite"].with_user(self.project_user).create(
             {
