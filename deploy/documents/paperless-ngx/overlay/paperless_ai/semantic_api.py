@@ -9,15 +9,17 @@ from django.conf import settings
 from django.db.models import Q
 from documents.filters import CustomFieldQueryParser
 from documents.models import Document
+from documents.versioning import annotate_effective_content
 from documents.permissions import ViewDocumentsPermissions, permitted_document_ids
 from documents.search import get_backend
+from documents.search._query import normalize_search_text
 from documents.search._query import parse_simple_query
 from drf_spectacular.utils import extend_schema
 from paperless.config import AIConfig
 from paperless_ai.db import db_connection_released
 from paperless_ai.embedding import get_embedding_model
 from paperless_ai.indexing import (
-    _document_id_filters,
+    document_id_filters,
     llm_index_exists,
     queue_llm_index_update_if_needed,
     read_store,
@@ -264,7 +266,7 @@ def query_semantic_index(
                     VectorStoreQuery(
                         query_embedding=query_embedding,
                         similarity_top_k=per_batch_limit,
-                        filters=_document_id_filters(batch),
+                        filters=document_id_filters(batch),
                     ),
                 )
                 for node, similarity in zip(
@@ -316,9 +318,10 @@ def query_lexical_index(
         return [], False
     backend = get_backend()
     backend._ensure_open()
+    # Paperless normalizes indexed text, so the query must match its spelling.
     user_query = parse_simple_query(
         backend._index,
-        query,
+        normalize_search_text(query),
         _LEXICAL_FIELDS[field_scope],
     )
     final_query = backend._apply_permission_filter(user_query, user)
@@ -405,9 +408,9 @@ class ScopedSearchView(APIView):
                 document_id: _WHITESPACE.sub(" ", content or "").strip()[
                     :MAX_EXCERPT_LENGTH
                 ]
-                for document_id, content in Document.objects.filter(
-                    id__in=result_ids,
-                ).values_list("id", "content")
+                for document_id, content in annotate_effective_content(
+                    Document.objects.filter(id__in=result_ids),
+                ).values_list("id", "effective_content")
             }
         return Response(
             {

@@ -1,11 +1,11 @@
-ARG PAPERLESS_BASE_IMAGE=ghcr.io/paperless-ngx/paperless-ngx@sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b
+ARG PAPERLESS_BASE_IMAGE=ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84
 ARG PAPERLESS_FRONTEND_BUILD_IMAGE=node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4
-ARG PAPERLESS_SOURCE_URL=https://github.com/paperless-ngx/paperless-ngx/archive/8fb73b2709e4c38180a7632edf32f32fe2315961.tar.gz
+ARG PAPERLESS_SOURCE_URL=https://github.com/paperless-ngx/paperless-ngx/archive/d939d873e11dd14896d1bfe23f65b1baa6513ba7.tar.gz
 
 FROM ${PAPERLESS_BASE_IMAGE} AS frontend-source
 
 ARG PAPERLESS_SOURCE_URL
-ADD --checksum=sha256:e2b713b1e15d388c435d51acd10bf94935e651adbf31a70e061fcc40535394c6 \
+ADD --checksum=sha256:9359f9f6c9e71d2736d9ac8074c0563d35367fa32dcdbf09ded58482b02fe8ec \
     ${PAPERLESS_SOURCE_URL} /tmp/paperless-source.tar.gz
 COPY --chmod=0755 \
     deploy/documents/paperless-ngx/apply_frontend_overlay.py \
@@ -56,6 +56,8 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
         /usr/src/paperless/src/paperless_ai/semantic_api.py \
         /usr/src/paperless/src/paperless_personal_ai \
         /usr/src/paperless/src/documents/bulk_edit.py \
+        /usr/src/paperless/src/documents/serialisers.py \
+        /usr/src/paperless/src/documents/workflows/ai.py \
         /usr/src/paperless/src/documents/search/_backend.py \
         /usr/src/paperless/src/documents/search/_schema.py \
         /usr/src/paperless/src/documents/signals/handlers.py \
@@ -73,7 +75,7 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
         /tmp/usl-verify-paperless-preview-contract.py
 
 LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
-      org.opencontainers.image.version="3.0.5-usl.9" \
-      org.opencontainers.image.revision="8fb73b2709e4c38180a7632edf32f32fe2315961" \
-      com.unstaticlabs.paperless.base-digest="sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b" \
-      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1"
+      org.opencontainers.image.version="3.4.2-usl.1" \
+      org.opencontainers.image.revision="d939d873e11dd14896d1bfe23f65b1baa6513ba7" \
+      com.unstaticlabs.paperless.base-digest="sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84" \
+      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1"

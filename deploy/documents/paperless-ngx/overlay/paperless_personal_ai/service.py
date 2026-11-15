@@ -71,6 +71,13 @@ class PersonalLLMConfig:
     llm_endpoint: str = GEMINI_OPENAI_BASE_URL
     llm_request_timeout: int = DEFAULT_REQUEST_TIMEOUT
     llm_allow_internal_endpoints: bool = False
+    # Paperless 3.4 passes these to the provider client. Personal generation
+    # never inherits the administrator's global passthrough parameters.
+    llm_extra_params: dict = field(
+        default_factory=dict,
+        repr=False,
+        compare=False,
+    )
 
 
 def _base_group_name() -> str:

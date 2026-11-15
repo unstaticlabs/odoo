@@ -26,7 +26,7 @@ class TestPermissionVectorInvariance(TestCase):
         )
 
     @patch("documents.bulk_edit.bulk_update_documents.apply_async")
-    @patch("documents.bulk_edit.set_permissions_for_object")
+    @patch("documents.bulk_edit.set_permissions_for_objects")
     def test_permission_edit_requests_tantivy_without_vector_refresh(
         self,
         set_object_permissions,
@@ -43,7 +43,7 @@ class TestPermissionVectorInvariance(TestCase):
             headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
         )
 
-    @patch("documents.tasks.update_llm_index")
+    @patch("paperless_ai.indexing.update_llm_index")
     @patch("documents.tasks.AIConfig")
     @patch("documents.search.get_backend")
     @patch("documents.tasks.post_save.send")
@@ -69,10 +69,10 @@ class TestPermissionVectorInvariance(TestCase):
         clear_caches.assert_called_once_with(self.document.id)
         document_updated.assert_called_once()
         post_save.assert_called_once()
-        batch.add_or_update.assert_called_once_with(self.document)
+        batch.add_or_update_ids.assert_called_once_with([self.document.id])
         update_llm_index.assert_not_called()
 
-    @patch("documents.tasks.update_llm_index")
+    @patch("paperless_ai.indexing.update_llm_index")
     @patch("documents.tasks.AIConfig")
     @patch("documents.search.get_backend")
     @patch("documents.tasks.post_save.send")
@@ -121,7 +121,7 @@ class TestPermissionVectorInvariance(TestCase):
         enqueue.assert_not_called()
         ai_config.assert_not_called()
 
-    @patch("documents.tasks.llm_index_add_or_update_document")
+    @patch("paperless_ai.indexing.llm_index_add_or_update_document")
     def test_queued_embedding_is_harmless_during_controlled_restore(self, update):
         with patch.dict(
             os.environ,

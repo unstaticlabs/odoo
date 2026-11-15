@@ -11,7 +11,7 @@ The `usl_documents` add-on extends Odoo through supported models, controllers,
 record rules, views, and one OWL client action. No upstream Odoo core file is
 patched. The Paperless distribution image carries one exact-source,
 hash-guarded backend/frontend overlay for the governed semantic API and
-per-user Gemini settings; it is compiled from the exact Paperless 3.0.5 source
+per-user Gemini settings; it is compiled from the exact Paperless 3.4.2 source
 rather than injected at runtime.
 
 ```text
@@ -366,7 +366,7 @@ retained as a permanent-deletion tombstone. Stable Paperless IDs preserve links
 through metadata renames and file-version changes.
 
 Odoo records actor and timestamp when it initiates Trash. Direct Paperless
-Trash reconciliation records the API's `deleted_at`; Paperless 3.0.5 does not
+Trash reconciliation records the API's `deleted_at`; Paperless 3.4.2 does not
 return the actor through its supported Trash or history contracts, so Odoo
 stores an explicit “actor not provided” source label instead of fabricating
 attribution.
@@ -375,7 +375,7 @@ The cross-system integrity manifest separates those deliberate tombstones from
 live roots. They are counted and reported for audit, but are not treated as
 missing documents, permission failures, or checksum failures.
 
-Paperless 3.0.5 with REST API v10 is the qualified contract. The client rejects
+Paperless 3.4.2 with REST API v10 is the qualified contract. The client rejects
 another API version or unsupported server major with a clear diagnostic. Tests
 cover response drift, pagination, retries, historical-version duplicates,
 permissions, and Trash restoration.
