@@ -1,14 +1,14 @@
 # Build, test and publish the patched Pocket ID image (services/usl-pocket-id).
 #
 # Pocket ID is the identity provider for every USL client, so it is released
-# on its own and never through the Odoo distribution release. This workflow
-# only publishes an immutable image; production adopts it when the gitops
-# Pocket ID stack is changed to that digest.
+# on its own and never through the Odoo distribution release. It publishes when
+# the patch lands on 19-usl-staging; production adopts an image only when the
+# gitops Pocket ID stack is pinned to its digest.
 name: Pocket ID image
 
 on:
   push:
-    branches: [19-usl]
+    branches: [19-usl-staging]
     paths:
       - services/usl-pocket-id/**
       - .github/workflows/pocket-id-image.yml
@@ -74,7 +74,9 @@ jobs:
           file: services/usl-pocket-id/Dockerfile
           platforms: linux/amd64
           push: true
-          tags: ${{ env.IMAGE }}:${{ env.TAG }}
+          tags: |
+            ${{ env.IMAGE }}:${{ env.TAG }}
+            ${{ env.IMAGE }}:${{ env.TAG }}-${{ github.sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
