@@ -3,6 +3,7 @@
 import base64
 import hashlib
 import json
+import logging
 import zipfile
 from io import BytesIO
 
@@ -26,8 +27,73 @@ from odoo.addons.usl_sign.services import (
 )
 
 
+_logger = logging.getLogger(__name__)
+
+
 class SignRequest(models.Model):
     _inherit = "sign.oca.request"
+
+    def _queue_final_validation(self):
+        """Start final validation in the background once the last signer signed.
+
+        The signer's own signature is already embedded and validated at this
+        point. Sealing, the final validation and the evidence dossier take tens
+        of seconds of DSS work, so the Sign cron finishes them right after this
+        transaction commits instead of keeping the signer waiting.
+        """
+        self.ensure_one()
+        self._transition("validating", "validation_started")
+        self.env.ref("usl_sign.ir_cron_sign_operations")._trigger()
+        return True
+
+    def _run_queued_final_validations(self, limit=20):
+        """Finish the final validations queued by `_queue_final_validation`.
+
+        Each request is locked, validated and, inside the cron, committed on
+        its own, so one slow or failing request never holds back the others.
+        A failure DSS does not already handle moves the request to
+        ``action_required`` with its error, where the retry action applies.
+        """
+        queued = self.search(
+            [
+                ("state", "=", "validating"),
+                ("requested_trust", "!=", "qualified_external"),
+            ],
+            order="write_date asc, id asc",
+            limit=limit,
+        )
+        in_cron = bool(self.env.context.get("ir_cron_progress_id"))
+        cron = self.env["ir.cron"]
+        for request in queued:
+            self.env.cr.execute(
+                "SELECT id FROM sign_oca_request WHERE id = %s AND state = 'validating' "
+                "FOR UPDATE SKIP LOCKED",
+                [request.id],
+            )
+            if not self.env.cr.fetchone():
+                continue
+            request.invalidate_recordset()
+            try:
+                with self.env.cr.savepoint():
+                    request._start_final_validation()
+            except Exception as error:
+                _logger.exception("Queued Sign final validation failed for request %s", request.id)
+                request.invalidate_recordset()
+                request.with_context(usl_sign_transition=INTERNAL_OPERATION).write(
+                    {
+                        "validation_status": "indeterminate",
+                        "last_error": (str(error) or type(error).__name__)[:500],
+                        "recovery_action": "Restore the local signature services and retry validation.",
+                    },
+                )
+                request._transition(
+                    "action_required",
+                    "validation_service_error",
+                    payload={"reason": type(error).__name__},
+                )
+            if in_cron and cron._commit_progress(processed=1) <= 0:
+                break
+        return queued
 
     def _start_final_validation(self):
         self.ensure_one()

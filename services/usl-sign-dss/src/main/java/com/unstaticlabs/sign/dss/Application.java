@@ -2,6 +2,8 @@ package com.unstaticlabs.sign.dss;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -123,9 +125,17 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 
 public final class Application {
-    private static final ObjectMapper JSON = new ObjectMapper();
     private static final int MAX_REQUEST_BYTES = Integer.parseInt(
             System.getenv().getOrDefault("USL_DSS_MAX_REQUEST_BYTES", "33554432"));
+    // A request body is already bounded by MAX_REQUEST_BYTES; Jackson's own
+    // 20M-character default for one string refused evidence dossiers whose
+    // Base64 documents stayed within that bound.
+    private static final ObjectMapper JSON = new ObjectMapper(JsonFactory.builder()
+            .streamReadConstraints(StreamReadConstraints.builder()
+                    .maxStringLength(MAX_REQUEST_BYTES)
+                    .build())
+            .build());
+    private static final float FIELD_APPEARANCE_DPI = 300f;
     private static final Duration CONTEXT_TTL = Duration.ofMinutes(5);
     private static final Map<String, SigningContext> SIGNING_CONTEXTS = new ConcurrentHashMap<>();
 
@@ -507,7 +517,7 @@ public final class Application {
                         throw new IllegalArgumentException("Every field appearance must contain exactly one page.");
                     }
                     PDRectangle rect = widget.getRectangle();
-                    BufferedImage pageImage = new PDFRenderer(overlayDocument).renderImageWithDPI(0, 144);
+                    BufferedImage pageImage = new PDFRenderer(overlayDocument).renderImageWithDPI(0, FIELD_APPEARANCE_DPI);
                     int cropX = Math.max(0, (int) Math.floor(requested.x() / 100 * pageImage.getWidth()));
                     int cropY = Math.max(0, (int) Math.floor(requested.y() / 100 * pageImage.getHeight()));
                     int cropWidth = Math.min(
@@ -631,27 +641,36 @@ public final class Application {
                 || xPercent + widthPercent > 100 || yPercent + heightPercent > 100) {
             throw new IllegalArgumentException("The PAdES appearance geometry is outside the PDF page.");
         }
-        PDRectangle box;
+        PDRectangle mediaBox;
+        PDRectangle cropBox;
         try (PDDocument pdf = Loader.loadPDF(document)) {
             if (pageNumber > pdf.getNumberOfPages()) {
                 throw new IllegalArgumentException("The PAdES appearance references a missing page.");
             }
-            box = pdf.getPage(pageNumber - 1).getMediaBox();
+            PDPage page = pdf.getPage(pageNumber - 1);
+            mediaBox = page.getMediaBox();
+            cropBox = page.getCropBox();
         }
+        // Sign places fields in percent of the page as displayed (the crop
+        // box, like the reserved widgets). DSS takes the origin from the
+        // top-left of the media box and adds the media box's own offset, so
+        // express the crop-box position relative to that corner.
         SignatureFieldParameters field = new SignatureFieldParameters();
         field.setPage(pageNumber);
-        field.setOriginX(box.getLowerLeftX() + (float) (xPercent / 100 * box.getWidth()));
-        field.setOriginY(box.getLowerLeftY()
-                + (float) ((100 - yPercent - heightPercent) / 100 * box.getHeight()));
-        field.setWidth((float) (widthPercent / 100 * box.getWidth()));
-        field.setHeight((float) (heightPercent / 100 * box.getHeight()));
+        field.setOriginX((float) (cropBox.getLowerLeftX() - mediaBox.getLowerLeftX()
+                + xPercent / 100 * cropBox.getWidth()));
+        field.setOriginY((float) (mediaBox.getUpperRightY() - cropBox.getUpperRightY()
+                + yPercent / 100 * cropBox.getHeight()));
+        field.setWidth((float) (widthPercent / 100 * cropBox.getWidth()));
+        field.setHeight((float) (heightPercent / 100 * cropBox.getHeight()));
         SignatureImageParameters visual = new SignatureImageParameters();
         visual.setImage(new InMemoryDocument(
                 image,
                 "adopted-signature.png",
                 MimeType.fromFileName("adopted-signature.png")));
         visual.setFieldParameters(field);
-        visual.setImageScaling(ImageScaling.STRETCH);
+        // Keep the drawn signature's proportions inside the placed box.
+        visual.setImageScaling(ImageScaling.ZOOM_AND_CENTER);
         parameters.setImageParameters(visual);
     }
 
