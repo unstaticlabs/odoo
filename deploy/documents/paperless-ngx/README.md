@@ -1,27 +1,29 @@
-# USL Paperless 3.0.5 distribution overlay
+# USL Paperless 3.4.2 distribution overlay
 
 This directory contains the only Paperless source overlay in the USL
-distribution. It applies to upstream Paperless-ngx `v3.0.5`, source commit
-`8fb73b2709e4c38180a7632edf32f32fe2315961`, image digest
-`sha256:65a4cabf0169ea7fbd90ab7bb28ba3f8b5909613635acda1a03ad606f34b456b`.
+distribution. It applies to upstream Paperless-ngx `v3.4.2`, source commit
+`d939d873e11dd14896d1bfe23f65b1baa6513ba7`, image index digest
+`sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84`.
 The backend and frontend patchers verify the SHA-256 of every changed upstream
 file and reject any source drift before changing the image. The exact source
 archive is pinned at
-`sha256:e2b713b1e15d388c435d51acd10bf94935e651adbf31a70e061fcc40535394c6`;
+`sha256:9359f9f6c9e71d2736d9ac8074c0563d35367fa32dcdbf09ded58482b02fe8ec`;
 the frontend builder is pinned at
 `node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4`.
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1` has eight bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1` has nine bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
    complete explicit Odoo authorization scope (up to 50,000 root IDs) and runs
    one native Tantivy query across title/OCR, archive metadata, and every
    indexed custom-field name/value. Exact-source schema/backend patches add
-   the two plain-text companion fields; Paperless rebuilds only its search
-   index when schema version 2 is first detected.
+   the two plain-text companion fields. They change Paperless's schema
+   fingerprint, so Paperless rebuilds only its search index once. Like
+   upstream simple search since 3.4, every query token must occur, in any
+   order and in any of the scoped fields.
 2. The exact-source permission patch keeps Paperless's supported bulk
    permission lifecycle and native Tantivy refresh, but marks ownership/ACL-only
    edits as embedding-invariant. Those edits no longer recompute unchanged
@@ -58,6 +60,14 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
 8. `paperless_usl_ranges.py` adds authenticated HEAD and bounded single-range
    download responses. It preserves exact version and original/archive
    selection while allowing Odoo to stream large binaries without buffering.
+9. Paperless 3.1 added an "Apply AI suggestions" workflow action. It runs
+   without an initiating person and would generate as the document owner.
+   The exact-source patches hide the action in the workflow editor, make the
+   API refuse it, and make the worker refuse any stored instance. Personal
+   Gemini generation stays tied to a person's own request.
+
+`tests/test_workflow_ai_disabled.py` proves that the workflow action cannot be
+saved and that a stored instance never generates.
 
 `tests/test_semantic_api.py` is an upstream-style Django/DRF test module
 covering both bounded endpoints and permission-vector invariance: permission
@@ -66,8 +76,8 @@ mandatory service scope, indistinguishable source-document denial, source
 exclusion, empty-scope fail-closed behavior, configured lexical fields,
 facets, request limits, and embedding outage behavior.
 
-No OCR, Tantivy, local embedding, vector-index, version, ingestion, or MCP path
-can resolve a Gemini credential. The only external generation paths are the
+No OCR, Tantivy, local embedding, vector-index, version, ingestion, workflow,
+or MCP path can resolve a Gemini credential. The only external generation paths are the
 two explicitly enabled personal features. There is no Odoo chat UI.
 
 ## Scoped lexical API contract
@@ -155,6 +165,8 @@ field immediately.
 `python manage.py check_personal_ai_release` fails if a native global
 generative setting is present in either environment or database, if an inline
 master-key environment variable exists, or if the mounted key ring is invalid.
+The global settings include `PAPERLESS_AI_LLM_EXTRA_PARAMS`, which Paperless
+3.4 added. A personal client always sends an empty parameter set.
 Operational setup, rotation, revocation, incident response, and restore rules
 are in `docs/operations/personal-gemini-runbook.md`.
 

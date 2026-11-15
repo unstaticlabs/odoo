@@ -1,11 +1,11 @@
-"""Apply the USL personal-AI UI to the exact Paperless v3.0.5 frontend."""
+"""Apply the USL personal-AI UI to the exact Paperless v3.4.2 frontend."""
 
 import sys
 from hashlib import sha256
 from pathlib import Path
 
 SOURCE_ROOT = Path(sys.argv[1]).resolve()
-MISMATCH_MESSAGE = "Paperless v3.0.5 frontend is incompatible with the USL overlay"
+MISMATCH_MESSAGE = "Paperless v3.4.2 frontend is incompatible with the USL overlay"
 
 
 def patch_file(
@@ -158,7 +158,7 @@ patch_file(
 
 patch_file(
     "src/app/components/common/profile-edit-dialog/profile-edit-dialog.component.ts",
-    "cba5ffb18dee1bab5e60cf035686a6aba390f8b4805386ba8ba3e1e6ea207e3f",
+    "6333beb03c62d65e6314c12eaf9781c6156ece13c484683e87b4c49db9f60a3c",
     (
         (
             """import { PasswordComponent } from '../input/password/password.component'
@@ -170,11 +170,11 @@ import { PersonalAISettingsComponent } from '../personal-ai-settings/personal-ai
 """,
         ),
         (
-            """    NgxBootstrapIconsModule,
+            """    BootstrapIconComponent,
   ],
 })
 """,
-            """    NgxBootstrapIconsModule,
+            """    BootstrapIconComponent,
     PersonalAISettingsComponent,
   ],
 })
@@ -185,7 +185,7 @@ import { PersonalAISettingsComponent } from '../personal-ai-settings/personal-ai
 
 patch_file(
     "src/app/components/common/profile-edit-dialog/profile-edit-dialog.component.html",
-    "28887ad594eb4853c63c98144737b74103ca23452c352b5812bcc6571e0adf55",
+    "e66092a61d983fc0f082bf0cd55935f490a13d1f9499944c4d70e9824ea831e2",
     (
         (
             """      </div>
@@ -205,7 +205,7 @@ patch_file(
 
 patch_file(
     "src/app/components/app-frame/app-frame.component.ts",
-    "7f8a12e035f6eeca1d5f78128a1b4acffca85ac4071fd58371e9131689f37e2b",
+    "a199dac2ddc79614f9ee90a75d72f5dd4568f5c55ec91e588a7cad043a51d61d",
     (
         (
             """import { OpenDocumentsService } from 'src/app/services/open-documents.service'
@@ -218,36 +218,28 @@ import {
         ),
         (
             """  private djangoMessagesService = inject(DjangoMessagesService)
-
-  readonly appRemoteVersion = signal<AppRemoteVersion>(null)
 """,
             """  private djangoMessagesService = inject(DjangoMessagesService)
   private profileService = inject(ProfileService)
-
-  readonly appRemoteVersion = signal<AppRemoteVersion>(null)
 """,
         ),
         (
             """  ngOnInit(): void {
     this.lastScrollY = window.scrollY
-
 """,
             """  ngOnInit(): void {
     this.lastScrollY = window.scrollY
     this.profileService.getPersonalAI().subscribe({ error: () => undefined })
-
 """,
         ),
         (
             """  get aiEnabled(): boolean {
-    this.settingsService.trackChanges()
-    return this.settingsService.get(SETTINGS_KEYS.AI_ENABLED)
+    return this.aiEnabledSetting()
   }
 """,
             """  get aiEnabled(): boolean {
-    this.settingsService.trackChanges()
     return (
-      this.settingsService.get(SETTINGS_KEYS.AI_ENABLED) &&
+      this.aiEnabledSetting() &&
       Boolean(this.profileService.personalAI()?.document_chat_enabled)
     )
   }
@@ -258,7 +250,7 @@ import {
 
 patch_file(
     "src/app/components/document-detail/document-detail.component.ts",
-    "7791dde38e037471c4582e94c923a3039a577c5f6b4f9d8b0dfe06b9c98f77ec",
+    "890629537a8792c1c267d579199bdd9c53edc855ade65fc3d24d0fa229eb222b",
     (
         (
             """import { OpenDocumentsService } from 'src/app/services/open-documents.service'
@@ -280,14 +272,12 @@ import {
         ),
         (
             """  get aiEnabled(): boolean {
-    this.settings.trackChanges()
-    return this.settings.get(SETTINGS_KEYS.AI_ENABLED)
+    return this.aiEnabledSetting()
   }
 """,
             """  get aiEnabled(): boolean {
-    this.settings.trackChanges()
     return (
-      this.settings.get(SETTINGS_KEYS.AI_ENABLED) &&
+      this.aiEnabledSetting() &&
       Boolean(
         this.profileService.personalAI()?.metadata_suggestions_enabled
       )
@@ -299,8 +289,26 @@ import {
 )
 
 patch_file(
+    "src/app/components/common/edit-dialog/workflow-edit-dialog/workflow-edit-dialog.component.ts",
+    "5259bef35b9d5ac2855912df56832d1bca34da9fef9c827dbda31cc8e5e47ca8",
+    (
+        (
+            """    const aiSuggestionsUsable =
+      this.aiEnabledSetting() &&
+""",
+            """    // USL: a workflow has no initiating person, so it never generates with
+    // a personal Gemini key. The API refuses this action type as well.
+    const aiSuggestionsUsable =
+      false &&
+      this.aiEnabledSetting() &&
+""",
+        ),
+    ),
+)
+
+patch_file(
     "src/app/data/paperless-config.ts",
-    "2c1c1a775f85437030c1af3f78db6f39290df0a5a8af131a2ed3dbe436111175",
+    "e401c0afc71ece9c0336057a5658227530dd8f425d2078cbad356774fd770200",
     (
         (
             """  {
@@ -356,7 +364,7 @@ patch_file(
 
 patch_file(
     "src/locale/messages.fr_FR.xlf",
-    "eba0a34cffed8a3dceae04bfe76f17d288cb5f5b82133abda205f6b472e60589",
+    "dfba6ad67d0d841223c59935ac03a7b0df8ae4a67b1bd1354644430baee554dd",
     (
         (
             """    </body>
