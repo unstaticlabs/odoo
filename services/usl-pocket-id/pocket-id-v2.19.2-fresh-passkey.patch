@@ -1,0 +1,405 @@
+diff --git a/backend/internal/common/env_config.go b/backend/internal/common/env_config.go
+index e974434..9811bf1 100644
+--- a/backend/internal/common/env_config.go
++++ b/backend/internal/common/env_config.go
+@@ -73,6 +73,10 @@ type EnvConfigSchema struct {
+ 	DisableRateLimiting       bool             `env:"DISABLE_RATE_LIMITING"`
+ 	VersionCheckDisabled      bool             `env:"VERSION_CHECK_DISABLED"`
+ 	StaticApiKey              string           `env:"STATIC_API_KEY" options:"file"`
++	// FreshPasskeyClientIDs is a comma-separated list of OIDC client IDs (USL patch)
++	// Each listed client must be authorized right after a passkey reauthentication,
++	// only accepts the authorization-code grant and never receives refresh tokens
++	FreshPasskeyClientIDs string `env:"USL_FRESH_PASSKEY_CLIENT_IDS"`
+ 
+ 	FileBackend                     string `env:"FILE_BACKEND" options:"toLower"`
+ 	UploadPath                      string `env:"UPLOAD_PATH"`
+diff --git a/backend/internal/common/fresh_passkey.go b/backend/internal/common/fresh_passkey.go
+new file mode 100644
+index 0000000..b525e2b
+--- /dev/null
++++ b/backend/internal/common/fresh_passkey.go
+@@ -0,0 +1,16 @@
++package common
++
++import "strings"
++
++// IsFreshPasskeyClient reports whether the client ID is listed in USL_FRESH_PASSKEY_CLIENT_IDS
++func IsFreshPasskeyClient(clientID string) bool {
++	if clientID == "" {
++		return false
++	}
++	for _, listed := range strings.Split(EnvConfig.FreshPasskeyClientIDs, ",") {
++		if strings.TrimSpace(listed) == clientID {
++			return true
++		}
++	}
++	return false
++}
+diff --git a/backend/internal/controller/well_known_controller.go b/backend/internal/controller/well_known_controller.go
+index 187847b..2890e52 100644
+--- a/backend/internal/controller/well_known_controller.go
++++ b/backend/internal/controller/well_known_controller.go
+@@ -109,6 +109,7 @@ func (wkc *WellKnownController) computeServerMetadata() ([]byte, error) {
+ 		"grant_types_supported":                          []string{service.GrantTypeAuthorizationCode, service.GrantTypeRefreshToken, service.GrantTypeDeviceCode, service.GrantTypeClientCredentials},
+ 		"scopes_supported":                               []string{"openid", "profile", "email", "groups", "offline_access"},
+ 		"claims_supported":                               []string{"sub", "given_name", "family_name", "name", "display_name", "email", "email_verified", "preferred_username", "picture", "groups", "auth_time", "amr"},
++		"fresh_passkey_reauthentication_supported":       true,
+ 		"response_types_supported":                       []string{"code"},
+ 		"response_modes_supported":                       []string{"query", "fragment", "form_post"},
+ 		"subject_types_supported":                        []string{"public"},
+diff --git a/backend/internal/model/oidc.go b/backend/internal/model/oidc.go
+index 58b2cfb..d2fc200 100644
+--- a/backend/internal/model/oidc.go
++++ b/backend/internal/model/oidc.go
+@@ -6,6 +6,7 @@ import (
+ 	"slices"
+ 	"time"
+ 
++	"github.com/pocket-id/pocket-id/backend/internal/common"
+ 	datatype "github.com/pocket-id/pocket-id/backend/internal/model/types"
+ 	"github.com/pocket-id/pocket-id/backend/internal/utils"
+ )
+@@ -74,6 +75,11 @@ type OidcClient struct {
+ 	UserAuthorizedOidcClients []UserAuthorizedOidcClient `gorm:"foreignKey:ClientID;references:ID"`
+ }
+ 
++// RequiresFreshPasskey reports whether the client is configured for strict fresh-passkey authorization (USL patch)
++func (c OidcClient) RequiresFreshPasskey() bool {
++	return common.IsFreshPasskeyClient(c.ID)
++}
++
+ // IsValidTokenDurationMinutes reports whether a duration is within the configurable range
+ func IsValidTokenDurationMinutes(minutes int64) bool {
+ 	return minutes >= MinTokenDurationMinutes && minutes <= MaxTokenDurationMinutes
+diff --git a/backend/internal/oidc/authorization_service.go b/backend/internal/oidc/authorization_service.go
+index 6e151ca..1672aeb 100644
+--- a/backend/internal/oidc/authorization_service.go
++++ b/backend/internal/oidc/authorization_service.go
+@@ -153,7 +153,7 @@ func (s *authorizationService) authorize(ctx context.Context, input authorizeInp
+ 
+ 		interactionSession, err := s.createInteractionSession(ctx, input.requester, input.requestParams, "", interactionRequirements{
+ 			AuthenticationRequired:   true,
+-			ReauthenticationRequired: prompt.has("login") || client.RequiresReauthentication,
++			ReauthenticationRequired: prompt.has("login") || client.RequiresReauthentication || client.RequiresFreshPasskey(),
+ 			AccountSelectionRequired: prompt.has("select_account"),
+ 			ConsentRequired:          prompt.has("consent"),
+ 		})
+@@ -329,7 +329,7 @@ func (s *authorizationService) resolveRequirements(ctx context.Context, req auth
+ 
+ 	requirements := interactionRequirements{
+ 		ConsentRequired:          consentRequired(hasAlreadyAuthorizedClient, req.client.SkipConsent, req.prompt),
+-		ReauthenticationRequired: req.prompt.has("login") || req.client.RequiresReauthentication || maxAgeReauthenticationRequired,
++		ReauthenticationRequired: req.prompt.has("login") || req.client.RequiresReauthentication || req.client.RequiresFreshPasskey() || maxAgeReauthenticationRequired,
+ 		AccountSelectionRequired: req.prompt.has("select_account"),
+ 		AuthenticationRequired:   false,
+ 	}
+@@ -353,7 +353,8 @@ func (s *authorizationService) resolveRequirements(ctx context.Context, req auth
+ 		return interactionRequirements{}, authenticationTime, fosite.ErrLoginRequired
+ 	}
+ 
+-	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && s.reauth != nil {
++	credentialProofValid := !req.client.RequiresFreshPasskey() || isPasskeyReauthenticationToken(req.reauthenticationToken)
++	if requirements.ReauthenticationRequired && req.reauthenticationToken != "" && credentialProofValid && s.reauth != nil {
+ 		reauthenticatedAt, err := s.reauth.ConsumeReauthenticationToken(ctx, dbFromContext(ctx, s.db), req.reauthenticationToken, req.userID)
+ 		if err == nil {
+ 			requirements.ReauthenticationRequired = false
+@@ -376,7 +377,21 @@ func (s *authorizationService) buildAuthorizedSession(req authorizeRequest, inte
+ 		requestedAt = req.now
+ 	}
+ 
+-	return NewAuthenticatedSession(req.userID, req.authenticationMethod, authenticationTime, requestedAt)
++	authenticationMethod := req.authenticationMethod
++	if interactionSession != nil &&
++		interactionSession.Client.RequiresFreshPasskey() &&
++		interactionSession.ReauthenticatedAt != nil {
++		authenticationMethod = passkeyReauthenticationProof
++	}
++
++	return NewAuthenticatedSession(req.userID, authenticationMethod, authenticationTime, requestedAt)
++}
++
++// passkeyReauthenticationProof prefixes reauthentication tokens minted from a WebAuthn assertion (USL patch)
++const passkeyReauthenticationProof = "phr"
++
++func isPasskeyReauthenticationToken(token string) bool {
++	return strings.HasPrefix(token, passkeyReauthenticationProof+".")
+ }
+ 
+ // interactionRequestQuery returns the authorize parameters stored for the interaction
+@@ -669,6 +684,9 @@ func (s *authorizationService) completeReauthenticationStep(ctx context.Context,
+ 	if reauthenticationToken == "" {
+ 		return apperror.MissingField("reauthenticationToken")
+ 	}
++	if interactionSession.Client.RequiresFreshPasskey() && !isPasskeyReauthenticationToken(reauthenticationToken) {
++		return apperror.ReauthenticationRequired()
++	}
+ 	reauthenticatedAt, err := s.reauth.ConsumeReauthenticationToken(ctx, dbFromContext(ctx, s.db), reauthenticationToken, userID)
+ 	if err != nil {
+ 		return err
+@@ -792,7 +810,7 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
+ 
+ 	return interactionRequirements{
+ 		ConsentRequired:          consentRequired(hasAlreadyAuthorizedClient, interactionSession.Client.SkipConsent, prompt),
+-		ReauthenticationRequired: prompt.has("login") || interactionSession.Client.RequiresReauthentication || maxAgeReauthenticationRequired,
++		ReauthenticationRequired: prompt.has("login") || interactionSession.Client.RequiresReauthentication || interactionSession.Client.RequiresFreshPasskey() || maxAgeReauthenticationRequired,
+ 		AccountSelectionRequired: prompt.has("select_account"),
+ 		AuthenticationRequired:   false,
+ 	}, nil
+diff --git a/backend/internal/oidc/client.go b/backend/internal/oidc/client.go
+index b53bdec..ab8e1b7 100644
+--- a/backend/internal/oidc/client.go
++++ b/backend/internal/oidc/client.go
+@@ -48,6 +48,10 @@ func (c Client) GetRedirectURIs() []string {
+ }
+ 
+ func (c Client) GetGrantTypes() fosite.Arguments {
++	if c.RequiresFreshPasskey() {
++		return fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)}
++	}
++
+ 	grantTypes := fosite.Arguments{
+ 		string(fosite.GrantTypeAuthorizationCode),
+ 		string(fosite.GrantTypeRefreshToken),
+@@ -85,6 +89,9 @@ func (c Client) GetScopes() fosite.Arguments {
+ 	scopes[2] = "email"
+ 	scopes[3] = "groups"
+ 	scopes[4] = "offline_access"
++	if c.RequiresFreshPasskey() {
++		scopes = scopes[:4]
++	}
+ 	scopes = append(scopes, c.apiScopes...)
+ 	return scopes
+ }
+diff --git a/backend/internal/oidc/fresh_passkey_usl_test.go b/backend/internal/oidc/fresh_passkey_usl_test.go
+new file mode 100644
+index 0000000..e041140
+--- /dev/null
++++ b/backend/internal/oidc/fresh_passkey_usl_test.go
+@@ -0,0 +1,132 @@
++package oidc
++
++// Tests for the USL fresh-passkey patch: clients listed in
++// USL_FRESH_PASSKEY_CLIENT_IDS must be authorized right after a passkey.
++
++import (
++	"context"
++	"testing"
++	"time"
++
++	"github.com/pocket-id/fosite"
++	"github.com/stretchr/testify/require"
++	"gorm.io/gorm"
++
++	"github.com/pocket-id/pocket-id/backend/internal/appconfig"
++	"github.com/pocket-id/pocket-id/backend/internal/apperror"
++	"github.com/pocket-id/pocket-id/backend/internal/common"
++	"github.com/pocket-id/pocket-id/backend/internal/model"
++	datatype "github.com/pocket-id/pocket-id/backend/internal/model/types"
++	testutils "github.com/pocket-id/pocket-id/backend/internal/utils/testing"
++)
++
++const freshPasskeyClientID = "usl-sign-authorization"
++
++func withFreshPasskeyClients(t *testing.T, ids string) {
++	t.Helper()
++	previous := common.EnvConfig.FreshPasskeyClientIDs
++	common.EnvConfig.FreshPasskeyClientIDs = ids
++	t.Cleanup(func() { common.EnvConfig.FreshPasskeyClientIDs = previous })
++}
++
++type trackingReauthenticationConsumer struct {
++	called bool
++	when   time.Time
++}
++
++func (f *trackingReauthenticationConsumer) ConsumeReauthenticationToken(_ context.Context, _ *gorm.DB, _ string, _ string) (time.Time, error) {
++	f.called = true
++	return f.when, nil
++}
++
++func TestFreshPasskeyClientIsConfiguredByEnvironment(t *testing.T) {
++	withFreshPasskeyClients(t, " other , "+freshPasskeyClientID)
++
++	require.True(t, model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}.RequiresFreshPasskey())
++	require.False(t, model.OidcClient{Base: model.Base{ID: "tailscale"}}.RequiresFreshPasskey())
++	require.False(t, model.OidcClient{}.RequiresFreshPasskey())
++}
++
++func TestFreshPasskeyClientOnlyAllowsAuthorizationCode(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++
++	strict := Client{OidcClient: model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}}
++	require.Equal(t, fosite.Arguments{string(fosite.GrantTypeAuthorizationCode)}, strict.GetGrantTypes())
++	require.NotContains(t, strict.GetScopes(), "offline_access")
++
++	// Every other client keeps upstream behaviour
++	regular := Client{OidcClient: model.OidcClient{Base: model.Base{ID: "regular"}}}
++	require.Contains(t, regular.GetGrantTypes(), string(fosite.GrantTypeRefreshToken))
++	require.Contains(t, regular.GetScopes(), "offline_access")
++}
++
++func TestFreshPasskeyReauthenticationStepRejectsSessionProof(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++	db := testutils.NewDatabaseForTest(t)
++	consumer := &trackingReauthenticationConsumer{when: time.Now().UTC()}
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil, appconfig.StaticResolver{}), consumer, nil, nil)
++	userID := "fresh-passkey-user"
++	interaction := &InteractionSession{
++		UserID:                   &userID,
++		ReauthenticationRequired: true,
++		Client:                   model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}},
++	}
++
++	err := service.completeReauthenticationStep(t.Context(), interaction, userID, "session.recent-login")
++	require.Error(t, err)
++	require.True(t, apperror.IsCode(err, apperror.CodeReauthenticationRequired))
++	require.False(t, consumer.called)
++	require.True(t, interaction.ReauthenticationRequired)
++
++	err = service.completeReauthenticationStep(t.Context(), interaction, userID, "phr.credential-backed")
++	require.NoError(t, err)
++	require.True(t, consumer.called)
++	require.False(t, interaction.ReauthenticationRequired)
++}
++
++func TestFreshPasskeyClientAlwaysRequiresReauthentication(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++	db := testutils.NewDatabaseForTest(t)
++	service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil, appconfig.StaticResolver{}), nil, nil, nil)
++	const userID = "fresh-passkey-user"
++	require.NoError(t, db.Create(&model.User{Base: model.Base{ID: userID}}).Error)
++	require.NoError(t, db.Create(&model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}, Name: "USL Sign"}).Error)
++	require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{
++		UserID: userID, ClientID: freshPasskeyClientID, Scope: datatype.StringList{"openid"},
++	}).Error)
++
++	// A login one second ago, already consented: upstream would authorize silently
++	authorization, err := service.authorize(t.Context(), authorizeInput{
++		userID:             userID,
++		authenticationTime: time.Now().Add(-time.Second).UTC(),
++		requester:          newTestAuthorizeRequester("fresh-passkey-request", freshPasskeyClientID, ""),
++	})
++	require.NoError(t, err)
++	require.True(t, authorization.RequiresInteraction)
++
++	interaction, err := service.getInteractionSession(t.Context(), authorization.InteractionID)
++	require.NoError(t, err)
++	require.Equal(t, interactionStepReauthenticate, interaction.CurrentStep)
++}
++
++func TestFreshPasskeySessionReportsPhishingResistantMethod(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++	service := &authorizationService{}
++	reauthenticatedAt := datatype.DateTime(time.Now().UTC())
++	request := authorizeRequest{
++		authorizeInput: authorizeInput{
++			userID:               "u",
++			authenticationMethod: "otp",
++			requester:            newTestAuthorizeRequester("amr-request", freshPasskeyClientID, ""),
++		},
++		now: time.Now().UTC(),
++	}
++
++	strict := &InteractionSession{Client: model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}, ReauthenticatedAt: &reauthenticatedAt}
++	session := service.buildAuthorizedSession(request, strict, time.Now().UTC())
++	require.Equal(t, "phr", session.AuthenticationMethod)
++
++	regular := &InteractionSession{Client: model.OidcClient{Base: model.Base{ID: "regular"}}, ReauthenticatedAt: &reauthenticatedAt}
++	session = service.buildAuthorizedSession(request, regular, time.Now().UTC())
++	require.Equal(t, "otp", session.AuthenticationMethod)
++}
+diff --git a/backend/internal/webauthn/fresh_passkey_usl_test.go b/backend/internal/webauthn/fresh_passkey_usl_test.go
+new file mode 100644
+index 0000000..123a63c
+--- /dev/null
++++ b/backend/internal/webauthn/fresh_passkey_usl_test.go
+@@ -0,0 +1,39 @@
++package webauthn
++
++// Tests for the USL fresh-passkey patch: a reauthentication token records the
++// proof that minted it, and only a WebAuthn assertion yields a "phr." token.
++
++import (
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/stretchr/testify/require"
++
++	"github.com/pocket-id/pocket-id/backend/internal/model"
++	testutils "github.com/pocket-id/pocket-id/backend/internal/utils/testing"
++)
++
++func TestReauthenticationTokenRecordsItsProof(t *testing.T) {
++	db := testutils.NewDatabaseForTest(t)
++	user := model.User{Base: model.Base{ID: "reauth-user"}, Username: "reauth-user"}
++	require.NoError(t, db.Create(&user).Error)
++	signer := newFakeSigner()
++	service := &Service{db: db, signer: signer}
++
++	// A recent passkey login session is not a fresh passkey assertion
++	accessToken, err := signer.GenerateAccessToken(user, authenticationMethodPhishingResistant, time.Hour)
++	require.NoError(t, err)
++	sessionToken, err := service.CreateReauthenticationTokenWithAccessToken(t.Context(), accessToken)
++	require.NoError(t, err)
++	require.True(t, strings.HasPrefix(sessionToken, "session."), sessionToken)
++
++	passkeyToken, err := service.createReauthenticationToken(t.Context(), db, user.ID, authenticationMethodPhishingResistant)
++	require.NoError(t, err)
++	require.True(t, strings.HasPrefix(passkeyToken, "phr."), passkeyToken)
++
++	// The prefixed value is what the consumer receives back, so it must round-trip
++	consumedAt, err := service.ConsumeReauthenticationToken(t.Context(), db, passkeyToken, user.ID)
++	require.NoError(t, err)
++	require.False(t, consumedAt.IsZero())
++}
+diff --git a/backend/internal/webauthn/service.go b/backend/internal/webauthn/service.go
+index aef219d..88ebf70 100644
+--- a/backend/internal/webauthn/service.go
++++ b/backend/internal/webauthn/service.go
+@@ -505,7 +505,7 @@ func (s *Service) CreateReauthenticationTokenWithAccessToken(ctx context.Context
+ 		return "", fmt.Errorf("failed to load user: %w", err)
+ 	}
+ 
+-	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	reauthToken, err := s.createReauthenticationToken(ctx, tx, user.ID, "session")
+ 	if err != nil {
+ 		return "", err
+ 	}
+@@ -572,7 +572,7 @@ func (s *Service) CreateReauthenticationTokenWithWebauthn(ctx context.Context, s
+ 	}
+ 
+ 	// Create reauthentication token
+-	token, err := s.createReauthenticationToken(ctx, tx, user.ID)
++	token, err := s.createReauthenticationToken(ctx, tx, user.ID, authenticationMethodPhishingResistant)
+ 	if err != nil {
+ 		return "", err
+ 	}
+@@ -630,11 +630,13 @@ func (s *Service) ConsumeReauthenticationToken(ctx context.Context, tx *gorm.DB,
+ 	return reauthToken.CreatedAt.UTC(), nil
+ }
+ 
+-func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID string) (string, error) {
+-	token, err := utils.GenerateRandomAlphanumericString(32)
++func (s *Service) createReauthenticationToken(ctx context.Context, tx *gorm.DB, userID, proof string) (string, error) {
++	randomToken, err := utils.GenerateRandomAlphanumericString(32)
+ 	if err != nil {
+ 		return "", err
+ 	}
++	// The prefix records how the user proved themself (USL patch), so strict clients can require a passkey
++	token := proof + "." + randomToken
+ 
+ 	reauthToken := ReauthenticationToken{
+ 		Token:     utils.CreateSha256Hash(token),
+diff --git a/frontend/package.json b/frontend/package.json
+index a55daa1..91e3478 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -1,6 +1,6 @@
+ {
+ 	"name": "pocket-id-frontend",
+-	"version": "2.19.2",
++	"version": "2.19.2-usl1",
+ 	"private": true,
+ 	"type": "module",
+ 	"imports": {

@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1.7
 
-ARG POCKET_ID_COMMIT=5521266227205dccb57ba58d820c833a5701346d
+# Pocket ID v2.19.2 with the USL fresh-passkey patch. The build stages mirror
+# upstream's docker/Dockerfile for this release; only the source checkout, the
+# patch and the test stage are ours.
+ARG POCKET_ID_COMMIT=2b2750ed61e0016f4c15630322d15ca22143cdb6
 
 FROM alpine/git:2.49.1 AS source
 ARG POCKET_ID_COMMIT
@@ -8,35 +11,38 @@ WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
     && git checkout --detach "${POCKET_ID_COMMIT}" \
     && test "$(git rev-parse HEAD)" = "${POCKET_ID_COMMIT}"
-COPY services/usl-pocket-id/pocket-id-v2.14.0-fresh-passkey.patch /tmp/fresh-passkey.patch
-RUN git apply --check --unidiff-zero /tmp/fresh-passkey.patch \
-    && git apply --unidiff-zero /tmp/fresh-passkey.patch
+COPY services/usl-pocket-id/pocket-id-v2.19.2-fresh-passkey.patch /tmp/fresh-passkey.patch
+RUN git apply --check /tmp/fresh-passkey.patch \
+    && git apply /tmp/fresh-passkey.patch \
+    && rm -rf .git
 
-FROM node:24-alpine AS frontend-builder
-RUN corepack enable
-WORKDIR /build
-COPY --from=source /src/package.json /src/pnpm-workspace.yaml /src/pnpm-lock.yaml ./
-COPY --from=source /src/frontend/package.json ./frontend/
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm --filter pocket-id-frontend install --frozen-lockfile
-COPY --from=source /src/frontend ./frontend/
-RUN --mount=type=cache,target=/build/frontend/node_modules/.vite \
-    --mount=type=cache,target=/build/frontend/.svelte-kit \
-    BUILD_OUTPUT_PATH=dist pnpm --filter pocket-id-frontend run build
+FROM --platform=$BUILDPLATFORM ghcr.io/voidzero-dev/vite-plus:1.4.0 AS frontend-builder
+ENV CI=true
+WORKDIR /app
+COPY --from=source --chown=vp:vp /src/package.json /src/pnpm-workspace.yaml /src/pnpm-lock.yaml /src/.node-version ./
+COPY --from=source --chown=vp:vp /src/frontend/package.json ./frontend/
+COPY --from=source --chown=vp:vp /src/tests/package.json ./tests/
+COPY --from=source --chown=vp:vp /src/email-templates/package.json ./email-templates/
+RUN --mount=type=cache,id=pocket-id-pnpm,target=/home/vp/.local/share/pnpm/store,sharing=locked,uid=1000,gid=1000 \
+    vp -C frontend install --frozen-lockfile --prefer-offline
+COPY --from=source --chown=vp:vp /src/frontend ./frontend/
+RUN --mount=type=cache,target=/app/frontend/node_modules/.vite,uid=1000,gid=1000 \
+    --mount=type=cache,target=/app/frontend/.svelte-kit,uid=1000,gid=1000 \
+    BUILD_OUTPUT_PATH=dist vp -C frontend run build
 
-FROM golang:1.26.6-alpine AS backend-builder
+FROM golang:1.27.3-alpine AS backend-builder
 ARG BUILD_TAGS=""
 WORKDIR /build
 COPY --from=source /src/backend/go.mod /src/backend/go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY --from=source /src/backend ./
-COPY --from=frontend-builder /build/frontend/dist ./frontend/dist
+COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 COPY --from=source /src/.version .version
 WORKDIR /build/cmd
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    VERSION=$(cat /build/.version) \
-    CGO_ENABLED=0 GOOS=linux go build \
+    VERSION="$(cat /build/.version)-usl1" \
+    && CGO_ENABLED=0 GOOS=linux go build \
     -tags "${BUILD_TAGS}" \
     -ldflags="-X github.com/pocket-id/pocket-id/backend/internal/common.Version=${VERSION} -buildid=${VERSION}" \
     -trimpath -o /build/pocket-id .
@@ -45,9 +51,9 @@ FROM backend-builder AS backend-test
 WORKDIR /build
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go test -tags=exclude_frontend,unit ./internal/oidc ./internal/service ./internal/webauthn
+    go test -tags=exclude_frontend,unit ./internal/common ./internal/oidc ./internal/service ./internal/webauthn
 
-FROM alpine:3.24.1
+FROM alpine:3.24.3
 WORKDIR /app
 RUN apk add --no-cache curl su-exec
 COPY --from=backend-builder /build/pocket-id /app/pocket-id
