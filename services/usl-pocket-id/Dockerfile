@@ -51,7 +51,7 @@ FROM backend-builder AS backend-test
 WORKDIR /build
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go test -tags=exclude_frontend,unit ./internal/common ./internal/oidc ./internal/service ./internal/webauthn
+    go test -tags=exclude_frontend,unit ./internal/common ./internal/controller ./internal/oidc ./internal/service ./internal/webauthn
 
 FROM alpine:3.24.3
 WORKDIR /app

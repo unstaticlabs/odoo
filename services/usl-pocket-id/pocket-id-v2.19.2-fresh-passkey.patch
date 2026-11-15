@@ -77,7 +77,7 @@ index 58b2cfb..d2fc200 100644
  func IsValidTokenDurationMinutes(minutes int64) bool {
  	return minutes >= MinTokenDurationMinutes && minutes <= MaxTokenDurationMinutes
 diff --git a/backend/internal/oidc/authorization_service.go b/backend/internal/oidc/authorization_service.go
-index 6e151ca..f9f172a 100644
+index 6e151ca..94ea2b4 100644
 --- a/backend/internal/oidc/authorization_service.go
 +++ b/backend/internal/oidc/authorization_service.go
 @@ -153,7 +153,7 @@ func (s *authorizationService) authorize(ctx context.Context, input authorizeInp
@@ -114,11 +114,11 @@ index 6e151ca..f9f172a 100644
  
 -	return NewAuthenticatedSession(req.userID, req.authenticationMethod, authenticationTime, requestedAt)
 +	authenticationMethod := req.authenticationMethod
-+	// A strict client reaches this point only after a passkey proof was consumed, either in the
-+	// interaction or straight from the reauthentication cookie (USL patch)
++	// A strict client reaches this point only after a passkey proof was consumed: in the interaction
++	// when there is one, otherwise straight from the reauthentication cookie (USL patch)
 +	if req.client.RequiresFreshPasskey() &&
 +		((interactionSession != nil && interactionSession.ReauthenticatedAt != nil) ||
-+			isPasskeyReauthenticationToken(req.reauthenticationToken)) {
++			(interactionSession == nil && isPasskeyReauthenticationToken(req.reauthenticationToken))) {
 +		authenticationMethod = passkeyReauthenticationProof
 +	}
 +
@@ -179,10 +179,10 @@ index b53bdec..ab8e1b7 100644
  }
 diff --git a/backend/internal/oidc/fresh_passkey_usl_test.go b/backend/internal/oidc/fresh_passkey_usl_test.go
 new file mode 100644
-index 0000000..f1b207d
+index 0000000..c6f1bf1
 --- /dev/null
 +++ b/backend/internal/oidc/fresh_passkey_usl_test.go
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,200 @@
 +package oidc
 +
 +// Tests for the USL fresh-passkey patch: clients listed in
@@ -362,6 +362,26 @@ index 0000000..f1b207d
 +	require.False(t, common.HasFreshPasskeyClients())
 +	withFreshPasskeyClients(t, freshPasskeyClientID)
 +	require.True(t, common.HasFreshPasskeyClients())
++}
++
++func TestFreshPasskeyInteractionWithoutReauthenticationIsNotPhr(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++	service := &authorizationService{}
++	request := authorizeRequest{
++		authorizeInput: authorizeInput{
++			userID:                "u",
++			authenticationMethod:  "otp",
++			requester:             newTestAuthorizeRequester("amr-request", freshPasskeyClientID, ""),
++			reauthenticationToken: "phr.forged-cookie",
++		},
++		client: Client{OidcClient: model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}},
++		now:    time.Now().UTC(),
++	}
++
++	// With an interaction, only a completed reauthentication step counts, never the cookie prefix
++	interaction := &InteractionSession{Client: model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}}
++	session := service.buildAuthorizedSession(request, interaction, time.Now().UTC())
++	require.Equal(t, "otp", session.AuthenticationMethod)
 +}
 diff --git a/backend/internal/webauthn/fresh_passkey_usl_test.go b/backend/internal/webauthn/fresh_passkey_usl_test.go
 new file mode 100644
