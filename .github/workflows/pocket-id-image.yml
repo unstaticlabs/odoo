@@ -30,8 +30,32 @@ env:
   TAG: 2.19.2-usl1
 
 jobs:
-  image:
-    name: Build, test and publish
+  test:
+    name: Test the patched Pocket ID
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+
+      - name: Run the Go tests in the image build
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          file: services/usl-pocket-id/Dockerfile
+          target: backend-test
+          platforms: linux/amd64
+          push: false
+
+  publish:
+    name: Publish the image
+    needs: test
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -48,26 +72,15 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
-      - name: Run the patched Pocket ID tests
-        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
-        with:
-          context: .
-          file: services/usl-pocket-id/Dockerfile
-          target: backend-test
-          platforms: linux/amd64
-          push: false
-
       - name: Log in to GHCR
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish the image
+      - name: Build and push
         id: publish
-        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
@@ -83,7 +96,6 @@ jobs:
             org.opencontainers.image.version=${{ env.TAG }}
 
       - name: Attest the image
-        if: github.event_name != 'pull_request'
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
         with:
           subject-name: ${{ env.IMAGE }}
@@ -91,7 +103,6 @@ jobs:
           push-to-registry: true
 
       - name: Report the digest to pin in gitops
-        if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.publish.outputs.digest }}
         run: |

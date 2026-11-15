@@ -15,10 +15,10 @@ index e974434..9811bf1 100644
  	UploadPath                      string `env:"UPLOAD_PATH"`
 diff --git a/backend/internal/common/fresh_passkey.go b/backend/internal/common/fresh_passkey.go
 new file mode 100644
-index 0000000..b525e2b
+index 0000000..ff76b48
 --- /dev/null
 +++ b/backend/internal/common/fresh_passkey.go
-@@ -0,0 +1,16 @@
+@@ -0,0 +1,21 @@
 +package common
 +
 +import "strings"
@@ -35,15 +35,20 @@ index 0000000..b525e2b
 +	}
 +	return false
 +}
++
++// HasFreshPasskeyClients reports whether any client is configured, so discovery only advertises enforcement that exists
++func HasFreshPasskeyClients() bool {
++	return strings.Trim(EnvConfig.FreshPasskeyClientIDs, ", ") != ""
++}
 diff --git a/backend/internal/controller/well_known_controller.go b/backend/internal/controller/well_known_controller.go
-index 187847b..2890e52 100644
+index 187847b..28b1f22 100644
 --- a/backend/internal/controller/well_known_controller.go
 +++ b/backend/internal/controller/well_known_controller.go
 @@ -109,6 +109,7 @@ func (wkc *WellKnownController) computeServerMetadata() ([]byte, error) {
  		"grant_types_supported":                          []string{service.GrantTypeAuthorizationCode, service.GrantTypeRefreshToken, service.GrantTypeDeviceCode, service.GrantTypeClientCredentials},
  		"scopes_supported":                               []string{"openid", "profile", "email", "groups", "offline_access"},
  		"claims_supported":                               []string{"sub", "given_name", "family_name", "name", "display_name", "email", "email_verified", "preferred_username", "picture", "groups", "auth_time", "amr"},
-+		"fresh_passkey_reauthentication_supported":       true,
++		"fresh_passkey_reauthentication_supported":       common.HasFreshPasskeyClients(),
  		"response_types_supported":                       []string{"code"},
  		"response_modes_supported":                       []string{"query", "fragment", "form_post"},
  		"subject_types_supported":                        []string{"public"},
@@ -72,7 +77,7 @@ index 58b2cfb..d2fc200 100644
  func IsValidTokenDurationMinutes(minutes int64) bool {
  	return minutes >= MinTokenDurationMinutes && minutes <= MaxTokenDurationMinutes
 diff --git a/backend/internal/oidc/authorization_service.go b/backend/internal/oidc/authorization_service.go
-index 6e151ca..1672aeb 100644
+index 6e151ca..f9f172a 100644
 --- a/backend/internal/oidc/authorization_service.go
 +++ b/backend/internal/oidc/authorization_service.go
 @@ -153,7 +153,7 @@ func (s *authorizationService) authorize(ctx context.Context, input authorizeInp
@@ -103,15 +108,17 @@ index 6e151ca..1672aeb 100644
  		reauthenticatedAt, err := s.reauth.ConsumeReauthenticationToken(ctx, dbFromContext(ctx, s.db), req.reauthenticationToken, req.userID)
  		if err == nil {
  			requirements.ReauthenticationRequired = false
-@@ -376,7 +377,21 @@ func (s *authorizationService) buildAuthorizedSession(req authorizeRequest, inte
+@@ -376,7 +377,23 @@ func (s *authorizationService) buildAuthorizedSession(req authorizeRequest, inte
  		requestedAt = req.now
  	}
  
 -	return NewAuthenticatedSession(req.userID, req.authenticationMethod, authenticationTime, requestedAt)
 +	authenticationMethod := req.authenticationMethod
-+	if interactionSession != nil &&
-+		interactionSession.Client.RequiresFreshPasskey() &&
-+		interactionSession.ReauthenticatedAt != nil {
++	// A strict client reaches this point only after a passkey proof was consumed, either in the
++	// interaction or straight from the reauthentication cookie (USL patch)
++	if req.client.RequiresFreshPasskey() &&
++		((interactionSession != nil && interactionSession.ReauthenticatedAt != nil) ||
++			isPasskeyReauthenticationToken(req.reauthenticationToken)) {
 +		authenticationMethod = passkeyReauthenticationProof
 +	}
 +
@@ -126,7 +133,7 @@ index 6e151ca..1672aeb 100644
  }
  
  // interactionRequestQuery returns the authorize parameters stored for the interaction
-@@ -669,6 +684,9 @@ func (s *authorizationService) completeReauthenticationStep(ctx context.Context,
+@@ -669,6 +686,9 @@ func (s *authorizationService) completeReauthenticationStep(ctx context.Context,
  	if reauthenticationToken == "" {
  		return apperror.MissingField("reauthenticationToken")
  	}
@@ -136,7 +143,7 @@ index 6e151ca..1672aeb 100644
  	reauthenticatedAt, err := s.reauth.ConsumeReauthenticationToken(ctx, dbFromContext(ctx, s.db), reauthenticationToken, userID)
  	if err != nil {
  		return err
-@@ -792,7 +810,7 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
+@@ -792,7 +812,7 @@ func (s *authorizationService) interactionRequirementsForUser(ctx context.Contex
  
  	return interactionRequirements{
  		ConsentRequired:          consentRequired(hasAlreadyAuthorizedClient, interactionSession.Client.SkipConsent, prompt),
@@ -172,10 +179,10 @@ index b53bdec..ab8e1b7 100644
  }
 diff --git a/backend/internal/oidc/fresh_passkey_usl_test.go b/backend/internal/oidc/fresh_passkey_usl_test.go
 new file mode 100644
-index 0000000..e041140
+index 0000000..f1b207d
 --- /dev/null
 +++ b/backend/internal/oidc/fresh_passkey_usl_test.go
-@@ -0,0 +1,132 @@
+@@ -0,0 +1,180 @@
 +package oidc
 +
 +// Tests for the USL fresh-passkey patch: clients listed in
@@ -291,22 +298,70 @@ index 0000000..e041140
 +	withFreshPasskeyClients(t, freshPasskeyClientID)
 +	service := &authorizationService{}
 +	reauthenticatedAt := datatype.DateTime(time.Now().UTC())
-+	request := authorizeRequest{
-+		authorizeInput: authorizeInput{
-+			userID:               "u",
-+			authenticationMethod: "otp",
-+			requester:            newTestAuthorizeRequester("amr-request", freshPasskeyClientID, ""),
-+		},
-+		now: time.Now().UTC(),
++	request := func(clientID string) authorizeRequest {
++		return authorizeRequest{
++			authorizeInput: authorizeInput{
++				userID:               "u",
++				authenticationMethod: "otp",
++				requester:            newTestAuthorizeRequester("amr-request", clientID, ""),
++			},
++			client: Client{OidcClient: model.OidcClient{Base: model.Base{ID: clientID}}},
++			now:    time.Now().UTC(),
++		}
 +	}
 +
 +	strict := &InteractionSession{Client: model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}}, ReauthenticatedAt: &reauthenticatedAt}
-+	session := service.buildAuthorizedSession(request, strict, time.Now().UTC())
++	session := service.buildAuthorizedSession(request(freshPasskeyClientID), strict, time.Now().UTC())
 +	require.Equal(t, "phr", session.AuthenticationMethod)
 +
 +	regular := &InteractionSession{Client: model.OidcClient{Base: model.Base{ID: "regular"}}, ReauthenticatedAt: &reauthenticatedAt}
-+	session = service.buildAuthorizedSession(request, regular, time.Now().UTC())
++	session = service.buildAuthorizedSession(request("regular"), regular, time.Now().UTC())
 +	require.Equal(t, "otp", session.AuthenticationMethod)
++}
++
++func TestFreshPasskeyAuthorizeIgnoresSessionProofCookie(t *testing.T) {
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++
++	authorizeWith := func(t *testing.T, token string) (authorizationResult, *trackingReauthenticationConsumer) {
++		t.Helper()
++		db := testutils.NewDatabaseForTest(t)
++		consumer := &trackingReauthenticationConsumer{when: time.Now().UTC()}
++		service := newAuthorizationService(db, newInteractionSessionService(db), newClaimsService(db, nil, "", nil, appconfig.StaticResolver{}), consumer, nil, nil)
++		const userID = "fresh-passkey-user"
++		require.NoError(t, db.Create(&model.User{Base: model.Base{ID: userID}}).Error)
++		require.NoError(t, db.Create(&model.OidcClient{Base: model.Base{ID: freshPasskeyClientID}, Name: "USL Sign"}).Error)
++		require.NoError(t, db.Create(&model.UserAuthorizedOidcClient{
++			UserID: userID, ClientID: freshPasskeyClientID, Scope: datatype.StringList{"openid"},
++		}).Error)
++		authorization, err := service.authorize(t.Context(), authorizeInput{
++			userID:                userID,
++			authenticationTime:    time.Now().Add(-time.Second).UTC(),
++			requester:             newTestAuthorizeRequester("cookie-request", freshPasskeyClientID, ""),
++			reauthenticationToken: token,
++		})
++		require.NoError(t, err)
++		return authorization, consumer
++	}
++
++	// A session proof in the cookie must neither be consumed nor clear reauthentication
++	authorization, consumer := authorizeWith(t, "session.recent-login")
++	require.True(t, authorization.RequiresInteraction)
++	require.False(t, consumer.called)
++
++	// A passkey proof completes the authorization directly
++	authorization, consumer = authorizeWith(t, "phr.credential-backed")
++	require.False(t, authorization.RequiresInteraction)
++	require.True(t, consumer.called)
++	require.Equal(t, "phr", authorization.Session.AuthenticationMethod)
++}
++
++func TestDiscoveryAdvertisesFreshPasskeyOnlyWhenConfigured(t *testing.T) {
++	withFreshPasskeyClients(t, "")
++	require.False(t, common.HasFreshPasskeyClients())
++	withFreshPasskeyClients(t, " , ")
++	require.False(t, common.HasFreshPasskeyClients())
++	withFreshPasskeyClients(t, freshPasskeyClientID)
++	require.True(t, common.HasFreshPasskeyClients())
 +}
 diff --git a/backend/internal/webauthn/fresh_passkey_usl_test.go b/backend/internal/webauthn/fresh_passkey_usl_test.go
 new file mode 100644
@@ -403,3 +458,43 @@ index a55daa1..91e3478 100644
  	"private": true,
  	"type": "module",
  	"imports": {
+diff --git a/frontend/src/routes/interaction/+page.svelte b/frontend/src/routes/interaction/+page.svelte
+index 3b5d7f8..3ae061a 100644
+--- a/frontend/src/routes/interaction/+page.svelte
++++ b/frontend/src/routes/interaction/+page.svelte
+@@ -64,6 +64,15 @@
+ 
+ 			if (currentStep === 'reauthenticate') {
+ 				await reauthenticate();
++				try {
++					await completeInteraction(currentStep!);
++				} catch (e) {
++					// USL patch: a fresh-passkey client refuses the session proof, so ask for a passkey now
++					if (getAxiosErrorCode(e) !== 'reauthentication_required') throw e;
++					await reauthenticateWithPasskey();
++					await completeInteraction(currentStep!);
++				}
++				return;
+ 			}
+ 
+ 			await completeInteraction(currentStep!);
+@@ -88,12 +97,16 @@
+ 		try {
+ 			await webauthnService.reauthenticate();
+ 		} catch {
+-			const loginOptions = await webauthnService.getLoginOptions();
+-			const authResponse = await startAuthentication({ optionsJSON: loginOptions });
+-			await webauthnService.reauthenticate(authResponse);
++			await reauthenticateWithPasskey();
+ 		}
+ 	}
+ 
++	async function reauthenticateWithPasskey() {
++		const loginOptions = await webauthnService.getLoginOptions();
++		const authResponse = await startAuthentication({ optionsJSON: loginOptions });
++		await webauthnService.reauthenticate(authResponse);
++	}
++
+ 	async function completeInteraction(step: InteractionStep, skipRedirect = false) {
+ 		const result = await oidcService.completeAuthorizeInteractionStep(
+ 			interactionSession.id,
