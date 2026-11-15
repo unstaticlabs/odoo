@@ -7,7 +7,7 @@ from pathlib import Path
 SOURCE_ROOT = Path(
     sys.argv[1] if len(sys.argv) > 1 else "/usr/src/paperless/src",
 ).resolve()
-MISMATCH_MESSAGE = "Paperless v3.0.5 source is incompatible with the USL overlay"
+MISMATCH_MESSAGE = "Paperless v3.4.2 source is incompatible with the USL overlay"
 
 
 def patch_file(
@@ -33,7 +33,7 @@ def patch_file(
 
 patch_file(
     "paperless/urls.py",
-    "d46ce3f52652fc32f6e4e2e1897cec0000fca0ad7b2bb3b41739902b564afc35",
+    "ecc66cab999f5a168de44f61269119e981c5a4c3f93512a5c734e8a704adc1ae",
     (
         (
             "from paperless.views import UserViewSet\n",
@@ -88,31 +88,19 @@ patch_file(
 
 patch_file(
     "documents/search/_schema.py",
-    "3acf00eecd2bf0c4991f0453bf0ec6219af03871b00462fad289277972d92479",
+    "e29e31fe02179e1b35dd67079b22ee4c205050c1dfaac14b2886a7ddd10301a7",
     (
-        ("SCHEMA_VERSION: Final[int] = 1", "SCHEMA_VERSION: Final[int] = 2"),
+        # The two companion fields change schema_fingerprint(), so Paperless's
+        # own needs_rebuild() check rebuilds only the search index once.
         (
-            '''    sb.add_text_field(
-        "simple_content",
-        stored=False,
-        tokenizer_name="simple_search_analyzer",
-    )
+            '''            for name in ("simple_title", "simple_content")
 ''',
-            '''    sb.add_text_field(
-        "simple_content",
-        stored=False,
-        tokenizer_name="simple_search_analyzer",
-    )
-    sb.add_text_field(
-        "simple_metadata",
-        stored=False,
-        tokenizer_name="simple_search_analyzer",
-    )
-    sb.add_text_field(
-        "simple_custom_fields",
-        stored=False,
-        tokenizer_name="simple_search_analyzer",
-    )
+            '''            for name in (
+                "simple_title",
+                "simple_content",
+                "simple_metadata",
+                "simple_custom_fields",
+            )
 ''',
         ),
     ),
@@ -120,52 +108,61 @@ patch_file(
 
 patch_file(
     "documents/search/_backend.py",
-    "ac9664e79a96530dad5b6e79290db2a5f29bb591208c5acd387fca402dc50da3",
+    "798ff2cbcf8386a576e11b402a0b703b18bc2bb514dc69f0772a93d555ec5052",
     (
         (
             '''        # Original filename - only add if not None/empty
         if document.original_filename:
-            doc.add_text("original_filename", document.original_filename)
+            doc.add_text(
+                "original_filename",
+                normalize_search_text(document.original_filename),
+            )
 ''',
             '''        # Plain-text companion fields keep broad scoped search in one
         # native Tantivy query instead of one API request per custom field.
         metadata_text: list[str] = []
         if document.original_filename:
-            doc.add_text("original_filename", document.original_filename)
-            metadata_text.append(document.original_filename)
+            original_filename = normalize_search_text(document.original_filename)
+            doc.add_text("original_filename", original_filename)
+            metadata_text.append(original_filename)
 ''',
         ),
         (
-            '''            doc.add_text("correspondent_sort", document.correspondent.name)
+            '''            doc.add_text("correspondent_sort", correspondent)
 ''',
-            '''            doc.add_text("correspondent_sort", document.correspondent.name)
-            metadata_text.append(document.correspondent.name)
-''',
-        ),
-        (
-            '''            doc.add_text("type_sort", document.document_type.name)
-''',
-            '''            doc.add_text("type_sort", document.document_type.name)
-            metadata_text.append(document.document_type.name)
+            '''            doc.add_text("correspondent_sort", correspondent)
+            metadata_text.append(correspondent)
 ''',
         ),
         (
-            '''            doc.add_text("storage_path", document.storage_path.name)
+            '''            doc.add_text("type_sort", document_type)
 ''',
-            '''            doc.add_text("storage_path", document.storage_path.name)
-            metadata_text.append(document.storage_path.name)
-''',
-        ),
-        (
-            '''            tag_names.append(tag.name)
-''',
-            '''            tag_names.append(tag.name)
-            metadata_text.append(tag.name)
+            '''            doc.add_text("type_sort", document_type)
+            metadata_text.append(document_type)
 ''',
         ),
         (
-            '''        # Custom fields — JSON for structured queries (custom_fields.name:x, custom_fields.value:y),
-        # companion text field for default full-text search.
+            '''            doc.add_text(
+                "storage_path",
+                normalize_search_text(document.storage_path.name),
+            )
+''',
+            '''            storage_path = normalize_search_text(document.storage_path.name)
+            doc.add_text("storage_path", storage_path)
+            metadata_text.append(storage_path)
+''',
+        ),
+        (
+            '''            tag_names.append(tag_name)
+''',
+            '''            tag_names.append(tag_name)
+            metadata_text.append(tag_name)
+''',
+        ),
+        (
+            '''        # Custom fields: JSON for structured queries (custom_fields.name:x,
+        # custom_fields.value:y). There is no companion text field here, unlike
+        # notes: custom field values are reachable only through the JSON field.
         for cfi in document.custom_fields.all():
 ''',
             '''        if metadata_text:
@@ -173,6 +170,7 @@ patch_file(
 
         # Custom fields retain their structured JSON representation and also
         # share one plain-text field for the bounded scoped-search endpoint.
+        # The companion field is not in Paperless's default search fields.
         custom_field_text: list[str] = []
         for cfi in document.custom_fields.all():
 ''',
@@ -181,25 +179,27 @@ patch_file(
             '''            doc.add_json(
                 "custom_fields",
                 {
-                    "name": cfi.field.name,
-                    "value": search_value,
+                    "name": normalize_search_text(cfi.field.name),
+                    "value": normalize_search_text(search_value),
                 },
             )
 
-        # Dates
+        # Barcodes: JSON field like custom_fields, only filled when stored
 ''',
-            '''            doc.add_json(
+            '''            custom_field_name = normalize_search_text(cfi.field.name)
+            custom_field_value = normalize_search_text(search_value)
+            doc.add_json(
                 "custom_fields",
                 {
-                    "name": cfi.field.name,
-                    "value": search_value,
+                    "name": custom_field_name,
+                    "value": custom_field_value,
                 },
             )
-            custom_field_text.extend((cfi.field.name, str(search_value)))
+            custom_field_text.extend((custom_field_name, custom_field_value))
         if custom_field_text:
             doc.add_text("simple_custom_fields", " ".join(custom_field_text))
 
-        # Dates
+        # Barcodes: JSON field like custom_fields, only filled when stored
 ''',
         ),
     ),
@@ -207,7 +207,7 @@ patch_file(
 
 patch_file(
     "documents/tasks.py",
-    "a397d85e482531a4357da017d7b401f0e2566acdb1d4de575ce5e196c46b30af",
+    "c33a6e8f5bac5ba7ef9e6b38c282db51cdfa294ed2294528d959288d6b547134",
     (
         (
             "import logging\n",
@@ -220,6 +220,8 @@ patch_file(
         (
             (
                 "    if ai_config.llm_index_enabled:\n"
+                "        from paperless_ai.indexing import update_llm_index\n"
+                "\n"
                 "        update_llm_index(\n"
                 "            rebuild=False,\n"
                 "            document_ids=document_ids,\n"
@@ -227,6 +229,8 @@ patch_file(
             ),
             (
                 "    if ai_config.llm_index_enabled and not skip_llm_index:\n"
+                "        from paperless_ai.indexing import update_llm_index\n"
+                "\n"
                 "        update_llm_index(\n"
                 "            rebuild=False,\n"
                 "            document_ids=document_ids,\n"
@@ -236,10 +240,14 @@ patch_file(
         (
             '''@shared_task
 def update_document_in_llm_index(document) -> None:
+    from paperless_ai.indexing import llm_index_add_or_update_document
+
     llm_index_add_or_update_document(document)
 ''',
             '''@shared_task
 def update_document_in_llm_index(document) -> None:
+    from paperless_ai.indexing import llm_index_add_or_update_document
+
     # A migration can be resumed with incremental tasks already in Redis.
     # The worker-side guard makes those tasks harmless while the governed
     # final bulk update remains the single source of vector-index truth.
@@ -261,7 +269,7 @@ def update_document_in_llm_index(document) -> None:
 
 patch_file(
     "documents/signals/handlers.py",
-    "1a593a6b81a2a2111ace6dd6527418e88da7761c9a0a9ce282c3322e0f496692",
+    "f05978600bf3bf8836a38515e1cf904b2ccd813a201db0050ea5e91bf1a000ac",
     (
         (
             "import logging\n",
@@ -292,7 +300,7 @@ patch_file(
 
 patch_file(
     "documents/bulk_edit.py",
-    "f233105bb95c8ad406b006705c55218011f47fd3cfbe263d10e07064537e6058",
+    "75771ea266a5a0c53850d27230d973c254d129cd67c73a385472e2a1d4ce2718",
     (
         (
             '''    bulk_update_documents.apply_async(
@@ -326,7 +334,7 @@ def rotate(
 
 patch_file(
     "paperless/settings/__init__.py",
-    "e906c68a5ee0fb738a807091a5714caeb8a2e9571f6a897961cccdc6b2ab137f",
+    "1691555e1b45f12ef87fc252ca677f7d023fdb3cb28f70fe7a25a3edab24bab5",
     (
         (
             '''if LLM_EMBEDDING_CHUNK_SIZE < 1:
@@ -351,7 +359,7 @@ LLM_CONTEXT_SIZE = get_int_from_env("PAPERLESS_AI_LLM_CONTEXT_SIZE", 8192)
 
 patch_file(
     "paperless_ai/embedding.py",
-    "46796dd71dd27ba6ed505832fbff81821340088069b0a50b725343580f4d2f5a",
+    "4317f77c81044c7b8b859211dad272771f3f8f759ea1efe8bec9ad4afdd879f8",
     (
         (
             '''                model_name=config.llm_embedding_model or "embeddinggemma",
@@ -369,7 +377,7 @@ patch_file(
 
 patch_file(
     "paperless_ai/client.py",
-    "253a058a3d91bb2a7f7ac388590202f988f5f9fea70a17ffc6db1ec425c91351",
+    "81384bf5508d189cb5804ee3e59e625e5bab13e26a692bdd3f8ef51c9eab87c6",
     (
         ("from paperless.config import AIConfig\n", ""),
         (
@@ -389,14 +397,14 @@ patch_file(
 
 patch_file(
     "paperless_ai/ai_classifier.py",
-    "cd0e3838e94df191b0badf3e6d432b47967477e8c1ada548785148f4c67b03b4",
+    "aa57804b7455da617970ea49101c86d3fa02000a75e817995fe44182fd9ad092",
     (
         (
             """def get_ai_document_classification(
     document: Document,
     user: User | None = None,
     output_language: str | None = None,
-) -> dict:
+) -> ClassificationSuggestions:
 """,
             """def get_ai_document_classification(
     document: Document,
@@ -404,7 +412,7 @@ patch_file(
     output_language: str | None = None,
     *,
     client_config,
-) -> dict:
+) -> ClassificationSuggestions:
 """,
         ),
         ("    client = AIClient()\n", "    client = AIClient(client_config)\n"),
@@ -413,20 +421,23 @@ patch_file(
 
 patch_file(
     "paperless_ai/chat.py",
-    "5f2b90a5171339055d23af13b69fe2acef8a9ca7b4e1105deaee1e16eb9fb975",
+    "b65bd0547ef722a308ae3c9b575a5c20a13bf4c1ae0ce720f6a53e322125ec5d",
     (
         (
             """def stream_chat_with_documents(
     query_str: str,
-    documents: list[Document],
+    documents: QuerySet[Document],
+    *,
+    unrestricted: bool = False,
     output_language: str | None = None,
 ):
 """,
             """def stream_chat_with_documents(
     query_str: str,
-    documents: list[Document],
-    output_language: str | None = None,
+    documents: QuerySet[Document],
     *,
+    unrestricted: bool = False,
+    output_language: str | None = None,
     client_config,
     authorization_check,
 ):
@@ -445,15 +456,18 @@ patch_file(
         (
             """def _stream_chat_with_documents(
     query_str: str,
-    documents: list[Document],
+    documents: QuerySet[Document],
+    *,
+    unrestricted: bool = False,
     output_language: str | None = None,
 ):
 """,
             """def _stream_chat_with_documents(
     query_str: str,
-    documents: list[Document],
-    output_language: str | None = None,
+    documents: QuerySet[Document],
     *,
+    unrestricted: bool = False,
+    output_language: str | None = None,
     client_config,
     authorization_check,
 ):
@@ -461,12 +475,28 @@ patch_file(
         ),
         (
             """    config = AIConfig()
-    filters = _document_id_filters(str(doc.pk) for doc in documents)
+    if unrestricted:
+        # Exclude trashed ids (usually few) instead of an IN filter over the
+        # full permitted set, which risks the vector store's bound parameter
+        # limit (_MAX_IN_VALUES) on large installs. Trashed documents stay
+        # indexed until permanent deletion (delete_document_from_llm_index
+        # hangs off post_delete, not trash), so must be excluded explicitly.
+        trashed_ids = Document.deleted_objects.values_list("pk", flat=True)
+        filters = exclude_document_ids_filter(str(pk) for pk in trashed_ids)
+    else:
+        filters = document_id_filters(
+            str(pk) for pk in documents.values_list("pk", flat=True)
+        )
 """,
             """    config = AIConfig()
-    document_ids = [doc.pk for doc in documents]
+    # Personal chat always runs inside an explicit document scope that is
+    # rechecked during the stream. The native unrestricted mode has no such
+    # scope, so it is refused rather than silently widened.
+    if unrestricted:
+        raise PermissionError("Unrestricted document chat is disabled.")
+    document_ids = list(documents.values_list("pk", flat=True))
     authorization_check(document_ids)
-    filters = _document_id_filters(str(document_id) for document_id in document_ids)
+    filters = document_id_filters(str(document_id) for document_id in document_ids)
 """,
         ),
         (
@@ -514,14 +544,14 @@ patch_file(
 
 patch_file(
     "documents/views.py",
-    "6a514ba949b7034804f4846ca6e0b35bb75567d41fc793f33655a6564054feaf",
+    "07c836f31036a98105866035620fbe576559d95d344c1734cdd5d1774852e270",
     (
         (
-            """from paperless_ai.ai_classifier import get_ai_document_classification
-from paperless_ai.chat import stream_chat_with_documents
+            """from paperless_ai.exceptions import LLMProviderError
 from paperless_ai.exceptions import LLMTimeoutError
 """,
-            """from paperless_ai.exceptions import LLMTimeoutError
+            """from paperless_ai.exceptions import LLMProviderError
+from paperless_ai.exceptions import LLMTimeoutError
 from paperless_usl_ranges import ranged_file_response
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
@@ -570,20 +600,20 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 """,
         ),
         (
-            """            return serve_file(
-                doc=share_link.document,
-                use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
-                and share_link.document.has_archive_version,
-                disposition="inline",
-            )
+            """                return serve_file(
+                    doc=share_link.document,
+                    use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
+                    and share_link.document.has_archive_version,
+                    disposition="inline",
+                )
 """,
-            """            return serve_file(
-                request=request,
-                doc=share_link.document,
-                use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
-                and share_link.document.has_archive_version,
-                disposition="inline",
-            )
+            """                return serve_file(
+                    request=request,
+                    doc=share_link.document,
+                    use_archive=share_link.file_version == ShareLink.FileVersion.ARCHIVE
+                    and share_link.document.has_archive_version,
+                    disposition="inline",
+                )
 """,
         ),
         (
@@ -628,7 +658,10 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         ),
         (
             """        doc = get_object_or_404(
-            Document.objects.select_related("owner").prefetch_related("versions"),
+            Document.objects.select_related(
+                "owner",
+                "root_document__owner",
+            ).prefetch_related("versions"),
             pk=pk,
         )
         if request.user is not None and not has_perms_owner_aware(
@@ -642,31 +675,42 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         if not ai_config.ai_enabled:
             return HttpResponseBadRequest("AI is required for this feature")
 
-        output_language = _get_llm_output_language(ai_config=ai_config, request=request)
-        llm_cache_backend = ":".join(
+        from paperless_ai.ai_classifier import get_ai_document_classification
+        from paperless_ai.ai_classifier import get_llm_output_language
+""",
+            """        doc = get_object_or_404(
+            Document.objects.select_related(
+                "owner",
+                "root_document__owner",
+            ).prefetch_related("versions"),
+            pk=pk,
+        )
+        # Personal suggestions need only read access. A version is checked by
+        # its root, and an invisible document looks the same as a missing one.
+        if not has_perms_owner_aware(request.user, "view_document", doc):
+            raise Http404
+
+        ai_config = AIConfig()
+        if not ai_config.ai_enabled:
+            return HttpResponseBadRequest("AI is required for this feature")
+
+        from paperless_ai.ai_classifier import get_llm_output_language
+""",
+        ),
+        (
+            """        llm_cache_backend = ":".join(
             part
             for part in (
                 ai_config.llm_backend,
                 ai_config.llm_model,
                 ai_config.llm_endpoint,
                 output_language,
+                f"user={request.user.pk}",
             )
             if part
         )
 """,
-            """        visible_documents = get_objects_for_user_owner_aware(
-            request.user,
-            "view_document",
-            Document,
-        ).select_related("owner").prefetch_related("versions")
-        doc = get_object_or_404(visible_documents, pk=pk)
-
-        ai_config = AIConfig()
-        if not ai_config.ai_enabled:
-            return HttpResponseBadRequest("AI is required for this feature")
-
-        output_language = _get_llm_output_language(ai_config=ai_config, request=request)
-        try:
+            """        try:
             client_config = resolve_personal_llm_config(
                 request.user.pk,
                 "metadata_suggestions",
@@ -688,31 +732,31 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 """,
         ),
         (
-            """            llm_suggestions = get_ai_document_classification(
-                doc,
-                request.user,
-                output_language,
-            )
+            """                llm_suggestions = get_ai_document_classification(
+                    doc,
+                    request.user,
+                    output_language,
+                )
 """,
-            """            llm_suggestions = generate_personal_metadata_suggestions(
-                document=doc,
-                user=request.user,
-                client_config=client_config,
-                output_language=output_language,
-            )
+            """                llm_suggestions = generate_personal_metadata_suggestions(
+                    document=doc,
+                    user=request.user,
+                    client_config=client_config,
+                    output_language=output_language,
+                )
 """,
         ),
         (
-            """        except ValueError as exc:
-            logger.exception(
+            """            except ValueError as exc:
+                logger.exception(
 """,
-            """        except PersonalAIGenerationError:
-            return Response(
-                {"ai": [_('Gemini generation is unavailable.')]},
-                status=status.HTTP_503_SERVICE_UNAVAILABLE,
-            )
-        except ValueError as exc:
-            logger.exception(
+            """            except PersonalAIGenerationError:
+                return Response(
+                    {"ai": [_('Gemini generation is unavailable.')]},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
+            except ValueError as exc:
+                logger.exception(
 """,
         ),
         (
@@ -720,38 +764,50 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 
         if doc_id:
             try:
-                document = Document.objects.get(id=doc_id)
+                document = Document.objects.select_related(
+                    "root_document__owner",
+                ).get(id=doc_id)
             except Document.DoesNotExist:
                 return HttpResponseBadRequest("Document not found")
 
-            if not has_perms_owner_aware(request.user, "view_document", document):
-                return HttpResponseForbidden("Insufficient permissions")
-
-            documents = [document]
-        else:
-            documents = get_objects_for_user_owner_aware(
+            if not has_perms_owner_aware(
                 request.user,
                 "view_document",
-                Document,
-            )
+                document,
+            ):
+                return HttpResponseForbidden("Insufficient permissions")
 
-        output_language = _get_llm_output_language(ai_config=ai_config, request=request)
+            documents = Document.objects.filter(pk=document.pk)
+            unrestricted = False
+        else:
+            documents = Document.objects.filter(
+                id__in=permitted_document_ids(request.user),
+            )
+            unrestricted = user_is_unrestricted(request.user)
+
+        from paperless_ai.ai_classifier import get_llm_output_language
+        from paperless_ai.chat import stream_chat_with_documents
+
+        output_language = get_llm_output_language(
+            ai_config=ai_config,
+            user=request.user,
+        )
 
         response = StreamingHttpResponse(
             stream_chat_with_documents(
                 query_str=question,
                 documents=documents,
+                unrestricted=unrestricted,
                 output_language=output_language,
             ),
             content_type="text/event-stream",
         )
 """,
             """        doc_id = serializer.validated_data.get("document_id")
-        if doc_id and not get_objects_for_user_owner_aware(
-            request.user,
-            "view_document",
-            Document,
-        ).filter(pk=doc_id).exists():
+        if doc_id and not Document.objects.filter(
+            pk=doc_id,
+            id__in=permitted_document_ids(request.user),
+        ).exists():
             return HttpResponseForbidden("The document is unavailable")
 
         try:
@@ -770,7 +826,12 @@ from paperless_personal_ai.service import resolve_personal_llm_config
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
             )
 
-        output_language = _get_llm_output_language(ai_config=ai_config, request=request)
+        from paperless_ai.ai_classifier import get_llm_output_language
+
+        output_language = get_llm_output_language(
+            ai_config=ai_config,
+            user=request.user,
+        )
 
         response = StreamingHttpResponse(
             stream_personal_document_chat(
@@ -789,12 +850,13 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 
 patch_file(
     "paperless/serialisers.py",
-    "37cd870e3358bedef71be82ef0621457d92c221cb0794aa13b2af5a13b27f4e5",
+    "5db6a451c083ca274c30c6a36f160376b77c4ac3a77c8fedf511a288917f21be",
     (
         (
             """    llm_api_key = ObfuscatedPasswordField(
         required=False,
         allow_null=True,
+        max_length=1024,
     )
 """,
             """    llm_api_key = ObfuscatedPasswordField(read_only=True)
@@ -816,6 +878,66 @@ patch_file(
             "llm_output_language",
         )
 """,
+        ),
+    ),
+)
+
+# Paperless 3.1 added an "apply AI suggestions" workflow action. It runs
+# without an initiating user and would generate as the document owner. Personal
+# Gemini generation requires the person's own action and consent, so the API
+# refuses the action type and the worker refuses any stored instance.
+_WORKFLOW_AI_DISABLED = (
+    "AI suggestion workflow actions are not available. A person requests AI "
+    "suggestions from a document after they switch them on in My profile."
+)
+
+patch_file(
+    "documents/serialisers.py",
+    "c942d1cbe76aa1a090de2699ac754bbae40fa3df2d4199eec1d290af74ce244b",
+    (
+        (
+            '''        if (
+            "type" in attrs
+            and attrs["type"] == WorkflowAction.WorkflowActionType.APPLY_AI_SUGGESTIONS
+        ):
+            fields = attrs.get("ai_suggestion_fields")
+''',
+            f'''        if (
+            "type" in attrs
+            and attrs["type"] == WorkflowAction.WorkflowActionType.APPLY_AI_SUGGESTIONS
+        ):
+            raise serializers.ValidationError(
+                {{"type": [{_WORKFLOW_AI_DISABLED!r}]}},
+            )
+        if (
+            "type" in attrs
+            and attrs["type"] == WorkflowAction.WorkflowActionType.APPLY_AI_SUGGESTIONS
+        ):
+            fields = attrs.get("ai_suggestion_fields")
+''',
+        ),
+    ),
+)
+
+patch_file(
+    "documents/workflows/ai.py",
+    "2dbfa4fbd63a8abb53e8ba00e0d45bb3ff56d18766c1de93a74f283568a40d4f",
+    (
+        (
+            '''    Returns the names of the fields that were actually changed.
+    """
+''',
+            f'''    Returns the names of the fields that were actually changed.
+    """
+    logger.warning(
+        "Workflow action %s did not change document %s: %s",
+        action.pk,
+        document.pk,
+        {_WORKFLOW_AI_DISABLED!r},
+        extra={{"group": logging_group}},
+    )
+    return []
+''',
         ),
     ),
 )

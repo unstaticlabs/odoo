@@ -1,7 +1,7 @@
 import logging
 
 from documents.models import Document
-from documents.permissions import get_objects_for_user_owner_aware
+from documents.permissions import permitted_document_ids
 from paperless_ai.ai_classifier import get_ai_document_classification
 from paperless_ai.chat import stream_chat_with_documents
 
@@ -32,11 +32,12 @@ def generate_personal_metadata_suggestions(
         user.pk,
         "metadata_suggestions",
     )
-    visible = get_objects_for_user_owner_aware(
-        current_user,
-        "view_document",
-        Document,
-    ).filter(pk=document.pk)
+    # A version is authorized by its root, exactly like Paperless's own
+    # document list, so this recheck agrees with the native permission model.
+    visible = Document.objects.filter(
+        pk=document.pk,
+        id__in=permitted_document_ids(current_user),
+    )
     current_document = visible.first()
     if current_document is None:
         raise PermissionError(DOCUMENT_UNAVAILABLE)
@@ -66,11 +67,7 @@ def stream_personal_document_chat(
     client_config: PersonalLLMConfig,
 ):
     user = assert_personal_ai_feature_authorized(user_id, "document_chat")
-    documents = get_objects_for_user_owner_aware(
-        user,
-        "view_document",
-        Document,
-    )
+    documents = Document.objects.filter(id__in=permitted_document_ids(user))
     if document_id is not None:
         documents = documents.filter(pk=document_id)
         if not documents.exists():
@@ -84,13 +81,10 @@ def stream_personal_document_chat(
         if not context_document_ids:
             return
         visible_ids = set(
-            get_objects_for_user_owner_aware(
-                current_user,
-                "view_document",
-                Document,
-            )
-            .filter(pk__in=context_document_ids)
-            .values_list("pk", flat=True),
+            Document.objects.filter(
+                pk__in=context_document_ids,
+                id__in=permitted_document_ids(current_user),
+            ).values_list("pk", flat=True),
         )
         if visible_ids != set(context_document_ids):
             raise PermissionError(DOCUMENT_ACCESS_CHANGED)

@@ -11,6 +11,7 @@ from paperless_personal_ai.runtime import (
     GENERATION_UNAVAILABLE,
     PersonalAIGenerationError,
     generate_personal_metadata_suggestions,
+    stream_personal_document_chat,
 )
 from paperless_personal_ai.service import (
     resolve_personal_llm_config,
@@ -39,6 +40,23 @@ class TestPersonalAIRuntimeBoundary(PersonalAIKeyFileMixin, APITestCase):
     def test_native_client_has_no_global_configuration_fallback(self):
         with self.assertRaises(TypeError):
             AIClient()
+
+    @override_settings(LLM_EXTRA_PARAMS={"user": "administrator-passthrough"})
+    def test_personal_client_ignores_global_passthrough_parameters(self):
+        update_personal_ai_profile(
+            self.user,
+            api_key="personal-key",
+            metadata_suggestions_enabled=True,
+        )
+        config = resolve_personal_llm_config(
+            self.user.pk,
+            "metadata_suggestions",
+        )
+
+        client = AIClient(config)
+
+        self.assertEqual(config.llm_extra_params, {})
+        self.assertNotIn("user", client.llm.additional_kwargs)
 
     @patch("paperless_personal_ai.runtime.get_ai_document_classification")
     def test_provider_exception_cannot_leak_credential(self, classify):
@@ -77,12 +95,13 @@ class TestPersonalAIRuntimeBoundary(PersonalAIKeyFileMixin, APITestCase):
             api_key="suggestion-secret",
             metadata_suggestions_enabled=True,
         )
+        no_choice = {"existing_ids": [], "new_names": []}
         generate.return_value = {
             "title": "Suggested title",
-            "tags": [],
-            "correspondents": [],
-            "document_types": [],
-            "storage_paths": [],
+            "tags": no_choice,
+            "correspondents": no_choice,
+            "document_types": no_choice,
+            "storage_paths": no_choice,
             "dates": [],
         }
 
@@ -118,6 +137,43 @@ class TestPersonalAIRuntimeBoundary(PersonalAIKeyFileMixin, APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         stream_chat.assert_not_called()
+
+    @patch("paperless_personal_ai.runtime.stream_chat_with_documents")
+    def test_all_documents_chat_scope_excludes_unshared_documents(self, native_chat):
+        update_personal_ai_profile(
+            self.user,
+            api_key="chat-secret",
+            document_chat_enabled=True,
+        )
+        other = self.mapped_user("unshared-owner")
+        unshared = Document.objects.create(
+            title="Unshared document",
+            content="Unshared body",
+            checksum="personal-ai-unshared",
+            mime_type="application/pdf",
+            owner=other,
+        )
+        native_chat.return_value = iter(("answer",))
+        config = resolve_personal_llm_config(self.user.pk, "document_chat")
+
+        chunks = list(
+            stream_personal_document_chat(
+                query_str="Tell me",
+                user_id=self.user.pk,
+                document_id=None,
+                output_language=None,
+                client_config=config,
+            ),
+        )
+
+        self.assertEqual(chunks, ["answer"])
+        scope = native_chat.call_args.kwargs["documents"]
+        self.assertEqual(
+            set(scope.values_list("pk", flat=True)),
+            {self.document.pk},
+        )
+        self.assertNotIn(unshared.pk, scope.values_list("pk", flat=True))
+        self.assertNotIn("unrestricted", native_chat.call_args.kwargs)
 
     @patch("documents.views.stream_personal_document_chat")
     def test_chat_passes_only_initiating_user_and_authorized_document(self, stream_chat):
