@@ -1561,6 +1561,11 @@ class TestSignBrowserJourneys(HttpCase):
                 login=None,
                 timeout=120,
             )
+            # The signer is answered before final validation; the triggered
+            # Sign cron finishes it. Run it as that cron would.
+            sign_request.invalidate_recordset()
+            self.assertEqual(sign_request.state, "validating")
+            self.env["sign.oca.request"]._run_queued_final_validations()
 
         sign_request.invalidate_recordset()
         signer.invalidate_recordset()

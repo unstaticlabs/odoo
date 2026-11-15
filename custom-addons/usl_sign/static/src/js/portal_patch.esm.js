@@ -92,6 +92,111 @@ const AUTOCOMPLETE_BY_KIND = {
     role: "organization-title",
 };
 
+// Kinds that stay single-line browser controls; every other text field is a
+// multi-line area that wraps inside the width the sender placed.
+const SINGLE_LINE_KINDS = new Set(["date", "email", "phone", "signer_name"]);
+
+// Mirror of models/field_text.py so the preview matches the signed PDF:
+// at most 11 pt, shrinking to 4 pt, 1.2 line height, 2 pt × 1 pt padding,
+// block centred vertically. The page height comes from PDF.js; A4 is only
+// the fallback when the viewer cannot be read.
+const TEXT_LAYOUT = {
+    maxPt: 11,
+    minPt: 4,
+    stepPt: 0.25,
+    lineHeight: 1.2,
+    paddingXPt: 2,
+    paddingYPt: 1,
+    pageHeightPt: 842.25,
+};
+
+export function isMultilineTextItem(item) {
+    return !SINGLE_LINE_KINDS.has(item.kind);
+}
+
+function multilineControl(input) {
+    const textarea = document.createElement("textarea");
+    for (const {name, value} of Array.from(input.attributes)) {
+        if (name !== "type" && name !== "value") {
+            textarea.setAttribute(name, value);
+        }
+    }
+    textarea.classList.add("usl_sign_text_multiline");
+    textarea.rows = 1;
+    textarea.wrap = "soft";
+    // The control lives inside the PDF.js iframe, where portal stylesheets do
+    // not apply, so its presentation is inline.
+    Object.assign(textarea.style, {
+        resize: "none",
+        overflow: "hidden",
+        boxSizing: "border-box",
+        fontFamily: "Helvetica, Arial, sans-serif",
+        whiteSpace: "pre-wrap",
+        overflowWrap: "anywhere",
+    });
+    return textarea;
+}
+
+function displayedPageHeightPt(control, item) {
+    // PDF.js knows the displayed page box (the crop box) of every page.
+    try {
+        const viewer = control.ownerDocument.defaultView.PDFViewerApplication.pdfViewer;
+        const view = viewer.getPageView(Number(item.page) - 1).pdfPage.view;
+        const height = view[3] - view[1];
+        if (height > 0) {
+            return height;
+        }
+    } catch {
+        // Fall back to an A4 page when the viewer is not reachable.
+    }
+    return TEXT_LAYOUT.pageHeightPt;
+}
+
+function contentHeight(control) {
+    // A textarea's scrollHeight never drops below its own height, so measure
+    // the text at zero height to know how tall it really is.
+    const height = control.style.height;
+    control.style.height = "0px";
+    const measured = control.scrollHeight;
+    control.style.height = height;
+    return measured;
+}
+
+export function fitTextControl(control, item) {
+    const boxHeightPt = ((Number(item.height) || 0) / 100) * displayedPageHeightPt(control, item);
+    const boxHeightPx = control.clientHeight;
+    if (!boxHeightPt || !boxHeightPx) {
+        return;
+    }
+    const pxPerPt = boxHeightPx / boxHeightPt;
+    const padY = TEXT_LAYOUT.paddingYPt * pxPerPt;
+    control.style.lineHeight = String(TEXT_LAYOUT.lineHeight);
+    control.style.paddingLeft = control.style.paddingRight = `${TEXT_LAYOUT.paddingXPt * pxPerPt}px`;
+    control.style.paddingTop = control.style.paddingBottom = `${padY}px`;
+    let size = Math.min(
+        TEXT_LAYOUT.maxPt,
+        (boxHeightPt - 2 * TEXT_LAYOUT.paddingYPt) / TEXT_LAYOUT.lineHeight
+    );
+    size = Math.max(Math.round(size / TEXT_LAYOUT.stepPt) * TEXT_LAYOUT.stepPt, TEXT_LAYOUT.minPt);
+    let measured = 0;
+    for (; size >= TEXT_LAYOUT.minPt; size -= TEXT_LAYOUT.stepPt) {
+        control.style.fontSize = `${size * pxPerPt}px`;
+        measured = contentHeight(control);
+        if (measured <= boxHeightPx + 1) {
+            break;
+        }
+    }
+    const overflowing = measured > boxHeightPx + 1;
+    // Centre the block like the signed PDF does.
+    const extra = Math.max(boxHeightPx - measured, 0) / 2;
+    control.style.paddingTop = `${padY + extra}px`;
+    control.style.paddingBottom = `${padY + extra}px`;
+    control.classList.toggle("usl_sign_text_overflow", overflowing);
+    control.style.outline = overflowing ? "2px solid #d44c59" : "";
+    control.title = overflowing ? _t("This text is too long for its box. Shorten it.") : "";
+    control.setAttribute("aria-invalid", overflowing ? "true" : "false");
+}
+
 const LOCATION_MESSAGES = {
     idle: _t("Location has not been requested yet."),
     requesting: _t("Waiting for your location choice…"),
@@ -410,7 +515,7 @@ patch(textField, {
                 item.value = parent.info.partner[item.default_value];
             }
         }
-        const input = generateWithOcaRoleCompatibility(item, () =>
+        const rendered = generateWithOcaRoleCompatibility(item, () =>
             $(
                 renderToString("sign_oca.sign_iframe_field_text", {
                     item,
@@ -418,17 +523,20 @@ patch(textField, {
                 })
             )[0]
         );
-        if (item.role_id !== parent.info.role_id || input.tagName !== "INPUT") {
-            return input;
+        if (item.role_id !== parent.info.role_id || rendered.tagName !== "INPUT") {
+            return rendered;
         }
-        const htmlInputType = HTML_INPUT_TYPE_BY_KIND[item.kind] || "text";
-        input.type = htmlInputType;
+        const multiline = isMultilineTextItem(item);
+        const input = multiline ? multilineControl(rendered) : rendered;
         input.required = Boolean(item.required);
+        if (!multiline) {
+            input.type = HTML_INPUT_TYPE_BY_KIND[item.kind] || "text";
+            if (item.kind === "phone") {
+                input.inputMode = "tel";
+            }
+        }
         if (AUTOCOMPLETE_BY_KIND[item.kind]) {
             input.autocomplete = AUTOCOMPLETE_BY_KIND[item.kind];
-        }
-        if (item.kind === "phone") {
-            input.inputMode = "tel";
         }
         input.setAttribute(
             "aria-label",
@@ -452,8 +560,16 @@ patch(textField, {
         // the live iframe control.
         input.addEventListener("input", (event) => {
             item.value = event.currentTarget.value;
+            if (multiline) {
+                fitTextControl(input, item);
+            }
             parent.checkFilledAll();
         });
+        if (multiline && typeof ResizeObserver !== "undefined") {
+            // The page zoom decides the control's pixel size; refit on every
+            // resize so the preview keeps the signed PDF's proportions.
+            new ResizeObserver(() => fitTextControl(input, item)).observe(input);
+        }
         input.addEventListener("change", (event) => {
             item.value = event.currentTarget.value;
             parent.checkFilledAll();

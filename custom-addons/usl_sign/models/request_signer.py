@@ -26,6 +26,7 @@ from .constants import (
     TRUST_LEVELS,
 )
 from .document import _add_page
+from .field_text import FieldTextOverflow, render_text_overlay
 from .template import _field_kind
 from odoo.addons.usl_sign.services import field_content, field_value
 
@@ -988,6 +989,28 @@ class SignRequestSigner(models.Model):
             "network": self.env["sign.oca.request"]._server_network_context(),
         }
 
+    def _get_pdf_page_text(self, item, box):
+        """Draw a text field inside its box: wrapped, fitted and plain text."""
+        value = item.get("value")
+        if not value:
+            return False
+        try:
+            return render_text_overlay(
+                str(value),
+                [float(coordinate) for coordinate in box],
+                float(item["position_x"]),
+                float(item["position_y"]),
+                float(item["width"]),
+                float(item["height"]),
+            )
+        except FieldTextOverflow as error:
+            msg = _(
+                "The text in “%(field)s” is too long for its box. Shorten it, or "
+                "ask the sender to enlarge the field.",
+                field=item.get("name") or _("Text"),
+            )
+            raise ValidationError(msg) from error
+
     def _prepare_signing_candidate(
         self,
         items,
@@ -1051,7 +1074,9 @@ class SignRequestSigner(models.Model):
                 msg = "A signing field references an invalid page."
                 raise ValidationError(msg)
             page = pages[page_number]
-            box = getattr(page, "mediabox", None) or page.mediaBox
+            # Fields are placed on the page as displayed: the crop box, which
+            # the reserved widgets and the visible signature also use.
+            box = getattr(page, "cropbox", None) or page.cropBox
             overlay = self._get_pdf_page(item, box)
             if item.get("required") and item.get("value") and not overlay:
                 msg = "A required signing field could not be rendered."
@@ -1231,7 +1256,7 @@ class SignRequestSigner(models.Model):
             if request.signing_order:
                 pending[0]._send_signer_invitation()
             return
-        request._start_final_validation()
+        request._queue_final_validation()
 
     def action_decline(self, reason, access_token=False):
         self.ensure_one()
