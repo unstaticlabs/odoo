@@ -30,6 +30,9 @@ COPY addons/web/static/fonts/sign/NotoSans-Reg.ttf /app/NotoSans-Regular.ttf
 COPY services/usl-sign-dss/pyhanko-validate.py /app/pyhanko-validate.py
 COPY services/usl-sign-dss/pyhanko-fill-fields.py /app/pyhanko-fill-fields.py
 COPY services/usl-sign-dss/pyhanko-normalize-xref.py /app/pyhanko-normalize-xref.py
+# Fail the build if a filled field would stop being vector and transparent.
+RUN --mount=type=bind,source=services/usl-sign-dss/pyhanko-fill-fields-test.py,target=/tmp/pyhanko-fill-fields-test.py \
+    /opt/pyhanko/bin/python /tmp/pyhanko-fill-fields-test.py /app/pyhanko-fill-fields.py
 USER dss
 EXPOSE 8443
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-Djava.io.tmpdir=/tmp", "-jar", "/app/service.jar"]

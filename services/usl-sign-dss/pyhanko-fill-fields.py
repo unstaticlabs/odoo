@@ -2,10 +2,13 @@
 
 import base64
 import json
+import math
 import sys
+from io import BytesIO
 
 from pyhanko.pdf_utils import generic
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
+from pyhanko.pdf_utils.reader import PdfFileReader
 
 
 def _named_fields(writer):
@@ -22,29 +25,39 @@ def _named_fields(writer):
     return result
 
 
-def _appearance(writer, row):
-    width = int(row["pixel_width"])
-    height = int(row["pixel_height"])
-    raw = base64.b64decode(row["rgb"], validate=True)
-    if width <= 0 or height <= 0 or width * height > 4_000_000 or len(raw) != width * height * 3:
-        msg = "A reserved field image is invalid."
+def _number(row, key, *, positive=False):
+    value = float(row[key])
+    if not math.isfinite(value) or (positive and value <= 0) or abs(value) > 100_000:
+        msg = "A reserved field geometry is invalid."
         raise ValueError(msg)
-    image = generic.StreamObject(
-        {
-            generic.pdf_name("/Type"): generic.pdf_name("/XObject"),
-            generic.pdf_name("/Subtype"): generic.pdf_name("/Image"),
-            generic.pdf_name("/Width"): generic.NumberObject(width),
-            generic.pdf_name("/Height"): generic.NumberObject(height),
-            generic.pdf_name("/ColorSpace"): generic.pdf_name("/DeviceRGB"),
-            generic.pdf_name("/BitsPerComponent"): generic.NumberObject(8),
-        },
-        stream_data=raw,
-    )
-    image.compress()
-    image_ref = writer.add_object(image)
-    box_width = float(row["box_width"])
-    box_height = float(row["box_height"])
-    content = f"q {box_width:.4f} 0 0 {box_height:.4f} 0 0 cm /Im0 Do Q\n".encode()
+    return value
+
+
+def _appearance(writer, row):
+    """Draw the field's overlay page as vector content clipped to its box.
+
+    The overlay keeps no background, so whatever the page shows under the
+    field stays visible, and typed text stays text.
+    """
+    raw = base64.b64decode(row["document"], validate=True)
+    if not raw.startswith(b"%PDF-") or len(raw) > 32_000_000:
+        msg = "A reserved field appearance is invalid."
+        raise ValueError(msg)
+    overlay = PdfFileReader(BytesIO(raw), strict=False)
+    if int(overlay.root["/Pages"]["/Count"]) != 1:
+        msg = "A reserved field appearance must contain exactly one page."
+        raise ValueError(msg)
+    page_ref = writer.import_page_as_xobject(overlay, page_ix=0)
+    origin_x = _number(row, "origin_x")
+    origin_y = _number(row, "origin_y")
+    box_width = _number(row, "box_width", positive=True)
+    box_height = _number(row, "box_height", positive=True)
+    scale_x = box_width / _number(row, "source_width", positive=True)
+    scale_y = box_height / _number(row, "source_height", positive=True)
+    content = (
+        f"q {scale_x:.6f} 0 0 {scale_y:.6f} 0 0 cm "
+        f"1 0 0 1 {-origin_x:.4f} {-origin_y:.4f} cm /Fm0 Do Q\n"
+    ).encode()
     appearance = generic.StreamObject(
         {
             generic.pdf_name("/Type"): generic.pdf_name("/XObject"),
@@ -55,7 +68,7 @@ def _appearance(writer, row):
             generic.pdf_name("/Resources"): generic.DictionaryObject(
                 {
                     generic.pdf_name("/XObject"): generic.DictionaryObject(
-                        {generic.pdf_name("/Im0"): image_ref},
+                        {generic.pdf_name("/Fm0"): page_ref},
                     ),
                 },
             ),
