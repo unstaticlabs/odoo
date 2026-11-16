@@ -1188079,7 +1188079,7 @@
       ],
       "sources": [
         {
-          "line": 1261,
+          "line": 1265,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         },
         {
@@ -1188390,7 +1188390,7 @@
           "path": "oca-addons/sign_oca/models/sign_oca_request.py"
         },
         {
-          "line": 845,
+          "line": 849,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         },
         {
@@ -1189254,7 +1189254,7 @@
       ],
       "sources": [
         {
-          "line": 1295,
+          "line": 1299,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         },
         {
@@ -1190908,7 +1190908,7 @@
       ],
       "sources": [
         {
-          "line": 1419,
+          "line": 1423,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         },
         {
@@ -1191331,7 +1191331,7 @@
       ],
       "sources": [
         {
-          "line": 1348,
+          "line": 1352,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         },
         {
@@ -1450628,7 +1450628,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 605,
+          "line": 606,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1451689,7 +1451689,7 @@
           "path": "addons/mail/models/models.py"
         },
         {
-          "line": 630,
+          "line": 631,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1452086,7 +1452086,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 618,
+          "line": 619,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1457476,7 +1457476,7 @@
       ],
       "sources": [
         {
-          "line": 309,
+          "line": 310,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1457541,7 +1457541,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 425,
+          "line": 426,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1457676,7 +1457676,7 @@
       ],
       "sources": [
         {
-          "line": 385,
+          "line": 386,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1457697,7 +1457697,7 @@
         "rpc:usl.sign.enrollment.ensure_one",
         "rpc:usl.sign.enrollment.with_context"
       ],
-      "digest": "2d2716836ed268fc69a756fee631402706727edb87a022349291c4797a7573aa",
+      "digest": "46ba6b8ecd703a213137eedd53e69558fad174b9ff3cf909f76d1fc5a113b037",
       "guards": [],
       "key": "rpc:usl.sign.enrollment.action_send_invitation",
       "kind": "rpc",
@@ -1457708,7 +1457708,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "8ef0eca8f0422888f7d34e06892440b48a4b1007d104ecb85d16eddb7ebb524e",
+      "runtime_digest": "5013734e83099ce0fbfd1681db07fbaa002e242c084b21f8855e9ab843610748",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1461552,7 +1461552,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 483,
+          "line": 484,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1463456,7 +1463456,7 @@
           "path": "addons/mail/models/models.py"
         },
         {
-          "line": 471,
+          "line": 472,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1463868,7 +1463868,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 438,
+          "line": 439,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         },
         {
@@ -1671153,7 +1671153,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 605,
+          "line": 606,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671171,7 +1671171,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 594,
+          "line": 595,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671189,7 +1671189,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 618,
+          "line": 619,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671204,7 +1671204,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 354,
+          "line": 355,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671348,7 +1671348,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 309,
+          "line": 310,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671366,7 +1671366,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 385,
+          "line": 386,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671384,7 +1671384,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 385,
+          "line": 386,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1671402,13 +1671402,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 385,
+          "line": 386,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
     },
     {
-      "digest": "38c7c200747093327f30e3337f166f75d0927ce4ef30a0c2e008238ac9ae1311",
+      "digest": "4010899911d7b6cb44a430d890a878b1a1b175e5fb9a28563e06dc1cde70de5d",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/enrollment.py:usl.sign.enrollment.action_send_invitation:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1671426,7 +1671426,7 @@
       ]
     },
     {
-      "digest": "e25b5e52901d591f12f546e8f14369fe0d0d2272231600813354cf713cab4b4c",
+      "digest": "c0287f2683c327766df337d1c652cc838780c7ead7176d5f4d4793727cc050cc",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/enrollment.py:usl.sign.enrollment.action_send_invitation:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1671444,7 +1671444,7 @@
       ]
     },
     {
-      "digest": "ae14c87aad6052784322a421121fe27e6e5f8b8a9930577f0447feeb8b53ebbe",
+      "digest": "15f1b38439e692b33dfe9c98c26cf761acfec3c6f0138a30232e7533b0ad6253",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/enrollment.py:usl.sign.enrollment.action_send_invitation:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1671462,7 +1671462,7 @@
       ]
     },
     {
-      "digest": "157c26da9e902838751a0e1bfff0059ae3be2357f8b9635425a0fcafe53f74ea",
+      "digest": "62dab25ff1e692dc620cd2481bc901ba1b6f6418c9688ca30fdf1de0db1a043c",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/enrollment.py:usl.sign.enrollment.action_send_invitation:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1671528,7 +1671528,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 438,
+          "line": 439,
           "path": "custom-addons/usl_sign/models/enrollment.py"
         }
       ]
@@ -1673286,7 +1673286,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1247,
+          "line": 1251,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673301,7 +1673301,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1171,
+          "line": 1175,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673316,7 +1673316,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1171,
+          "line": 1175,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673331,7 +1673331,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1171,
+          "line": 1175,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673346,7 +1673346,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 728,
+          "line": 732,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673496,7 +1673496,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 623,
+          "line": 627,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673511,7 +1673511,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 623,
+          "line": 627,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673526,7 +1673526,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 837,
+          "line": 841,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673541,7 +1673541,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1014,
+          "line": 1018,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673556,7 +1673556,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1014,
+          "line": 1018,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673571,7 +1673571,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1014,
+          "line": 1018,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673586,13 +1673586,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 752,
+          "line": 756,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
     },
     {
-      "digest": "7617e5a945a35c6c5880b6ee6e2d2c6375652017db4266130cf38dfc794e6a84",
+      "digest": "3e4541e0a0ae222fa4461b4f1ef1062338b5e560679ddb8b59cb8d1ceb34e419",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1673607,7 +1673607,7 @@
       ]
     },
     {
-      "digest": "257fd8252b99f18c8e236ee0f53d1d598b455fb219ee473d4285f5216f81d740",
+      "digest": "4a75dd825166db2fcad5d7211a78b743c5ec2f151017dc98d80b5739acd5693d",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1673622,7 +1673622,7 @@
       ]
     },
     {
-      "digest": "f83969be86b7c632cf4b458b58a4ca04e45e9e78389f4ac09ffdb49e097c4832",
+      "digest": "8a4933c37ed7538fd7f726cdb9a4ca3a6972a207432a2410a693556008d216cc",
       "key": "sink:usl_sign:custom-addons/usl_sign/models/request_signer.py:sign.oca.request.signer._send_ephemeral_email:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1673646,7 +1673646,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 798,
+          "line": 802,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673661,7 +1673661,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 798,
+          "line": 802,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673676,7 +1673676,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1151,
+          "line": 1155,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673691,7 +1673691,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 662,
+          "line": 666,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673706,7 +1673706,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 662,
+          "line": 666,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673724,7 +1673724,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1261,
+          "line": 1265,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673742,7 +1673742,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1261,
+          "line": 1265,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673760,7 +1673760,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1261,
+          "line": 1265,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673796,7 +1673796,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1295,
+          "line": 1299,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673814,7 +1673814,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 1419,
+          "line": 1423,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673832,7 +1673832,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1419,
+          "line": 1423,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673850,7 +1673850,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 1419,
+          "line": 1423,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673868,7 +1673868,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1419,
+          "line": 1423,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1673886,7 +1673886,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1348,
+          "line": 1352,
           "path": "custom-addons/usl_sign/models/request_signer.py"
         }
       ]
@@ -1738252,7 +1738252,7 @@
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
       "name": "usl_sign",
       "origin": "custom",
-      "source_sha256": "2ed2439bb678433dae6e8d630966e7e00bd9f95b59ef852822a04f7cec5484d1",
+      "source_sha256": "5b73b60cca3c8016cf53dc9e554c5fb57f155b33d5ad91f04ebaf437cda73be2",
       "version": "saas~19.3.2.0.1"
     },
     {

@@ -612,6 +612,10 @@ class SignRequestSigner(models.Model):
             },
         )
         if queue:
+            # Queued so a rolled-back transaction never emails a link; the
+            # trigger is transactional too and sends it right after commit
+            # instead of at the next hourly queue run.
+            self.env.ref("mail.ir_cron_mail_scheduler_action")._trigger()
             return mail
         try:
             mail.send(raise_exception=True)
