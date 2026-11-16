@@ -289,6 +289,7 @@ class SignEnrollment(models.Model):
                 "res_id": self.id,
             },
         )
+        self.env.ref("mail.ir_cron_mail_scheduler_action")._trigger()
         self.with_context(usl_sign_enrollment_transition=INTERNAL_OPERATION).write(
             {
                 "invitation_sent_at": fields.Datetime.now(),
