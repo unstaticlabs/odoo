@@ -20,6 +20,7 @@ import eu.europa.esig.dss.model.InMemoryDocument;
 import eu.europa.esig.dss.pades.PAdESSignatureParameters;
 import eu.europa.esig.dss.pades.signature.PAdESService;
 import eu.europa.esig.dss.spi.validation.CommonCertificateVerifier;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -96,6 +97,36 @@ final class ApplicationTest {
         assertEquals(30f / 100 * 612, parameters.getImageParameters().getFieldParameters().getWidth(), 0.01f);
         assertEquals(8f / 100 * 792, parameters.getImageParameters().getFieldParameters().getHeight(), 0.01f);
         assertEquals(ImageScaling.ZOOM_AND_CENTER, parameters.getImageParameters().getImageScaling());
+    }
+
+    @Test
+    void filledFieldOverlayLinesUpWithItsWidgetOnAnOffsetCropBox() throws Exception {
+        PDRectangle crop = new PDRectangle(50, 50, 495, 742);
+        Application.PdfFormField field = new Application.PdfFormField(
+                "usl_sign_1", 0, 20, 10, 30, 5, null);
+        double[] source = Application.overlaySourceBox(crop, field);
+        // The overlay is drawn from the same spot the widget occupies on a page
+        // with the same crop box, so the two coincide exactly.
+        try (PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage(new PDRectangle(0, 0, 595, 842));
+            page.setCropBox(crop);
+            document.addPage(page);
+            byte[] prepared;
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+                document.save(output);
+                prepared = Application.prepareSigningFields(output.toByteArray(), List.of(field));
+            }
+            try (PDDocument reserved = Loader.loadPDF(prepared)) {
+                PDRectangle widget = reserved.getDocumentCatalog().getAcroForm()
+                        .getField("usl_sign_1").getWidgets().get(0).getRectangle();
+                assertEquals(widget.getLowerLeftX(), source[0], 0.01);
+                assertEquals(widget.getLowerLeftY(), source[1], 0.01);
+                assertEquals(widget.getWidth(), source[2], 0.01);
+                assertEquals(widget.getHeight(), source[3], 0.01);
+            }
+        }
+        assertEquals(50 + 0.20 * 495, source[0], 0.001);
+        assertEquals(50 + (100 - 10 - 5) / 100.0 * 742, source[1], 0.001);
     }
 
     @Test

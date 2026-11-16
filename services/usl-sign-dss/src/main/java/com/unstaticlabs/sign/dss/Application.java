@@ -523,16 +523,14 @@ public final class Application {
                             || overlayBox.getWidth() <= 0 || overlayBox.getHeight() <= 0) {
                         throw new IllegalArgumentException("A field appearance page is invalid.");
                     }
-                    double sourceWidth = requested.width() / 100 * overlayBox.getWidth();
-                    double sourceHeight = requested.height() / 100 * overlayBox.getHeight();
+                    double[] sourceBox = overlaySourceBox(overlayBox, requested);
                     appearances.add(Map.of(
                             "name", requested.name(),
                             "document", b64(requested.overlay()),
-                            "origin_x", overlayBox.getLowerLeftX() + requested.x() / 100 * overlayBox.getWidth(),
-                            "origin_y", overlayBox.getLowerLeftY()
-                                    + (100 - requested.y() - requested.height()) / 100 * overlayBox.getHeight(),
-                            "source_width", sourceWidth,
-                            "source_height", sourceHeight,
+                            "origin_x", sourceBox[0],
+                            "origin_y", sourceBox[1],
+                            "source_width", sourceBox[2],
+                            "source_height", sourceBox[3],
                             "box_width", rect.getWidth(),
                             "box_height", rect.getHeight()));
                 }
@@ -578,6 +576,20 @@ public final class Application {
             throw new IllegalStateException("Incremental PDF output did not preserve the base revision.");
         }
         return result;
+    }
+
+    /**
+     * The field's box on its overlay page, as {x, y, width, height} in that
+     * page's user space: the same percentages of the visible (crop) box that
+     * place the widget on the signed page, so the overlay lines up with it.
+     */
+    static double[] overlaySourceBox(PDRectangle overlayBox, PdfFormField field) {
+        return new double[] {
+            overlayBox.getLowerLeftX() + field.x() / 100 * overlayBox.getWidth(),
+            overlayBox.getLowerLeftY() + (100 - field.y() - field.height()) / 100 * overlayBox.getHeight(),
+            field.width() / 100 * overlayBox.getWidth(),
+            field.height() / 100 * overlayBox.getHeight(),
+        };
     }
 
     private static PDRectangle fieldRectangle(PDPage page, PdfFormField field) {
