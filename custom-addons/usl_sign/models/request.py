@@ -1539,6 +1539,7 @@ class SignRequest(models.Model):
     @api.model
     def _cron_sign_operations(self):
         now = fields.Datetime.now()
+        self._run_queued_final_validations()
         signer_model = self.env["sign.oca.request.signer"]
         actionable_signers = signer_model.search(
             [

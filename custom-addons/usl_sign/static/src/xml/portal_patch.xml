@@ -4,6 +4,9 @@
         <xpath expr="//input" position="attributes">
             <attribute name="t-if">item.role_id == role_id</attribute>
         </xpath>
+        <xpath expr="//div" position="attributes">
+            <attribute name="style">width:100%;height:100%;white-space:pre-wrap;overflow:hidden</attribute>
+        </xpath>
     </t>
     <t t-name="usl_sign.SignIframeCheckRoleFix" t-inherit="sign_oca.sign_iframe_field_check" t-inherit-mode="extension">
         <xpath expr="//input" position="attributes">

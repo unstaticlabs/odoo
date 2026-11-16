@@ -1492,6 +1492,59 @@ class TestCleanUslSign(TransactionCase):
                 browser_context={"user_agent": "x" * 513},
             )
 
+    def test_last_signature_queues_final_validation_for_the_cron(self):
+        request = self._ready(self._request())
+        request._freeze_document()
+        request._transition("sent", "request_sent")
+        signer = request.signer_ids
+        signer.with_context(usl_sign_signer_transition=INTERNAL_OPERATION).write(
+            {"state": "signed", "signed_on": fields.Datetime.now()},
+        )
+        cron = self.env.ref("usl_sign.ir_cron_sign_operations")
+        triggers = self.env["ir.cron.trigger"].search_count([("cron_id", "=", cron.id)])
+        with patch.object(
+            type(request), "_start_final_validation", autospec=True,
+        ) as final_validation:
+            signer._activate_next_signer_or_finish()
+            # The signer is answered before sealing and the evidence dossier.
+            final_validation.assert_not_called()
+            self.assertEqual(request.state, "validating")
+            self.assertEqual(
+                self.env["ir.cron.trigger"].search_count([("cron_id", "=", cron.id)]),
+                triggers + 1,
+            )
+            self.env["sign.oca.request"]._run_queued_final_validations()
+            final_validation.assert_called_once_with(request)
+
+    def test_queued_final_validation_failure_does_not_stop_the_others(self):
+        requests = self.env["sign.oca.request"]
+        for _index in range(2):
+            request = self._ready(self._request())
+            request._freeze_document()
+            request._transition("sent", "request_sent")
+            request._transition("validating", "validation_started")
+            requests |= request
+        calls = []
+
+        def final_validation(record):
+            calls.append(record.id)
+            if record == requests[0]:
+                raise RuntimeError("DSS unavailable")
+            return True
+
+        with patch.object(
+            type(requests), "_start_final_validation", autospec=True,
+            side_effect=final_validation,
+        ):
+            self.env["sign.oca.request"]._run_queued_final_validations()
+        self.assertEqual(sorted(calls), sorted(requests.ids))
+        # The failing request leaves the queue for the operator's retry
+        # instead of blocking the next runs.
+        self.assertEqual(requests[0].state, "action_required")
+        self.assertEqual(requests[0].validation_status, "indeterminate")
+        self.assertIn("DSS unavailable", requests[0].last_error)
+        self.assertEqual(requests[0].event_ids.sorted("sequence")[-1].event_type, "validation_service_error")
+
     def test_cross_validation_disagreement_never_completes(self):
         request = self._ready(self._request())
         request._freeze_document()

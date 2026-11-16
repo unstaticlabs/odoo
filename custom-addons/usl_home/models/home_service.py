@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
@@ -515,7 +515,7 @@ class UslHomeService(models.AbstractModel):
         ranked.sort(
             key=lambda row: (
                 row[0],
-                row[1].date_deadline or date.max,
+                row[1].date_deadline or datetime.max,
                 row[1].id,
             ),
         )
