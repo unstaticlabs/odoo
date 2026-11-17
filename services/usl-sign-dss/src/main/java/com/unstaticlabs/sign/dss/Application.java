@@ -67,7 +67,6 @@ import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDOutputIntent;
 import org.apache.pdfbox.pdmodel.PDEmbeddedFilesNameTreeNode;
-import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
@@ -86,7 +85,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.awt.color.ColorSpace;
 import java.awt.color.ICC_Profile;
-import java.awt.image.BufferedImage;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -135,7 +133,6 @@ public final class Application {
                     .maxStringLength(MAX_REQUEST_BYTES)
                     .build())
             .build());
-    private static final float FIELD_APPEARANCE_DPI = 300f;
     private static final Duration CONTEXT_TTL = Duration.ofMinutes(5);
     private static final Map<String, SigningContext> SIGNING_CONTEXTS = new ConcurrentHashMap<>();
 
@@ -517,33 +514,25 @@ public final class Application {
                         throw new IllegalArgumentException("Every field appearance must contain exactly one page.");
                     }
                     PDRectangle rect = widget.getRectangle();
-                    BufferedImage pageImage = new PDFRenderer(overlayDocument).renderImageWithDPI(0, FIELD_APPEARANCE_DPI);
-                    int cropX = Math.max(0, (int) Math.floor(requested.x() / 100 * pageImage.getWidth()));
-                    int cropY = Math.max(0, (int) Math.floor(requested.y() / 100 * pageImage.getHeight()));
-                    int cropWidth = Math.min(
-                            pageImage.getWidth() - cropX,
-                            Math.max(1, (int) Math.ceil(requested.width() / 100 * pageImage.getWidth())));
-                    int cropHeight = Math.min(
-                            pageImage.getHeight() - cropY,
-                            Math.max(1, (int) Math.ceil(requested.height() / 100 * pageImage.getHeight())));
-                    BufferedImage fieldImage = pageImage.getSubimage(cropX, cropY, cropWidth, cropHeight);
-                    byte[] rgb = new byte[cropWidth * cropHeight * 3];
-                    int offset = 0;
-                    for (int y = 0; y < cropHeight; y++) {
-                        for (int x = 0; x < cropWidth; x++) {
-                            int pixel = fieldImage.getRGB(x, y);
-                            rgb[offset++] = (byte) (pixel >> 16);
-                            rgb[offset++] = (byte) (pixel >> 8);
-                            rgb[offset++] = (byte) pixel;
-                        }
+                    // The overlay page is drawn in vector form inside the
+                    // widget, so the page content under the field stays
+                    // visible and text stays text. Field percentages are
+                    // measured on the overlay's visible box, like the widget's.
+                    PDRectangle overlayBox = overlayDocument.getPage(0).getCropBox();
+                    if (overlayDocument.getPage(0).getRotation() != 0
+                            || overlayBox.getWidth() <= 0 || overlayBox.getHeight() <= 0) {
+                        throw new IllegalArgumentException("A field appearance page is invalid.");
                     }
+                    double[] sourceBox = overlaySourceBox(overlayBox, requested);
                     appearances.add(Map.of(
                             "name", requested.name(),
-                            "pixel_width", cropWidth,
-                            "pixel_height", cropHeight,
+                            "document", b64(requested.overlay()),
+                            "origin_x", sourceBox[0],
+                            "origin_y", sourceBox[1],
+                            "source_width", sourceBox[2],
+                            "source_height", sourceBox[3],
                             "box_width", rect.getWidth(),
-                            "box_height", rect.getHeight(),
-                            "rgb", b64(rgb)));
+                            "box_height", rect.getHeight()));
                 }
             }
         }
@@ -587,6 +576,20 @@ public final class Application {
             throw new IllegalStateException("Incremental PDF output did not preserve the base revision.");
         }
         return result;
+    }
+
+    /**
+     * The field's box on its overlay page, as {x, y, width, height} in that
+     * page's user space: the same percentages of the visible (crop) box that
+     * place the widget on the signed page, so the overlay lines up with it.
+     */
+    static double[] overlaySourceBox(PDRectangle overlayBox, PdfFormField field) {
+        return new double[] {
+            overlayBox.getLowerLeftX() + field.x() / 100 * overlayBox.getWidth(),
+            overlayBox.getLowerLeftY() + (100 - field.y() - field.height()) / 100 * overlayBox.getHeight(),
+            field.width() / 100 * overlayBox.getWidth(),
+            field.height() / 100 * overlayBox.getHeight(),
+        };
     }
 
     private static PDRectangle fieldRectangle(PDPage page, PdfFormField field) {

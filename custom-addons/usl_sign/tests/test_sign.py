@@ -812,9 +812,17 @@ class TestCleanUslSign(TransactionCase):
         self.assertFalse(any(model.startswith("usl.sign") for model in available))
         self.assertFalse(any(model.startswith("sign.oca") for model in available))
 
+    def _mail_queue_triggers(self):
+        cron = self.env.ref("mail.ir_cron_mail_scheduler_action")
+        return self.env["ir.cron.trigger"].sudo().search_count([("cron_id", "=", cron.id)])
+
     def test_invitation_is_queued_and_failed_delivery_recovers(self):
         request = self._ready(self._request())
+        triggers = self._mail_queue_triggers()
         request.action_send()
+        # The queued invitation wakes the mail queue instead of waiting for
+        # its hourly run.
+        self.assertGreater(self._mail_queue_triggers(), triggers)
         signer = request.signer_ids
         first_hash = signer.access_token_sha256
         first_mail = signer.invitation_mail_id
@@ -1007,7 +1015,9 @@ class TestCleanUslSign(TransactionCase):
         self.assertIn(f"/sign/enroll/{enrollment.id}/", copy_link)
         first_hash = enrollment.invitation_token_sha256
 
+        triggers = self._mail_queue_triggers()
         sent = enrollment.with_user(self.reviewer).action_send_invitation()
+        self.assertGreater(self._mail_queue_triggers(), triggers)
         self.assertEqual(sent["tag"], "display_notification")
         self.assertTrue(enrollment.invitation_sent_at)
         self.assertEqual(enrollment.invitation_delivery_state, "queued")
