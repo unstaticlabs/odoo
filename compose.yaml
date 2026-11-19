@@ -74,7 +74,7 @@ services:
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.3-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.39@sha256:13672f317b443c793e972b1bd2155ec62a3e7b6891b411e8196442cc053ee5f5}
-      PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
+      PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:4.2.0-1-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
       PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY:-paperless-change-me-dev-only}
       PAPERLESS_PUBLIC_URL: ${PAPERLESS_PUBLIC_URL:-http://127.0.0.1:8010}
@@ -454,7 +454,7 @@ services:
 
   paperless-tika:
     profiles: ["paperless"]
-    image: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
+    image: ${PAPERLESS_TIKA_IMAGE:-apache/tika:4.2.0-1-full}
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:9998/tika"]
