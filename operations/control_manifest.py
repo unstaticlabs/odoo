@@ -406,26 +406,34 @@ def release_definitions_digest(value: object) -> str:
     return _digest(sections)
 
 
-WORKFLOW_FAILURE_SCHEMA = "usl-recovery-workflow-failures/v1"
+WORKFLOW_FAILURE_SCHEMA = "usl-recovery-workflow-failures/v2"
+# v1 counted every hashed row. Stored v1 receipts stay valid.
+WORKFLOW_FAILURE_SCHEMAS = frozenset({"usl-recovery-workflow-failures/v1", WORKFLOW_FAILURE_SCHEMA})
 # Hash at the database boundary: record identities and error text never leave it.
 # Cron activation is deliberately excluded: quarantine disables it, but must not
 # change the job identity, failure counter or first-failure evidence.
+# The hash covers every failed row. The count uses the same filter as the
+# matching ODOO_CONTROL_SQL queue, so validate_recovery_restore can compare them.
+# A dismissed document failure is not open work, but a restore must keep it and
+# its acknowledged flag unchanged.
 _FAILED_WORKFLOW_DEFINITIONS = {
-    "failed_mail": ("mail_mail", "state = 'exception'", ("id", "state", "failure_type", "failure_reason")),
-    "failed_documents": ("usl_document_operation", "state = 'failed'", ("id", "state", "error_message")),
-    "bank_failed": ("account_bank_ingestion", "state = 'failed'", ("id", "state", "last_error")),
-    "payment_failed": ("payment_transaction", "state = 'error'", ("id", "state", "state_message")),
-    "sign_archive_failed": ("sign_oca_request", "archive_status = 'failed'", ("id", "archive_status", "archive_last_error")),
-    "cron_failures": ("ir_cron", "failure_count > 0", ("id", "failure_count", "first_failure_date")),
+    "failed_mail": ("mail_mail", "state = 'exception'", ("id", "state", "failure_type", "failure_reason"), None),
+    "failed_documents": ("usl_document_operation", "state = 'failed'", ("id", "state", "error_message", "acknowledged"),
+                         "acknowledged IS NOT TRUE"),
+    "bank_failed": ("account_bank_ingestion", "state = 'failed'", ("id", "state", "last_error"), None),
+    "payment_failed": ("payment_transaction", "state = 'error'", ("id", "state", "state_message"), None),
+    "sign_archive_failed": ("sign_oca_request", "archive_status = 'failed'", ("id", "archive_status", "archive_last_error"), None),
+    "cron_failures": ("ir_cron", "failure_count > 0", ("id", "failure_count", "first_failure_date"), None),
 }
 
 
 def workflow_failure_sql() -> str:
     sections = []
-    for role, (table, predicate, fields) in sorted(_FAILED_WORKFLOW_DEFINITIONS.items()):
+    for role, (table, predicate, fields, open_predicate) in sorted(_FAILED_WORKFLOW_DEFINITIONS.items()):
         columns = ", ".join(f"'{field}', {field}" for field in fields)
+        count = f"count(*) FILTER (WHERE {open_predicate})" if open_predicate else "count(*)"
         sections.append(
-            f"'{role}', (SELECT json_build_object('count', count(*), 'sha256', "
+            f"'{role}', (SELECT json_build_object('count', {count}, 'sha256', "
             f"encode(sha256(convert_to(coalesce(string_agg(jsonb_build_object({columns})::text, "
             f"chr(10) ORDER BY id), ''), 'UTF8')), 'hex')) FROM {table} WHERE {predicate})"
         )
@@ -433,7 +441,7 @@ def workflow_failure_sql() -> str:
 
 
 def validate_workflow_failures(value: object) -> dict:
-    if not isinstance(value, dict) or set(value) != {"schema", "roles"} or value.get("schema") != WORKFLOW_FAILURE_SCHEMA:
+    if not isinstance(value, dict) or set(value) != {"schema", "roles"} or value.get("schema") not in WORKFLOW_FAILURE_SCHEMAS:
         raise ControlManifestError("recovery workflow failure evidence is invalid")
     roles = value["roles"]
     if not isinstance(roles, dict) or set(roles) != FAILED_QUEUE_KEYS:
