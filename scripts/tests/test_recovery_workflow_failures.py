@@ -8,7 +8,7 @@ from scripts.tests.test_control_manifest import controls_v2
 
 
 def fingerprint(seed):
-    return {"schema": "usl-recovery-workflow-failures/v1", "roles": {
+    return {"schema": controls.WORKFLOW_FAILURE_SCHEMA, "roles": {
         role: {"count": int(role == "failed_documents"), "sha256": hashlib.sha256(
             (seed if role == "failed_documents" else "empty").encode()).hexdigest()}
         for role in controls.FAILED_QUEUE_KEYS
@@ -75,6 +75,16 @@ class RecoveryWorkflowFailureTests(unittest.TestCase):
         lost["roles"]["failed_documents"]["sha256"] = hashlib.sha256(b"empty").hexdigest()
         with self.assertRaises(controls.ControlManifestError):
             compare(before, before, dismissed, lost)
+
+
+    def test_stored_v1_evidence_validates_but_is_never_compared(self):
+        before = controls_v2(); before["odoo"]["failed_documents"] = 1
+        old = fingerprint("invented-row-1:error"); old["schema"] = "usl-recovery-workflow-failures/v1"
+        self.assertEqual(controls.validate_workflow_failures(old), old)
+        for source, restored in ((old, fingerprint("invented-row-1:error")), (old, copy.deepcopy(old))):
+            with self.subTest(restored=restored["schema"]), self.assertRaisesRegex(
+                    controls.ControlManifestError, "current schema"):
+                compare(before, before, source, restored)
 
 
     def test_cron_quarantine_can_disable_activation_but_not_rewrite_failure_evidence(self):

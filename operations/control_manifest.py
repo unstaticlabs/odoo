@@ -467,6 +467,11 @@ def validate_recovery_restore(before: object, after: object, *, source_failures:
     """Prove same-release recovery faithfully retains existing workflow failures."""
     source = validate_workflow_failures(source_failures)
     restored = validate_workflow_failures(restored_failures)
+    # The v1 and v2 digests and counts cover different fields, and only the
+    # current schema counts like the control queue. Never compare a stored
+    # v1 receipt with new evidence.
+    if source["schema"] != WORKFLOW_FAILURE_SCHEMA or restored["schema"] != WORKFLOW_FAILURE_SCHEMA:
+        raise ControlManifestError("recovery workflow failure evidence must use the current schema")
     if source != restored:
         raise ControlManifestError("recovery changed failed-work identity, state or error evidence")
     baseline, candidate = classify(before), classify(after)
