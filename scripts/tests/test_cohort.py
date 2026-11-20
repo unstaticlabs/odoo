@@ -3172,6 +3172,12 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/opt/usl-odoo/secrets/paperless-personal-ai-keys.json:/source/paperless-personal-ai-keys.json:ro", mounts)
         self.assertNotIn("/opt/usl-odoo/secrets:/source/mcp-secrets:ro", mounts)
 
+    def test_cohort_keeps_the_restic_cache_in_a_named_volume(self) -> None:
+        target = load_target("production", TARGETS)
+        command = _cohort_command(target, "backup-image", "capture", [])
+        mounts = [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--volume"]
+        self.assertIn("usl-odoo-restic-cache-production:/cache", mounts)
+
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
         command = _cohort_command(target, "backup@sha256:" + "a" * 64, "capture", [])
@@ -4669,21 +4675,31 @@ class CohortContractTests(unittest.TestCase):
         ))
         return self._capture_state_root(target, entries, files), sorted(proofs), uploading
 
-    def test_capture_retention_keeps_only_the_anchor_proof_capture(self) -> None:
+    def test_capture_retention_keeps_the_newest_and_the_anchor_proof_capture(self) -> None:
         target = load_target("production", TARGETS)
         runner, proofs, uploading = self._proof_state_root(target)
 
         with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[1]}):
             result = _cleanup_captures(target, runner)
 
-        deleted = [proofs[0], *proofs[2:]]
+        deleted = [proofs[0], proofs[2]]
         self.assertEqual(result["delete_captures"], deleted)
-        self.assertEqual(result["protected_captures"], sorted([proofs[1], uploading]))
+        self.assertEqual(result["protected_captures"], sorted([proofs[1], proofs[3], uploading]))
         with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[1]}):
             paths = _validated_cleanup_captures(target, runner, result)
         self.assertEqual(
             paths, [f"{target.value['state_directory']}/{run_id}" for run_id in deleted],
         )
+
+    def test_missing_anchor_holds_every_proof_capture_and_never_raises(self) -> None:
+        from operations.stack import RecoveryAnchorUnavailable
+        target = load_target("production", TARGETS)
+        runner, proofs, uploading = self._proof_state_root(target)
+        missing = RecoveryAnchorUnavailable("no anchor yet")
+        with mock.patch("operations.stack._usable_recovery_anchor", side_effect=missing):
+            result = _cleanup_captures(target, runner)
+        self.assertEqual(result["delete_captures"], [])
+        self.assertEqual(result["protected_captures"], sorted([*proofs, uploading]))
 
     def test_staging_capture_retention_ignores_proof_names(self) -> None:
         target = load_target("staging", TARGETS)

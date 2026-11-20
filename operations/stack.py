@@ -203,10 +203,12 @@ RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
 # proof restores from Restic, never from this directory, so a qualified
 # capture is a local duplicate of its remote snapshots. Each one is about
 # 2.3 GB on the root filesystem of the Odoo host, which filled it on
-# 2026-11-19. Production keeps only the capture of the usable recovery
-# anchor as its local fallback; every other qualified capture goes.
+# 2026-11-19. Production keeps the newest qualified capture and the capture
+# of the usable recovery anchor; every other qualified capture goes. The
+# newest one stays because a proof qualifies its capture before it restores,
+# and because it is the local copy if the remote repositories are lost.
 PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
-PROOF_CAPTURE_KEEP = 0
+PROOF_CAPTURE_KEEP = 1
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
 RELEASE_RUN_STATE = re.compile(r"release-[0-9a-f]{64}\.json\Z")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
@@ -11064,8 +11066,8 @@ def _cleanup_captures(target, runner) -> dict:
     A qualified capture is a local duplicate of its verified Restic
     snapshots: restore, rollback and proofs read the snapshots, and a fast
     rollback uses the previous generation volumes.  Production therefore
-    deletes every qualified release capture, and keeps only the capture of
-    the usable recovery anchor among daily proofs.  Staging keeps the newest
+    deletes every qualified release capture, and keeps the newest daily proof
+    capture and the capture of the usable recovery anchor.  Staging keeps the newest
     ``STAGING_CAPTURE_KEEP`` captures.  Both keep captures that are not
     ``qualified`` and captures of attempts whose launcher run is still
     running or resumable.  Entries that are not managed capture runs are
@@ -11130,11 +11132,13 @@ def _state_root_entries(target, runner) -> list[tuple[str, str]]:
 
 
 def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
-    """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
+    """Keep the newest qualified daily proof capture and the anchor capture.
 
     A capture that is not ``qualified`` is kept: its backup may still resume
     from it. The last full usable-service passed proof stays in addition to
-    these newest data-qualified captures, even after later service proofs fail.
+    the newest data-qualified capture, even after later service proofs fail.
+    If no anchor exists yet, every qualified capture stays and nothing is
+    deleted, so a release cleanup does not stop on a missing anchor.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11145,9 +11149,13 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
         else:
             qualified[run_id] = capture["created_at"]
     if len(qualified) > PROOF_CAPTURE_KEEP and target.value["environment"] == "production":
-        # Refuse before a deletion plan can be applied: an unknown anchor is
-        # an observable preservation hold, not successful garbage collection.
-        anchor = _usable_recovery_anchor(target, runner)
+        # An unreadable anchor still refuses. A missing anchor is a
+        # preservation hold: keep everything and report it.
+        try:
+            anchor = _usable_recovery_anchor(target, runner)
+        except RecoveryAnchorUnavailable as error:
+            print(f"recovery proof capture retention held: {error}", file=sys.stderr)
+            return {"protected_captures": sorted(protected | set(qualified)), "delete_captures": []}
         protected.add(anchor["run_id"])
     newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
     protected.update(newest[:PROOF_CAPTURE_KEEP])
