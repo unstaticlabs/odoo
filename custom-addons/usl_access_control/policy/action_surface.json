@@ -1738151,11 +1738151,11 @@
       "version": "saas~19.3.1.1.1"
     },
     {
-      "manifest_sha256": "bf9bcefb3f3b92cb7ffaec57a229c482fe363380db2edfd9bc7c0130abc07ad4",
+      "manifest_sha256": "a23c61442ef12832d258eda23452ad4791013b7358942c33a3066b8e91b66075",
       "name": "usl_document_templates",
       "origin": "custom",
-      "source_sha256": "1109f4a6ca2195399f27fb18eff80ee4f177fe81d0c78379714aca86aed22e69",
-      "version": "saas~19.3.1.1.4"
+      "source_sha256": "59bd4ee6ae5941edb4f09fe882e14e8207010242b61ef9b67566eeae3bb7a771",
+      "version": "saas~19.3.1.1.5"
     },
     {
       "manifest_sha256": "856f76a4fdaf39b5ac10647f7a83d955f7dcae976bd1a163691fa1187186c7d5",
