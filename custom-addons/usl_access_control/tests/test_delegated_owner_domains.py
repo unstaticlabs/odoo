@@ -111,18 +111,44 @@ class TestDelegatedOwnerDomains(HttpCase):
             context={}, agent=agent, model_name="project.task", method_name=operation, access=access,
         )
 
-    def _key(self):
+    def _key(self, agent=None):
         wizard = self.env["usl.agent.key.wizard"].with_user(self.owner).create({
-            "agent_id": self.agent.id, "name": "[QA owner domains] Fresh HTTP",
+            "agent_id": (agent or self.agent).id, "name": "[QA owner domains] Fresh HTTP",
         })
         return UslAgentKeyWizard.action_generate.__wrapped__(wizard)["context"]["default_key"]
 
-    def _call(self, key, method, **kwargs):
+    def _call(self, key, method, *, model="hr.employee.skill.report", **kwargs):
         return self.url_open(
-            f"/json/2/hr.employee.skill.report/{method}", data=json.dumps(kwargs),
+            f"/json/2/{model}/{method}", data=json.dumps(kwargs),
             headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
                      "X-Odoo-Database": self.env.cr.dbname},
         )
+
+    def test_personal_stage_structured_read_matches_native_owner_visibility(self):
+        model = "project.task.stage.personal"
+        task = self.env["project.task"].create({
+            "name": "[QA] Personal stage lookup",
+            "user_ids": [Command.set((self.owner | self.env.user).ids)],
+        })
+        self.env.flush_all()
+        self.env.cr.precommit.run()
+        stages = self.env[model].search([("task_id", "=", task.id)])
+        personal = stages.filtered(lambda row: row.user_id == self.owner)
+        unrelated = stages.filtered(lambda row: row.user_id == self.env.user)
+        self.assertEqual((len(personal), len(unrelated)), (1, 1))
+        domain = [("id", "in", (personal | unrelated).ids)]
+        expected = self.env[model].with_user(self.owner).search(domain)
+        self.assertEqual(expected, personal.with_user(self.owner))
+        writer, _ = self._writer()
+        for agent in (self.agent, writer):
+            with self.subTest(agent=agent.name):
+                key = self._key(agent)
+                response = self._call(
+                    key, "web_search_read", model=model, domain=domain,
+                    specification={"id": {}}, limit=5,
+                )
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json(), {"length": 1, "records": [{"id": personal.id}]})
 
     def test_personal_native_search_group_and_record_access(self):
         self.assertFalse(self.owner.has_group("hr.group_hr_user"))
