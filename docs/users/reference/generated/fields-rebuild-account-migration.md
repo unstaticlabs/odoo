@@ -990,6 +990,9 @@ false
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
 | **Assigned to Accountant Reviewer** (`accountant_action_count`) | integer |  |  |
+| **Archived Journals Used in the Annual Close** (`annual_archived_journal_count`) | integer |  |  |
+| **Journals Used in the Annual Close** (`annual_journal_count`) | integer |  |  |
+| **Posted Entries in the Annual Close** (`annual_posted_move_count`) | integer |  |  |
 | **Balance** (`balance`) | monetary |  |  |
 | **Bank and Cash Balance** (`bank_balance`) | monetary |  |  |
 | **Bank Checkpoint Config** (`bank_checkpoint_config_id`) | many2one → `account.bank.ingestion.config` |  |  |
@@ -998,7 +1001,7 @@ false
 | **Bank Checkpoint Status** (`bank_checkpoint_status`) | selection |  |  |
 | **Pending Review** (`bank_review_count`) | integer |  |  |
 | **Bank Transaction Count** (`bank_transaction_count`) | integer |  |  |
-| **Cash Journal Count** (`cash_journal_count`) | integer |  |  |
+| **Active Bank and Cash Journals** (`cash_journal_count`) | integer |  |  |
 | **Cash on banks** (`cash_on_banks`) | monetary |  |  |
 | **Included bank accounts** (`cash_position_journal_count`) | integer |  |  |
 | **Approved expenses** (`cash_projection_approved_expense_amount`) | monetary |  |  |
@@ -1045,7 +1048,7 @@ false
 | **Open Actionable Issues** (`hygiene_issue_count`) | integer |  |  |
 | **Hygiene Status** (`hygiene_status`) | selection |  | Values: **Ready**, **Attention Required**, **Blocked**. |
 | **Incomplete Document Count** (`incomplete_document_count`) | integer |  |  |
-| **Journal Count** (`journal_count`) | integer |  |  |
+| **Active Journals** (`journal_count`) | integer |  |  |
 | **Latest Closing Blocking Count** (`latest_closing_blocking_count`) | integer |  |  |
 | **Latest Closing Date To** (`latest_closing_date_to`) | date |  |  |
 | **Latest Closing Period** (`latest_closing_period_id`) | many2one → `rebuild.account.closing.period` |  |  |
@@ -1059,6 +1062,7 @@ false
 | **Next Declaration Deadline** (`next_declaration_deadline`) | date |  |  |
 | **Next Declaration** (`next_declaration_id`) | many2one → `rebuild.account.declaration` |  |  |
 | **Next Declaration Status** (`next_declaration_status`) | selection |  | Values: **To Prepare**, **Data Missing**, **Ready for Internal Review**, **Ready for Accountant Review**, **Accountant Reviewed**, **Ready to File Externally**, **Filed Externally**, **Paid / Refunded**, **Archived**, **Blocked**, **Not Applicable**. |
+| **Open Annual Close** (`open_annual_closing_id`) | many2one → `rebuild.account.closing.period` |  | Latest ended financial year with a closing workspace still open. |
 | **Open Payable Amount** (`open_payable_amount`) | monetary |  |  |
 | **Open Payable Count** (`open_payable_count`) | integer |  |  |
 | **Open Receivable Amount** (`open_receivable_amount`) | monetary |  |  |
@@ -1066,7 +1070,7 @@ false
 | **Overdue Declaration Count** (`overdue_declaration_count`) | integer |  |  |
 | **Pending External Report Value Count** (`pending_external_report_value_count`) | integer |  |  |
 | **Pending Review Decision Count** (`pending_review_decision_count`) | integer |  |  |
-| **Posted Move Count** (`posted_move_count`) | integer |  |  |
+| **Posted Entries (All Dates)** (`posted_move_count`) | integer |  |  |
 | **Projected cash after settlement** (`projected_cash_after_settlement`) | monetary |  |  |
 | **Projected cash after taxes** (`projected_cash_after_taxes`) | monetary |  |  |
 | **Readiness Status** (`readiness_status`) | selection |  | Values: **Blocked**, **Review Required**, **Review Evidence Available**. |
