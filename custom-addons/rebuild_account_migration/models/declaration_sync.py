@@ -68,6 +68,12 @@ class RebuildAccountDeclaration(models.Model):
         ):
             periods.append((next_start, next_end))
 
+        # A new rule can still introduce a missing historical row. Only protect
+        # declarations that already existed before this synchronization.
+        history = self.search([
+            ("company_id", "=", company.id),
+            *self._calendar_history_domain(company),
+        ])
         declarations = self.browse()
         for fiscal_start, fiscal_end in periods:
             for rule in self._rules_for_period(company, fiscal_end):
@@ -80,9 +86,16 @@ class RebuildAccountDeclaration(models.Model):
         horizon_start = min(start for start, _end in periods)
         horizon_end = max(end for _start, end in periods) + relativedelta(months=4)
         declarations |= self._sync_calendar_instances(company, horizon_start, horizon_end)
-        self._retire_superseded_instances(company, declarations, horizon_start, horizon_end)
-        declarations.action_refresh_preparation()
+        self._retire_superseded_instances(company, declarations | history, horizon_start, horizon_end)
+        (declarations - history).action_refresh_preparation()
         return declarations
+
+    @api.model
+    def _calendar_history_domain(self, company):
+        terminal = ("status", "in", ["filed", "paid", "archived"])
+        if company.fiscalyear_lock_date:
+            return ["|", terminal, ("period_end", "<=", company.fiscalyear_lock_date)]
+        return [terminal]
 
     @api.model
     def _sync_all_profiled_companies(self):
@@ -523,6 +536,8 @@ class RebuildAccountDeclaration(models.Model):
             ("period_end", "=", period_end),
             ("instalment_number", "=", instalment_number),
         ], limit=1)
+        if declaration and declaration.filtered_domain(self._calendar_history_domain(company)):
+            return declaration
         suffix = f" - instalment {instalment_number}" if instalment_number else ""
         period_label = (
             f"{fields.Date.to_string(period_start)} to {fields.Date.to_string(period_end)}"
@@ -550,12 +565,7 @@ class RebuildAccountDeclaration(models.Model):
             # become preparable again when its obligation re-enters the schedule.
             # Keep any recorded accountant judgment intact, and never reopen a
             # period that a fiscal-year lock already covers.
-            lock_date = company.fiscalyear_lock_date
-            if (
-                declaration.status == "not_applicable"
-                and not (lock_date and period_end <= lock_date)
-                and not declaration._with_recorded_review()
-            ):
+            if declaration.status == "not_applicable" and not declaration._with_recorded_review():
                 vals["status"] = "to_prepare"
             declaration.write(vals)
         else:

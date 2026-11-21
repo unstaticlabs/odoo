@@ -963542,7 +963542,7 @@
         "rpc:rebuild.account.external.report.value.search",
         "rpc:rebuild.account.external.report.value.search_count"
       ],
-      "digest": "5da5b1cdc6784500c39101bc2a0856ae269de59f263528060f3edd7cd151049d",
+      "digest": "fed994b4f8356413280fd6e149bff7cc214715c97218785a7bfec76cb3c784c8",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.sync_for_company",
       "kind": "rpc",
@@ -963553,7 +963553,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "32e7fe5cc5b9f0b9f6aa7097be6b6c6fbb02c166af0b68e4fb2042598a37a709",
+      "runtime_digest": "7ca64b43e271a4a25a1689cda333a0c36c9802b1726a5d434f946f7c44fc5c2c",
       "sinks": [
         "orm_create",
         "orm_write"
@@ -1619142,7 +1619142,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 487,
+          "line": 500,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1619157,13 +1619157,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 487,
+          "line": 500,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "e03547dbe2df27a3f5a9cadcdc981f4bb306a2b9fd813ca56c8abecfc7e70d81",
+      "digest": "fdc37d6c29342f2eb679e75e0c01c1510b4d044d23841b7c90d77644cfccd36a",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1619172,13 +1619172,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 516,
+          "line": 529,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "140c472ed1c1720a86dc7de78b0f90e377dccb18b1a380e8f7e3da8adb591e9c",
+      "digest": "f5b7fd75fd4169a7b7f3a30d6ab8c404526d0be98cd4dcd24f1c0bb401182aa4",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration._upsert_instance:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1619187,13 +1619187,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 516,
+          "line": 529,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "ccc014c0b53de4aea9dd7c2c4c05daccccd9d1d4baa2729f4095e9596e614573",
+      "digest": "dadaa895b8a9b2ee26e3f7bf29876cdaa7cd08a41cf01ddc7fb60e78932f6e48",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1619211,7 +1619211,7 @@
       ]
     },
     {
-      "digest": "ebf54c812bb230078996e2dd5ec4a36ac18175d1e5767bf514ec374f1dd4fee1",
+      "digest": "9288599f6a6e7cb2c50673f853a709932481dd1cc73a456b9ae28bbacc8e986d",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1737818,7 +1737818,7 @@
       "manifest_sha256": "a03720408661e49cb7cc3b3d7c3878367ed1e50a3ebab4bba8d9e20ef6762ea3",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "21962645a6c06489ae14028b3519a4a06ca77c844417c46eaeff3a734de19021",
+      "source_sha256": "1415536aa3f3bf02f4166d499276064b7731217dc4b5692da6a29f379bd9c8ff",
       "version": "saas~19.3.1.13.45"
     },
     {

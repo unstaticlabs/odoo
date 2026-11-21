@@ -369,12 +369,42 @@ class TestDeclarationAndClosing(TransactionCase):
         ])
         self.assertEqual(len(fy2026), 2)
         fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
+        fy2026.write({"preparation_status": "not_required"})
         company.fiscalyear_lock_date = "2026-09-30"
+        protected = ["applicability", "status", "preparation_status", "last_refreshed_at"]
+        before = fy2026.read(protected)
 
         with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
             Declaration.sync_for_company(company)
-        fy2026.invalidate_recordset()
-        self.assertEqual(set(fy2026.mapped("status")), {"not_applicable"})
+            Declaration.sync_for_company(company)
+        self.assertEqual(fy2026.read(protected), before)
+
+    def test_calendar_sync_preserves_filed_and_paid_declarations(self):
+        company = self._company("Completed filing history")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        completed = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
+        ])
+        self.assertEqual(len(completed), 2)
+        completed.write({
+            "filing_status": "filed", "external_filing_reference": "TEST-RETURN",
+            "preparation_status": "reviewed",
+        })
+        completed[0].write({"status": "filed"})
+        completed[1].write({"status": "paid", "payment_status": "paid", "amount_paid": 100})
+        protected = [
+            "status", "filing_status", "external_filing_reference", "payment_status",
+            "amount_paid", "applicability", "preparation_status", "last_refreshed_at",
+        ]
+        before = completed.read(protected)
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+            Declaration.sync_for_company(company)
+        self.assertEqual(completed.read(protected), before)
 
     def test_unreviewed_not_applicable_row_returns_to_preparation(self):
         company = self._company("Manual N/A without review")
