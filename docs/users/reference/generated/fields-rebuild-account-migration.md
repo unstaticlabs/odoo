@@ -149,6 +149,7 @@ false
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
 | **Rebuild Can Generate Official Fec** (`rebuild_can_generate_official_fec`) | boolean |  |  |
+| **Closing Company** (`rebuild_closing_company_id`) | many2one → `res.company` |  |  |
 
 ## Product Variant
 
@@ -298,6 +299,9 @@ false
 | **Responsible Role** (`owner`) | selection | yes | Values: **Accounting Manager**, **Accountant Reviewer**, **Finance Operator / Agent**. |
 | **Record Count** (`record_count`) | integer |  |  |
 | **Result Kind** (`result_kind`) | selection |  | Values: **Accounting Result**, **Technical Failure**. |
+| **Finding** (`review_finding`) | text |  |  |
+| **Control** (`review_name`) | char |  |  |
+| **Result** (`review_result`) | char |  |  |
 | **Sequence** (`sequence`) | integer |  |  |
 | **Status** (`status`) | selection | yes | Values: **Passed**, **Information**, **Warning**, **Blocking**, **Technical Failure**, **Not Applicable**. |
 | **Summary** (`summary`) | text | yes |  |
@@ -349,6 +353,7 @@ false
 | --- | --- | --- | --- |
 | **Accountant Information** (`accountant_information`) | text |  |  |
 | **Actions Awaiting Valentin** (`actions_awaiting_valentin`) | text |  |  |
+| **Of Which Export Availability Checks** (`available_export_count`) | integer |  |  |
 | **Blocking Count** (`blocking_count`) | integer |  |  |
 | **Closed At** (`closed_at`) | datetime |  |  |
 | **Closed By** (`closed_by_id`) | many2one → `res.users` |  |  |
@@ -1044,8 +1049,8 @@ false
 | **Expected payments** (`expected_payment_amount`) | monetary |  |  |
 | **Expected receipts** (`expected_receipt_amount`) | monetary |  |  |
 | **External Report Value Count** (`external_report_value_count`) | integer |  |  |
-| **Items Requiring Attention** (`hygiene_attention_count`) | integer |  |  |
-| **Open Actionable Issues** (`hygiene_issue_count`) | integer |  |  |
+| **Operational Attention Items** (`hygiene_attention_count`) | integer |  | Company-wide reminders across banking, documents, expenses, declarations and closing. One record can trigger several reminders. |
+| **Open Hygiene Findings** (`hygiene_issue_count`) | integer |  |  |
 | **Hygiene Status** (`hygiene_status`) | selection |  | Values: **Ready**, **Attention Required**, **Blocked**. |
 | **Incomplete Document Count** (`incomplete_document_count`) | integer |  |  |
 | **Active Journals** (`journal_count`) | integer |  |  |
