@@ -4304,6 +4304,83 @@ class CohortContractTests(unittest.TestCase):
             ["g20260903-rollback", "g20260904-active"],
         )
 
+    def _previous_generation_inventory(self, environment, *, admitted, unfinished):
+        target = load_target(environment, TARGETS)
+        state_root = target.value["state_directory"]
+        active_generation = "g20260904-active"
+        admission = f"{state_root}/generations/{active_generation}/admission.json"
+
+        class InventoryRunner:
+            def run(self, command, *, check=True):
+                if command[0] == "cat":
+                    state = {
+                        "generation": active_generation,
+                        "network": "active-network",
+                        "previous": {
+                            "generation": "g20260903-rollback",
+                            "volumes": {"odoo_postgres": "previous-volume"},
+                            "network": "rollback-network",
+                        },
+                    }
+                    return subprocess.CompletedProcess(command, 0, json.dumps(state), "")
+                if command == ["test", "-f", admission]:
+                    return subprocess.CompletedProcess(command, 0 if admitted else 1, "", "")
+                if command[:3] == ["docker", "volume", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, "active-volume\nprevious-volume\n", "",
+                    )
+                if command[:3] == ["docker", "network", "ls"]:
+                    return subprocess.CompletedProcess(
+                        command, 0, "active-network\nrollback-network\n", "",
+                    )
+                raise AssertionError(command)
+
+        current = {
+            "generation": active_generation,
+            "volumes": {"odoo_postgres": {"name": "active-volume"}},
+        }
+        with mock.patch(
+            "operations.stack._cleanup_workspaces", return_value=[],
+        ) as workspaces, mock.patch(
+            "operations.stack._cleanup_captures",
+            return_value={"protected_captures": [], "delete_captures": []},
+        ), mock.patch(
+            "operations.stack._unfinished_release_attempts",
+            return_value={"intent-" + "b" * 48} if unfinished else set(),
+        ):
+            inventory = _cleanup_inventory(target, InventoryRunner(), current)
+        return inventory, workspaces.call_args.args[2]
+
+    def test_cleanup_deletes_staging_previous_generation_after_admission(self) -> None:
+        inventory, workspace_protection = self._previous_generation_inventory(
+            "staging", admitted=True, unfinished=False,
+        )
+        self.assertEqual(inventory["delete_volumes"], ["previous-volume"])
+        self.assertEqual(inventory["delete_networks"], ["rollback-network"])
+        self.assertEqual(inventory["protected_generations"], ["g20260904-active"])
+        self.assertEqual(workspace_protection, {"g20260904-active"})
+
+    def test_cleanup_keeps_staging_previous_generation_until_release_is_settled(self) -> None:
+        for admitted, unfinished in ((False, False), (True, True)):
+            with self.subTest(admitted=admitted, unfinished=unfinished):
+                inventory, workspace_protection = self._previous_generation_inventory(
+                    "staging", admitted=admitted, unfinished=unfinished,
+                )
+                self.assertEqual(inventory["delete_volumes"], [])
+                self.assertEqual(inventory["delete_networks"], [])
+                self.assertIn("g20260903-rollback", workspace_protection)
+
+    def test_cleanup_always_keeps_production_previous_generation(self) -> None:
+        inventory, workspace_protection = self._previous_generation_inventory(
+            "production", admitted=True, unfinished=False,
+        )
+        self.assertEqual(inventory["delete_volumes"], [])
+        self.assertEqual(inventory["delete_networks"], [])
+        self.assertEqual(
+            inventory["protected_generations"], ["g20260903-rollback", "g20260904-active"],
+        )
+        self.assertIn("g20260903-rollback", workspace_protection)
+
     def test_cleanup_preserves_generation_still_used_by_running_sidecar(self) -> None:
         from operations.stack import generation_volume_names
         target = load_target("staging", TARGETS)
@@ -4353,6 +4430,9 @@ class CohortContractTests(unittest.TestCase):
                 def run(self, command, **kwargs):
                     if command[0] == "cat":
                         value = {"generation": active, "previous": {"generation": previous}}
+                    elif command[:2] == ["test", "-f"] and command[2].endswith("/admission.json"):
+                        # Not admitted: staging still keeps its rollback generation.
+                        return subprocess.CompletedProcess(command, 1, "", "")
                     elif command[:2] == ["docker", "inspect"]:
                         value = {"com.docker.compose.project.config_files": prefix + generation + "/compose.generation.json"}
                     else:
@@ -4652,9 +4732,9 @@ class CohortContractTests(unittest.TestCase):
 
         result = _cleanup_captures(target, runner)
 
-        self.assertEqual(result["delete_captures"], [first])
+        self.assertEqual(result["delete_captures"], sorted([first, second]))
         self.assertEqual(
-            result["protected_captures"], sorted([second, third, unqualified, resumable]),
+            result["protected_captures"], sorted([third, unqualified, resumable]),
         )
 
     def _proof_state_root(self, target):
