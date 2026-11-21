@@ -255,7 +255,25 @@ class RebuildAccountAssuranceDecision(models.Model):
                 and decision.closing_period_id
             ),
         ).mapped("closing_period_id")
+        declarations = self.filtered(
+            lambda d: d.state == "recorded" and d.gate == "declaration_review"
+            and d.declaration_id.company_id == d.company_id
+        ).declaration_id
         self.write({"state": "superseded"})
+        latest = declarations._latest_declaration_reviews()
+        for declaration in declarations:
+            if declaration.filtered_domain(declaration._calendar_history_domain(declaration.company_id)):
+                continue
+            current = latest.get(declaration.id)
+            if current and current.conclusion == "not_applicable":
+                current._apply_declaration_decision()
+            elif declaration.review_status == "not_applicable":
+                declaration._resume_reviewed_filing()
+                if current:
+                    current._apply_declaration_decision()
+                declaration.sync_for_company(declaration.company_id)
+                if not declaration.company_id.rebuild_declaration_profile_active:
+                    declaration.action_refresh_preparation()
         for closing in closings:
             current = self.search([
                 ("closing_period_id", "=", closing.id),
@@ -301,6 +319,16 @@ class RebuildAccountAssuranceDecision(models.Model):
         })
 
     def _apply_declaration_decision(self):
+        declaration = self.declaration_id.sudo()
+        if declaration.filtered_domain(declaration._calendar_history_domain(declaration.company_id)):
+            return
+        if self.gate == "declaration_review" and self.conclusion == "not_applicable":
+            if self.company_id == declaration.company_id:
+                declaration._apply_reviewed_exclusion(self.decision_summary)
+            return
+        if declaration.review_status == "not_applicable":
+            declaration._resume_reviewed_filing()
+            declaration.action_refresh_preparation()
         review_status = {
             "accepted": "accepted",
             "accepted_with_difference": "accepted_with_difference",
@@ -323,7 +351,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                 "preparation_status": "missing_data",
                 "filing_status": "not_open",
             })
-        self.declaration_id.sudo().write(vals)
+        declaration.write(vals)
 
     def _apply_closing_decision(self):
         review_status = {

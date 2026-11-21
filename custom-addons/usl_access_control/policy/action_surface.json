@@ -942600,7 +942600,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 346,
+          "line": 374,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         },
         {
@@ -942652,7 +942652,7 @@
         "rpc:rebuild.account.assurance.decision.search",
         "rpc:rebuild.account.assurance.decision.write"
       ],
-      "digest": "b4f0e038a130814d0d3c93898ddec99d0330be73085e63ee3a4f3cd2110305ee",
+      "digest": "fbc1af584674c0e84898444976a6401f520427952b06fad43d1bc3dd34f392dc",
       "guards": [],
       "key": "rpc:rebuild.account.assurance.decision.action_supersede",
       "kind": "rpc",
@@ -942663,7 +942663,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "5aa616c5f9600e6ffff6309567e72d7ceed69e0fe2ebb40ede414ad640da6c05",
+      "runtime_digest": "316021f50c14c8f57201942252f7fd73ba2393cdea2733ae2c96cf3eed0a5106",
       "sinks": [
         "orm_write",
         "sudo"
@@ -956713,7 +956713,7 @@
       ],
       "sources": [
         {
-          "line": 550,
+          "line": 578,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956745,7 +956745,7 @@
       ],
       "sources": [
         {
-          "line": 495,
+          "line": 523,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956774,7 +956774,7 @@
       ],
       "sources": [
         {
-          "line": 573,
+          "line": 601,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956807,7 +956807,7 @@
       ],
       "sources": [
         {
-          "line": 513,
+          "line": 541,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956876,7 +956876,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 598,
+          "line": 626,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956909,7 +956909,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 602,
+          "line": 630,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956942,7 +956942,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 587,
+          "line": 615,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956975,7 +956975,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 526,
+          "line": 554,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -956994,7 +956994,7 @@
         "rpc:rebuild.account.assurance.decision.search",
         "rpc:rebuild.account.declaration.filtered"
       ],
-      "digest": "3d7d1cda4913293b8d9c0bc72aa8ce16e568a1b13705cad614fffb2df014bc25",
+      "digest": "3b2a259958ffe17ad474fd1bb7df53a195e24481c29c56ad84c35e628f033dc1",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.action_refresh_preparation",
       "kind": "rpc",
@@ -957005,13 +957005,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "bb5c1433ab451092b8441206f68d591d477e5f5d8e300cb69c2114e3c9a56828",
+      "runtime_digest": "57ca25f4b89c9cc2ae88b2abc9958eca68bbaa8abadc90a11508bf0e1e1c5c7b",
       "sinks": [
         "orm_write"
       ],
       "sources": [
         {
-          "line": 228,
+          "line": 254,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -957047,7 +957047,7 @@
       ],
       "sources": [
         {
-          "line": 508,
+          "line": 536,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -957348,7 +957348,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 663,
+          "line": 691,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         },
         {
@@ -963535,6 +963535,7 @@
       "delegates": [
         "rpc:account.move.line.with_company",
         "rpc:account.move.with_company",
+        "rpc:rebuild.account.assurance.decision.search",
         "rpc:rebuild.account.declaration.browse",
         "rpc:rebuild.account.declaration.create",
         "rpc:rebuild.account.declaration.rule.with_context",
@@ -963542,7 +963543,7 @@
         "rpc:rebuild.account.external.report.value.search",
         "rpc:rebuild.account.external.report.value.search_count"
       ],
-      "digest": "0951dbc894753b2862818f74f8a22673ff7257b154cdcea24f21792b5033f95e",
+      "digest": "899cff381021c04720a6cb45c6beffba63fede704e20ac5dddcca90e83978a66",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.sync_for_company",
       "kind": "rpc",
@@ -963553,7 +963554,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "19aa87fa86aef1d14ec43464ba56f73c5bc32c2b22ffe4c33caa5549e50dcc4a",
+      "runtime_digest": "c38f6eb0914c465ff133d91637e60b297018166251f767fa359560dd76bd44f9",
       "sinks": [
         "orm_create",
         "orm_write"
@@ -1617807,7 +1617808,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 328,
+          "line": 356,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
@@ -1617822,7 +1617823,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 328,
+          "line": 356,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
@@ -1617837,13 +1617838,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 328,
+          "line": 356,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
     },
     {
-      "digest": "44eef65dc52da86d8c4b519eb69dbeb31d2d84041f8a98c8e185854af7ad2c66",
+      "digest": "f4c80b3c53790ca1a62960bc98521a1bccf65eee6a9346f459c65c6e3b542d94",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/assurance_decision.py:rebuild.account.assurance.decision._apply_declaration_decision:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1617852,13 +1617853,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 303,
+          "line": 321,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
     },
     {
-      "digest": "88756444449c875e643b1dbcbcfac571a40058efd2b561e44a00974ee4a26c06",
+      "digest": "0b04888490dd5b79a036ea31ab06292ac5c5cecced7f93d88a8d6135a4a30151",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/assurance_decision.py:rebuild.account.assurance.decision._apply_declaration_decision:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1617867,7 +1617868,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 303,
+          "line": 321,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
@@ -1617882,7 +1617883,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 285,
+          "line": 303,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
@@ -1617897,7 +1617898,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 285,
+          "line": 303,
           "path": "custom-addons/rebuild_account_migration/models/assurance_decision.py"
         }
       ]
@@ -1617939,7 +1617940,7 @@
       ]
     },
     {
-      "digest": "2291627fa36b0d985bb40814f8129953d69228dc0631dbe38cf0a0dd40c8995c",
+      "digest": "49751a56d11c339e491a8e4000d4ed7680a1dac94f7d0b15e3ee1cb10d4c0c3f",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/assurance_decision.py:rebuild.account.assurance.decision.action_supersede:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1617957,7 +1617958,7 @@
       ]
     },
     {
-      "digest": "ed4d63548f1a3a51895ce73d19828498f0219558fa9e578f5f6f5d71c4a36621",
+      "digest": "bf86bf74a38deff18382a380e505d0e5bdc60c63caca03366e0f53f22064536c",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/assurance_decision.py:rebuild.account.assurance.decision.action_supersede:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1617975,7 +1617976,7 @@
       ]
     },
     {
-      "digest": "3c2b2c32db653063c2f575aac07bc003d38d7f53878f56198b270ad3b9a9d583",
+      "digest": "cf1fda5ea5f3bf9dd359008b6a4a79e39ce44227d12a4905af8604fc26ba32ad",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/assurance_decision.py:rebuild.account.assurance.decision.action_supersede:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1618851,6 +1618852,36 @@
       ]
     },
     {
+      "digest": "d316699fa55dd809ea8dfdaabddfa9f981bfa4e721c99c6456c39bfe248b0e46",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._apply_reviewed_exclusion:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 233,
+          "path": "custom-addons/rebuild_account_migration/models/declaration.py"
+        }
+      ]
+    },
+    {
+      "digest": "630ebb319450d0da6dba2dff0a4ca4b6c4f6513b984915b2142c2167f9ea0aa4",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._resume_reviewed_filing:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 246,
+          "path": "custom-addons/rebuild_account_migration/models/declaration.py"
+        }
+      ]
+    },
+    {
       "digest": "109f1ba5b974fe5fceb8cdc04c12c046d965d664d1ce65ed3416c487db969153",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration._sync_field_lines:orm_write:1",
       "kind": "sink",
@@ -1618860,7 +1618891,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 271,
+          "line": 299,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618875,7 +1618906,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 323,
+          "line": 351,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618890,7 +1618921,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 323,
+          "line": 351,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618905,7 +1618936,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 386,
+          "line": 414,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618923,7 +1618954,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 550,
+          "line": 578,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618941,7 +1618972,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 495,
+          "line": 523,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618959,7 +1618990,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 573,
+          "line": 601,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1618977,13 +1619008,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 513,
+          "line": 541,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
     },
     {
-      "digest": "4e9e5ddf4660dbe610e880f7c5efe3739abfa55a0e395b64e14df8ddaaffc683",
+      "digest": "defc8922b7549d125e1a85f4beb38020076c4b8e0e360232c3d3e63ba9e2f9e7",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1618995,13 +1619026,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 228,
+          "line": 254,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
     },
     {
-      "digest": "76ff9ca62df7ca7bfc19fc254597c5ed8b4920d3492dbb6055d4ba0070e6db1f",
+      "digest": "d0077a3e301433d37e310f6e4091fe06e3f5a479f38a7984ae9b0e9854c125a7",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_refresh_preparation:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1619013,7 +1619044,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 228,
+          "line": 254,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1619031,7 +1619062,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 508,
+          "line": 536,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1619046,7 +1619077,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 654,
+          "line": 682,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1619061,7 +1619092,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 654,
+          "line": 682,
           "path": "custom-addons/rebuild_account_migration/models/declaration.py"
         }
       ]
@@ -1619142,7 +1619173,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 505,
+          "line": 539,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1619157,7 +1619188,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 505,
+          "line": 539,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1619172,7 +1619203,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 534,
+          "line": 568,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1619187,13 +1619218,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 534,
+          "line": 568,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
     },
     {
-      "digest": "cc7d98d14cadda63d18df0127d12af1592ffcb89129174c21274a95f495006a7",
+      "digest": "cddb69791dd64226cca4a672c6b26d3141359893d0a929d9816434d18cdb9c9e",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1619211,8 +1619242,26 @@
       ]
     },
     {
-      "digest": "dd0f1e1244827e683863a1e23ab4ae96c48c52749d3180d2c21f60f8214b21fc",
+      "digest": "ce49355c8aaa4953bba369f277cd56f2ad9301ab7ab26727621b1863e15beb89",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [
+        "rpc:rebuild.account.declaration.sync_for_company"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 17,
+          "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
+        }
+      ]
+    },
+    {
+      "digest": "4b5a797000fd7bf5eabcb6193f24f0d07bc8891f74254becd0ab57878c4b41f5",
+      "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_sync.py:rebuild.account.declaration.sync_for_company:orm_write:3",
       "kind": "sink",
       "modules": [
         "rebuild_account_migration"
@@ -1737818,7 +1737867,7 @@
       "manifest_sha256": "a03720408661e49cb7cc3b3d7c3878367ed1e50a3ebab4bba8d9e20ef6762ea3",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "ee12c18edb480cfcc06ff55575c8dcd7cb1bbd441a96f66b91092e8a83a13105",
+      "source_sha256": "808e54c832384f56ec2d0b4dc40c28a07cf8eb4835b03f27e066630ada4db00d",
       "version": "saas~19.3.1.13.45"
     },
     {

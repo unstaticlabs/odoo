@@ -11,10 +11,21 @@ def migrate(cr, version):
     unlocked period back to preparation. This re-syncs every profiled company
     once, so the rows already retired are revived on upgrade without a manual
     step. The calendar retains existing locked or completed declarations and
-    explicit exclusions backed by a recorded review. For other reviewed open
-    filings, current rule facts and automatic checks can refresh while the
+    exclusions backed by the latest recorded non-applicability decision. This
+    also repairs open filings previously marked ready by that decision. For
+    other reviewed open filings, rule facts and automatic checks can refresh while the
     recorded decision retains its evidence and conclusion.
     """
     del version
     env = api.Environment(cr, SUPERUSER_ID, {})
-    env["rebuild.account.declaration"]._sync_all_profiled_companies()
+    declarations = env["rebuild.account.declaration"]
+    declarations._sync_all_profiled_companies()
+    # A company can disable its calendar after recording a review. Repair its
+    # existing filing without generating a new schedule.
+    inactive_profiles = env["rebuild.account.assurance.decision"].search([
+        ("gate", "=", "declaration_review"), ("state", "in", ["recorded", "superseded"]),
+        ("conclusion", "=", "not_applicable"),
+        ("company_id.rebuild_declaration_profile_active", "=", False),
+    ]).company_id
+    for company in inactive_profiles:
+        declarations._sync_recorded_filing_exclusions(company)

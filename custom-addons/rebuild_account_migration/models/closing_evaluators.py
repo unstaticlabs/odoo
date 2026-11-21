@@ -166,11 +166,13 @@ class RebuildAccountClosingPeriod(models.Model):
     def _control_tax_declarations(self):
         declarations = self.env["rebuild.account.declaration"].search([
             ("company_id", "=", self.company_id.id),
+            ("applicability", "!=", "not_applicable"),
             ("deadline_date", "<=", self.date_to),
             ("status", "not in", ["filed", "paid", "archived", "not_applicable"]),
         ])
         period_declarations = self.env["rebuild.account.declaration"].search([
             ("company_id", "=", self.company_id.id),
+            ("applicability", "!=", "not_applicable"),
             ("fiscalyear_start", "=", self.fiscalyear_start),
             ("fiscalyear_end", "=", self.fiscalyear_end),
             ("validation_status", "=", "blocked"),

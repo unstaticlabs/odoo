@@ -16,6 +16,7 @@ class RebuildAccountDeclaration(models.Model):
     @api.model
     def sync_for_company(self, company):
         company.ensure_one()
+        self._sync_recorded_filing_exclusions(company)
         if not company.rebuild_declaration_profile_active:
             return self.browse()
         today = fields.Date.context_today(self)
@@ -94,6 +95,39 @@ class RebuildAccountDeclaration(models.Model):
         self._retire_superseded_instances(company, declarations | history, horizon_start, horizon_end)
         (declarations - history).action_refresh_preparation()
         return declarations
+
+    @api.model
+    def _sync_recorded_filing_exclusions(self, company):
+        # The former decision workflow recorded N/A but marked the filing ready.
+        # Apply only the latest effective decision, including during upgrade.
+        candidates = self.env["rebuild.account.assurance.decision"].search([
+            ("company_id", "=", company.id), ("gate", "=", "declaration_review"),
+            ("state", "in", ["recorded", "superseded"]), ("conclusion", "=", "not_applicable"),
+            ("declaration_id.company_id", "=", company.id),
+        ]).declaration_id
+        candidates -= candidates.filtered_domain(self._calendar_history_domain(company))
+        current = candidates._latest_declaration_reviews()
+        for decision in current.values():
+            if decision.conclusion == "not_applicable":
+                declaration = decision.declaration_id
+                reason = (
+                    declaration.applicability_reason
+                    if declaration.status == "not_applicable" and declaration.applicability == "not_applicable"
+                    else decision.decision_summary
+                )
+                declaration._apply_reviewed_exclusion(reason)
+
+        # Older versions left a superseded N/A looking approved for filing.
+        # Only reopen that exact legacy state when no recorded judgment remains.
+        stale = candidates.filtered(lambda row: (
+            row.id not in current
+            and row.review_status == "accepted_with_difference"
+            and row.status in {"ready_to_file", "not_applicable"}
+        ))
+        for decision in stale._latest_declaration_reviews(state="superseded").values():
+            if decision.conclusion == "not_applicable":
+                decision.declaration_id._resume_reviewed_filing()
+                decision.declaration_id.action_refresh_preparation()
 
     @api.model
     def _calendar_history_domain(self, company):

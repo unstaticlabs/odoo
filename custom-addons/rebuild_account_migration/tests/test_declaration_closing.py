@@ -379,7 +379,7 @@ class TestDeclarationAndClosing(TransactionCase):
             Declaration.sync_for_company(company)
         self.assertEqual(fy2026.read(protected), before)
 
-    def test_calendar_sync_preserves_a_reviewed_exclusion_until_superseded(self):
+    def test_recorded_exclusion_removes_filing_from_calendar_and_close_until_superseded(self):
         company = self._company("Reviewed exclusion for the open year")
         Declaration = self.env["rebuild.account.declaration"]
         with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
@@ -389,31 +389,103 @@ class TestDeclarationAndClosing(TransactionCase):
                 ("fiscalyear_end", "=", date(2026, 9, 30)),
                 ("rule_id.code", "=", "FR_2065"),
             ])
-            decision = self.env["rebuild.account.assurance.decision"].create({
+            closing = self.env["rebuild.account.closing.period"].new({
+                "company_id": company.id, "period_type": "annual",
+                "date_from": "2025-10-01", "date_to": "2026-09-30",
+                "fiscalyear_start": "2025-10-01", "fiscalyear_end": "2026-09-30",
+            })
+            before = closing._control_tax_declarations()["record_count"]
+            self.assertEqual(row.validation_status, "blocked")
+            Decision = self.env["rebuild.account.assurance.decision"]
+            decision = Decision.create({
                 "gate": "declaration_review", "conclusion": "not_applicable",
                 "company_id": company.id, "declaration_id": row.id,
                 "decision_summary": "Reviewed synthetic filing exclusion.",
                 "evidence_summary": "Synthetic evidence for this filing.",
             })
             decision.action_record()
-            row.write({
-                "status": "not_applicable", "applicability": "not_applicable",
-                "applicability_reason": "Reviewed synthetic exception.",
-                "preparation_status": "not_required", "filing_status": "not_open",
-            })
-            protected = [
-                "status", "applicability", "applicability_reason", "preparation_status",
-                "filing_status", "validation_status", "last_refreshed_at",
-            ]
-            before = row.read(protected)
             for _ in range(2):
-                Declaration.sync_for_company(company)
-                self.assertEqual(row.read(protected), before)
+                self.assertEqual(row.status, "not_applicable")
+                self.assertEqual(row.applicability, "not_applicable")
+                self.assertEqual(row.applicability_reason, decision.decision_summary)
+                self.assertEqual(row.preparation_status, "not_required")
+                self.assertEqual(row.review_status, "not_applicable")
+                self.assertEqual(row.filing_status, "not_open")
+                self.assertEqual(closing._control_tax_declarations()["record_count"], before - 1)
                 self.assertEqual((decision.state, decision.conclusion), ("recorded", "not_applicable"))
-            decision.action_supersede()
-            Declaration.sync_for_company(company)
-            self.assertEqual(row.applicability, "applicable")
+                row.action_refresh_preparation()
+                Declaration.sync_for_company(company)
+            replacement = decision.copy({
+                "state": "draft", "conclusion": "requires_change",
+                "decision_summary": "Synthetic new finding requires preparation.",
+            })
+            replacement.action_record()
             self.assertEqual(row.status, "data_missing")
+            self.assertEqual(row.applicability, "applicable")
+            Declaration.sync_for_company(company)
+            self.assertEqual(closing._control_tax_declarations()["record_count"], before)
+            replacement.action_supersede()
+            self.assertEqual(row.status, "not_applicable")
+            decision.action_supersede()
+            self.assertEqual(row.status, "data_missing")
+            self.assertEqual(row.applicability, "applicable")
+            self.assertEqual(closing._control_tax_declarations()["record_count"], before)
+
+    def test_repair_distinguishes_current_and_superseded_legacy_filing_decisions(self):
+        for revoked in (False, True):
+            with self.subTest(revoked=revoked):
+                company = self._company("Legacy revoked filing" if revoked else "Legacy current filing", profile=False)
+                row = self._declaration(company)
+                decision = self.env["rebuild.account.assurance.decision"].create({
+                    "gate": "declaration_review", "conclusion": "not_applicable",
+                    "company_id": company.id, "declaration_id": row.id,
+                    "decision_summary": "Synthetic reviewed exception.", "evidence_summary": "Synthetic proof.",
+                })
+                decision.action_record()
+                if revoked:
+                    decision.action_supersede()
+                # Version .44 stored the same approval fields for a current and
+                # a superseded N/A decision, even if the row had been retired.
+                row.write({
+                    "status": "ready_to_file", "preparation_status": "reviewed",
+                    "review_status": "accepted_with_difference", "filing_status": "ready",
+                    "applicability": "not_applicable", "applicability_reason": "Former automatic retirement.",
+                })
+                for _ in range(2):
+                    row.sync_for_company(company)
+                    self.assertEqual(row.applicability, "applicable" if revoked else "not_applicable")
+                    self.assertEqual(row.filing_status, "not_open")
+                    if revoked:
+                        self.assertEqual(row.review_status, "not_started")
+                        self.assertNotEqual(row.status, "ready_to_file")
+                    else:
+                        self.assertEqual(row.status, "not_applicable")
+                        self.assertEqual(row.applicability_reason, decision.decision_summary)
+                        self.assertEqual(row.preparation_status, "not_required")
+
+    def test_non_applicability_decision_preserves_closed_or_completed_filing_history(self):
+        for protected_status in ("locked", "filed", "paid", "archived"):
+            with self.subTest(protected_status=protected_status):
+                company = self._company("Protected review " + protected_status)
+                row = self._declaration(company)
+                if protected_status == "locked":
+                    company.fiscalyear_lock_date = row.period_end
+                else:
+                    row.write({"status": protected_status, "external_filing_reference": "UNIT-HISTORY"})
+                protected = ["status", "applicability", "review_status", "preparation_status",
+                             "filing_status", "external_filing_reference", "last_refreshed_at"]
+                before = row.read(protected)
+                decision = self.env["rebuild.account.assurance.decision"].create({
+                    "gate": "declaration_review", "conclusion": "not_applicable",
+                    "company_id": company.id, "declaration_id": row.id,
+                    "decision_summary": "Note on a finished filing.", "evidence_summary": "Synthetic proof.",
+                })
+                decision.action_record()
+                self.assertEqual(row.read(protected), before)
+                row.sync_for_company(company)
+                self.assertEqual(row.read(protected), before)
+                decision.action_supersede()
+                self.assertEqual(row.read(protected), before)
 
     def test_calendar_sync_preserves_filed_and_paid_declarations(self):
         company = self._company("Completed filing history")
