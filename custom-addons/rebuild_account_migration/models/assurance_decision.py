@@ -274,6 +274,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                 declaration.sync_for_company(declaration.company_id)
                 if not declaration.company_id.rebuild_declaration_profile_active:
                     declaration.action_refresh_preparation()
+        declarations._refresh_existing_filing_controls()
         for closing in closings:
             current = self.search([
                 ("closing_period_id", "=", closing.id),
@@ -296,7 +297,9 @@ class RebuildAccountAssuranceDecision(models.Model):
             if decision.external_value_id:
                 decision._apply_external_value_decision(reviewer_name, reviewed_at)
             if decision.declaration_id:
-                decision._apply_declaration_decision()
+                filing = decision._apply_declaration_decision()
+                if filing and decision.gate == "declaration_review" and filing.company_id == decision.company_id:
+                    filing._refresh_existing_filing_controls()
             if decision.closing_period_id:
                 decision._apply_closing_decision()
 
@@ -325,6 +328,7 @@ class RebuildAccountAssuranceDecision(models.Model):
         if self.gate == "declaration_review" and self.conclusion == "not_applicable":
             if self.company_id == declaration.company_id:
                 declaration._apply_reviewed_exclusion(self.decision_summary)
+                return declaration
             return
         if declaration.review_status == "not_applicable":
             declaration._resume_reviewed_filing()
@@ -352,6 +356,7 @@ class RebuildAccountAssuranceDecision(models.Model):
                 "filing_status": "not_open",
             })
         declaration.write(vals)
+        return declaration
 
     def _apply_closing_decision(self):
         review_status = {

@@ -397,12 +397,16 @@ class TestDeclarationAndClosing(TransactionCase):
             })
             closing.action_refresh_controls()
             control = closing.control_line_ids.filtered(lambda line: line.code == "tax_declarations")
+            documents = closing.control_line_ids.filtered(lambda line: line.code == "document_completeness")
+            documents.summary = "Previous independently qualified document review."
+            full_evaluation = closing.last_refreshed_at
 
             def filings_opened_from_control():
-                closing.action_refresh_controls()
                 action = control.action_open_records()
                 filings = Declaration.search(action["domain"])
                 self.assertEqual(len(filings), control.record_count)
+                self.assertEqual(closing.last_refreshed_at, full_evaluation)
+                self.assertEqual(documents.summary, "Previous independently qualified document review.")
                 return filings
 
             pending = filings_opened_from_control()

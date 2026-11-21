@@ -438,10 +438,11 @@ class RebuildAccountClosingPeriod(models.Model):
             closing._refresh_controls()
         return True
 
-    def _refresh_controls(self):
+    def _refresh_controls(self, *, filing_control=None):
         self.ensure_one()
         Definition = self.env["rebuild.account.closing.control.definition"]
-        definitions = Definition._ensure_for_company(self.company_id).filtered(
+        definitions = filing_control.definition_id if filing_control else Definition._ensure_for_company(self.company_id)
+        definitions = definitions.filtered(
             lambda definition: definition.enabled
             and definition.applies_to_closing
             and definition._is_effective(self.date_to)
@@ -489,7 +490,12 @@ class RebuildAccountClosingPeriod(models.Model):
         for values in controls:
             seen.add(values["code"])
             Control._upsert(self, values["code"], values)
-        self.control_line_ids.filtered(lambda line: line.code not in seen).unlink()
+        if filing_control:
+            # Recalculate the overall summary from saved results. Other controls
+            # retain their evidence and the time of the last full evaluation.
+            controls = self.control_line_ids.read(["status", "next_action", "owner", "summary", "accountant_visible"])
+        else:
+            self.control_line_ids.filtered(lambda line: line.code not in seen).unlink()
         blocking = [control for control in controls if control["status"] == "block"]
         warnings = [control for control in controls if control["status"] == "warning"]
         technical_failures = [
@@ -524,8 +530,9 @@ class RebuildAccountClosingPeriod(models.Model):
             ),
             "actions_awaiting_valentin": "\n".join(actions),
             "accountant_information": "\n".join(accountant),
-            "last_refreshed_at": fields.Datetime.now(),
         }
+        if not filing_control:
+            vals["last_refreshed_at"] = fields.Datetime.now()
         if self.state in {"open", "preparing", "blocked", "internal_review"}:
             vals["state"] = (
                 "blocked" if blocking or technical_failures else "internal_review"

@@ -129,6 +129,30 @@ class RebuildAccountDeclaration(models.Model):
                 decision.declaration_id._resume_reviewed_filing()
                 decision.declaration_id.action_refresh_preparation()
 
+    def _refresh_existing_filing_controls(self):
+        """Update only open closing workspaces whose tax result can include these filings."""
+        Control = self.env["rebuild.account.closing.control"]
+        for company, filings in self.grouped("company_id").items():
+            dates = [value for value in filings.mapped("deadline_date") if value]
+            earliest_due = min(dates, default=None)
+            fiscal_years = {(row.fiscalyear_start, row.fiscalyear_end) for row in filings}
+            domain = [
+                ("company_id", "=", company.id), ("code", "=", "tax_declarations"),
+                ("definition_id.evaluator_key", "=", "tax_declarations"),
+                ("closing_period_id.state", "not in", ["closed", "archived"]),
+            ]
+            if company.fiscalyear_lock_date:
+                domain.append(("closing_period_id.date_to", ">", company.fiscalyear_lock_date))
+            for control in Control.search(domain):
+                closing = control.closing_period_id
+                due_by_close = earliest_due and earliest_due <= closing.date_to
+                annual_scope = (
+                    closing.period_type == "annual"
+                    and (closing.fiscalyear_start, closing.fiscalyear_end) in fiscal_years
+                )
+                if due_by_close or annual_scope:
+                    closing._refresh_controls(filing_control=control)
+
     @api.model
     def _calendar_history_domain(self, company):
         terminal = ("status", "in", ["filed", "paid", "archived"])

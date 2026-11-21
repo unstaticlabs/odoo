@@ -19,13 +19,13 @@ def migrate(cr, version):
     del version
     env = api.Environment(cr, SUPERUSER_ID, {})
     declarations = env["rebuild.account.declaration"]
-    declarations._sync_all_profiled_companies()
+    repaired = declarations._sync_all_profiled_companies()
     # A company can disable its calendar after recording a review. Repair its
     # existing filing without generating a new schedule.
-    inactive_profiles = env["rebuild.account.assurance.decision"].search([
+    reviewed_filings = env["rebuild.account.assurance.decision"].search([
         ("gate", "=", "declaration_review"), ("state", "in", ["recorded", "superseded"]),
         ("conclusion", "=", "not_applicable"),
-        ("company_id.rebuild_declaration_profile_active", "=", False),
-    ]).company_id
-    for company in inactive_profiles:
+    ]).declaration_id
+    for company in reviewed_filings.company_id.filtered(lambda co: not co.rebuild_declaration_profile_active):
         declarations._sync_recorded_filing_exclusions(company)
+    (repaired | reviewed_filings)._refresh_existing_filing_controls()
