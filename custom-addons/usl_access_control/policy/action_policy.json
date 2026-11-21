@@ -4101,7 +4101,7 @@
       },
       "rationale": "Exact upstream review: docs/operations/chore-stack-20260905.md; per-action rationale records the inspected consequence and authority boundary.",
       "reviewed_digests": {
-        "rpc:project.task.unlink": "3940d4b65d70248146827d9f6d1b452c45dcef931feca7a269e3956eaa28ae72"
+        "rpc:project.task.unlink": "1711ab36cbc4ace635178b542fb84ee959cab5d54a588de9e2cc61ec36033d73"
       }
     },
     {
@@ -111463,8 +111463,8 @@
         "rpc:project.task.message_unsubscribe": "64443b9d89a0f17b6ea18205d3cceed7362b5b47db841519c5170854aa033f97",
         "rpc:project.task.type.create": "093df0b08082bbfdeee559cf4352eed4af24e679164231698a6a66ddb4428be0",
         "rpc:project.task.type.write": "137ccc73d995523d3afe442b93a5ced0e0812655b1d416d577dfffb8951c2c21",
-        "rpc:project.task.write": "24d4ef0f91e528cbdc4633970733abe16edb23b76a2901ecd9e63e0b22ecd116",
-        "rpc:res.config.settings.set_values": "78b2dcd209108997b15221bea0d8333717bbfa6c15ef7b50e13b6ddc1d787a8f"
+        "rpc:project.task.write": "7cee62cb3c82cbfd556ef51e98dc2c3b152a15a784171972a7610c7a60f609e1",
+        "rpc:res.config.settings.set_values": "1024742b02f615ac18e038095f54af24c4b458a3ffdc8b7307294e1a257623f7"
       }
     },
     {

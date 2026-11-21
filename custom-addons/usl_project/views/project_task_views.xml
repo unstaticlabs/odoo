@@ -81,7 +81,7 @@
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
             <field name="tag_ids" position="after">
-                <field name="github_url" widget="url" placeholder="GitHub issue or pull request URL"/>
+                <field name="github_url" widget="url" placeholder="Pull request, issue, document or deploy run URL"/>
             </field>
             <field name="task_properties" position="attributes">
                 <attribute name="widget">usl_task_properties</attribute>
@@ -94,7 +94,7 @@
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
             <xpath expr="//t[@t-name='card']//field[@name='task_properties']" position="before">
-                <field name="github_url" widget="url" text="GitHub" t-if="record.github_url.raw_value" class="small"/>
+                <field name="github_url" widget="url" t-if="record.github_url.raw_value" class="small text-truncate d-block"/>
             </xpath>
             <xpath expr="//t[@t-name='card']//field[@name='task_properties']" position="attributes">
                 <attribute name="widget">usl_task_properties</attribute>
