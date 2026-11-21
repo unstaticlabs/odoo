@@ -994452,7 +994452,7 @@
       ],
       "sources": [
         {
-          "line": 444,
+          "line": 451,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994516,7 +994516,7 @@
       ],
       "sources": [
         {
-          "line": 459,
+          "line": 466,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994553,7 +994553,7 @@
       ],
       "sources": [
         {
-          "line": 449,
+          "line": 456,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994593,7 +994593,7 @@
       ],
       "sources": [
         {
-          "line": 538,
+          "line": 545,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994629,7 +994629,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 812,
+          "line": 819,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994669,7 +994669,7 @@
       ],
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -994849,7 +994849,7 @@
       ],
       "sources": [
         {
-          "line": 388,
+          "line": 395,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -996528,7 +996528,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 427,
+          "line": 434,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -996598,7 +996598,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1753,
+          "line": 1760,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -996631,7 +996631,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1762,
+          "line": 1769,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -1621438,7 +1621438,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 732,
+          "line": 739,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621453,7 +1621453,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 732,
+          "line": 739,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621468,7 +1621468,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 690,
+          "line": 697,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621483,7 +1621483,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 618,
+          "line": 625,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621498,7 +1621498,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 618,
+          "line": 625,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621513,7 +1621513,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1534,
+          "line": 1541,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621528,7 +1621528,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1092,
+          "line": 1099,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621543,7 +1621543,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1092,
+          "line": 1099,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621558,7 +1621558,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1050,
+          "line": 1057,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621576,7 +1621576,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 459,
+          "line": 466,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621594,7 +1621594,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 449,
+          "line": 456,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621612,7 +1621612,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 538,
+          "line": 545,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621630,7 +1621630,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 538,
+          "line": 545,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621648,7 +1621648,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 538,
+          "line": 545,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621666,7 +1621666,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621684,7 +1621684,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621702,7 +1621702,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621720,7 +1621720,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621738,7 +1621738,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 464,
+          "line": 471,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621756,7 +1621756,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 388,
+          "line": 395,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1621774,7 +1621774,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 427,
+          "line": 434,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1737847,7 +1737847,7 @@
       "manifest_sha256": "b07488aed2fe7a120ed1f3f133eeaafc3cfff6a4efa92198c7953191f02f67b0",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "c2047037a8b800be8f084d8601e1db256d02d8d88c83fc357d2ebaed5decf851",
+      "source_sha256": "019d69607b5ff78e827f1443462e720742101ecb11e097f39f95be7393458d71",
       "version": "saas~19.3.1.13.47"
     },
     {

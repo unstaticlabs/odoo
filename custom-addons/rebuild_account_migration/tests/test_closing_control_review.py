@@ -38,6 +38,25 @@ class TestClosingControlReview(AccountTestInvoicingCommon):
                     self.assertEqual(wizard.closing_period_id, self.period)
                     self.assertEqual(wizard.company_ids._origin, self.company)
 
+    def test_report_review_names_the_unsaved_form_in_its_language(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        action = self.result("reports").action_open_records()
+        Wizard = self.env[action["res_model"]].with_context(action["context"], lang="fr_FR")
+        report = Wizard.new(Wizard.default_get(list(Wizard._fields)))
+        self.assertFalse(report._origin)
+        self.assertEqual(report.display_name, "Balance générale")
+
+        # The installed source labels are French in both languages. Give the
+        # second selection a distinct translation to exercise language caching.
+        option = self.env.ref(
+            "rebuild_account_migration.selection__rebuild_account_report_export_wizard__report_type__general_ledger"
+        )
+        option.update_field_translations("name", {"fr_FR": "Grand livre de démonstration"})
+        report.report_type = "general_ledger"
+        self.assertEqual(report.display_name, "Grand livre de démonstration")
+        self.assertEqual(report.with_context(lang="en_US").display_name, "Grand livre")
+        self.assertEqual(report.display_name, "Grand livre de démonstration")
+
     def test_review_lists_only_drafts_and_posted_documents_missing_the_primary_file(self):
         def invoice():
             return self.init_invoice("out_invoice", partner=self.partner_a, invoice_date=self.period.date_to,
