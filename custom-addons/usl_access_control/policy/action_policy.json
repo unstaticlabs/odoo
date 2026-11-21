@@ -42311,6 +42311,7 @@
         "rpc:project.task.stage.personal.view_header_get",
         "rpc:project.task.stage.personal.web_name_search",
         "rpc:project.task.stage.personal.web_read",
+        "rpc:project.task.stage.personal.web_search_read",
         "rpc:project.task.type.action_archive",
         "rpc:project.task.type.check_field_access",
         "rpc:project.task.type.copy_translations",
@@ -42602,6 +42603,9 @@
         "rpc:project.task.search_count": {
           "evidence_id": "live-content-search-20261014",
           "rationale": "Reviewed 2026-10-15 in docs/operations/content-search-action-risk-review.md: native Task count retains its complete domain, ACLs and exact count; content-only execution temporarily disables PostgreSQL JIT with a transaction-local planner setting and restores healthy prior state. No business mutation, elevation, global configuration or external effect. Native SQL, caller rollback, readonly and ORM-flush regressions qualify this boundary."
+        },
+        "rpc:project.task.stage.personal.web_search_read": {
+          "rationale": "The inherited web reader searches and reads personal stage rows under the native caller rules, then counts the same domain when requested. The model adds no write or external effect."
         }
       },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
@@ -43081,6 +43085,7 @@
         "rpc:project.task.stage.personal.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:project.task.stage.personal.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:project.task.stage.personal.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:project.task.stage.personal.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.task.type.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:project.task.type.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:project.task.type.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
@@ -110015,7 +110020,6 @@
         "rpc:project.task.stage.personal.web_resequence",
         "rpc:project.task.stage.personal.web_save",
         "rpc:project.task.stage.personal.web_save_multi",
-        "rpc:project.task.stage.personal.web_search_read",
         "rpc:project.task.type.action_unarchive",
         "rpc:project.task.type.copy",
         "rpc:project.task.type.copy_data",
@@ -110688,9 +110692,6 @@
         "rpc:project.task.stage.personal.web_save_multi": {
           "reversal_action": "rpc:project.task.stage.personal.write"
         },
-        "rpc:project.task.stage.personal.web_search_read": {
-          "reversal_action": "rpc:project.task.stage.personal.write"
-        },
         "rpc:project.task.type.action_unarchive": {
           "reversal_action": "rpc:project.task.type.action_archive"
         },
@@ -111209,7 +111210,6 @@
         "rpc:project.task.stage.personal.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:project.task.stage.personal.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:project.task.stage.personal.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:project.task.stage.personal.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.task.type.action_unarchive": "724b998dec46d3b3df99bff6702a46ea2e4469c4b2ce3299ec3b0e7a85bf6505",
         "rpc:project.task.type.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:project.task.type.copy_data": "eb710a57a53de592a09627b8b50b9236b027e3a8a6c6b13d3d1d1b08daa245cb",
