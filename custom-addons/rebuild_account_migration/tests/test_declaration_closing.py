@@ -389,12 +389,25 @@ class TestDeclarationAndClosing(TransactionCase):
                 ("fiscalyear_end", "=", date(2026, 9, 30)),
                 ("rule_id.code", "=", "FR_2065"),
             ])
-            closing = self.env["rebuild.account.closing.period"].new({
+            closing = self.env["rebuild.account.closing.period"].create({
+                "name": "Test annual filing review",
                 "company_id": company.id, "period_type": "annual",
                 "date_from": "2025-10-01", "date_to": "2026-09-30",
                 "fiscalyear_start": "2025-10-01", "fiscalyear_end": "2026-09-30",
             })
-            before = closing._control_tax_declarations()["record_count"]
+            closing.action_refresh_controls()
+            control = closing.control_line_ids.filtered(lambda line: line.code == "tax_declarations")
+
+            def filings_opened_from_control():
+                closing.action_refresh_controls()
+                action = control.action_open_records()
+                filings = Declaration.search(action["domain"])
+                self.assertEqual(len(filings), control.record_count)
+                return filings
+
+            pending = filings_opened_from_control()
+            self.assertIn(row, pending)
+            before = len(pending)
             self.assertEqual(row.validation_status, "blocked")
             Decision = self.env["rebuild.account.assurance.decision"]
             decision = Decision.create({
@@ -411,7 +424,8 @@ class TestDeclarationAndClosing(TransactionCase):
                 self.assertEqual(row.preparation_status, "not_required")
                 self.assertEqual(row.review_status, "not_applicable")
                 self.assertEqual(row.filing_status, "not_open")
-                self.assertEqual(closing._control_tax_declarations()["record_count"], before - 1)
+                self.assertEqual(filings_opened_from_control(), pending - row)
+                self.assertEqual(control.record_count, before - 1)
                 self.assertEqual((decision.state, decision.conclusion), ("recorded", "not_applicable"))
                 row.action_refresh_preparation()
                 Declaration.sync_for_company(company)
@@ -423,13 +437,13 @@ class TestDeclarationAndClosing(TransactionCase):
             self.assertEqual(row.status, "data_missing")
             self.assertEqual(row.applicability, "applicable")
             Declaration.sync_for_company(company)
-            self.assertEqual(closing._control_tax_declarations()["record_count"], before)
+            self.assertEqual(filings_opened_from_control(), pending)
             replacement.action_supersede()
             self.assertEqual(row.status, "not_applicable")
             decision.action_supersede()
             self.assertEqual(row.status, "data_missing")
             self.assertEqual(row.applicability, "applicable")
-            self.assertEqual(closing._control_tax_declarations()["record_count"], before)
+            self.assertEqual(filings_opened_from_control(), pending)
 
     def test_repair_distinguishes_current_and_superseded_legacy_filing_decisions(self):
         for revoked in (False, True):

@@ -163,7 +163,8 @@ class RebuildAccountClosingPeriod(models.Model):
             owner="finance_operator",
         )
 
-    def _control_tax_declarations(self):
+    def _filings_requiring_attention(self):
+        self.ensure_one()
         declarations = self.env["rebuild.account.declaration"].search([
             ("company_id", "=", self.company_id.id),
             ("applicability", "!=", "not_applicable"),
@@ -177,7 +178,10 @@ class RebuildAccountClosingPeriod(models.Model):
             ("fiscalyear_end", "=", self.fiscalyear_end),
             ("validation_status", "=", "blocked"),
         ]) if self.period_type == "annual" else self.env["rebuild.account.declaration"]
-        blocked = declarations | period_declarations
+        return declarations | period_declarations
+
+    def _control_tax_declarations(self):
+        blocked = self._filings_requiring_attention()
         return self._control_values(
             "tax_declarations", "tax", "Tax and declaration readiness",
             "block" if blocked else "pass", len(blocked), sum(blocked.mapped("amount_due")),
