@@ -3,9 +3,9 @@
 Use **Link** on a task to keep the main link to this work in another system: a
 pull request, an issue, a document, a deploy run. The form uses Odoo's native
 URL field: save the complete URL and use its link control to open it. A
-populated task card shows a compact **Link** rather than the full address. Empty
-tasks do not show a card link. Task access and company rules apply normally.
-The feedback card shows the same field in its Delivery group.
+populated task card, and a populated feedback board card, show the address,
+truncated to fit; empty tasks show nothing. The feedback form shows the same
+field in its Delivery group. Task access and company rules apply normally.
 
 The field is `project.task.github_url`, a normal Char field available to views,
 search and generic model APIs. The technical name predates the generic label and
