@@ -1618201,7 +1618201,7 @@
       ]
     },
     {
-      "digest": "18dd63233c873c3138d0240d011ef0ff14b0f3e4cf1df33ad048c05e47e72eeb",
+      "digest": "4db0d03e893dbc2811c1ad7adbd58781cf08ea6921f7504ac25432ea98c9424d",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._refresh_controls:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1737867,7 +1737867,7 @@
       "manifest_sha256": "a03720408661e49cb7cc3b3d7c3878367ed1e50a3ebab4bba8d9e20ef6762ea3",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "c3a190d2d52ac8f2a89d05c9142d63c7bbf37b964dd0b0dc412564f199b23d68",
+      "source_sha256": "b32009d67d0e18df044488979c3192b645517e77f8d96461bf69a95bfdcbc683",
       "version": "saas~19.3.1.13.45"
     },
     {

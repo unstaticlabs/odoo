@@ -493,7 +493,7 @@ class RebuildAccountClosingPeriod(models.Model):
         if filing_control:
             # Recalculate the overall summary from saved results. Other controls
             # retain their evidence and the time of the last full evaluation.
-            controls = self.control_line_ids.read(["status", "next_action", "owner", "summary", "accountant_visible"])
+            controls = self.control_line_ids.read(["code", "status", "next_action", "owner", "summary", "accountant_visible"])
         else:
             self.control_line_ids.filtered(lambda line: line.code not in seen).unlink()
         blocking = [control for control in controls if control["status"] == "block"]
