@@ -339,8 +339,11 @@ Retention keeps a capture when one of these conditions is true:
   `release-<identity>.<suffix>.json`; retention ignores them, because a
   historical failure of a release that later succeeded must not protect its
   capture for ever.
-- On production, the attempt claimed the active generation or the previous
-  generation. The claim is `attempts/<attempt>/claim.json`.
+- On production, a qualified release capture is never kept. Its snapshots
+  hold the data, and a fast rollback uses the generation volumes.
+- On production, the daily proof capture is the newest qualified one, or the
+  capture of the usable recovery anchor. If no anchor exists, every qualified
+  proof capture stays.
 - On staging, the capture is one of the two newest qualified captures.
 
 Retention manages only the run names that the release launcher creates:

@@ -3172,6 +3172,12 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("/opt/usl-odoo/secrets/paperless-personal-ai-keys.json:/source/paperless-personal-ai-keys.json:ro", mounts)
         self.assertNotIn("/opt/usl-odoo/secrets:/source/mcp-secrets:ro", mounts)
 
+    def test_cohort_keeps_the_restic_cache_in_a_named_volume(self) -> None:
+        target = load_target("production", TARGETS)
+        command = _cohort_command(target, "backup-image", "capture", [])
+        mounts = [command[i + 1] for i, value in enumerate(command[:-1]) if value == "--volume"]
+        self.assertIn("usl-odoo-restic-cache-production:/cache", mounts)
+
     def test_container_mounts_every_durable_and_cache_source_read_only(self) -> None:
         target = load_target("production", TARGETS)
         command = _cohort_command(target, "backup@sha256:" + "a" * 64, "capture", [])
@@ -4288,10 +4294,9 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(inventory["delete_volumes"], ["stale-volume"])
         self.assertEqual(inventory["protected_captures"], ["intent-" + "a" * 48])
         self.assertEqual(inventory["delete_captures"], [])
-        self.assertEqual(
-            capture_inventory.call_args.args[2],
-            {"g20260903-rollback", "g20260904-active"},
-        )
+        # Capture retention no longer depends on generations: a qualified
+        # capture duplicates its snapshots, and rollback uses the volumes.
+        self.assertEqual(len(capture_inventory.call_args.args), 2)
         self.assertEqual(inventory["delete_networks"], ["stale-network"])
         self.assertEqual(inventory["delete_workspaces"], ["stale-work"])
         self.assertEqual(
@@ -4541,7 +4546,7 @@ class CohortContractTests(unittest.TestCase):
         ).hexdigest()
         return json.dumps(claim)
 
-    def test_capture_retention_keeps_protected_generations_and_unfinished_attempts(self) -> None:
+    def test_production_deletes_qualified_release_captures_but_keeps_unfinished_attempts(self) -> None:
         target = load_target("production", TARGETS)
         active, previous, old, orphan, running, pending = (
             "intent-" + digit * 48 for digit in "123456"
@@ -4590,18 +4595,23 @@ class CohortContractTests(unittest.TestCase):
         ))
         runner = self._capture_state_root(target, entries, files)
 
-        result = _cleanup_captures(target, runner, {"gactive", "gprevious"})
+        result = _cleanup_captures(target, runner)
 
+        # Qualified captures of the active and previous generations go too:
+        # restore and rollback read the snapshots and generation volumes.
         self.assertEqual(
             result["delete_captures"],
-            sorted([f"release-admitted-{old}", f"release-pre-{old}", f"release-pre-{orphan}"]),
-        )
-        # The proof capture has no qualified state, so it may still resume.
-        self.assertEqual(
-            result["protected_captures"],
             sorted([
                 f"release-pre-{active}", f"release-candidate-{active}",
                 f"release-admitted-{active}", f"release-admitted-{previous}",
+                f"release-admitted-{old}", f"release-pre-{old}", f"release-pre-{orphan}",
+            ]),
+        )
+        # A running attempt and an unqualified capture may still resume.
+        # The proof capture has no qualified state either.
+        self.assertEqual(
+            result["protected_captures"],
+            sorted([
                 f"release-pre-{running}", f"release-pre-{pending}",
                 "proof-daily-0123456789abcdef",
             ]),
@@ -4640,7 +4650,7 @@ class CohortContractTests(unittest.TestCase):
         files[f"{unqualified}/manifest.json"] = "{}"
         runner = self._capture_state_root(target, entries, files)
 
-        result = _cleanup_captures(target, runner, set())
+        result = _cleanup_captures(target, runner)
 
         self.assertEqual(result["delete_captures"], [first])
         self.assertEqual(
@@ -4665,26 +4675,37 @@ class CohortContractTests(unittest.TestCase):
         ))
         return self._capture_state_root(target, entries, files), sorted(proofs), uploading
 
-    def test_capture_retention_keeps_the_newest_qualified_proof_captures(self) -> None:
+    def test_capture_retention_keeps_the_newest_and_the_anchor_proof_capture(self) -> None:
         target = load_target("production", TARGETS)
         runner, proofs, uploading = self._proof_state_root(target)
 
-        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
-            result = _cleanup_captures(target, runner, set())
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[1]}):
+            result = _cleanup_captures(target, runner)
 
-        self.assertEqual(result["delete_captures"], proofs[:2])
-        self.assertEqual(result["protected_captures"], sorted([*proofs[2:], uploading]))
-        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
+        deleted = [proofs[0], proofs[2]]
+        self.assertEqual(result["delete_captures"], deleted)
+        self.assertEqual(result["protected_captures"], sorted([proofs[1], proofs[3], uploading]))
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[1]}):
             paths = _validated_cleanup_captures(target, runner, result)
         self.assertEqual(
-            paths, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
+            paths, [f"{target.value['state_directory']}/{run_id}" for run_id in deleted],
         )
+
+    def test_missing_anchor_holds_every_proof_capture_and_never_raises(self) -> None:
+        from operations.stack import RecoveryAnchorUnavailable
+        target = load_target("production", TARGETS)
+        runner, proofs, uploading = self._proof_state_root(target)
+        missing = RecoveryAnchorUnavailable("no anchor yet")
+        with mock.patch("operations.stack._usable_recovery_anchor", side_effect=missing):
+            result = _cleanup_captures(target, runner)
+        self.assertEqual(result["delete_captures"], [])
+        self.assertEqual(result["protected_captures"], sorted([*proofs, uploading]))
 
     def test_staging_capture_retention_ignores_proof_names(self) -> None:
         target = load_target("staging", TARGETS)
         runner, _proofs, _uploading = self._proof_state_root(target)
         self.assertEqual(
-            _cleanup_captures(target, runner, set()),
+            _cleanup_captures(target, runner),
             {"protected_captures": [], "delete_captures": []},
         )
 
@@ -4695,9 +4716,9 @@ class CohortContractTests(unittest.TestCase):
                 mock.patch("operations.stack.runtime_lock", return_value=contextlib.nullcontext()), \
                 mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": proofs[-1]}):
             result = _retain_recovery_proof_captures(target)
-        self.assertEqual(result, {"status": "applied", "deleted_captures": proofs[:2]})
+        self.assertEqual(result, {"status": "applied", "deleted_captures": proofs[:3]})
         self.assertEqual(
-            runner.removed, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:2]],
+            runner.removed, [f"{target.value['state_directory']}/{run_id}" for run_id in proofs[:3]],
         )
 
         runner, _proofs, _uploading = self._proof_state_root(target)
@@ -4716,19 +4737,19 @@ class CohortContractTests(unittest.TestCase):
         files = {}
         runner = self._capture_state_root(target, entries, files)
         self.assertEqual(
-            _cleanup_captures(target, runner, set()),
+            _cleanup_captures(target, runner),
             {"protected_captures": [], "delete_captures": []},
         )
         entries[f"release-pre-{attempt}"] = "l"
         with self.assertRaisesRegex(RuntimeError, "not a directory"):
-            _cleanup_captures(target, runner, set())
+            _cleanup_captures(target, runner)
         entries[f"release-pre-{attempt}"] = "d"
         entries["runs"] = "d"
         entries["runs/release-" + "c" * 64 + ".json"] = "f"
         files["runs/release-" + "c" * 64 + ".json"] = "not json"
         files.update(self._capture_files(target, f"release-pre-{attempt}", created_at="2026-09-01T00:00:00Z"))
         with self.assertRaisesRegex(RuntimeError, "release run state is invalid"):
-            _cleanup_captures(target, runner, set())
+            _cleanup_captures(target, runner)
 
     def test_cleanup_can_inventory_admitted_sleeping_target_without_an_anchor(self) -> None:
         from operations.stack import _inspect_runtime_or_admitted

@@ -8,7 +8,7 @@ from scripts.tests.test_control_manifest import controls_v2
 
 
 def fingerprint(seed):
-    return {"schema": "usl-recovery-workflow-failures/v1", "roles": {
+    return {"schema": controls.WORKFLOW_FAILURE_SCHEMA, "roles": {
         role: {"count": int(role == "failed_documents"), "sha256": hashlib.sha256(
             (seed if role == "failed_documents" else "empty").encode()).hexdigest()}
         for role in controls.FAILED_QUEUE_KEYS
@@ -57,6 +57,34 @@ class RecoveryWorkflowFailureTests(unittest.TestCase):
             broken = copy.deepcopy(source); broken["roles"][role] = bad
             with self.subTest(role=role, bad=bad), self.assertRaises(controls.ControlManifestError):
                 compare(before, before, source, broken)
+
+
+    def test_dismissed_document_failure_survives_without_counting_as_open_work(self):
+        """Production on 2026-11-19: two dismissed uploads stopped every proof.
+
+        The control queue skips a dismissed failure (it is not open work), so
+        the identity count must skip it too. The hash still covers the row.
+        """
+        before = controls_v2(); before["odoo"]["failed_documents"] = 0
+        dismissed = fingerprint("invented-row-1:error:dismissed")
+        dismissed["schema"] = controls.WORKFLOW_FAILURE_SCHEMA
+        dismissed["roles"]["failed_documents"]["count"] = 0
+        evidence = compare(before, copy.deepcopy(before), dismissed, copy.deepcopy(dismissed))
+        self.assertEqual(evidence["preserved_source_failures"], [])
+        lost = copy.deepcopy(dismissed)
+        lost["roles"]["failed_documents"]["sha256"] = hashlib.sha256(b"empty").hexdigest()
+        with self.assertRaises(controls.ControlManifestError):
+            compare(before, before, dismissed, lost)
+
+
+    def test_stored_v1_evidence_validates_but_is_never_compared(self):
+        before = controls_v2(); before["odoo"]["failed_documents"] = 1
+        old = fingerprint("invented-row-1:error"); old["schema"] = "usl-recovery-workflow-failures/v1"
+        self.assertEqual(controls.validate_workflow_failures(old), old)
+        for source, restored in ((old, fingerprint("invented-row-1:error")), (old, copy.deepcopy(old))):
+            with self.subTest(restored=restored["schema"]), self.assertRaisesRegex(
+                    controls.ControlManifestError, "current schema"):
+                compare(before, before, source, restored)
 
 
     def test_cron_quarantine_can_disable_activation_but_not_rewrite_failure_evidence(self):
@@ -113,12 +141,12 @@ class PostgreSQLWorkflowFailureTests(unittest.TestCase):
                 return p.stdout
             try:
                 sql("""CREATE TABLE mail_mail(id bigint,state text,failure_type text,failure_reason text);
-CREATE TABLE usl_document_operation(id bigint,state text,error_message text);
+CREATE TABLE usl_document_operation(id bigint,state text,error_message text,acknowledged boolean);
 CREATE TABLE account_bank_ingestion(id bigint,state text,last_error text);
 CREATE TABLE payment_transaction(id bigint,state text,state_message text);
 CREATE TABLE sign_oca_request(id bigint,archive_status text,archive_last_error text);
 CREATE TABLE ir_cron(id bigint,active boolean,failure_count int,first_failure_date timestamp);
-INSERT INTO usl_document_operation VALUES(1,'failed','Invented invalid file');
+INSERT INTO usl_document_operation VALUES(1,'failed','Invented invalid file',NULL);
 INSERT INTO ir_cron VALUES(1,true,3,'2026-01-01');""")
                 def observe():return controls.validate_workflow_failures(json.loads(sql(controls.workflow_failure_sql())))
                 original=observe()
@@ -128,8 +156,17 @@ INSERT INTO ir_cron VALUES(1,true,3,'2026-01-01');""")
                 sql("UPDATE usl_document_operation SET error_message='Invented invalid file',id=2;")
                 replacement=observe();self.assertEqual(replacement['roles']['failed_documents']['count'],1)
                 self.assertNotEqual(replacement['roles']['failed_documents']['sha256'],original['roles']['failed_documents']['sha256'])
-                sql("INSERT INTO usl_document_operation VALUES(3,'failed',NULL);")
+                sql("INSERT INTO usl_document_operation VALUES(3,'failed',NULL,NULL);")
                 self.assertEqual(observe()['roles']['failed_documents']['count'],2)
+                # A dismissed failure is kept in the hash but is not open work,
+                # the same as the failed_documents control queue counts it.
+                undismissed=observe()
+                sql("UPDATE usl_document_operation SET acknowledged=true WHERE id=3;")
+                dismissed=observe();self.assertEqual(dismissed['roles']['failed_documents']['count'],1)
+                self.assertNotEqual(dismissed['roles']['failed_documents']['sha256'],undismissed['roles']['failed_documents']['sha256'])
+                import re
+                control=re.search(r"'failed_documents', \((SELECT count\(\*\) FROM usl_document_operation WHERE .*?)\),\n",controls.ODOO_CONTROL_SQL)
+                self.assertEqual(int(sql(control.group(1)+';')),dismissed['roles']['failed_documents']['count'])
             finally:
                 subprocess.run(['pg_ctl','-D',str(data),'--wait','--timeout=15','-m','fast','stop'],capture_output=True,text=True,check=True)
                 self.assertFalse((data/'postmaster.pid').exists())

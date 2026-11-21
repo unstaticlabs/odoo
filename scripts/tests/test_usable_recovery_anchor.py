@@ -123,7 +123,7 @@ class PassedProofAuthorityTests(unittest.TestCase):
         files.pop(root+"/"+proof["proof_id"]+"/receipt.json")
         with self.assertRaisesRegex(RuntimeError,"no full usable-service"):_usable_recovery_anchor(target,runner)
 
-    def test_local_capture_retention_keeps_anchor_beyond_two_newer_failed_proofs(self):
+    def test_local_capture_retention_keeps_the_anchor_and_newest_after_newer_failed_proofs(self):
         from operations.stack import _select_proof_captures,_validated_cleanup_captures
         from scripts.tests.test_recovery_proof import TARGETS
         from operations.runtime import load_target
@@ -132,7 +132,7 @@ class PassedProofAuthorityTests(unittest.TestCase):
         created={run:datetime(2026,11,12+i,tzinfo=UTC) for i,run in enumerate(runs)}
         with mock.patch("operations.stack._qualified_capture",side_effect=lambda t,r,n:{"created_at":created[n]}),mock.patch("operations.stack._usable_recovery_anchor",return_value={"run_id":runs[0]}):
             result=_select_proof_captures(target,mock.Mock(),runs)
-            self.assertEqual(result["delete_captures"],[runs[1]])
+            self.assertEqual(result["delete_captures"],runs[1:3])
             with self.assertRaisesRegex(RuntimeError,"last full usable"):
                 _validated_cleanup_captures(target,mock.Mock(),{"delete_captures":[runs[0]]})
         with mock.patch("operations.stack._qualified_capture",side_effect=lambda t,r,n:{"created_at":created[n]}),mock.patch("operations.stack._usable_recovery_anchor",side_effect=RuntimeError("anchor missing")):

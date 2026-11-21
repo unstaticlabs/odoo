@@ -196,12 +196,19 @@ SESSION_STORE_ANONYMOUS_GRACE_SECONDS = 3600
 CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
 PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
 STAGING_CAPTURE_KEEP = 2
+# A named Docker volume, so the cache lives on the Docker data root and not on
+# the root filesystem. It holds only restic index and metadata copies.
+RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
 # A daily recovery proof captures production as proof-daily-<16 hex>. The
 # proof restores from Restic, never from this directory, so a qualified
 # capture is a local duplicate of its remote snapshots. Each one is about
-# 1 GB on the root filesystem of the Odoo host.
+# 2.3 GB on the root filesystem of the Odoo host, which filled it on
+# 2026-11-19. Production keeps the newest qualified capture and the capture
+# of the usable recovery anchor; every other qualified capture goes. The
+# newest one stays because a proof qualifies its capture before it restores,
+# and because it is the local copy if the remote repositories are lost.
 PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
-PROOF_CAPTURE_KEEP = 2
+PROOF_CAPTURE_KEEP = 1
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
 RELEASE_RUN_STATE = re.compile(r"release-[0-9a-f]{64}\.json\Z")
 GIT_COMMIT = re.compile(r"[0-9a-f]{40}\Z")
@@ -2320,6 +2327,10 @@ def _cohort_command(
         f"USL_BACKUP_CACHE_REPOSITORY={target.value['backup']['cache_repository']}",
         "--env", f"USL_TARGET={target.name}",
         *_local_restic_mounts(target),
+        # The image sets RESTIC_CACHE_DIR=/cache. Without a volume, every run
+        # fetched the whole repository index from the bucket again.
+        "--volume",
+        f"{RESTIC_CACHE_VOLUME_PREFIX}{target.name}:/cache",
         "--volume",
         f"{target.value['state_directory']}:/cohort",
         "--volume",
@@ -4071,8 +4082,8 @@ def backup_command(arguments: argparse.Namespace) -> int:
         run_id = f"retention-{datetime.now(UTC):%Y%m%dt%H%M%S}"
         with runtime_lock(target, runner, "retention", run_id):
             result = _run_cohort(target, runner, image, "retention-apply", [], volumes=runtime["volumes"])
-            # Staging keeps its newest local captures; the generation set is unused.
-            captures = _cleanup_captures(target, runner, set())
+            # Staging keeps its newest local captures.
+            captures = _cleanup_captures(target, runner)
             paths = _validated_cleanup_captures(target, runner, captures)
             _delete_cleanup_resources(runner, [], [], [], [], paths)
             result = {**result, **captures}
@@ -11049,29 +11060,18 @@ def _unfinished_release_attempts(target, runner) -> set[str]:
     return attempts
 
 
-def _attempt_generation(target, runner, attempt: str) -> str | None:
-    """Return the generation claimed by one attempt, or None without a claim."""
-    claim_path = f"{target.value['state_directory']}/attempts/{attempt}/claim.json"
-    result = runner.run(["cat", claim_path], check=False)
-    if result.returncode:
-        return None
-    try:
-        value = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError(f"release attempt claim is invalid: {attempt}") from error
-    release = str(value.get("candidate_release", "")) if isinstance(value, dict) else ""
-    return _release_attempt_claim(value, target=target, attempt=attempt, release=release)["generation"]
-
-
-def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
+def _cleanup_captures(target, runner) -> dict:
     """Select the qualified local captures that retention may delete.
 
-    Production keeps every capture whose attempt claimed a protected (active
-    or previous) generation.  Staging keeps the newest ``STAGING_CAPTURE_KEEP``
-    captures.  Both keep captures that are not ``qualified`` and captures of
-    attempts whose launcher run is still running or resumable.  Production
-    also keeps the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof
-    captures.  Entries that are not managed capture runs are ignored.
+    A qualified capture is a local duplicate of its verified Restic
+    snapshots: restore, rollback and proofs read the snapshots, and a fast
+    rollback uses the previous generation volumes.  Production therefore
+    deletes every qualified release capture, and keeps the newest daily proof
+    capture and the capture of the usable recovery anchor.  Staging keeps the newest
+    ``STAGING_CAPTURE_KEEP`` captures.  Both keep captures that are not
+    ``qualified`` and captures of attempts whose launcher run is still
+    running or resumable.  Entries that are not managed capture runs are
+    ignored.
     """
     captures: dict[str, str] = {}
     proofs: list[str] = []
@@ -11097,16 +11097,7 @@ def _cleanup_captures(target, runner, protected_generations: set[str]) -> dict:
             protected.add(run_id)
         else:
             qualified[run_id] = capture["created_at"]
-    if target.value["environment"] == "production":
-        generations = {
-            attempt: _attempt_generation(target, runner, attempt)
-            for attempt in sorted({captures[run_id] for run_id in qualified})
-        }
-        protected.update(
-            run_id for run_id in qualified
-            if generations[captures[run_id]] in protected_generations
-        )
-    else:
+    if target.value["environment"] != "production":
         newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
         protected.update(newest[:STAGING_CAPTURE_KEEP])
     return {
@@ -11141,11 +11132,13 @@ def _state_root_entries(target, runner) -> list[tuple[str, str]]:
 
 
 def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
-    """Keep the newest ``PROOF_CAPTURE_KEEP`` qualified daily proof captures.
+    """Keep the newest qualified daily proof capture and the anchor capture.
 
     A capture that is not ``qualified`` is kept: its backup may still resume
     from it. The last full usable-service passed proof stays in addition to
-    these newest data-qualified captures, even after later service proofs fail.
+    the newest data-qualified capture, even after later service proofs fail.
+    If no anchor exists yet, every qualified capture stays and nothing is
+    deleted, so a release cleanup does not stop on a missing anchor.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11156,9 +11149,13 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
         else:
             qualified[run_id] = capture["created_at"]
     if len(qualified) > PROOF_CAPTURE_KEEP and target.value["environment"] == "production":
-        # Refuse before a deletion plan can be applied: an unknown anchor is
-        # an observable preservation hold, not successful garbage collection.
-        anchor = _usable_recovery_anchor(target, runner)
+        # An unreadable anchor still refuses. A missing anchor is a
+        # preservation hold: keep everything and report it.
+        try:
+            anchor = _usable_recovery_anchor(target, runner)
+        except RecoveryAnchorUnavailable as error:
+            print(f"recovery proof capture retention held: {error}", file=sys.stderr)
+            return {"protected_captures": sorted(protected | set(qualified)), "delete_captures": []}
         protected.add(anchor["run_id"])
     newest = sorted(qualified, key=lambda run_id: (qualified[run_id], run_id), reverse=True)
     protected.update(newest[:PROOF_CAPTURE_KEEP])
@@ -11416,7 +11413,7 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
         "delete_volumes": candidates,
         "delete_networks": network_candidates,
         "delete_workspaces": _cleanup_workspaces(target, runner, protected_generations),
-        **_cleanup_captures(target, runner, protected_generations),
+        **_cleanup_captures(target, runner),
     }
 
 
