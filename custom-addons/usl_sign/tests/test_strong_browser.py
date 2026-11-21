@@ -170,6 +170,93 @@ class TestSignBrowserJourneys(HttpCase):
             timeout=60,
         )
 
+    def test_request_editor_keeps_pdf_position_while_saving_in_french(self):
+        self.browser_size = "992x800"
+        self.workspace_user.lang = "fr_FR"
+        role = self.env.ref("sign_oca.sign_role_customer")
+        request = self.env["sign.oca.request"].with_user(self.workspace_user).create({
+            "name": "Browser autosave regression",
+            "filename": "autosave.pdf",
+            "data": field_value(self._pdf(pages=3)),
+            "company_id": self.company.id,
+            "user_id": self.workspace_user.id,
+            "signer_ids": [(0, 0, {"partner_id": self.partner.id, "role_id": role.id})],
+        })
+        action = self.env["ir.actions.client"].create(request.configure())
+        self.browser_js(
+            f"/odoo/action-{action.id}",
+            """
+            (async () => {
+                const waitFor = async (check) => {
+                    for (let attempt = 0; attempt < 400; attempt++) {
+                        const result = check();
+                        if (result) return result;
+                        await new Promise((resolve) => setTimeout(resolve, 50));
+                    }
+                    throw new Error("The Sign editor did not reach the expected state.");
+                };
+                const iframe = await waitFor(() => document.querySelector(".o_sign_oca_iframe"));
+                const page = await waitFor(() => {
+                    const second = iframe.contentDocument?.querySelector('.page[data-page-number="2"]');
+                    return second?.dataset.uslEditorReady === "1" && second;
+                });
+                const viewer = iframe.contentDocument.getElementById("viewerContainer");
+                viewer.scrollTop = page.offsetTop + 40;
+                await new Promise((resolve) => requestAnimationFrame(resolve));
+                const toolbar = document.querySelector(".usl_sign_editor_toolbar");
+                const status = toolbar.querySelector("[role=status]");
+                const button = toolbar.querySelector(".btn-primary");
+                const position = () => ({
+                    scroll: viewer.scrollTop,
+                    top: iframe.getBoundingClientRect().top,
+                    buttonHeight: button.offsetHeight,
+                });
+                const before = position();
+                if (before.scroll <= 0 || button.textContent.trim() !== "Continuer") {
+                    throw new Error("Expected a visible French request editor below page one.");
+                }
+                const open = XMLHttpRequest.prototype.open;
+                const send = XMLHttpRequest.prototype.send;
+                let releaseSave;
+                let during;
+                try {
+                    XMLHttpRequest.prototype.open = function (method, url, ...args) {
+                        this.signEditorSave = url.endsWith("/editor_apply_command");
+                        return open.call(this, method, url, ...args);
+                    };
+                    XMLHttpRequest.prototype.send = function (...args) {
+                        if (this.signEditorSave) {
+                            releaseSave = () => send.apply(this, args);
+                        } else {
+                            return send.apply(this, args);
+                        }
+                    };
+                    document.querySelector(".usl_sign_field_type").click();
+                    const bounds = page.getBoundingClientRect();
+                    page.dispatchEvent(new iframe.contentWindow.MouseEvent("click", {
+                        bubbles: true,
+                        clientX: bounds.left + bounds.width / 4,
+                        clientY: bounds.top + bounds.height / 4,
+                    }));
+                    await waitFor(() => releaseSave && status.textContent.includes("Enregistrement en cours") && button.disabled);
+                    during = position();
+                } finally {
+                    XMLHttpRequest.prototype.open = open;
+                    XMLHttpRequest.prototype.send = send;
+                    releaseSave?.();
+                }
+                await waitFor(() => !button.disabled && page.querySelector(".o_sign_oca_field"));
+                const after = position();
+                if (JSON.stringify(before) !== JSON.stringify(during) || JSON.stringify(before) !== JSON.stringify(after)) {
+                    throw new Error(`PDF or Continue moved during autosave: ${JSON.stringify({before, during, after})}`);
+                }
+                console.log("test successful");
+            })();
+            """,
+            login=self.workspace_user.login,
+            timeout=60,
+        )
+
     def test_template_editor_places_repeats_scrolls_and_deletes_fields(self):
         template = self.env["sign.oca.template"].create(
             {
