@@ -584,18 +584,18 @@ msgstr "Étape personnelle"
 
 #. module: usl_project
 #: model:ir.model.fields,field_description:usl_project.field_project_task__github_url
-msgid "GitHub URL"
-msgstr "URL GitHub"
+msgid "Link"
+msgstr "Lien"
 
 #. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task__github_url
-msgid "The canonical GitHub issue, pull request or repository link for this task."
-msgstr "Le lien GitHub canonique de ticket, de pull request ou de dépôt pour cette tâche."
+msgid "The main link to this work in another system: a pull request, issue, document, deploy run..."
+msgstr "Le lien principal vers ce travail dans un autre système : pull request, ticket, document, exécution de déploiement..."
 
 #. module: usl_project
 #: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_github_reference
-msgid "GitHub issue or pull request URL"
-msgstr "URL du ticket ou de la pull request GitHub"
+msgid "Pull request, issue, document or deploy run URL"
+msgstr "URL de la pull request, du ticket, du document ou du déploiement"
 
 #. module: usl_project
 #. odoo-javascript

@@ -893035,7 +893035,7 @@
         "rpc:rating.rating.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "3940d4b65d70248146827d9f6d1b452c45dcef931feca7a269e3956eaa28ae72",
+      "digest": "1711ab36cbc4ace635178b542fb84ee959cab5d54a588de9e2cc61ec36033d73",
       "guards": [],
       "key": "rpc:project.task.unlink",
       "kind": "rpc",
@@ -893053,7 +893053,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "96e56a4a9ffe54ea840d70db9c1fabf90facfaf6d99faf7fdb06543fa72d6b23",
+      "runtime_digest": "0803fa1f3a38ce85b3af2057ee80132566fbf7bc8328da9473312eec6cbca61f",
       "sinks": [
         "orm_unlink",
         "sudo"
@@ -893531,7 +893531,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "24d4ef0f91e528cbdc4633970733abe16edb23b76a2901ecd9e63e0b22ecd116",
+      "digest": "7cee62cb3c82cbfd556ef51e98dc2c3b152a15a784171972a7610c7a60f609e1",
       "guards": [],
       "key": "rpc:project.task.write",
       "kind": "rpc",
@@ -893552,7 +893552,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "fb417031c081c734f3d12e06ac0d5394636c56738169ad8ecb9080305e5dc682",
+      "runtime_digest": "45f707e7051bfe61883acf8b79e67701df6f716972b9e79aab9531e006c19896",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1094924,7 +1094924,7 @@
         "rpc:res.config.settings.with_context",
         "rpc:stock.picking.type.search"
       ],
-      "digest": "78b2dcd209108997b15221bea0d8333717bbfa6c15ef7b50e13b6ddc1d787a8f",
+      "digest": "1024742b02f615ac18e038095f54af24c4b458a3ffdc8b7307294e1a257623f7",
       "guards": [],
       "key": "rpc:res.config.settings.set_values",
       "kind": "rpc",
@@ -1094949,7 +1094949,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a54ba5b4ef8bf6ca638418e742b63477a707bf6f33b621454b52839c8b62f294",
+      "runtime_digest": "908cf526c18bc61d64a561a03821c318ac57a2ade349efa4ab7aa98c4671d78a",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1738193,11 +1738193,11 @@
       "version": "saas~19.3.1.3.18"
     },
     {
-      "manifest_sha256": "d1cf03490ecebcc778007d3e3f59e7e0f48f58d911df8b4696be6d86d4cf7251",
+      "manifest_sha256": "14e08af98b0233b330ca48e282ac00e15233e16c1ae52ce0ee702745bafc300b",
       "name": "usl_feedback",
       "origin": "custom",
-      "source_sha256": "cd5998162442f6a41fd4589c50fbfb678ceb7289fef470d1190e2e45e38ae6f1",
-      "version": "saas~19.3.2.0.19"
+      "source_sha256": "508d27285f031afc767c22606f21418523e13f599f17332af2b5b05a7559501c",
+      "version": "saas~19.3.2.0.20"
     },
     {
       "manifest_sha256": "93b74ae9c3a56f15e5908d6642d2d04929ca18d9f162b73fce0afce893a07755",
@@ -1738242,11 +1738242,11 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "c1d0a7fed2733e1f0d1dde2d42bfc7a73e5e96345babf23807a5b2504fbcf36d",
+      "manifest_sha256": "4612371385a2e8c21a72b04f66c1bd8a3c2e70aad32cec4a23aa8a4c1a78145d",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "67c612dea48fc4096111d10ad14f26e5a5b357632926010d89f298660b70aa6c",
-      "version": "saas~19.3.1.0.18"
+      "source_sha256": "abe61e20e7cbf45592a1b1706196e1612f981fa21a92cf21df4ccc3300e5b4ee",
+      "version": "saas~19.3.1.0.19"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",

@@ -73,10 +73,10 @@ test("unmigrated and invalid matching values are retained readonly", async () =>
 test("Kanban keeps a compact native link and omits only the verified legacy duplicate", async () => {
     await mountView({ type: "kanban", resModel: "reference.task",
         arch: `<kanban><templates><t t-name="card"><field name="name"/>
-            <field name="github_url" widget="url" text="GitHub"/>
+            <field name="github_url" widget="url" text="Link"/>
             <field name="project_id" invisible="1"/>
             <field name="properties" widget="usl_task_properties"/></t></templates></kanban>` });
-    expect(".o_kanban_record .o_field_widget[name='github_url'] a").toHaveText("GitHub");
+    expect(".o_kanban_record .o_field_widget[name='github_url'] a").toHaveText("Link");
     expect(".o_kanban_record .o_field_widget[name='github_url'] a").toHaveAttribute("href", legacyUrl);
     expect(".o_card_property_field").toHaveCount(0);
 });
