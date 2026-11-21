@@ -11325,10 +11325,12 @@ def _staging_previous_releasable(target, runner, state: dict, current: dict) -> 
     """Return whether staging may delete its previous generation.
 
     Staging is rebuilt from production snapshots, so once its active release
-    is admitted the previous generation is no longer needed as a rollback
-    target. It stays while the running generation is not the admitted active
-    one, or while a release attempt is running or failed and may still abort
-    back to it. Production always keeps its previous generation.
+    is admitted and the gateway has left maintenance, the previous generation
+    is no longer needed as a rollback target. It stays while the running
+    generation is not the admitted active one, and while the maintenance
+    marker exists: a staging abort, which still runs after admission when
+    public ingress fails, requires that marker and returns to the previous
+    generation. Production always keeps its previous generation.
     """
     if target.value["environment"] != "staging":
         return False
@@ -11338,6 +11340,9 @@ def _staging_previous_releasable(target, runner, state: dict, current: dict) -> 
         or not GENERATION_NAME.fullmatch(generation)
         or generation != current.get("generation")
     ):
+        return False
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "!", "-e", marker], check=False).returncode:
         return False
     admission = f"{target.value['state_directory']}/generations/{generation}/admission.json"
     if runner.run(["test", "-f", admission], check=False).returncode:

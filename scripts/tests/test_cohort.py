@@ -4304,7 +4304,7 @@ class CohortContractTests(unittest.TestCase):
             ["g20260903-rollback", "g20260904-active"],
         )
 
-    def _previous_generation_inventory(self, environment, *, admitted, unfinished):
+    def _previous_generation_inventory(self, environment, *, admitted, unfinished, maintenance=False):
         target = load_target(environment, TARGETS)
         state_root = target.value["state_directory"]
         active_generation = "g20260904-active"
@@ -4325,6 +4325,10 @@ class CohortContractTests(unittest.TestCase):
                     return subprocess.CompletedProcess(command, 0, json.dumps(state), "")
                 if command == ["test", "-f", admission]:
                     return subprocess.CompletedProcess(command, 0 if admitted else 1, "", "")
+                if command[:3] == ["test", "!", "-e"] and command[3].endswith(
+                    f"/gateway/{target.name}/maintenance",
+                ):
+                    return subprocess.CompletedProcess(command, 1 if maintenance else 0, "", "")
                 if command[:3] == ["docker", "volume", "ls"]:
                     return subprocess.CompletedProcess(
                         command, 0, "active-volume\nprevious-volume\n", "",
@@ -4361,10 +4365,14 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(workspace_protection, {"g20260904-active"})
 
     def test_cleanup_keeps_staging_previous_generation_until_release_is_settled(self) -> None:
-        for admitted, unfinished in ((False, False), (True, True)):
-            with self.subTest(admitted=admitted, unfinished=unfinished):
+        # Admitted but still in maintenance is the post-admission ingress
+        # failure: a staging abort can still return to the previous generation.
+        for admitted, unfinished, maintenance in (
+            (False, False, False), (True, True, False), (True, False, True),
+        ):
+            with self.subTest(admitted=admitted, unfinished=unfinished, maintenance=maintenance):
                 inventory, workspace_protection = self._previous_generation_inventory(
-                    "staging", admitted=admitted, unfinished=unfinished,
+                    "staging", admitted=admitted, unfinished=unfinished, maintenance=maintenance,
                 )
                 self.assertEqual(inventory["delete_volumes"], [])
                 self.assertEqual(inventory["delete_networks"], [])
