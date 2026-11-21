@@ -2550,3 +2550,13 @@ msgstr "Non planifié"
 #. odoo-javascript
 msgid "Kept for reference"
 msgstr "Conservé pour mémoire"
+
+#. module: usl_feedback
+#: model:ir.model.fields,field_description:usl_feedback.field_project_task__usl_feedback_pr_url
+msgid "Pull request (deprecated)"
+msgstr "Pull request (obsolète)"
+
+#. module: usl_feedback
+#: model:ir.model.fields,help:usl_feedback.field_project_task__usl_feedback_pr_url
+msgid "Deprecated: use the generic Link field. Kept for history only."
+msgstr "Obsolète : utilisez le champ Lien générique. Conservé pour l'historique uniquement."

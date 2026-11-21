@@ -26,6 +26,7 @@
                                 <field name="priority" widget="priority"/>
                             </div>
                             <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}" class="mt-2"/>
+                            <field name="github_url" widget="url" t-if="record.github_url.raw_value" class="small text-truncate d-block mt-1"/>
                             <footer class="mt-2">
                                 <field name="usl_feedback_reporter_id" widget="many2one_avatar_user"/>
                                 <field name="state" class="ms-1" widget="project_task_state_selection" options="{'is_toggle_mode': false}"/>
@@ -158,7 +159,7 @@
                     </group>
                     <group string="Delivery">
                         <field name="usl_feedback_branch" readonly="1"/>
-                        <field name="github_url" widget="url" text="Open link" readonly="1"/>
+                        <field name="github_url" widget="url" readonly="1"/>
                         <field name="usl_feedback_score" readonly="1"/>
                         <field name="usl_feedback_tokens" readonly="1"/>
                         <field name="allocated_hours" readonly="1"/>

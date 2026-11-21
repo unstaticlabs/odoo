@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, call, patch
 
 from datetime import timedelta
 
+from lxml import etree
+
 from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.modules.module import get_module_path
@@ -986,6 +988,16 @@ class TestProductFeedback(TransactionCase):
         self.assertNotIn('name="usl_feedback_pr_url"', arch)
         field = self.env["project.task"]._fields["usl_feedback_pr_url"]
         self.assertIn("Deprecated", field.string + (field.help or ""))
+
+    def test_feedback_kanban_cards_show_the_link_only_when_set(self):
+        for xmlid in ("view_feedback_task_kanban_collaborator", "view_feedback_task_kanban_maintainer"):
+            with self.subTest(view=xmlid):
+                arch = etree.fromstring(self.env["project.task"].get_view(
+                    self.env.ref(f"usl_feedback.{xmlid}").id)["arch"])
+                self.assertTrue(arch.xpath(
+                    "//t[@t-name='card']//field[@name='github_url'][@widget='url']"
+                    "[@t-if='record.github_url.raw_value']"))
+                self.assertFalse(arch.xpath("//field[@name='github_url'][@text]"))
 
     def test_pull_request_migration_fills_only_an_empty_link(self):
         migration_path = (
