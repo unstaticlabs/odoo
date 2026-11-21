@@ -16,15 +16,52 @@ class RebuildAccountDeclaration(models.Model):
     @api.model
     def sync_for_company(self, company):
         company.ensure_one()
+        self._sync_recorded_filing_exclusions(company)
         if not company.rebuild_declaration_profile_active:
             return self.browse()
         today = fields.Date.context_today(self)
         current_start, current_end = company.rebuild_compute_fiscalyear_dates(today)
         periods = [(current_start, current_end)]
-        if company.fiscalyear_lock_date:
-            locked_start, locked_end = company.rebuild_compute_fiscalyear_dates(company.fiscalyear_lock_date)
-            if (locked_start, locked_end) not in periods:
-                periods.insert(0, (locked_start, locked_end))
+        lock_date = company.fiscalyear_lock_date
+        # Retain the most recently completed fiscal year until it is locked.
+        # Otherwise, rolling into October drops the unclosed September year
+        # from the governed schedule and falsely retires its declarations.
+        # Once a lock covers that year it is no longer added here, so a sync
+        # never reopens rows of a closed year; the lock block below still keeps
+        # the fiscal year that contains the lock date itself.
+        previous_start, previous_end = company.rebuild_compute_fiscalyear_dates(
+            current_start - timedelta(days=1)
+        )
+        # A company's first fiscal year can be long. The standard year that
+        # would precede or overlap it never existed for this company.
+        first_start, _first_end = company._rebuild_first_fiscalyear_dates()
+        if (
+            (previous_start, previous_end) not in periods
+            and not (first_start and previous_start < first_start)
+            and not (lock_date and lock_date >= previous_end)
+        ):
+            periods.append((previous_start, previous_end))
+        if lock_date:
+            locked_start, locked_end = company.rebuild_compute_fiscalyear_dates(
+                lock_date
+            )
+            if (locked_start, locked_end) not in periods and not (
+                first_start and locked_start < first_start
+            ):
+                periods.append((locked_start, locked_end))
+            # A lock may be several fiscal years old. Fill every intervening
+            # year so the retirement pass cannot mark valid obligations N/A,
+            # but never a year before the company's first fiscal year.
+            gap_date = locked_end + timedelta(days=1)
+            while gap_date < previous_start:
+                gap_start, gap_end = company.rebuild_compute_fiscalyear_dates(gap_date)
+                if (
+                    (gap_start, gap_end) not in periods
+                    and not (first_start and gap_start < first_start)
+                ):
+                    periods.append((gap_start, gap_end))
+                gap_date = gap_end + timedelta(days=1)
+        periods.sort()
         next_start, next_end = company.rebuild_compute_fiscalyear_dates(current_end + relativedelta(days=1))
         if (
             next_end <= today + relativedelta(months=18)
@@ -32,6 +69,17 @@ class RebuildAccountDeclaration(models.Model):
         ):
             periods.append((next_start, next_end))
 
+        # A new rule can still introduce a missing historical row. Only protect
+        # declarations that already existed before this synchronization.
+        history = self.search([
+            ("company_id", "=", company.id),
+            *self._calendar_history_domain(company),
+        ])
+        reviewed_exclusions = self.search([
+            ("company_id", "=", company.id),
+            ("status", "=", "not_applicable"),
+        ])._with_recorded_review()
+        history |= reviewed_exclusions
         declarations = self.browse()
         for fiscal_start, fiscal_end in periods:
             for rule in self._rules_for_period(company, fiscal_end):
@@ -44,9 +92,73 @@ class RebuildAccountDeclaration(models.Model):
         horizon_start = min(start for start, _end in periods)
         horizon_end = max(end for _start, end in periods) + relativedelta(months=4)
         declarations |= self._sync_calendar_instances(company, horizon_start, horizon_end)
-        self._retire_superseded_instances(company, declarations, horizon_start, horizon_end)
-        declarations.action_refresh_preparation()
+        self._retire_superseded_instances(company, declarations | history, horizon_start, horizon_end)
+        (declarations - history).action_refresh_preparation()
         return declarations
+
+    @api.model
+    def _sync_recorded_filing_exclusions(self, company):
+        # The former decision workflow recorded N/A but marked the filing ready.
+        # Apply only the latest effective decision, including during upgrade.
+        candidates = self.env["rebuild.account.assurance.decision"].search([
+            ("company_id", "=", company.id), ("gate", "=", "declaration_review"),
+            ("state", "in", ["recorded", "superseded"]), ("conclusion", "=", "not_applicable"),
+            ("declaration_id.company_id", "=", company.id),
+        ]).declaration_id
+        candidates -= candidates.filtered_domain(self._calendar_history_domain(company))
+        current = candidates._latest_declaration_reviews()
+        for decision in current.values():
+            if decision.conclusion == "not_applicable":
+                declaration = decision.declaration_id
+                reason = (
+                    declaration.applicability_reason
+                    if declaration.status == "not_applicable" and declaration.applicability == "not_applicable"
+                    else decision.decision_summary
+                )
+                declaration._apply_reviewed_exclusion(reason)
+
+        # Older versions left a superseded N/A looking approved for filing.
+        # Only reopen that exact legacy state when no recorded judgment remains.
+        stale = candidates.filtered(lambda row: (
+            row.id not in current
+            and row.review_status == "accepted_with_difference"
+            and row.status in {"ready_to_file", "not_applicable"}
+        ))
+        for decision in stale._latest_declaration_reviews(state="superseded").values():
+            if decision.conclusion == "not_applicable":
+                decision.declaration_id._resume_reviewed_filing()
+                decision.declaration_id.action_refresh_preparation()
+
+    def _refresh_existing_filing_controls(self):
+        """Update only open closing workspaces whose tax result can include these filings."""
+        Control = self.env["rebuild.account.closing.control"]
+        for company, filings in self.grouped("company_id").items():
+            dates = [value for value in filings.mapped("deadline_date") if value]
+            earliest_due = min(dates, default=None)
+            fiscal_years = {(row.fiscalyear_start, row.fiscalyear_end) for row in filings}
+            domain = [
+                ("company_id", "=", company.id), ("code", "=", "tax_declarations"),
+                ("definition_id.evaluator_key", "=", "tax_declarations"),
+                ("closing_period_id.state", "not in", ["closed", "archived"]),
+            ]
+            if company.fiscalyear_lock_date:
+                domain.append(("closing_period_id.date_to", ">", company.fiscalyear_lock_date))
+            for control in Control.search(domain):
+                closing = control.closing_period_id
+                due_by_close = earliest_due and earliest_due <= closing.date_to
+                annual_scope = (
+                    closing.period_type == "annual"
+                    and (closing.fiscalyear_start, closing.fiscalyear_end) in fiscal_years
+                )
+                if due_by_close or annual_scope:
+                    closing._refresh_controls(filing_control=control)
+
+    @api.model
+    def _calendar_history_domain(self, company):
+        terminal = ("status", "in", ["filed", "paid", "archived"])
+        if company.fiscalyear_lock_date:
+            return ["|", terminal, ("period_end", "<=", company.fiscalyear_lock_date)]
+        return [terminal]
 
     @api.model
     def _sync_all_profiled_companies(self):
@@ -487,6 +599,11 @@ class RebuildAccountDeclaration(models.Model):
             ("period_end", "=", period_end),
             ("instalment_number", "=", instalment_number),
         ], limit=1)
+        if declaration and (
+            declaration.filtered_domain(self._calendar_history_domain(company))
+            or (declaration.status == "not_applicable" and declaration._with_recorded_review())
+        ):
+            return declaration
         suffix = f" - instalment {instalment_number}" if instalment_number else ""
         period_label = (
             f"{fields.Date.to_string(period_start)} to {fields.Date.to_string(period_end)}"
@@ -510,6 +627,12 @@ class RebuildAccountDeclaration(models.Model):
             "portal_entry_guidance": rule.filing_guidance,
         }
         if declaration:
+            # A previously (and perhaps mistakenly) superseded open row must
+            # become preparable again when its obligation re-enters the schedule.
+            # Keep any recorded accountant judgment intact, and never reopen a
+            # period that a fiscal-year lock already covers.
+            if declaration.status == "not_applicable":
+                vals["status"] = "to_prepare"
             declaration.write(vals)
         else:
             declaration = self.create({

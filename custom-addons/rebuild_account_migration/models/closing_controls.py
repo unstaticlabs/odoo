@@ -521,7 +521,11 @@ class RebuildAccountClosingControl(models.Model):
             action["context"]["search_default_group_by_account"] = 1
             return action
         if self.code == "tax_declarations":
-            return closing.action_open_declarations()
+            return self._action(
+                "Declarations Requiring Attention", "rebuild.account.declaration",
+                [("id", "in", closing._filings_requiring_attention().ids)],
+                "list,form,calendar",
+            )
         if self.code == "issues":
             return self._action("Accounting Hygiene", "rebuild.account.hygiene.issue", [
                 ("company_id", "=", self.company_id.id),

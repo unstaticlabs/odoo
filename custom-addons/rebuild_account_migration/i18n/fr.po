@@ -7033,6 +7033,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_assurance_decision__conclusion__not_applicable
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_closing_control__status__not_applicable
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__applicability__not_applicable
+#: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__review_status__not_applicable
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__status__not_applicable
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__next_declaration_status__not_applicable
 msgid "Not Applicable"

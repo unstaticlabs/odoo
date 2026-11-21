@@ -499,7 +499,7 @@ false
 | **Prefilled Line Count** (`prefilled_line_count`) | integer |  |  |
 | **Preparation Status** (`preparation_status`) | selection | yes | Values: **Missing Data**, **Ready for Review**, **Reviewed**, **Not Required**. |
 | **Refund Amount** (`refund_amount`) | monetary |  |  |
-| **Review Status** (`review_status`) | selection | yes | Values: **Not Started**, **Internal Review Ready**, **Accountant Review Requested**, **Accepted by Reviewer**, **Accepted with Difference**, **Rejected / Changes Required**. |
+| **Review Status** (`review_status`) | selection | yes | Values: **Not Started**, **Internal Review Ready**, **Accountant Review Requested**, **Accepted by Reviewer**, **Accepted with Difference**, **Not Applicable**, **Rejected / Changes Required**. |
 | **Rule** (`rule_id`) | many2one → `rebuild.account.declaration.rule` | yes |  |
 | **Version** (`rule_version`) | char |  |  |
 | **Status** (`status`) | selection | yes | Values: **To Prepare**, **Data Missing**, **Ready for Internal Review**, **Ready for Accountant Review**, **Accountant Reviewed**, **Ready to File Externally**, **Filed Externally**, **Paid / Refunded**, **Archived**, **Blocked**, **Not Applicable**. |
