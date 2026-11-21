@@ -2158,7 +2158,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card">
                                         <div class="o_usl_overview_status">
-                                            <h4 class="o_usl_overview_card_title">Actionable issues</h4>
+                                            <h4 class="o_usl_overview_card_title">Open hygiene findings</h4>
                                             <field
                                                 name="hygiene_status"
                                                 nolabel="1"
@@ -2175,7 +2175,7 @@
                                             </span>
                                         </div>
                                         <span class="o_usl_overview_value"><field name="hygiene_issue_count" nolabel="1"/></span>
-                                        <div class="o_usl_overview_detail">Deterministic recommendations linked directly to records that need review.</div>
+                                        <div class="o_usl_overview_detail">All dates and severities, including information. The closing workspace counts actionable findings through its end date.</div>
                                         <button name="action_open_hygiene_issues" type="object" string="Review Accounting Hygiene" class="btn-link"/>
                                     </div>
                                 </div>
@@ -2327,7 +2327,7 @@
                         type="object"
                         string="Current Closing Controls"
                         invisible="not latest_closing_period_id"/>
-                    <button name="action_open_hygiene_issues" type="object" string="Actionable Issues"/>
+                    <button name="action_open_hygiene_issues" type="object" string="Open Hygiene Findings"/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                 </header>
                 <sheet>
@@ -2371,7 +2371,7 @@
                             <field name="unusual_balance_count" widget="statinfo" string="Unusual Balances"/>
                         </button>
                         <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="hygiene_issue_count" widget="statinfo" string="Actionable Issues"/>
+                            <field name="hygiene_issue_count" widget="statinfo" string="Open Hygiene Findings"/>
                         </button>
                     </div>
                     <group>

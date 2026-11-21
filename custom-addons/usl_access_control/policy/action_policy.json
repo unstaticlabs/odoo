@@ -16474,7 +16474,7 @@
         "rpc:rebuild.account.bank.reconciliation.line.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:rebuild.account.bank.reconciliation.line.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:rebuild.account.closing.control.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
-        "rpc:rebuild.account.closing.control.action_open_records": "8e2e2ea3fefb3ad1f1206e41e79436b77a56a8b10cb5e0d929620210d899ae16",
+        "rpc:rebuild.account.closing.control.action_open_records": "8ce0d589207095b79084580d45818d2542f1992a4dcfb6cc313c86f8fff68f86",
         "rpc:rebuild.account.closing.control.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:rebuild.account.closing.control.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:rebuild.account.closing.control.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
@@ -186529,6 +186529,7 @@
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_closing_package:2",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_declarations:1",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_records:1",
+        "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_records:2",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_snapshots:1",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_prepare:1",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_record_review_decision:1",
@@ -188324,6 +188325,11 @@
             "rpc:rebuild.account.closing.control.action_open_records"
           ]
         },
+        "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_records:2": {
+          "targets": [
+            "rpc:rebuild.account.closing.control.action_open_records"
+          ]
+        },
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_snapshots:1": {
           "targets": [
             "rpc:rebuild.account.closing.period.action_open_snapshots"
@@ -189764,6 +189770,7 @@
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_closing_package:2": "42eaba24d490d836d5ceef01945c7a8ffea0e96b564e18d46dbae2e1e7ebaf93",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_declarations:1": "4edd8aece16d608d864451799777cf9b8b62d4ec9d936020aaf36ad154a63d54",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_records:1": "3795d87a7cbcc8c8fc5d254bd59781ae81c64bb56aebbc0bf7de89db516b949e",
+        "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_records:2": "ec565497b2f74e9a2192f15cf9eaa94865572c73b603796fe9d6ceeea193fb28",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_open_snapshots:1": "c5ac4f51176fcaef7038b5679cc2e2f277e45af29fe48985ceaf05c2e2feda13",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_prepare:1": "202e93b12e3828cc21924b5c416ba043de409c8f28ecf64d3561ad26c189f4b9",
         "ui:rebuild_account_migration.view_rebuild_account_closing_form:button:object:action_record_review_decision:1": "1640ea1f00d549fd04465232a37b7da5cc3693f54d9cf81dbeb12092f7bb27b4",
@@ -189812,8 +189819,8 @@
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_accountant_actions:1": "64c96280b7d1c8d3daba281a154d2c4bdcb43939e88d31fd228074f243431cb1",
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_bank_matching:1": "3e0681ba478b033bb2bb6009521397e7da54bbe23ca31e5d45d47ffd6be9128f",
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_bank_matching:2": "45ac63243e197a0156e577ff89d1e94b6fd8bdad265c5c2f9445518cbad4a775",
-        "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_hygiene_issues:1": "f98d98f6b3de48b20f45fa4ad082432aba2368a266d859f5d321d1e2fd575b54",
-        "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_hygiene_issues:2": "b30fe8248649f6e7702517c1fad2cb1f9b68b7002967f13904b7700ee1848967",
+        "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_hygiene_issues:1": "5986dd6e60d1cf5e6badfb473310278a380080f1a596a46383ec28d0504ba505",
+        "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_hygiene_issues:2": "ba46e2a0e3804c7455aa2733983864e238db50b57bee7b13d684282f0dcee80b",
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_latest_closing_controls:1": "82b6109528273dc58473e7d4dc043155ecf48c0e21f5079e9d2e403b539e8ead",
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_missing_expense_attachments:1": "fe76758cc2a54eafc743b8fbfe1c7d06515a16a8638d4cfd6755cae0feeeb27d",
         "ui:rebuild_account_migration.view_rebuild_account_hygiene_form:button:object:action_open_missing_expense_attachments:2": "018ead493c9cf17b3970a5b63392ef543efcb232bd206a007012c050d0188857",

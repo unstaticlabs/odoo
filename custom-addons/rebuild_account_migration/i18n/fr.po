@@ -5134,8 +5134,9 @@ msgstr ""
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_control_list
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control__review_finding
 msgid "Finding"
-msgstr "Trouver"
+msgstr "Constat"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_hygiene_issue__first_detected_at
@@ -9967,6 +9968,7 @@ msgstr "Rôle responsable"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_list
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control__review_result
 msgid "Result"
 msgstr "Résultat"
 
@@ -13649,3 +13651,111 @@ msgstr "Journaux archivés utilisés pour la clôture annuelle"
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_overview__open_annual_closing_id
 msgid "Latest ended financial year with a closing workspace still open."
 msgstr "Dernier exercice terminé dont le dossier de clôture est encore ouvert."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Export available"
+msgstr "Export disponible"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Review file contents separately. Accepted files are listed under Accepted Snapshots."
+msgstr "Vérifiez séparément le contenu du fichier. Les pièces acceptées figurent dans les instantanés acceptés."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Check Documents for supporting files that are not linked as the main attachment."
+msgstr "Consultez Documents pour retrouver les justificatifs qui ne sont pas associés comme pièce principale."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Open findings through the closing date, including undated findings."
+msgstr "Constats ouverts à la date de clôture, y compris les constats sans date."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Open hygiene findings"
+msgstr "Constats d’hygiène ouverts"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__hygiene_issue_count
+msgid "Open Hygiene Findings"
+msgstr "Constats d’hygiène ouverts"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__hygiene_attention_count
+msgid "Operational Attention Items"
+msgstr "Alertes opérationnelles"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_overview__hygiene_attention_count
+msgid "Company-wide reminders across banking, documents, expenses, declarations and closing. One record can trigger several reminders."
+msgstr "Alertes de la société pour la banque, les documents, les dépenses, les déclarations et la clôture. Une opération peut déclencher plusieurs alertes."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "All dates and severities, including information. The closing workspace counts actionable findings through its end date."
+msgstr "Toutes dates et gravités, informations comprises. La clôture compte les constats à traiter jusqu’à sa date de fin."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_evaluators.py:0
+msgid "Draft invoices and credit notes: %(drafts)s. Posted without a main attachment: %(missing)s."
+msgstr "Factures et avoirs en brouillon : %(drafts)s. Comptabilisés sans pièce principale : %(missing)s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_evaluators.py:0
+msgid "Actionable: %(actionable)s. Information: %(information)s. Blocking: %(blocking)s."
+msgstr "À traiter : %(actionable)s. Informatifs : %(information)s. Bloquants : %(blocking)s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_evaluators.py:0
+msgid "Available reports: %(ready)s of %(total)s."
+msgstr "Rapports disponibles : %(ready)s sur %(total)s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_evaluators.py:0
+msgid "Posted entries in the period: %(count)s."
+msgstr "Écritures comptabilisées sur la période : %(count)s."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_evaluators.py:0
+msgid "The FEC export tool is unavailable."
+msgstr "L’assistant d’export FEC est indisponible."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Document completeness"
+msgstr "Pièces des factures"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "FEC readiness"
+msgstr "Export FEC"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Accounting Hygiene issues"
+msgstr "Hygiène comptable"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Closing reports"
+msgstr "Rapports de clôture"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control__review_name
+msgid "Control"
+msgstr "Contrôle"

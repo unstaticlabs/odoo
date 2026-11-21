@@ -36,3 +36,11 @@ also drive reports, FEC defaults, cash/tax projections, analytics and
 accounting spreadsheets. Accountant review can be recorded, but its absence
 does not prevent the internal product from preparing a complete, reproducible
 closing package.
+
+## Reading control results
+
+**Export available** means an accountant can open the reporting or FEC tool. Review opens it for the closing company and dates. Compare the generated files with the books before accepting their content. FEC opens in test mode. In **Accepted Snapshots**, open the actual package file and its recorded review decision to see which files a reviewer accepted.
+
+**Document completeness** counts draft invoices and credit notes and posted documents without a main attachment. Review opens the affected documents. A supporting file may already exist in Documents without being linked as the main attachment.
+
+**Accounting Hygiene** in a close counts open actionable findings through the end date, including undated findings. The company overview includes informational findings and all dates. Its operational reminders also cover banking, missing attachments, outstanding declarations and decisions; one item can prompt several reminders.
