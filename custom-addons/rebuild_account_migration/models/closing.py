@@ -305,6 +305,7 @@ class RebuildAccountClosingPeriod(models.Model):
     information_count = fields.Integer(compute="_compute_control_counts")
     technical_failure_count = fields.Integer(compute="_compute_control_counts")
     passed_count = fields.Integer(compute="_compute_control_counts")
+    available_export_count = fields.Integer(string="Of Which Export Availability Checks", compute="_compute_control_counts")
     readiness_summary = fields.Text()
     actions_awaiting_valentin = fields.Text()
     accountant_information = fields.Text()
@@ -330,7 +331,7 @@ class RebuildAccountClosingPeriod(models.Model):
     closed_at = fields.Datetime(readonly=True)
     closed_by_id = fields.Many2one("res.users", readonly=True)
 
-    @api.depends("control_line_ids", "control_line_ids.status")
+    @api.depends("control_line_ids", "control_line_ids.status", "control_line_ids.code")
     def _compute_control_counts(self):
         for closing in self:
             closing.blocking_count = len(closing.control_line_ids.filtered(lambda line: line.status == "block"))
@@ -343,7 +344,9 @@ class RebuildAccountClosingPeriod(models.Model):
                     lambda line: line.status == "technical_error",
                 ),
             )
-            closing.passed_count = len(closing.control_line_ids.filtered(lambda line: line.status == "pass"))
+            passed = closing.control_line_ids.filtered(lambda line: line.status == "pass")
+            closing.passed_count = len(passed)
+            closing.available_export_count = len(passed.filtered(lambda line: line.code in {"reports", "fec"}))
 
     @api.depends("snapshot_ids")
     def _compute_snapshot_count(self):
@@ -496,11 +499,9 @@ class RebuildAccountClosingPeriod(models.Model):
             control for control in controls if control["status"] == "technical_error"
         ]
         information = [control for control in controls if control["status"] == "info"]
-        passed_or_not_applicable = [
-            control
-            for control in controls
-            if control["status"] in {"pass", "not_applicable"}
-        ]
+        passed = [control for control in controls if control["status"] == "pass"]
+        available_exports = sum(control["code"] in {"reports", "fec"} for control in passed)
+        not_applicable = sum(control["status"] == "not_applicable" for control in controls)
         readiness = (
             "blocked"
             if blocking or technical_failures
@@ -516,11 +517,12 @@ class RebuildAccountClosingPeriod(models.Model):
         accountant = [control["summary"] for control in controls if control.get("accountant_visible")]
         vals = {
             "readiness_status": readiness,
-            "readiness_summary": (
-                f"{len(blocking)} accounting blocker(s), "
-                f"{len(technical_failures)} technical failure(s), "
-                f"{len(warnings)} warning(s), {len(information)} information item(s), "
-                f"{len(passed_or_not_applicable)} passed/not-applicable control(s)."
+            "readiness_summary": self.env._(
+                "Blockers: %(blocks)s. Technical failures: %(errors)s. Warnings: %(warnings)s. "
+                "Information: %(info)s. Passed: %(passed)s, including %(exports)s export availability checks. "
+                "Not applicable: %(na)s.",
+                blocks=len(blocking), errors=len(technical_failures), warnings=len(warnings),
+                info=len(information), passed=len(passed), exports=available_exports, na=not_applicable,
             ),
             "actions_awaiting_valentin": "\n".join(actions),
             "accountant_information": "\n".join(accountant),

@@ -686,6 +686,7 @@
                             <field name="warning_count"/>
                             <field name="information_count"/>
                             <field name="passed_count"/>
+                            <field name="available_export_count" invisible="not available_export_count"/>
                         </group>
                     </group>
                     <notebook>

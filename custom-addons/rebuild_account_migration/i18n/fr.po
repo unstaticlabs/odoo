@@ -13759,3 +13759,25 @@ msgstr "Rapports de clôture"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_control__review_name
 msgid "Control"
 msgstr "Contrôle"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "This export is unavailable. Ask an administrator to restore the reporting tool, then try again."
+msgstr "Cet export est indisponible. Demandez à un administrateur de rétablir l’outil avant de réessayer."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__available_export_count
+msgid "Of Which Export Availability Checks"
+msgstr "Dont contrôles de disponibilité des exports"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_l10n_fr_fec_export_wizard__rebuild_closing_company_id
+msgid "Closing Company"
+msgstr "Société de clôture"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing.py:0
+msgid "Blockers: %(blocks)s. Technical failures: %(errors)s. Warnings: %(warnings)s. Information: %(info)s. Passed: %(passed)s, including %(exports)s export availability checks. Not applicable: %(na)s."
+msgstr "Blocages : %(blocks)s. Échecs techniques : %(errors)s. Avertissements : %(warnings)s. Informations : %(info)s. Contrôles réussis : %(passed)s, dont %(exports)s sur la disponibilité des exports. Sans objet : %(na)s."

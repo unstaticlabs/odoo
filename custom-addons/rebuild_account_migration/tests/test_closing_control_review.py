@@ -1,5 +1,6 @@
 from datetime import date
 
+from odoo.exceptions import UserError
 from odoo.tests import tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
@@ -77,3 +78,20 @@ class TestClosingControlReview(AccountTestInvoicingCommon):
         self.assertEqual(set(issues.search(control.action_open_records()["domain"]).mapped("issue_key")), {"before", "undated"})
         overview.invalidate_recordset(["hygiene_issue_count"])
         self.assertEqual(overview.hygiene_issue_count, before + 3)
+
+    def test_summary_counts_export_availability_within_the_successful_checks(self):
+        for code in ("reports", "fec", "document_completeness"):
+            self.result(code)
+        self.assertEqual(self.period.passed_count, 3)
+        self.assertEqual(self.period.available_export_count, 2)
+
+    def test_review_explains_when_the_export_tool_is_unavailable(self):
+        xml_id = self.env["ir.model.data"].search([
+            ("module", "=", "rebuild_account_migration"), ("name", "=", "action_rebuild_account_report_export_fec"),
+        ])
+        self.assertTrue(xml_id)
+        xml_id.unlink()
+        control = self.result("fec")
+        self.assertEqual(control.status, "block")
+        with self.assertRaisesRegex(UserError, "This export is unavailable"):
+            control.action_open_records()

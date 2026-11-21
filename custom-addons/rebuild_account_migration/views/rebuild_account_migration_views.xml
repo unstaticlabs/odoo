@@ -3949,6 +3949,9 @@
         <field name="model">l10n_fr.fec.export.wizard</field>
         <field name="inherit_id" ref="l10n_fr_account.fec_export_wizard_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_from']" position="before">
+                <field name="rebuild_closing_company_id" invisible="not rebuild_closing_company_id" options="{'no_open': True}"/>
+            </xpath>
             <xpath expr="//field[@name='test_file']" position="before">
                 <field name="rebuild_can_generate_official_fec" invisible="1"/>
             </xpath>

@@ -39,7 +39,7 @@ closing package.
 
 ## Reading control results
 
-**Export available** means an accountant can open the reporting or FEC tool. Review opens it for the closing company and dates. Compare the generated files with the books before accepting their content. FEC opens in test mode. In **Accepted Snapshots**, open the actual package file and its recorded review decision to see which files a reviewer accepted.
+**Export available** means an accountant can open the reporting or FEC tool. Review opens it for the closing company and dates. Compare the generated files with the books before accepting their content. FEC opens in test mode. Its download keeps the closing company, including when another company is selected in the browser. The readiness summary shows how many successful checks establish only export availability. In **Accepted Snapshots**, open the actual package file and its recorded review decision to see which files a reviewer accepted.
 
 **Document completeness** counts draft invoices and credit notes and posted documents without a main attachment. Review opens the affected documents. A supporting file may already exist in Documents without being linked as the main attachment.
 

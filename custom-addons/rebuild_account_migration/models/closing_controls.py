@@ -564,9 +564,13 @@ class RebuildAccountClosingControl(models.Model):
             ])
         if self.code in ("reports", "fec"):
             action_name = "fec" if self.code == "fec" else "wizard"
-            action = self.env["ir.actions.actions"]._for_xml_id(
+            export = self.env.ref(
                 f"rebuild_account_migration.action_rebuild_account_report_export_{action_name}",
+                raise_if_not_found=False,
             )
+            action = export._get_action_dict() if export else {}
+            if action.get("res_model") not in self.env.registry:
+                raise UserError(self.env._("This export is unavailable. Ask an administrator to restore the reporting tool, then try again."))
             # Both native actions have a literal default context. Preserve the FEC test mode.
             action["context"] = {
                 **literal_eval(action["context"]),
@@ -575,7 +579,12 @@ class RebuildAccountClosingControl(models.Model):
                 "default_date_to": fields.Date.to_string(closing.date_to),
             }
             if self.code == "reports":
-                action["context"].update(default_company_id=closing.company_id.id, default_closing_period_id=closing.id)
+                action["context"].update(
+                    default_company_id=closing.company_id.id,
+                    default_closing_period_id=closing.id,
+                )
+            else:
+                action["context"]["default_rebuild_closing_company_id"] = closing.company_id.id
             return action
         return self._action("Closing Journal Items", "account.move.line", [
             ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from), ("date", "<=", closing.date_to),
