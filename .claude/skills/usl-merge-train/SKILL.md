@@ -276,7 +276,7 @@ successful `production-release` deployment.
 is out of the chain, not merely late: use it when you reverted the PR or blocked
 it, never for a batch that is simply still in flight.
 
-**Keep `usl_feedback_pr_url` current on each card the train moves.** A revert, a
+**Keep `github_url` current on each card the train moves.** A revert, a
 fix-forward or a replacement pull request takes over the field, and the chatter note
 names the previous one. Read every moved card back before you report; a merged pull
 request on a card with an empty field is a defect of the train.

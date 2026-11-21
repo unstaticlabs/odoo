@@ -957,7 +957,7 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.maintainer).write(
             {
                 "usl_feedback_branch": "feat/delivery",
-                "usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/1",
+                "github_url": "https://github.com/unstaticlabs/odoo/pull/1",
                 "usl_feedback_score": 4.2,
                 "usl_feedback_tokens": 1500,
             },
@@ -966,7 +966,7 @@ class TestProductFeedback(TransactionCase):
             [
                 "state",
                 "usl_feedback_branch",
-                "usl_feedback_pr_url",
+                "github_url",
                 "usl_feedback_score",
                 "usl_feedback_tokens",
                 "allocated_hours",
@@ -974,15 +974,68 @@ class TestProductFeedback(TransactionCase):
         )[0]
         self.assertEqual(read["state"], "01_in_progress")
         self.assertEqual(read["usl_feedback_branch"], "feat/delivery")
-        self.assertEqual(read["usl_feedback_pr_url"], "https://github.com/unstaticlabs/odoo/pull/1")
+        self.assertEqual(read["github_url"], "https://github.com/unstaticlabs/odoo/pull/1")
         self.assertEqual(read["usl_feedback_score"], 4.2)
         self.assertEqual(read["usl_feedback_tokens"], 1500)
+
+    def test_feedback_form_shows_the_generic_link_not_the_deprecated_pull_request(self):
+        arch = self.env["project.task"].get_view(
+            self.env.ref("usl_feedback.view_feedback_task_form_collaborator").id,
+        )["arch"]
+        self.assertIn('name="github_url"', arch)
+        self.assertNotIn('name="usl_feedback_pr_url"', arch)
+        field = self.env["project.task"]._fields["usl_feedback_pr_url"]
+        self.assertIn("Deprecated", field.string + (field.help or ""))
+
+    def test_pull_request_migration_fills_only_an_empty_link(self):
+        migration_path = (
+            Path(get_module_path("usl_feedback"))
+            / "migrations"
+            / "saas~19.3.2.0.20"
+            / "post-link-from-pull-request.py"
+        )
+        spec = importlib.util.spec_from_file_location("usl_feedback_post_link", migration_path)
+        migration = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(migration)
+        Task = self.env["project.task"].sudo()
+        plain_project = self.env["project.project"].sudo().create({"name": "[QA Link] Plain project"})
+        old_url = "https://github.com/unstaticlabs/odoo/pull/10"
+        kept_url = "https://example.com/deploy/1"
+        empty, unset, filled, same, no_pr = (
+            Task.create({"name": f"[QA Link] {name}", "project_id": plain_project.id})
+            for name in ("empty", "unset", "filled", "same", "no pr")
+        )
+        empty.usl_feedback_pr_url = old_url
+        empty.github_url = ""
+        unset.usl_feedback_pr_url = old_url
+        filled.usl_feedback_pr_url = old_url
+        filled.github_url = kept_url
+        same.usl_feedback_pr_url = old_url
+        same.github_url = old_url
+        no_pr.github_url = kept_url
+        tasks = empty | unset | filled | same | no_pr
+        tasks.flush_recordset()
+        copied, kept = migration.copy_pull_request_urls(self.env.cr)
+        tasks.invalidate_recordset()
+        self.assertEqual(empty.github_url, old_url)
+        self.assertEqual(unset.github_url, old_url)
+        self.assertEqual(filled.github_url, kept_url)
+        self.assertEqual(same.github_url, old_url)
+        self.assertEqual(no_pr.github_url, kept_url)
+        self.assertEqual(filled.usl_feedback_pr_url, old_url)
+        self.assertGreaterEqual(copied, 2)
+        self.assertGreaterEqual(kept, 1)
+        # A second run is a no-op on the rows above.
+        migration.copy_pull_request_urls(self.env.cr)
+        tasks.invalidate_recordset()
+        self.assertEqual(filled.github_url, kept_url)
+        self.assertEqual(empty.github_url, old_url)
 
     def test_ordinary_internal_user_cannot_write_delivery_metadata(self):
         task, _payload = self._submit()
         for values in (
             {"usl_feedback_branch": "feat/forged"},
-            {"usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/2"},
+            {"github_url": "https://github.com/unstaticlabs/odoo/pull/2"},
             {"usl_feedback_score": 9.9},
             {"usl_feedback_tokens": 1},
             {"state": "03_approved"},
@@ -993,7 +1046,7 @@ class TestProductFeedback(TransactionCase):
         # Every attempt above must have been rejected before it touched the
         # column: none of the forged values reached the record.
         self.assertFalse(task.usl_feedback_branch)
-        self.assertFalse(task.usl_feedback_pr_url)
+        self.assertFalse(task.github_url)
         self.assertFalse(task.usl_feedback_score)
         self.assertFalse(task.usl_feedback_tokens)
 
@@ -1002,7 +1055,7 @@ class TestProductFeedback(TransactionCase):
         task.with_user(self.maintainer).write(
             {
                 "usl_feedback_branch": "feat/delivery",
-                "usl_feedback_pr_url": "https://github.com/unstaticlabs/odoo/pull/1",
+                "github_url": "https://github.com/unstaticlabs/odoo/pull/1",
                 "usl_feedback_score": 4.2,
                 "usl_feedback_tokens": 1500,
                 "allocated_hours": 3.5,
@@ -1010,7 +1063,7 @@ class TestProductFeedback(TransactionCase):
             },
         )
         self.assertEqual(task.usl_feedback_branch, "feat/delivery")
-        self.assertEqual(task.usl_feedback_pr_url, "https://github.com/unstaticlabs/odoo/pull/1")
+        self.assertEqual(task.github_url, "https://github.com/unstaticlabs/odoo/pull/1")
         self.assertEqual(task.usl_feedback_score, 4.2)
         self.assertEqual(task.usl_feedback_tokens, 1500)
         self.assertEqual(task.allocated_hours, 3.5)

@@ -305,7 +305,7 @@ ask about, make the most conservative call that still delivers something, write
 down the decision and the alternatives you rejected, and put it in the handoff.
 Never stall waiting for an answer that cannot come.
 
-Put the pull request URL in `usl_feedback_pr_url` (label "Pull request") and the
+Put the pull request URL in `github_url` (label "Link") and the
 branch in `usl_feedback_branch` on every card of the cluster, as soon as the pull
 request exists. When there is no pull request, use whichever external URL shows the
 work. The field is how a reader opens the work from the card; Valentin had to add it

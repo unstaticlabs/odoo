@@ -158,7 +158,7 @@
                     </group>
                     <group string="Delivery">
                         <field name="usl_feedback_branch" readonly="1"/>
-                        <field name="usl_feedback_pr_url" widget="url" text="Open pull request" readonly="1"/>
+                        <field name="github_url" widget="url" text="Open link" readonly="1"/>
                         <field name="usl_feedback_score" readonly="1"/>
                         <field name="usl_feedback_tokens" readonly="1"/>
                         <field name="allocated_hours" readonly="1"/>
@@ -208,7 +208,7 @@
             <field name="usl_feedback_branch" position="attributes">
                 <attribute name="readonly">0</attribute>
             </field>
-            <field name="usl_feedback_pr_url" position="attributes">
+            <field name="github_url" position="attributes">
                 <attribute name="readonly">0</attribute>
             </field>
             <field name="usl_feedback_score" position="attributes">

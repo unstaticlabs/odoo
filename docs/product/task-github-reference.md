@@ -1,15 +1,25 @@
-# GitHub references on tasks
+# Task link
 
-Use **GitHub URL** on a task to keep its canonical issue, pull request or
-repository link. The form uses Odoo's native URL field: save the complete URL
-and use its link control to open it. A populated task card shows a compact
-**GitHub** link rather than the full address. Empty tasks do not show a card
-link. Task access and company rules apply normally.
+Use **Link** on a task to keep the main link to this work in another system: a
+pull request, an issue, a document, a deploy run. The form uses Odoo's native
+URL field: save the complete URL and use its link control to open it. A
+populated task card shows a compact **Link** rather than the full address. Empty
+tasks do not show a card link. Task access and company rules apply normally.
+The feedback card shows the same field in its Delivery group.
 
 The field is `project.task.github_url`, a normal Char field available to views,
-search and generic model APIs. Odoo's existing URL widget already supplies the
-reusable presentation; this feature adds no parallel URL type or GitHub service.
-It does not fetch GitHub metadata or synchronize issue state.
+search and generic model APIs. The technical name predates the generic label and
+is kept so no column is renamed. Odoo's existing URL widget already supplies the
+reusable presentation; this feature adds no parallel URL type or external
+service. It does not fetch metadata, validate the address or synchronize state.
+
+## Deprecated pull request field
+
+The feedback card used to carry its own **Pull request** field,
+`usl_feedback_pr_url`. It is deprecated: its values are copied into **Link**
+when Link is empty (never over an existing Link) by the `usl_feedback` upgrade
+to `saas~19.3.2.0.20`, and no screen or agent reads it any more. The column
+stays in place for history.
 
 ## Existing GitHub properties
 
@@ -36,8 +46,8 @@ permissions beyond native task access.
 
 ## Upgrade and maintenance
 
-`usl_project` version `saas~19.3.1.0.13` supplies the new field and a versioned
-post-migration. The same idempotent transition runs when the module is first
+`usl_project` version `saas~19.3.1.0.13` supplied the field and a versioned
+post-migration; version `saas~19.3.1.0.19` reruns it for values still unmigrated and logs the count. The same idempotent transition runs when the module is first
 installed on an existing database. It writes only a missing `github_url`; it
 never writes `task_properties` or `task_properties_definition`.
 

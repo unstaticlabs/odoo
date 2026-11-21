@@ -131,7 +131,9 @@ class ProjectTask(models.Model):
         string="Delivery branch", copy=False,
     )
     usl_feedback_pr_url = fields.Char(
-        string="Pull request", copy=False,
+        string="Pull request (deprecated)", copy=False,
+        help="Deprecated: use the generic Link field (github_url). Kept for history; "
+             "no screen or tool reads it any more.",
     )
     usl_feedback_score = fields.Float(
         string="Score", copy=False, store=True, index=True,

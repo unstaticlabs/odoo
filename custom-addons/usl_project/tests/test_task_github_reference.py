@@ -50,7 +50,7 @@ class TestTaskGithubReference(TransactionCase):
         self.assertTrue(form.xpath("//field[@name='github_url'][@widget='url']"))
         self.assertTrue(form.xpath("//field[@name='task_properties'][@widget='usl_task_properties']"))
         card = etree.fromstring(self.env["project.task"].get_view(view_type="kanban")["arch"])
-        self.assertTrue(card.xpath("//field[@name='github_url'][@widget='url'][@text='GitHub']"))
+        self.assertTrue(card.xpath("//field[@name='github_url'][@widget='url'][@text='Link']"))
 
     def test_migration_preserves_legacy_data_and_is_idempotent(self):
         task = self._task("https://github.com/example/demo/issues/42")
