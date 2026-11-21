@@ -14,13 +14,20 @@ class RebuildAccountOverview(models.Model):
     name = fields.Char(readonly=True)
     company_id = fields.Many2one("res.company", readonly=True)
     currency_id = fields.Many2one("res.currency", readonly=True)
-    posted_move_count = fields.Integer(readonly=True)
+    posted_move_count = fields.Integer(string="Posted Entries (All Dates)", readonly=True)
     move_line_count = fields.Integer(readonly=True)
     debit = fields.Monetary(currency_field="currency_id", readonly=True)
     credit = fields.Monetary(currency_field="currency_id", readonly=True)
     balance = fields.Monetary(currency_field="currency_id", readonly=True)
-    journal_count = fields.Integer(readonly=True)
-    cash_journal_count = fields.Integer(readonly=True)
+    journal_count = fields.Integer(string="Active Journals", readonly=True)
+    cash_journal_count = fields.Integer(string="Active Bank and Cash Journals", readonly=True)
+    open_annual_closing_id = fields.Many2one(
+        "rebuild.account.closing.period", string="Open Annual Close", readonly=True,
+        help="Latest ended financial year with a closing workspace still open.",
+    )
+    annual_posted_move_count = fields.Integer(string="Posted Entries in the Annual Close", readonly=True)
+    annual_journal_count = fields.Integer(string="Journals Used in the Annual Close", readonly=True)
+    annual_archived_journal_count = fields.Integer(string="Archived Journals Used in the Annual Close", readonly=True)
     bank_balance = fields.Monetary(
         string="Bank and Cash Balance",
         currency_field="currency_id",
@@ -264,6 +271,10 @@ class RebuildAccountOverview(models.Model):
                        COALESCE(operational.open_receivable_amount, 0.00) AS open_receivable_amount,
                        COALESCE(operational.open_payable_count, 0) AS open_payable_count,
                        COALESCE(operational.open_payable_amount, 0.00) AS open_payable_amount,
+                       annual.id AS open_annual_closing_id,
+                       coverage.posted_moves AS annual_posted_move_count,
+                       coverage.journals AS annual_journal_count,
+                       coverage.archived_journals AS annual_archived_journal_count,
                        latest_closing.id AS latest_closing_period_id,
                        latest_closing.date_to AS latest_closing_date_to,
                        latest_closing.state AS latest_closing_state,
@@ -531,6 +542,26 @@ class RebuildAccountOverview(models.Model):
                              END
                        LIMIT 1
                   ) latest_closing ON TRUE
+                  LEFT JOIN LATERAL (
+                      SELECT id, date_from, date_to
+                        FROM rebuild_account_closing_period
+                       WHERE company_id = company.id AND period_type = 'annual'
+                         AND state NOT IN ('closed', 'archived')
+                         AND date_to <= CURRENT_DATE
+                       ORDER BY date_to DESC, date_from DESC, id DESC
+                       LIMIT 1
+                  ) annual ON TRUE
+                  LEFT JOIN LATERAL (
+                      SELECT count(*)::integer AS posted_moves,
+                             count(DISTINCT move.journal_id)::integer AS journals,
+                             (count(DISTINCT move.journal_id) FILTER (
+                                 WHERE journal.active IS FALSE
+                             ))::integer AS archived_journals
+                        FROM account_move move
+                        JOIN account_journal journal ON journal.id = move.journal_id
+                       WHERE move.company_id = company.id AND move.state = 'posted'
+                         AND move.date BETWEEN annual.date_from AND annual.date_to
+                  ) coverage ON TRUE
                   LEFT JOIN LATERAL (
                       SELECT declaration.id,
                              declaration.deadline_date,

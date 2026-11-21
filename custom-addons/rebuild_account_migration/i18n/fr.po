@@ -7054,7 +7054,7 @@ msgstr "Pas dû"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_declaration__validation_status__not_run
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_overview__latest_closing_readiness__not_run
 msgid "Not Run"
-msgstr "Ne pas courir"
+msgstr "À vérifier"
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_closing_period__review_status__not_started
@@ -13589,3 +13589,63 @@ msgstr "Chevauchements possibles"
 #: code:addons/rebuild_account_migration/models/reconciliation_model_intelligence.py:0
 msgid "Unarchive this suggestion before approving it. Use Unarchive in the action menu."
 msgstr "Désarchivez cette suggestion avant de l’approuver. Utilisez Désarchiver dans le menu d’actions."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Annual close coverage"
+msgstr "Périmètre de la clôture annuelle"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Posted entries"
+msgstr "Écritures comptabilisées"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Journals used"
+msgstr "Journaux utilisés"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_accounting_home_form
+msgid "Of which archived"
+msgstr "Dont archivés"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__journal_count
+msgid "Active Journals"
+msgstr "Journaux actifs"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__posted_move_count
+msgid "Posted Entries (All Dates)"
+msgstr "Écritures comptabilisées (toutes dates)"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__cash_journal_count
+msgid "Active Bank and Cash Journals"
+msgstr "Journaux de banque et de caisse actifs"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__open_annual_closing_id
+msgid "Open Annual Close"
+msgstr "Clôture annuelle ouverte"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__annual_posted_move_count
+msgid "Posted Entries in the Annual Close"
+msgstr "Écritures comptabilisées de la clôture annuelle"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__annual_journal_count
+msgid "Journals Used in the Annual Close"
+msgstr "Journaux utilisés pour la clôture annuelle"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__annual_archived_journal_count
+msgid "Archived Journals Used in the Annual Close"
+msgstr "Journaux archivés utilisés pour la clôture annuelle"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_overview__open_annual_closing_id
+msgid "Latest ended financial year with a closing workspace still open."
+msgstr "Dernier exercice terminé dont le dossier de clôture est encore ouvert."
