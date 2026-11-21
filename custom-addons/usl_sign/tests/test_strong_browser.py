@@ -172,7 +172,8 @@ class TestSignBrowserJourneys(HttpCase):
 
     def test_request_editor_keeps_pdf_position_while_saving_in_french(self):
         self.browser_size = "992x800"
-        self.workspace_user.lang = "fr_FR"
+        french = self.env["res.lang"]._activate_and_install_lang("fr_FR")
+        self.workspace_user.lang = french.code
         role = self.env.ref("sign_oca.sign_role_customer")
         request = self.env["sign.oca.request"].with_user(self.workspace_user).create({
             "name": "Browser autosave regression",
