@@ -19,3 +19,5 @@ from . import test_report_provisional
 from . import test_fiscal_result_presentation
 from . import test_report_header_cards
 from . import test_report_provisional_surfaces
+
+from . import test_annual_close_scope

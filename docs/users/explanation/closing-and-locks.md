@@ -20,6 +20,8 @@ declarations, FEC availability, evidence and lock dates. Enabled Accounting
 Controls determine what passes, informs, warns or blocks. The same company
 catalogue powers daily Hygiene; a definition can apply to one workflow or both.
 
+The Overview links to the most recently ended annual workspace still open for review. Its figures count entries posted within that financial year, the journals used by those entries and how many of those journals are now archived. The current closing workspace can cover a more recent month or quarter. Open either workspace by name to inspect its dates.
+
 The configured impact controls readiness. **Dynamic** keeps the evaluator's
 contextual result; **Informational** remains visible; **Advisory** creates a
 warning; **Blocking** prevents readiness. A technical failure is shown
