@@ -195,7 +195,7 @@ SESSION_STORE_ANONYMOUS_GRACE_SECONDS = 3600
 # staging runs are the attempt itself.
 CAPTURE_ATTEMPT = re.compile(r"intent-[0-9a-f]{48}\Z")
 PRODUCTION_CAPTURE_PREFIXES = ("release-pre-", "release-candidate-", "release-admitted-")
-STAGING_CAPTURE_KEEP = 2
+STAGING_CAPTURE_KEEP = 1
 # A named Docker volume, so the cache lives on the Docker data root and not on
 # the root filesystem. It holds only restic index and metadata copies.
 RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
@@ -11321,6 +11321,35 @@ def _retain_recovery_proof_captures(target) -> dict:
     return {"status": "applied", "deleted_captures": inventory["delete_captures"]}
 
 
+def _staging_previous_releasable(target, runner, state: dict, current: dict) -> bool:
+    """Return whether staging may delete its previous generation.
+
+    Staging is rebuilt from production snapshots, so once its active release
+    is admitted and the gateway has left maintenance, the previous generation
+    is no longer needed as a rollback target. It stays while the running
+    generation is not the admitted active one, and while the maintenance
+    marker exists: a staging abort, which still runs after admission when
+    public ingress fails, requires that marker and returns to the previous
+    generation. Production always keeps its previous generation.
+    """
+    if target.value["environment"] != "staging":
+        return False
+    generation = state.get("generation")
+    if (
+        not isinstance(generation, str)
+        or not GENERATION_NAME.fullmatch(generation)
+        or generation != current.get("generation")
+    ):
+        return False
+    marker = f"{Path(target.value['state_directory']).parents[1]}/gateway/{target.name}/maintenance"
+    if runner.run(["test", "!", "-e", marker], check=False).returncode:
+        return False
+    admission = f"{target.value['state_directory']}/generations/{generation}/admission.json"
+    if runner.run(["test", "-f", admission], check=False).returncode:
+        return False
+    return not _unfinished_release_attempts(target, runner)
+
+
 def _cleanup_inventory(target, runner, current: dict) -> dict:
     active = {item["name"] for item in current["volumes"].values()}
     state_path = f"{target.value['state_directory']}/active.json"
@@ -11333,15 +11362,16 @@ def _cleanup_inventory(target, runner, current: dict) -> dict:
             state = json.loads(state_result.stdout)
         except json.JSONDecodeError as error:
             raise RuntimeError("cleanup active state is invalid") from error
-        previous = set((state.get("previous") or {}).get("volumes", {}).values())
         if state.get("network"):
             protected_networks.add(state["network"])
-        previous_network = (state.get("previous") or {}).get("network")
-        if previous_network:
-            protected_networks.add(previous_network)
-        previous_generation = (state.get("previous") or {}).get("generation")
-        if previous_generation:
-            protected_generations.add(previous_generation)
+        if not _staging_previous_releasable(target, runner, state, current):
+            previous = set((state.get("previous") or {}).get("volumes", {}).values())
+            previous_network = (state.get("previous") or {}).get("network")
+            if previous_network:
+                protected_networks.add(previous_network)
+            previous_generation = (state.get("previous") or {}).get("generation")
+            if previous_generation:
+                protected_generations.add(previous_generation)
     historical_capture_generations = set(protected_generations)
     # Compose may reuse sidecars across rollback; their config labels still
     # reference candidate files even when the database has returned to baseline.
