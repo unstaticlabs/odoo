@@ -10,9 +10,10 @@ def migrate(cr, version):
     until it is locked, and a sync puts an unreviewed "not applicable" row of an
     unlocked period back to preparation. This re-syncs every profiled company
     once, so the rows already retired are revived on upgrade without a manual
-    step. Filed, paid and archived rows, rows with a recorded review and rows of
-    a locked period are left as they are. The sync is idempotent: a second run
-    changes nothing.
+    step. The calendar retains existing locked or completed declarations and
+    explicit exclusions backed by a recorded review. For other reviewed open
+    filings, current rule facts and automatic checks can refresh while the
+    recorded decision retains its evidence and conclusion.
     """
     del version
     env = api.Environment(cr, SUPERUSER_ID, {})

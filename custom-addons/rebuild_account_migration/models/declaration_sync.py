@@ -74,6 +74,11 @@ class RebuildAccountDeclaration(models.Model):
             ("company_id", "=", company.id),
             *self._calendar_history_domain(company),
         ])
+        reviewed_exclusions = self.search([
+            ("company_id", "=", company.id),
+            ("status", "=", "not_applicable"),
+        ])._with_recorded_review()
+        history |= reviewed_exclusions
         declarations = self.browse()
         for fiscal_start, fiscal_end in periods:
             for rule in self._rules_for_period(company, fiscal_end):
@@ -536,7 +541,10 @@ class RebuildAccountDeclaration(models.Model):
             ("period_end", "=", period_end),
             ("instalment_number", "=", instalment_number),
         ], limit=1)
-        if declaration and declaration.filtered_domain(self._calendar_history_domain(company)):
+        if declaration and (
+            declaration.filtered_domain(self._calendar_history_domain(company))
+            or (declaration.status == "not_applicable" and declaration._with_recorded_review())
+        ):
             return declaration
         suffix = f" - instalment {instalment_number}" if instalment_number else ""
         period_label = (
@@ -565,7 +573,7 @@ class RebuildAccountDeclaration(models.Model):
             # become preparable again when its obligation re-enters the schedule.
             # Keep any recorded accountant judgment intact, and never reopen a
             # period that a fiscal-year lock already covers.
-            if declaration.status == "not_applicable" and not declaration._with_recorded_review():
+            if declaration.status == "not_applicable":
                 vals["status"] = "to_prepare"
             declaration.write(vals)
         else:

@@ -379,6 +379,42 @@ class TestDeclarationAndClosing(TransactionCase):
             Declaration.sync_for_company(company)
         self.assertEqual(fy2026.read(protected), before)
 
+    def test_calendar_sync_preserves_a_reviewed_exclusion_until_superseded(self):
+        company = self._company("Reviewed exclusion for the open year")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+            row = Declaration.search([
+                ("company_id", "=", company.id),
+                ("fiscalyear_end", "=", date(2026, 9, 30)),
+                ("rule_id.code", "=", "FR_2065"),
+            ])
+            decision = self.env["rebuild.account.assurance.decision"].create({
+                "gate": "declaration_review", "conclusion": "not_applicable",
+                "company_id": company.id, "declaration_id": row.id,
+                "decision_summary": "Reviewed synthetic filing exclusion.",
+                "evidence_summary": "Synthetic evidence for this filing.",
+            })
+            decision.action_record()
+            row.write({
+                "status": "not_applicable", "applicability": "not_applicable",
+                "applicability_reason": "Reviewed synthetic exception.",
+                "preparation_status": "not_required", "filing_status": "not_open",
+            })
+            protected = [
+                "status", "applicability", "applicability_reason", "preparation_status",
+                "filing_status", "validation_status", "last_refreshed_at",
+            ]
+            before = row.read(protected)
+            for _ in range(2):
+                Declaration.sync_for_company(company)
+                self.assertEqual(row.read(protected), before)
+                self.assertEqual((decision.state, decision.conclusion), ("recorded", "not_applicable"))
+            decision.action_supersede()
+            Declaration.sync_for_company(company)
+            self.assertEqual(row.applicability, "applicable")
+            self.assertEqual(row.status, "data_missing")
+
     def test_calendar_sync_preserves_filed_and_paid_declarations(self):
         company = self._company("Completed filing history")
         Declaration = self.env["rebuild.account.declaration"]
