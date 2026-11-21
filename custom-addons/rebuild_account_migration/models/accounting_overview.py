@@ -145,11 +145,12 @@ class RebuildAccountOverview(models.Model):
         readonly=True,
     )
     hygiene_attention_count = fields.Integer(
-        string="Items Requiring Attention",
+        string="Operational Attention Items",
+        help="Company-wide reminders across banking, documents, expenses, declarations and closing. One record can trigger several reminders.",
         readonly=True,
     )
     hygiene_issue_count = fields.Integer(
-        string="Open Actionable Issues",
+        string="Open Hygiene Findings",
         compute="_compute_hygiene_issue_count",
     )
     hygiene_status = fields.Selection(
