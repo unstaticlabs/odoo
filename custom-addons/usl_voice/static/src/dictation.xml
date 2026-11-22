@@ -1,0 +1,20 @@
+<templates xml:space="preserve">
+    <t t-name="usl_voice.FieldDictation">
+        <div t-if="this.state.recovered" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow-sm p-3" role="status">
+            <p class="mb-2" t-esc="this.state.recovered"/>
+            <button class="btn btn-primary btn-sm" t-on-click="this.copyText">Copy transcript</button>
+            <button class="btn btn-secondary btn-sm ms-2" t-on-click="this.cancel">Dismiss</button>
+        </div>
+        <div t-elif="this.state.visible or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls btn-group"
+             t-att-style="'left:' + this.state.x + 'px;top:' + this.state.y + 'px'" t-on-mousedown.prevent="() => {}">
+            <button t-if="this.state.mode === 'idle'" class="btn btn-light btn-sm border rounded-circle" title="Dictate text" aria-label="Dictate text" t-on-click="this.record">
+                <i class="fa fa-microphone" aria-hidden="true"/>
+            </button>
+            <button t-elif="this.state.mode === 'recording'" class="btn btn-primary btn-sm" title="Stop dictation" aria-label="Stop dictation" t-on-click="this.stop">
+                <i class="fa fa-stop" aria-hidden="true"/>
+            </button>
+            <span t-else="" class="btn btn-light btn-sm" role="status"><i class="fa fa-spinner fa-spin" aria-hidden="true"/><span class="visually-hidden">Processing audio</span></span>
+            <button t-if="this.state.mode !== 'idle'" class="btn btn-light btn-sm" title="Cancel dictation" aria-label="Cancel dictation" t-on-click="this.cancel"><i class="fa fa-times" aria-hidden="true"/></button>
+        </div>
+    </t>
+</templates>

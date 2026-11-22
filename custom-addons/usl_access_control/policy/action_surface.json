@@ -3284,6 +3284,24 @@
     },
     {
       "delegates": [
+        "rpc:mail.message.action_usl_retry_voice"
+      ],
+      "digest": "486a4aab7e9ba9b8a74f0560e67661444106f0e7167a8e940e5739113cebaaed",
+      "handler": "retry",
+      "key": "client:usl_voice:custom-addons/usl_voice/static/src/transcripts.js:retry:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_voice"
+      ],
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_voice/static/src/transcripts.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:ir.attachment.regenerate_assets_bundles"
       ],
       "digest": "7bcd95d71ea4171db127b2b8e8fd9a75530eb9634ea2b39e57bceaa0343832a3",
@@ -10642,6 +10660,29 @@
       "sources": [
         {
           "path": "custom-addons/usl_mattermost/controllers/main.py"
+        }
+      ]
+    },
+    {
+      "digest": "d47a10c8bc4bbd9948518fa6c1cfe78b416da73446d593e4f0e345352557a053",
+      "guards": [],
+      "key": "route:http:POST:/usl/voice/dictate",
+      "kind": "route",
+      "modules": [
+        "usl_voice"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "route": "/usl/voice/dictate",
+      "runtime_digest": "ee8c6a7eb920b65afe1ca142de9124070571e925d2966838241b537270277be3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 12,
+          "path": "custom-addons/usl_voice/controllers.py"
+        },
+        {
+          "path": "custom-addons/usl_voice/controllers.py"
         }
       ]
     },
@@ -658009,6 +658050,50 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:discuss.voice.metadata.sudo",
+        "rpc:mail.message.check_access",
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo",
+        "rpc:mail.message.with_delay"
+      ],
+      "digest": "191efdafdb65ff5babceee9f061df6e97c25a52b52441c629c7cf0cf58ed5004",
+      "guards": [],
+      "key": "rpc:mail.message.action_usl_retry_voice",
+      "kind": "rpc",
+      "method": "action_usl_retry_voice",
+      "model": "mail.message",
+      "modules": [
+        "usl_voice"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "2f756cc830f6f65689cc2b5671b0387e18d01860e682ebcfec5131ad998909f5",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 59,
+          "path": "custom-addons/usl_voice/models.py"
+        },
+        {
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:discuss.voice.metadata.sudo",
+        "rpc:mail.message.check_access",
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo",
+        "rpc:mail.message.with_delay"
+      ]
     },
     {
       "abstract": false,
@@ -1675982,6 +1676067,141 @@
       ]
     },
     {
+      "digest": "79836a64bf9014345be310d8ef3d1515498498b819a39ae06a7099be71932af1",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 23,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "58feb5b2bc4f7f294bbfd7f8e720e95729e0d4b2b307133917640a464493cadc",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:2",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 23,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "95306bcf5a0ef45129dc1532e05e0f62b8cb670518a7118a46167445a983e7b0",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_enqueue_voice:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "eeacf2a4a9115c381bf484f2df8d16c0d41b2dadbaba9e51eb4a1da32cda79bd",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 68,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "4cead7db0c8e77a50ec9013eb055a607a5c6f3b4fed7f4f58a17aa9ff93d2bf2",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 68,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "e61fadd4d87a9126e064d65b21ce68f9f0c86fe94946b58aebf17a23d60a0902",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 68,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "a37ddb9ea0b59b65cca2ad85c293337b9dd59a4be002f8f999e1fb3afa721873",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "900e7fa0fdbb9efaca2157e9fa3e86ca29579bef4fad719239b1f5dda42c8b3f",
+      "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 100,
+          "path": "custom-addons/usl_voice/models.py"
+        }
+      ]
+    },
+    {
+      "digest": "05dffcead8f1d8810292d43601e1945864f7879d6512cf0797e8b40171dcc8b0",
+      "key": "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1",
+      "kind": "sink",
+      "modules": [
+        "usl_voice"
+      ],
+      "sink_kind": "external_call",
+      "sources": [
+        {
+          "line": 17,
+          "path": "custom-addons/usl_voice/speech.py"
+        }
+      ]
+    },
+    {
       "digest": "be5fcf865a6c90332be86cbc13e03f7e5469a12d137ae51d1b981da55903a3c0",
       "key": "sink:utm:addons/utm/models/ir_http.py:ir.http._post_dispatch:orm_write:1",
       "kind": "sink",
@@ -1738348,6 +1738568,13 @@
       "version": "saas~19.3.1.4.10"
     },
     {
+      "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
+      "name": "usl_voice",
+      "origin": "custom",
+      "source_sha256": "20a1111c002c5bfe70a9e27c585a53a475327d26e03213f5400f9f9f2980bd77",
+      "version": "saas~19.3.1.0.0"
+    },
+    {
       "manifest_sha256": "a5d22feb1675ae82707c6ba3a7c89684af8425acc639962d1715faa1f4ba180e",
       "name": "utm",
       "origin": "native",
@@ -1738406,7 +1738633,8 @@
     "usl_project",
     "usl_sign",
     "usl_tese_accounting",
-    "usl_tese_payroll"
+    "usl_tese_payroll",
+    "usl_voice"
   ],
   "schema": "usl-action-risk-surface-v2"
 }

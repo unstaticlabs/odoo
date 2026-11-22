@@ -1,0 +1,19 @@
+<templates xml:space="preserve">
+    <t t-inherit="mail.Message" t-inherit-mode="extension">
+        <xpath expr="//AttachmentList" position="after">
+            <VoiceTranscripts t-if="this.store.self_user and this.message.persistent and this.message.model !== 'discuss.channel' and this.message.extra_body_attachment_ids.some((attachment) => attachment.voice)" message="this.message" t-key="this.message.id"/>
+        </xpath>
+    </t>
+    <t t-name="usl_voice.Transcripts">
+        <div t-foreach="this.state.notes" t-as="note" t-key="note.attachment_id" class="o-usl-transcript mt-1" aria-live="polite">
+            <p t-if="note.state === 'done'" class="mb-1 text-break" style="white-space:pre-wrap" t-esc="note.text"/>
+            <small t-elif="note.state === 'pending'" class="text-muted">Transcribing…</small>
+            <small t-elif="note.state === 'silent'" class="text-muted">No speech detected.</small>
+            <t t-elif="note.state === 'failed'">
+                <small class="text-muted">Transcription unavailable.</small>
+                <button t-if="this.props.message.editable" class="btn btn-link btn-sm" t-on-click="this.retry">Try again</button>
+            </t>
+        </div>
+        <button t-if="this.state.error" class="btn btn-link btn-sm" t-on-click="this.refresh">Reload transcript</button>
+    </t>
+</templates>

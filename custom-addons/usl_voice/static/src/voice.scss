@@ -1,0 +1,38 @@
+.o-usl-dictation {
+    position: fixed;
+    z-index: $zindex-modal + 1;
+    button { min-width: 32px; min-height: 32px; }
+}
+.o-usl-recovered {
+    inset-inline-end: 1rem;
+    bottom: 1rem;
+    width: 30rem;
+    max-width: calc(100vw - 2rem);
+    max-height: 45vh;
+    overflow: auto;
+    white-space: pre-wrap;
+}
+
+.o-usl-dictation-target {
+    padding-inline-end: 2.5rem !important;
+}
+.o-usl-dictation-controls {
+    transform: translateX(-100%);
+}
+
+.o-mail-Chatter .o-mail-AttachmentContainer:has(.o-mail-VoicePlayer) {
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    padding-inline: 0.3rem 2.1rem;
+
+    .o-mail-AttachmentCard > .bg-white {
+        display: none !important;
+    }
+    .o-mail-AttachmentCard {
+        justify-content: center;
+    }
+    .o-Attachment-uploaded {
+        display: none;
+    }
+}
