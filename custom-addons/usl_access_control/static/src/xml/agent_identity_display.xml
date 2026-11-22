@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="res_config_invite_users" t-inherit-mode="extension">
+        <xpath expr="//t[@t-out='pending[1]']" position="attributes">
+            <attribute name="t-out">this.state.invite.usl_pending_agent_names?.[pending[0]] || pending[1]</attribute>
+        </xpath>
+    </t>
+    <t t-inherit="mail.Composer.suggestionPartner" t-inherit-mode="extension">
+        <xpath expr="//t[@t-set='partner']" position="after">
+            <t t-set="displayEmail" t-value="!partner.main_user_id?.usl_agent_display &amp;&amp; partner.email"/>
+        </xpath>
+        <xpath expr="//t[@t-set='title'][@t-if]" position="attributes">
+            <attribute name="t-if">displayEmail</attribute>
+        </xpath>
+        <xpath expr="//strong[@t-att-class]" position="attributes">
+            <attribute name="t-att-class">{'o-has-email': displayEmail, 'mw-100': !displayEmail}</attribute>
+        </xpath>
+        <xpath expr="//span[@t-if='partner.email']" position="attributes">
+            <attribute name="t-if">displayEmail</attribute>
+        </xpath>
+    </t>
+</templates>

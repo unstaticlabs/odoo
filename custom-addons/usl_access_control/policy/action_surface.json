@@ -11097,18 +11097,18 @@
       "delegates": [
         "rpc:res.users.browse"
       ],
-      "digest": "728dd014dd9116fe35817c715847af715344bf00c2c2b90accfe8228aa7d6602",
+      "digest": "1972dbd49a6f47da1adda80faac2b01b973fc48e29f727cd86b813f6fc38871e",
       "guards": [],
       "key": "route:jsonrpc:ANY:/base_setup/data",
       "kind": "route",
       "modules": [
-        "auth_signup",
-        "base_setup"
+        "base_setup",
+        "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
       "route": "/base_setup/data",
-      "runtime_digest": "7e52e6ca91daa981102555a4d99b15ffa261fa8bb9d79de726338c6f65fc503b",
+      "runtime_digest": "7c7019a17ea2e7d37cb24bef82de70ccb6f3e76cb23d9d8f60662de1f45ba771",
       "sinks": [],
       "sources": [
         {
@@ -11116,7 +11116,7 @@
           "path": "addons/base_setup/controllers/main.py"
         },
         {
-          "path": "odoo/addons/auth_signup/controllers/main.py"
+          "path": "custom-addons/usl_access_control/controllers/settings.py"
         }
       ],
       "unresolved_delegates": [
@@ -1738194,11 +1738194,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
+      "manifest_sha256": "d8336d1a0b8e4c3268abc1bf3e981e21831883a7a71f55a05b767795273e876c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "4f2148d8d428499ef670e09d2a62fa27922e706ccea686f56e5652093d8d7f58",
-      "version": "saas~19.3.1.8.12"
+      "source_sha256": "093f2123ea747454f99f60339c0d52e3058e4e389ddbf1780b3f537f0fbdf2d5",
+      "version": "saas~19.3.1.8.13"
     },
     {
       "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
