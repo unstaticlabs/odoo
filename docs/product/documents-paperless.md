@@ -463,6 +463,15 @@ and its `linked_id` to `documents_search` without a text query. The list uses
 Odoo's links and each reader's document access. It does not search file content.
 Use `documents_get_context` to inspect the versions and linked records of a result.
 
+For an import audit, set `include_integrity: true` in `documents_get_context`.
+A reader with access to the file receives each version’s stored original and
+archive digests, labeled SHA-256 or legacy MD5. Compare the digest of the
+corresponding file locally. A null variant means its digest is unavailable.
+For the current version, Odoo requests headers for each known variant and
+reports the byte count only when the archive identifies the same file by its
+strong ETag. Historical sizes and unconfirmed lengths are null. The default
+read omits integrity details. This operation creates no download URL.
+
 An Agent can attach a client-provided file, copy a readable `ir.attachment`, or
 copy the current original of an accessible archived document onto an expense or
 accounting entry. Use `documents_attach_source_evidence` in the companion MCP,

@@ -17,6 +17,42 @@ _MCP_EXCERPT_LENGTH = 500
 _MCP_SEARCH_WINDOW = 50
 
 
+def _version_integrity(document, version, *, original, check_size):
+    # Paperless migrated its stored content digests from MD5 to SHA-256.
+    # Values outside those two native formats have no known algorithm.
+    digest = version.checksum if original else version.archive_checksum
+    if not digest or not re.fullmatch(r"(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{64})", digest):
+        return None
+    result = {
+        "algorithm": "sha256" if len(digest) == 64 else "md5",
+        "digest": digest.lower(),
+        "size_bytes": None,
+    }
+    if not check_size:
+        return result
+    try:
+        client = document._paperless()
+        # Integrity context has at most two optional header probes. A slow
+        # archive should leave time for the reader to receive the metadata.
+        client.stream_timeout = min(client.stream_timeout, 2)
+        probe = client.probe_download(
+            document.paperless_id, version_id=version.paperless_version_id, original=original,
+        )
+    except PaperlessError:
+        return result
+    headers = {key.lower(): value for key, value in probe["headers"].items()}
+    length = headers.get("content-length", "")
+    if (
+        probe["status"] == 200
+        and headers.get("etag", "").lower() == f'"{digest.lower()}"'
+        and "content-range" not in headers
+        and headers.get("content-encoding", "identity").lower() == "identity"
+        and re.fullmatch(r"[0-9]{1,19}", length)
+    ):
+        result["size_bytes"] = int(length)
+    return result
+
+
 class UslDocumentMcp(models.Model):
     _inherit = "usl.document"
 
@@ -692,13 +728,15 @@ class UslDocumentMcp(models.Model):
         }
 
     @api.model
-    def mcp_get_versions(self, document_id):
+    def mcp_get_versions(self, document_id, *, include_integrity=False):
         document = self._mcp_visible_document(document_id)
         binary_available = bool(self._mcp_binary_documents(document))
         versions = document.version_ids.sorted(
             key=lambda item: (item.is_current, item.created_at or fields.Datetime.now()),
             reverse=True,
         )
+        with_integrity = include_integrity is True and binary_available
+        current = versions.filtered("is_current") if with_integrity else None
         return {
             "document_id": document.id,
             "versions": [
@@ -724,6 +762,12 @@ class UslDocumentMcp(models.Model):
                         else []
                     ),
                     "materialization_required": binary_available,
+                    **({"integrity": {
+                        variant: _version_integrity(
+                            document, version, original=variant == "original", check_size=version == current,
+                        )
+                        for variant in ("original", "archive")
+                    }} if with_integrity else {}),
                 }
                 for version in versions
             ],

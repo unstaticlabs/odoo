@@ -560,6 +560,62 @@ class TestDocumentsMcp(TransactionCase):
         self.assertEqual(links["links"][0]["record_id"], project.id)
         self.assertEqual(links["links"][0]["model"], "project.project")
 
+    def test_integrity_is_opt_in_and_sizes_require_an_exact_variant(self):
+        document = self._document(5181)
+        records = self.env["usl.document.version"].sudo()
+        original, archive = "a" * 64, "b" * 64
+        old = records.create({"document_id": document.id, "paperless_version_id": "81",
+                              "label": "Received", "checksum": "c" * 32, "is_received_original": True})
+        current = records.create({"document_id": document.id, "paperless_version_id": "82", "label": "Revision",
+                                  "checksum": original, "archive_checksum": archive, "is_current": True})
+        documents = self.env["usl.document"].with_user(self.user)
+
+        def head(document_id, *, version_id, original):
+            self.assertEqual((document_id, version_id), (5181, "82"))
+            digest = "a" * 64 if original else "b" * 64
+            return {"status": 200, "headers": {"ETag": f'"{digest}"', "Content-Length": "12" if original else "20"}}
+
+        with patch.object(PaperlessClient, "probe_download", side_effect=head) as probe:
+            self.assertNotIn("integrity", documents.mcp_get_versions(document.id)["versions"][0])
+            probe.assert_not_called()
+            rows = documents.mcp_get_versions(document.id, include_integrity=True)["versions"]
+            self.assertEqual(probe.call_count, 2)
+        by_id = {row["id"]: row["integrity"] for row in rows}
+        self.assertEqual(by_id[current.id]["original"], {"algorithm": "sha256", "digest": original, "size_bytes": 12})
+        self.assertEqual(by_id[current.id]["archive"], {"algorithm": "sha256", "digest": archive, "size_bytes": 20})
+        self.assertEqual(by_id[old.id]["original"], {"algorithm": "md5", "digest": "c" * 32, "size_bytes": None})
+        self.assertIsNone(by_id[old.id]["archive"])
+        for headers in (
+            {"ETag": f'"{archive}"', "Content-Length": "12"},
+            {"ETag": f'W/"{original}"', "Content-Length": "12"}, {"Content-Length": "12"},
+            {"ETag": f'"{original}"', "Content-Length": "-1"}, {"ETag": f'"{original}"'},
+        ):
+            with self.subTest(headers=headers), patch.object(PaperlessClient, "probe_download",
+                    return_value={"status": 200, "headers": headers}):
+                result = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]["integrity"]
+                self.assertEqual(result["original"]["digest"], original)
+                self.assertIsNone(result["original"]["size_bytes"])
+        with patch.object(PaperlessClient, "probe_download", side_effect=PaperlessError("unavailable")):
+            result = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]["integrity"]
+            self.assertIsNone(result["original"]["size_bytes"])
+            self.assertIsNone(result["archive"]["size_bytes"])
+
+    def test_integrity_does_not_disclose_files_without_binary_access(self):
+        document = self._document(5182, permission_sync_state="pending")
+        self.env["usl.document.version"].sudo().create({
+            "document_id": document.id, "paperless_version_id": "83", "label": "Pending",
+            "checksum": "a" * 64, "archive_checksum": "b" * 64, "is_current": True,
+        })
+        documents = self.env["usl.document"].with_user(self.user)
+        with patch.object(PaperlessClient, "probe_download") as probe:
+            row = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]
+            self.assertFalse(row["binary_available"])
+            self.assertNotIn("integrity", row)
+            hidden = self._document(5183, company_id=self.company_b.id)
+            with self.assertRaises(AccessError):
+                documents.mcp_get_versions(hidden.id, include_integrity=True)
+            probe.assert_not_called()
+
     def test_catalogs_are_bounded_and_use_archive_catalog_acls(self):
         tag = self.env["usl.paperless.tag"].sudo().with_context(
             usl_documents_cache_write=True,
