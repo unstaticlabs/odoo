@@ -104,6 +104,7 @@ class RebuildAccountDeclaration(models.Model):
             ("accountant_requested", "Accountant Review Requested"),
             ("accepted", "Accepted by Reviewer"),
             ("accepted_with_difference", "Accepted with Difference"),
+            ("not_applicable", "Not Applicable"),
             ("rejected", "Rejected / Changes Required"),
         ],
         required=True,
@@ -204,30 +205,57 @@ class RebuildAccountDeclaration(models.Model):
         ]
         return domain if positive else ["!", *domain]
 
-    def _with_recorded_review(self):
-        """Latest recorded declaration judgment, scoped to these companies."""
+    def _latest_declaration_reviews(self, state="recorded"):
+        """Return the latest decision in the requested state for each declaration."""
         if not self:
-            return self
+            return {}
         decisions = self.env["rebuild.account.assurance.decision"].search([
             ("declaration_id", "in", self.ids),
             ("company_id", "in", self.company_id.ids),
             ("gate", "=", "declaration_review"),
-            ("state", "=", "recorded"),
+            ("state", "=", state),
         ], order="reviewed_at desc, id desc")
         latest = {}
         for decision in decisions:
-            latest.setdefault(decision.declaration_id.id, decision)
+            if decision.company_id == decision.declaration_id.company_id:
+                latest.setdefault(decision.declaration_id.id, decision)
+        return latest
+
+    def _with_recorded_review(self):
+        latest = self._latest_declaration_reviews()
         return self.filtered(lambda declaration: (
             declaration.id in latest
-            and latest[declaration.id].company_id == declaration.company_id
             and latest[declaration.id].conclusion in {
                 "accepted", "accepted_with_difference", "not_applicable",
             }
         ))
 
+    def _apply_reviewed_exclusion(self, reason):
+        """Keep the decision visible on the filing and clear its filing requirement."""
+        self.ensure_one()
+        values = {
+            "status": "not_applicable", "applicability": "not_applicable",
+            "applicability_reason": reason, "review_status": "not_applicable",
+            "preparation_status": "not_required", "filing_status": "not_open",
+            "validation_status": "ready", "validation_summary": reason,
+            "unresolved_information": False,
+        }
+        if any(self[field] != value for field, value in values.items()):
+            self.write(values)
+
+    def _resume_reviewed_filing(self):
+        self.ensure_one()
+        self.write({
+            "status": "to_prepare", "review_status": "not_started", "filing_status": "not_open",
+            "applicability": "conditional" if self.rule_id.conditional else "applicable",
+            "applicability_reason": self._applicability_reason(self.company_id, self.rule_id),
+        })
+
     def action_refresh_preparation(self):
         reviewed = self._with_recorded_review()
         for declaration in self:
+            if declaration.review_status == "not_applicable" and declaration in reviewed:
+                continue
             declaration._sync_field_lines()
             unresolved = declaration.field_line_ids.filtered("is_unresolved")
             messages = []

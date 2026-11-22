@@ -11,6 +11,9 @@ class L10nFrFecExportWizard(models.TransientModel):
 
     _fec_account_number_pattern = re.compile(r"^\d{3}")
 
+    rebuild_closing_company_id = fields.Many2one(
+        "res.company", string="Closing Company", readonly=True,
+    )
     rebuild_can_generate_official_fec = fields.Boolean(
         compute="_compute_rebuild_can_generate_official_fec",
     )
@@ -102,7 +105,13 @@ class L10nFrFecExportWizard(models.TransientModel):
                         "An official FEC must include all posted journals.",
                     ),
                 )
-        result = super().generate_fec()
+        self.ensure_one()
+        wizard = self
+        if self.rebuild_closing_company_id:
+            # Download starts a new HTTP request. Native env.company rechecks
+            # current company access before generating the file or updating a lock.
+            wizard = self.with_context(allowed_company_ids=self.rebuild_closing_company_id.ids)
+        result = super(L10nFrFecExportWizard, wizard).generate_fec()
         result["file_name"] = result["file_name"].removesuffix(".txt")
         return result
 

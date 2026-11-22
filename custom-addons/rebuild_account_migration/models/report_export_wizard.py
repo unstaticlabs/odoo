@@ -375,6 +375,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
     report_definition_version = fields.Char(readonly=True)
     report_definition_snapshot = fields.Json(readonly=True)
 
+    @api.depends("report_type")
+    @api.depends_context("lang")
+    def _compute_display_name(self):
+        labels = dict(self._fields["report_type"]._description_selection(self.env))
+        for report in self:
+            report.display_name = labels.get(report.report_type, False)
+
     def _can_generate_official_fec(self):
         return self.env.user.has_group("account.group_account_manager")
 

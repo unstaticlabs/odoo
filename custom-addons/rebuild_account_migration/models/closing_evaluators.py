@@ -57,9 +57,9 @@ class RebuildAccountClosingPeriod(models.Model):
         return self._control_values(
             "document_completeness", "documents", "Document completeness", status,
             drafts + missing_evidence, 0.0,
-            (
-                f"{drafts} draft business document(s); {missing_evidence} "
-                "posted document(s) without a main attachment."
+            self.env._(
+                "Draft invoices and credit notes: %(drafts)s. Posted without a main attachment: %(missing)s.",
+                drafts=drafts, missing=missing_evidence,
             ),
             "Resolve draft documents and attach or explicitly document missing source evidence.",
         )
@@ -163,19 +163,25 @@ class RebuildAccountClosingPeriod(models.Model):
             owner="finance_operator",
         )
 
-    def _control_tax_declarations(self):
+    def _filings_requiring_attention(self):
+        self.ensure_one()
         declarations = self.env["rebuild.account.declaration"].search([
             ("company_id", "=", self.company_id.id),
+            ("applicability", "!=", "not_applicable"),
             ("deadline_date", "<=", self.date_to),
             ("status", "not in", ["filed", "paid", "archived", "not_applicable"]),
         ])
         period_declarations = self.env["rebuild.account.declaration"].search([
             ("company_id", "=", self.company_id.id),
+            ("applicability", "!=", "not_applicable"),
             ("fiscalyear_start", "=", self.fiscalyear_start),
             ("fiscalyear_end", "=", self.fiscalyear_end),
             ("validation_status", "=", "blocked"),
         ]) if self.period_type == "annual" else self.env["rebuild.account.declaration"]
-        blocked = declarations | period_declarations
+        return declarations | period_declarations
+
+    def _control_tax_declarations(self):
+        blocked = self._filings_requiring_attention()
         return self._control_values(
             "tax_declarations", "tax", "Tax and declaration readiness",
             "block" if blocked else "pass", len(blocked), sum(blocked.mapped("amount_due")),
@@ -278,11 +284,9 @@ class RebuildAccountClosingPeriod(models.Model):
             "issues", "issues", "Accounting Hygiene issues",
             "block" if blocking_count else "warning" if issue_count else "pass",
             issue_count, sum(hygiene_issues.mapped("amount")),
-            (
-                f"{len(actionable_hygiene)} actionable and "
-                f"{len(hygiene_issues - actionable_hygiene)} informational "
-                "Hygiene result(s); "
-                f"{blocking_count} blocking."
+            self.env._(
+                "Actionable: %(actionable)s. Information: %(information)s. Blocking: %(blocking)s.",
+                actionable=issue_count, information=len(hygiene_issues) - issue_count, blocking=blocking_count,
             ),
             "Open Accounting Hygiene, resolve the underlying records, and refresh the controls.",
         )
@@ -299,10 +303,9 @@ class RebuildAccountClosingPeriod(models.Model):
         return self._control_values(
             "reports", "reports", "Closing reports",
             "block" if missing else "pass", len(missing), 0.0,
-            (
-                f"{len(CANONICAL_CLOSING_REPORT_ACTIONS) - len(missing)} of "
-                f"{len(CANONICAL_CLOSING_REPORT_ACTIONS)} required "
-                "interactive report actions are available."
+            self.env._(
+                "Available reports: %(ready)s of %(total)s.",
+                ready=len(CANONICAL_CLOSING_REPORT_ACTIONS) - len(missing), total=len(CANONICAL_CLOSING_REPORT_ACTIONS),
             ),
             (
                 "Repair the missing canonical report actions before closing."
@@ -329,10 +332,9 @@ class RebuildAccountClosingPeriod(models.Model):
             "fec", "fec", "FEC readiness",
             "pass" if available else "block", 0 if available else 1, 0.0,
             (
-                f"FEC export is available for {posted_moves} posted move(s) "
-                "in this closing period."
+                self.env._("Posted entries in the period: %(count)s.", count=posted_moves)
                 if available
-                else "The normal FEC export action or export model is unavailable."
+                else self.env._("The FEC export tool is unavailable.")
             ),
             (
                 "Generate the FEC from Reporting, then retain it in the closing package."
