@@ -14,7 +14,7 @@ journey: regler-une-facture-en-devise-au-taux-du-paiement
 tour: usl_immediate_settlement
 source:
   - custom-addons/usl_accounting/tests/test_accounting_journeys.py
-screenshot_01-actions_png: cb2177b4ca80ebba23bc03398bacf46cfb9ffe5cf8718cd208178cb7e3620d50
+screenshot_01-actions_png: 40769fcdf9042557a05a33a8e653ef356b77c7c5c14a5fc43c0c911e5da399fb
 screenshot_02-trace_png: f620003f15bb76dcab08dbdc4a99747c602a9be56e9e4c42378ed5c0bb9cd91d
 screenshot_03-detail_png: 548b29ffd691b9f47a0d41c8ee7333070c584196cb3c0b2020103ee1a3f2fa7a
 generated: true

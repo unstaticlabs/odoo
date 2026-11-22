@@ -30,7 +30,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-actions.png",
-      "sha256": "387ec70b327fc89bca220195f573476efcb7e1507edf16e3ca4b7ce8f2e6faa0",
+      "sha256": "aeb4f0b9316c2ccf69f5cbbc1e3ee1b2f8b62726cbf02216e94cf9f47abdac6c",
       "text": "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },

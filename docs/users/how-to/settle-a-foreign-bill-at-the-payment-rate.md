@@ -13,7 +13,7 @@ journey: settle-a-foreign-bill-at-the-payment-rate
 tour: usl_immediate_settlement
 source:
   - custom-addons/usl_accounting/tests/test_accounting_journeys.py
-screenshot_01-actions_png: 387ec70b327fc89bca220195f573476efcb7e1507edf16e3ca4b7ce8f2e6faa0
+screenshot_01-actions_png: aeb4f0b9316c2ccf69f5cbbc1e3ee1b2f8b62726cbf02216e94cf9f47abdac6c
 screenshot_02-trace_png: 77f6a2910c8187fc1e0b234e83f841f9a897e2bb5b11ee9798af40284eeb2979
 screenshot_03-detail_png: f6407771a6ba6af61ecbbcb154edd7c7a4492d9dbe32b2a72c09e825fc1e3929
 generated: true

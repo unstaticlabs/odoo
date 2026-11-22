@@ -30,7 +30,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-actions.png",
-      "sha256": "cb2177b4ca80ebba23bc03398bacf46cfb9ffe5cf8718cd208178cb7e3620d50",
+      "sha256": "40769fcdf9042557a05a33a8e653ef356b77c7c5c14a5fc43c0c911e5da399fb",
       "text": "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Lorsqu’un débit du même fournisseur satisfait les critères de date et de taux, Odoo propose trois actions de rapprochement. L’action recommandée apparaît en couleur.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },
