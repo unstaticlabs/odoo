@@ -646,9 +646,17 @@ def reference_diagnostic(runtime_payload):
     principal = env.ref("base.user_root", raise_if_not_found=False)
     if not principal or principal._name != "res.users" or cron.user_id != principal:
         issues.append("PDP execution principal does not match the declaration")
+    # The shipped scheduled action uses native model/record access. Explicit
+    # groups select a different authorization path in ir.actions.server.run.
+    if server.group_ids:
+        issues.append("PDP server action uses explicit execution groups")
+    if server.state != "code" or server.usage != "ir_cron" or server.parent_id:
+        issues.append("PDP server action is outside its declared scheduled-code configuration")
     values = ui_action_values(server)
     exact = digest(values)
     del values["name"]  # only this generated action's presentation may differ
+    values["action_sequence"] = server.sequence
+    values["cron_priority"] = cron.priority
     observe(f"ui:{server_ref}", exact, digest(values))
     for key in (f"cron:{cron_ref}", f"server_action:{server_ref}"):
         exact = actions[key]
@@ -656,7 +664,7 @@ def reference_diagnostic(runtime_payload):
     modules = sorted((item["name"], normalized_module_version(item["version"]))
                      for item in runtime_payload["modules"])
     return {
-        "schema": "usl-action-reference-diagnostic/v2",
+        "schema": "usl-action-reference-diagnostic/v3",
         "module_count": len(modules),
         "modules_sha256": digest(modules),
         "other_action_count": len(actions),

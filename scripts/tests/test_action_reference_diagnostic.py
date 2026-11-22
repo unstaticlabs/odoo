@@ -51,8 +51,9 @@ class SyntheticRegistry:
         self.shell = shell_functions()
         self.board = Record("project.project", board_id, usl_feedback_project=True)
         self.operator = Record("res.users", 10, login="synthetic-private-login")
-        self.server = Record("ir.actions.server", 15, name="Synthetic PDP", type="ir.actions.server")
-        self.cron = Record("ir.cron", 21, ir_actions_server_id=self.server, user_id=self.operator)
+        self.server = Record("ir.actions.server", 15, name="Synthetic PDP", type="ir.actions.server",
+                             group_ids=[], state="code", usage="ir_cron", parent_id=False, sequence=5)
+        self.cron = Record("ir.cron", 21, ir_actions_server_id=self.server, user_id=self.operator, priority=5)
         self.xmlids = {
             self.board_ref: self.board,
             "base.user_root": self.operator,
@@ -264,6 +265,19 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
                 self.assertTrue(receipt["issues"])
                 self.assertNotIn("private-login", json.dumps(receipt))
 
+    def test_historical_pdp_label_cannot_mask_execution_groups_or_configuration(self):
+        for field, value in (("group_ids", [1]), ("parent_id", True), ("usage", "ir_actions_server"),
+                             ("state", "webhook"), ("sequence", 9)):
+            with self.subTest(field=field):
+                registry = SyntheticRegistry()
+                registry.server.name = "Historical label"
+                setattr(registry.server, field, value)
+                receipt = registry.capture()
+                self.assertTrue(inventory.compare_reference_diagnostics(self.baseline, receipt)[1])
+        registry = SyntheticRegistry()
+        registry.cron.priority += 1
+        self.assertTrue(inventory.compare_reference_diagnostics(self.baseline, registry.capture())[1])
+
     def test_module_and_unrelated_action_changes_are_visible(self):
         self.registry.module["version"] = "2.0"
         self.registry.other_action["digest"] = "b" * 64
@@ -271,7 +285,7 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
                          ["Installed module cohort changed.", "Other runtime actions changed."])
 
     def test_partial_or_inconsistent_receipts_fail_even_if_both_match(self):
-        for field, value in (("schema", "usl-action-reference-diagnostic/v1"), ("references", {}), ("issues", None),
+        for field, value in (("schema", "usl-action-reference-diagnostic/v1"), ("schema", "usl-action-reference-diagnostic/v2"), ("references", {}), ("issues", None),
                              ("other_action_count", False), ("module_count", 0), ("modules_sha256", "bad")):
             with self.subTest(field=field):
                 broken = dict(self.baseline, **{field: value})

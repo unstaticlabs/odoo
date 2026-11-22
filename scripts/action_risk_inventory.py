@@ -2445,14 +2445,16 @@ REFERENCE_ISSUES = {
     f"{REFERENCE_CRON}: outside the declared noupdate binding",
     f"{REFERENCE_SERVER}: outside the declared noupdate binding",
     "PDP cron points to another server action",
+    "PDP server action uses explicit execution groups",
+    "PDP server action is outside its declared scheduled-code configuration",
     "PDP execution principal does not match the declaration",
 }
 
 
 def compare_reference_diagnostics(expected, candidate):
-    """Compare two independent v2 registry observations without changing qualification."""
+    """Compare two independent v3 registry observations without changing qualification."""
     for side, receipt in (("expected", expected), ("candidate", candidate)):
-        if not isinstance(receipt, dict) or receipt.get("schema") != "usl-action-reference-diagnostic/v2":
+        if not isinstance(receipt, dict) or receipt.get("schema") != "usl-action-reference-diagnostic/v3":
             return [], [f"Unsupported {side} diagnostic schema."]
         refs = receipt.get("references")
         if not isinstance(refs, dict) or set(refs) != REFERENCE_REASONS.keys():
