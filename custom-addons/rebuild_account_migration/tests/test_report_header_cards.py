@@ -184,3 +184,31 @@ class TestReportHeaderCards(TransactionCase):
                 row.action_open_journal_items()["domain"],
             )
             self.assertEqual(sum(lines.mapped("balance")), balance)
+
+    def test_fec_preview_distinguishes_zero_lines_from_zero_total(self):
+        Move = self.env["account.move"].with_company(self.company)
+        zero = Move.create({
+            "journal_id": self.journal.id, "date": "2026-03-16",
+            "line_ids": [Command.create({"account_id": account.id})
+                         for account in (self.cash, self.income)],
+        })
+        zero.action_post()
+        draft = self.moves[0].copy({"date": "2026-03-17"})
+        self.assertEqual(draft.state, "draft")
+        self.env.flush_all()
+        wizard = self.env["l10n_fr.fec.export.wizard"].with_company(self.company).new({
+            "date_from": "2026-01-01", "date_to": "2026-12-31",
+            "test_file": True, "export_type": "official",
+        })
+        self.assertEqual(wizard.rebuild_period_entry_count, 3)
+        self.assertEqual(wizard.rebuild_included_entry_count, 2)
+        self.assertEqual(wizard.rebuild_empty_entry_count, 1)
+        wizard.export_type = "nonofficial"
+        self.assertEqual(wizard.rebuild_period_entry_count, 4)
+        self.assertEqual(wizard.rebuild_included_entry_count, 3)
+        wizard.date_from = "2026-03-17"
+        self.assertEqual(wizard.rebuild_period_entry_count, 1)
+        self.assertEqual(wizard.rebuild_included_entry_count, 1)
+        wizard.excluded_journal_ids = self.journal
+        self.assertEqual(wizard.rebuild_period_entry_count, 0)
+        self.assertEqual(wizard.rebuild_included_entry_count, 0)

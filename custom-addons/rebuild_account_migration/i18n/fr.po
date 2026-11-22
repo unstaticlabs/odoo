@@ -13782,3 +13782,28 @@ msgstr "Société de clôture"
 #: code:addons/rebuild_account_migration/models/closing.py:0
 msgid "Blockers: %(blocks)s. Technical failures: %(errors)s. Warnings: %(warnings)s. Information: %(info)s. Passed: %(passed)s, including %(exports)s export availability checks. Not applicable: %(na)s."
 msgstr "Blocages : %(blocks)s. Échecs techniques : %(errors)s. Avertissements : %(warnings)s. Informations : %(info)s. Contrôles réussis : %(passed)s, dont %(exports)s sur la disponibilité des exports. Sans objet : %(na)s."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_l10n_fr_fec_export_wizard__rebuild_period_entry_count
+msgid "Entries in the selected period"
+msgstr "Écritures de la période"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_l10n_fr_fec_export_wizard__rebuild_included_entry_count
+msgid "Entries to export"
+msgstr "Incluses dans le FEC"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_l10n_fr_fec_export_wizard__rebuild_empty_entry_count
+msgid "Entries omitted"
+msgstr "Écartées du FEC"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
+msgid "Entries in this FEC"
+msgstr "Écritures prévues dans le FEC"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
+msgid "Entries with only zero-balance lines are omitted. Offsetting amounts are included. The file can also contain a separate opening entry."
+msgstr "Les écritures dont toutes les lignes sont à zéro sont écartées. Les montants qui se compensent restent inclus. Le FEC peut aussi contenir une écriture d’ouverture."

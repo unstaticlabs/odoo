@@ -77,6 +77,10 @@ Valentin and the accountant must be able to:
   retain the prior dismissal in its audit history.
 - A technical control failure is not reported as an accounting failure and
   cannot produce a false Ready conclusion.
+- The French FEC export window counts entries in the selected period, those
+  with lines in the export, and those omitted because every line has zero
+  balance. An invoice with offsetting nonzero lines is included. The FEC may
+  also contain an opening entry for balances carried into the period.
 - Interactive reports are statement-first: one shared filter and interaction
   system presents explicit sections, groups, details, subtotals, totals and
   controls consistently on screen, in PDF and in the readable XLSX sheet.

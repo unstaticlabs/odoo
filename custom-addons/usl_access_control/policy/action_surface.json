@@ -610294,12 +610294,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 48,
-          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
-        },
-        {
           "line": 579,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 81,
+          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
           "path": "decorators.py"
@@ -610332,7 +610332,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 224,
+          "line": 257,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
@@ -610374,7 +610374,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 31,
+          "line": 64,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
@@ -610560,12 +610560,12 @@
       ],
       "sources": [
         {
-          "line": 382,
-          "path": "addons/l10n_fr_account/wizard/account_fr_fec_export_wizard.py"
+          "line": 113,
+          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
-          "line": 80,
-          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
+          "line": 382,
+          "path": "addons/l10n_fr_account/wizard/account_fr_fec_export_wizard.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
@@ -611852,7 +611852,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 61,
+          "line": 94,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
@@ -1620359,7 +1620359,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 48,
+          "line": 81,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         }
       ]
@@ -1620377,7 +1620377,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 61,
+          "line": 94,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         }
       ]
@@ -1737893,11 +1737893,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "ac05e534b6784c72cebbee6062daf7353428a1a9282fee2b46ffd512292f1859",
+      "manifest_sha256": "15c6e7d97ac7a078798e0462bd2798574564e4711f7b6c685f7eaf09e5cb66e3",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "f20ddf11cc67a91d87877790da38423e69ec9bca74edb5cfc51c69f2d679ea24",
-      "version": "saas~19.3.1.13.48"
+      "source_sha256": "475580dd113b4e4f064e3c8a8072f51cd9695615b2dcf230d462e2eeadc0199e",
+      "version": "saas~19.3.1.13.49"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
