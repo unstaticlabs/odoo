@@ -247,8 +247,10 @@ class UslDocument(models.Model):
     _inherit = "usl.document"
 
     @api.model
-    def document_detail(self, document_id, check_archive=False):
-        result = super().document_detail(document_id, check_archive=check_archive)
+    def document_detail(self, document_id, check_archive=False, *, include_tag_scores=False):
+        result = super().document_detail(
+            document_id, check_archive=check_archive, include_tag_scores=include_tag_scores,
+        )
         result["can_permanently_delete"] = self._usl_actor_may_perform_irreversible_actions()
         return result
 
