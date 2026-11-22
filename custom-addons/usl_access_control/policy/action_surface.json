@@ -1355117,7 +1355117,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 577,
+          "line": 579,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355152,7 +1355152,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 543,
+          "line": 545,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355186,7 +1355186,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 548,
+          "line": 550,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355220,7 +1355220,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 808,
+          "line": 810,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355255,7 +1355255,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 693,
+          "line": 695,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355286,7 +1355286,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 790,
+          "line": 792,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355317,7 +1355317,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 731,
+          "line": 733,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355347,7 +1355347,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 781,
+          "line": 783,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355374,7 +1355374,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 799,
+          "line": 801,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355484,7 +1355484,7 @@
         "rpc:usl.document.search",
         "rpc:usl.document.smart.view.accessible_views"
       ],
-      "digest": "08a2756c53450680a93170029cc79bcc1ced16793d4d6de382a10d873ab2428e",
+      "digest": "a8b204d8ffd964d24abb2b3fbcccfed9553f798ba55041a497cd3a017d373d94",
       "guards": [],
       "key": "rpc:usl.document.mcp_search",
       "kind": "rpc",
@@ -1355495,7 +1355495,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "4c00aab203387806e8a9a3e320ca993e042e99d9eb063bd7abe4b4ae393fcc16",
+      "runtime_digest": "341488251e398775d8ca769621474cb7f19158160187caf40eb7df3232111515",
       "sinks": [],
       "sources": [
         {
@@ -1738239,7 +1738239,7 @@
       "manifest_sha256": "9d4b331038ddea72240a1aaf78765182a7470552c71e400b597b11b751bbf759",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "0dfc08047c92a40d58bbf4c17fe8cba6369549e5a66d90fa31260d898285ac9e",
+      "source_sha256": "e30993eccbb4f8e7d83e365e9a7f831579124800f3ae7920fa3bbd662ef3c476",
       "version": "saas~19.3.1.10.6"
     },
     {

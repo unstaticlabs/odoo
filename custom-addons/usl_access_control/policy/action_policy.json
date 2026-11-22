@@ -37021,7 +37021,7 @@
         "rpc:usl.document.mcp_list_saved_views": "7bcc97fd56389e92db3234c787fc8dc829501a88255577a51436431401edc6ea",
         "rpc:usl.document.mcp_list_tags": "4895650ff2bdb4c0d71e246d93ffe8219aaf738da34087afb0f8252e760dc367",
         "rpc:usl.document.mcp_list_types": "7b09d3f443b48077bee017a4389ded4ad5c1968da6ab6043c437967371f20276",
-        "rpc:usl.document.mcp_search": "08a2756c53450680a93170029cc79bcc1ced16793d4d6de382a10d873ab2428e",
+        "rpc:usl.document.mcp_search": "a8b204d8ffd964d24abb2b3fbcccfed9553f798ba55041a497cd3a017d373d94",
         "rpc:usl.document.message_get_followers": "485d5a0893a9f9abb3d517b4b09eefc2d37c4a934af9e774768f79fb6b6736a5",
         "rpc:usl.document.operation.current_workspace_operation": "ee0584243dfc0ccb0a83dbba3ebfd45e6cfd1b1f99b3f3e956e7a1ef70ba0484",
         "rpc:usl.document.operation.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
