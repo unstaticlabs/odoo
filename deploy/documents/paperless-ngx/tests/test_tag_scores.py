@@ -30,7 +30,7 @@ def train(single=False):
         targets = encoder.fit_transform(tags)
     classifier = MLPClassifier(tol=0.01, random_state=0).fit(matrix, targets)
     return SimpleNamespace(
-        tags_classifier=classifier, tags_binarizer=encoder,
+        tags_classifier=classifier, tags_binarizer=encoder, data_vectorizer=vectorizer,
         _vectorize=lambda content: vectorizer.transform([content]),
     )
 

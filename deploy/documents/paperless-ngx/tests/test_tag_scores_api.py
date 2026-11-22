@@ -1,3 +1,6 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from django.contrib.auth.models import Permission, User
@@ -31,15 +34,17 @@ class TestSuggestionTagScoresApi(APITestCase):
         self.classifier = DocumentClassifier()
         self.classifier.tags_classifier = fitted.tags_classifier
         self.classifier.tags_binarizer = fitted.tags_binarizer
-        self.classifier._vectorize = fitted._vectorize
+        self.classifier.data_vectorizer = fitted.data_vectorizer
         self.path = f"/api/documents/{self.document.pk}/suggestions/"
 
     def test_opt_in_scores_only_visible_model_matches(self):
         with (
-            patch("documents.views.load_classifier", return_value=self.classifier),
+            TemporaryDirectory() as directory,
+            override_settings(MODEL_FILE=Path(directory) / "classifier", CLASSIFIER_LANGUAGE=None),
             patch("documents.views.get_suggestion_cache") as read_cache,
             patch("documents.views.set_suggestions_cache") as write_cache,
         ):
+            self.classifier.save()
             response = self.client.get(self.path, {"include_tag_scores": "1"}, HTTP_IF_NONE_MATCH='"old-score"')
         self.assertEqual(response.status_code, 200, response.content)
         body = response.json()
@@ -55,7 +60,7 @@ class TestSuggestionTagScoresApi(APITestCase):
     def test_existing_suggestion_contract_still_uses_legacy_cache(self):
         cached = {"tags": [self.rule.pk]}
         with (
-            patch("documents.views.get_suggestion_cache", return_value=type("Cache", (), {"suggestions": cached})()),
+            patch("documents.views.get_suggestion_cache", return_value=SimpleNamespace(suggestions=cached)),
             patch("documents.views.refresh_suggestions_cache"),
             patch("documents.views.load_classifier") as load,
         ):
