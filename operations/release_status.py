@@ -20,6 +20,11 @@ from operations.runtime import (
 )
 
 FIXED_SCHEMA = "usl-fixed-release-run/v3"
+STAGING_SCHEMA = "usl-staging-release-progress/v1"
+STAGING_PHASES = {
+    "wake", "resolve", "plan", "prepare", "maintenance", "backup",
+    "checkpoint", "upgrade", "attestation", "reopen", "record",
+}
 RUN_NAME = re.compile(r"release-([0-9a-f]{64})\.json\Z")
 STAGES = (
     "resolve", "prepare", "preflight", "maintenance", "quiesce",
@@ -147,9 +152,67 @@ def _project(value: dict) -> dict:
     return result
 
 
+def _staging_progress(text: str, runner) -> dict:
+    try:
+        value = json.loads(text)
+    except json.JSONDecodeError as error:
+        raise RuntimeError("staging progress is invalid JSON") from error
+    if not isinstance(value, dict):
+        raise RuntimeError("staging progress is not an object")
+    body = {key: item for key, item in value.items() if key != "checksum"}
+    expected = {
+        "schema", "target", "release", "desired_state", "phase", "status",
+        "updated_at", "boot_id", "pid", "start_tick",
+    }
+    if (
+        set(body) != expected or value.get("checksum") != _digest(body)
+        or body["schema"] != STAGING_SCHEMA or body["target"] != "staging"
+        or any(not re.fullmatch(r"[a-f0-9]{64}", str(body[key])) for key in ("release", "desired_state"))
+        or not isinstance(body["phase"], str) or body["phase"] not in STAGING_PHASES
+        or body["status"] not in ("running", "failed", "admitted")
+        or type(body["pid"]) is not int or not 1 <= body["pid"] <= 2**31 - 1
+        or type(body["start_tick"]) is not int or body["start_tick"] < 0
+        or not re.fullmatch(r"[a-f0-9-]{36}", str(body["boot_id"]))
+        or (body["status"] == "admitted" and body["phase"] != "record")
+    ):
+        raise RuntimeError("staging progress identity differs")
+    timestamp = body["updated_at"]
+    try:
+        if not isinstance(timestamp, str) or len(timestamp) > 40 or datetime.fromisoformat(timestamp).tzinfo is None:
+            raise ValueError
+    except ValueError as error:
+        raise RuntimeError("staging progress timestamp is invalid") from error
+
+    status = body["status"]
+    if status == "running":
+        boot = runner.run(["cat", "/proc/sys/kernel/random/boot_id"]).stdout.strip()
+        process = _optional_read(runner, f"/proc/{body['pid']}/stat") if boot == body["boot_id"] else None
+        fields = process.rsplit(")", 1)[-1].split() if process else []
+        # Field 22 is the process start time; fields after the comm start at 3.
+        if len(fields) <= 19 or fields[0] == "Z" or fields[19] != str(body["start_tick"]):
+            status = "interrupted"
+    return {
+        "schema": "usl-release-status/v1", "source_schema": STAGING_SCHEMA,
+        "source_checksum": value["checksum"], "status": status,
+        "operation": "staging-upgrade",
+        **{key: body[key] for key in ("target", "release", "desired_state", "phase", "updated_at")},
+    }
+
+
 def observe(target, runner) -> dict:
     """Select a running run, or the active release; never guess by timestamp."""
     root = target.value["state_directory"]
+    if target.name == "staging":
+        path = f"{root}/staging-progress.json"
+        progress = _optional_read(runner, path)
+        if progress is not None:
+            result = _staging_progress(progress, runner)
+            if result["status"] == "interrupted":
+                # The launcher can publish its terminal result between the file and process reads.
+                current = _optional_read(runner, path)
+                if current is not None and current != progress:
+                    return _staging_progress(current, runner)
+            return result
     legacy_text = _optional_read(runner, f"{root}/release-state.json")
     legacy = None
     if legacy_text is not None:
@@ -201,4 +264,8 @@ def observe(target, runner) -> dict:
             if legacy is not None and legacy["release"] == identity:
                 return legacy
         raise RuntimeError("release status is ambiguous: no run matches the active release")
-    return legacy or {"schema": "usl-release-run/v1", "target": target.name, "status": "idle"}
+    return legacy or {
+        "schema": "usl-release-run/v1",
+        "target": target.name,
+        "status": "unobserved" if target.name == "staging" else "idle",
+    }

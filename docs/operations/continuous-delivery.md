@@ -471,8 +471,16 @@ A single running run takes precedence over terminal history. With no running
 run, the validated active generation's release manifest selects the matching
 terminal run. Multiple running runs, malformed state and terminal history
 without an active-release match produce explicit errors; timestamps never
-choose a winner. A legacy/local runtime without fixed runs retains its existing
-response, including `idle` before a run exists.
+choose a winner. Production and local targets retain `idle` before a run exists.
+
+Staging reports the latest instrumented `staging-upgrade` attempt from the
+launcher. The response contains the release identity, desired-state digest,
+observed phase and timestamp. A running attempt must still match the host boot
+and process start time. If its writer has stopped without recording a terminal
+result, the observer reports `interrupted`. Staging with no progress record or
+legacy run reports `unobserved`. The runtime and health observers still report
+the current active generation, including when a separate staging reset took
+place after the last upgrade.
 
 Fixed-v3 responses use `usl-release-status/v1`, identify
 `source_schema: usl-fixed-release-run/v3`, and include the validated source

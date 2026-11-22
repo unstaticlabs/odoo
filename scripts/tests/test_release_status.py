@@ -30,6 +30,7 @@ STAGES = (
 RELEASE = "a" * 64
 OTHER = "b" * 64
 ROOT = "/var/lib/usl-odoo/runtime/production"
+STAGING_ROOT = "/var/lib/usl-odoo/runtime/staging"
 
 
 def digest(value):
@@ -184,7 +185,7 @@ class ReleaseStatusTests(unittest.TestCase):
             self.assertEqual(value, expected)
 
     def test_local_and_bootstrap_idle_preserve_the_legacy_contract(self):
-        for target in ("production", "staging", "local"):
+        for target in ("production", "local"):
             value, host = self.observe(target=target)
             self.assertEqual(value, {"schema": "usl-release-run/v1", "target": target, "status": "idle"})
             if target == "local":
@@ -192,6 +193,42 @@ class ReleaseStatusTests(unittest.TestCase):
         local = legacy_run(target="local")
         value, _ = self.observe({"/tmp/usl-odoo-local/runtime/release-state.json": json.dumps(local)}, target="local")
         self.assertEqual(value, local)
+
+    def test_staging_without_writer_reports_unobserved(self):
+        value, _host = self.observe(target="staging")
+        self.assertEqual(value["status"], "unobserved")
+
+    def test_staging_progress_checks_process_identity_and_omits_it_from_output(self):
+        boot_id = "01234567-89ab-cdef-0123-456789abcdef"
+        value = {
+            "schema": "usl-staging-release-progress/v1", "target": "staging",
+            "release": RELEASE, "desired_state": OTHER, "phase": "checkpoint",
+            "updated_at": "2026-11-22T22:00:00+00:00", "status": "running",
+            "pid": 812, "start_tick": 7312, "boot_id": boot_id,
+        }
+        progress = f"{STAGING_ROOT}/staging-progress.json"
+        proc = "/proc/812/stat"
+        files = {
+            progress: json.dumps(seal(value)),
+            "/proc/sys/kernel/random/boot_id": boot_id,
+            proc: "812 (test ) launcher) S " + "0 " * 18 + "7312",
+        }
+        running, _host = self.observe(files, target="staging")
+        self.assertEqual((running["status"], running["phase"]), ("running", "checkpoint"))
+        self.assertEqual(running["operation"], "staging-upgrade")
+        self.assertFalse({"pid", "boot_id", "start_tick"} & running.keys())
+
+        files[proc] = files[proc].replace("7312", "7313")
+        reused, _host = self.observe(files, target="staging")
+        self.assertEqual(reused["status"], "interrupted")
+        del files[proc]
+        missing, _host = self.observe(files, target="staging")
+        self.assertEqual(missing["status"], "interrupted")
+
+        files[progress] = json.dumps(seal({**value, "status": "failed"}))
+        failed, host = self.observe(files, target="staging")
+        self.assertEqual(failed["status"], "failed")
+        self.assertFalse(any("/proc/" in " ".join(command) for command in host.commands))
 
     def test_fixed_failed_and_recovered_states_expose_safe_recovery_metadata(self):
         for status in ("failed", "recovered"):
