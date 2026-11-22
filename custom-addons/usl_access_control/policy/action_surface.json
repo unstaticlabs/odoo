@@ -1738194,11 +1738194,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
+      "manifest_sha256": "c575e00a2465ea27ff6d5148811449c971e52ea5ccb1b94dfca9958c41fee5fc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "5196bd7c4f5ef0f708a41af374320f2970d6549f2c223bda02b6e8965a8ff5ce",
-      "version": "saas~19.3.1.8.12"
+      "source_sha256": "3c0f8ae292bf6925be6ad059426f02ee81e5e446d95d69efe02d7ae4a6d2ab43",
+      "version": "saas~19.3.1.8.14"
     },
     {
       "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
@@ -1738236,11 +1738236,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "856f76a4fdaf39b5ac10647f7a83d955f7dcae976bd1a163691fa1187186c7d5",
+      "manifest_sha256": "9d4b331038ddea72240a1aaf78765182a7470552c71e400b597b11b751bbf759",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "b47f229f348233841d6d4745338900b39522289bcc82595985c268f883b33328",
-      "version": "saas~19.3.1.10.4"
+      "source_sha256": "0dfc08047c92a40d58bbf4c17fe8cba6369549e5a66d90fa31260d898285ac9e",
+      "version": "saas~19.3.1.10.6"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
