@@ -23,12 +23,12 @@ def require_index_model(store, model_name):
         )
 
 
-def _checkpoint_candidate(candidate):
+def _checkpoint(store):
     # sqlite3_close can succeed with committed frames left in the WAL after
     # an I/O error. Only a completed TRUNCATE checkpoint is safe to publish.
-    result = candidate.client.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+    result = store.client.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
     if tuple(result) != (0, 0, 0):
-        raise RuntimeError("The replacement semantic index could not finish its SQLite checkpoint.")
+        raise RuntimeError("The semantic index could not finish its SQLite checkpoint.")
 
 
 def _verify_main_file(database):
@@ -60,11 +60,14 @@ def replacement_index(live, model_name, directory, exclude_readers):
             path.unlink(missing_ok=True)
         with PaperlessSqliteVecVectorStore(str(candidate_dir), model_name) as candidate:
             yield candidate
-            _checkpoint_candidate(candidate)
+            _checkpoint(candidate)
         _verify_main_file(database)
         # The native compaction swap closes the old connection, replaces the
         # database in one rename and reopens it. Both paths share a filesystem.
         with exclude_readers():
+            # A surviving live WAL has the same pathname after the rename.
+            # Flush it first so reopening cannot replay the previous generation.
+            _checkpoint(live)
             live._swap_in_compact(str(database), str(Path(directory) / DB_FILENAME))
     finally:
         for path in files:

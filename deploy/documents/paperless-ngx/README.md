@@ -70,7 +70,8 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
 11. A semantic index rebuild keeps the last complete SQLite database available
     while the configured embedding model fills a second file on the same volume.
     Before publication, SQLite flushes the new index's write-ahead journal
-    and checks the standalone database. Readers finish before the atomic switch.
+    and checks the standalone database. Once readers finish, SQLite flushes
+    the previous index’s journal before the atomic switch.
     A failed checkpoint, an interrupted rebuild or a busy reader leaves the
     previous index in place. The next update retries. Allow room for both
     databases and the new index's journal during the build. Incremental edits and semantic

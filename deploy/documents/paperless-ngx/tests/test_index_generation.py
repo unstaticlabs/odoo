@@ -124,50 +124,79 @@ class TestIndexGeneration(TestCase):
         self.assert_index('a', self.docs)
 
     def test_checkpoint_disk_failure_leaves_last_complete_vectors_available(self):
-        # A file-size limit in a separate Linux process simulates SQLite being
-        # unable to grow only the candidate's main file. No disk is filled.
+        self.check_disk_failure('candidate')
+
+    def test_old_journal_cannot_be_replayed_over_a_new_generation(self):
+        self.check_disk_failure('live')
+        self.model_name.return_value = 'b'
+        indexing.update_llm_index(rebuild=False)
+        self.assert_index('b', self.docs)
+
+    def check_disk_failure(self, journal):
+        # Restrict one child only. Both the old and new SQLite journals must
+        # be fully checkpointed before the rename is safe in WAL mode.
         from textwrap import dedent
+
         script = dedent("""
             import resource
             import signal
             import sqlite3
             import sys
-            from contextlib import nullcontext
+            from contextlib import contextmanager
             from pathlib import Path
             from llama_index.core.schema import TextNode
             from paperless_ai.index_generation import replacement_index
             from paperless_ai.vector_store import DB_FILENAME, PaperlessSqliteVecVectorStore
 
-            directory = Path(sys.argv[1])
-            db = directory / 'usl-index-build' / DB_FILENAME
+            directory, journal = Path(sys.argv[1]), sys.argv[2]
+            live_db = directory / DB_FILENAME
+            candidate_db = directory / 'usl-index-build' / DB_FILENAME
+            original_inode = live_db.stat().st_ino
             limits = resource.getrlimit(resource.RLIMIT_FSIZE)
             signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
+            fault_injected = False
+
             def node(number, text):
                 return TextNode(id_=str(number), text=text, embedding=[0., 1.],
                                 metadata={'document_id': number, 'modified': 'synthetic'})
-            fault_injected = False
+
+            def limit_checkpoint(store, db):
+                global fault_injected
+                conn = store.client
+                conn.execute('PRAGMA wal_autocheckpoint=0')
+                assert tuple(conn.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()) == (0, 0, 0)
+                size = db.stat().st_size
+                conn.execute('CREATE TABLE synthetic_padding(payload BLOB)')
+                conn.execute('INSERT INTO synthetic_padding VALUES (zeroblob(?))', (size * 2,))
+                assert Path(str(db) + '-wal').stat().st_size > size
+                resource.setrlimit(resource.RLIMIT_FSIZE, (size, limits[1]))
+                fault_injected = True
+
             try:
                 with PaperlessSqliteVecVectorStore(str(directory), 'a') as live:
-                    with replacement_index(live, 'b', directory, nullcontext) as candidate:
-                        conn = candidate.client
-                        conn.execute('PRAGMA wal_autocheckpoint=0')
-                        candidate.add([node(1, 'short first document')])
-                        assert tuple(conn.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()) == (0, 0, 0)
-                        size = db.stat().st_size
-                        candidate.add([node(2, 'x' * (size * 2))])
-                        assert Path(str(db) + '-wal').stat().st_size > size
-                        resource.setrlimit(resource.RLIMIT_FSIZE, (size, limits[1]))
-                        fault_injected = True
+                    @contextmanager
+                    def exclude_readers():
+                        if journal == 'live':
+                            limit_checkpoint(live, live_db)
+                        yield
+
+                    with replacement_index(live, 'b', directory, exclude_readers) as candidate:
+                        candidate.add([node(1, 'first document'), node(2, 'second document')])
+                        if journal == 'candidate':
+                            limit_checkpoint(candidate, candidate_db)
             except (sqlite3.DatabaseError, OSError, RuntimeError):
                 if not fault_injected:
                     raise
             else:
-                raise AssertionError('a candidate with uncheckpointed frames was published')
+                raise AssertionError('published an index after the checkpoint fault')
             finally:
                 resource.setrlimit(resource.RLIMIT_FSIZE, limits)
+            assert live_db.stat().st_ino == original_inode, 'renamed before both checkpoints completed'
         """)
-        result = subprocess.run([sys.executable, '-c', script, str(self.directory)],
-                                capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            [sys.executable, '-c', script, str(self.directory), journal],
+            capture_output=True, text=True, check=False,
+        )
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assert_index('a', self.docs)
         self.assertFalse((self.directory / 'usl-index-build').exists())
