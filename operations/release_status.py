@@ -162,12 +162,14 @@ def _staging_progress(text: str, root: str, runner) -> dict:
     if not isinstance(value, dict):
         raise RuntimeError("staging progress is not an object")
     body = {key: item for key, item in value.items() if key != "checksum"}
+    if value.get("checksum") != _digest(body):
+        raise RuntimeError("staging progress checksum differs")
     expected = {
         "schema", "target", "release", "desired_state", "phase", "status",
         "updated_at", "token",
     }
     if (
-        set(body) != expected or value.get("checksum") != _digest(body)
+        set(body) != expected
         or body["schema"] != STAGING_SCHEMA or body["target"] != "staging"
         or any(not re.fullmatch(r"[a-f0-9]{64}", str(body[key])) for key in ("release", "desired_state"))
         or not isinstance(body["phase"], str) or body["phase"] not in STAGING_PHASES
