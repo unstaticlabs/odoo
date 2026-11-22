@@ -940915,7 +940915,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1614,
+          "line": 1639,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -982928,7 +982928,7 @@
       "delegates": [
         "rpc:rebuild.account.management.summary.line.ensure_one"
       ],
-      "digest": "2eaf759774e1823622d0bc3962339f37bed5ae8bf52bb507333ad67dc35ccb29",
+      "digest": "43be001e1bb60bbf9fd8ce4ff5a8f11423567ca613f21a6a0d8f79aada46eda5",
       "guards": [],
       "key": "rpc:rebuild.account.management.summary.line.action_open_journal_items",
       "kind": "rpc",
@@ -982939,7 +982939,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "121a68599e5ec71762d61e4a3d3692942524cdaafef78ef11cb37a0f3bfa0c41",
+      "runtime_digest": "f2a69bb9a5b214e1398db0f379dc2632b3ad9c9a4f167a5478dab90f33324523",
       "sinks": [],
       "sources": [
         {
@@ -995768,7 +995768,7 @@
           "path": "custom-addons/usl_access_control/models/readonly_accounting_report.py"
         },
         {
-          "line": 981,
+          "line": 980,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -995858,7 +995858,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1027,
+          "line": 1026,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -995936,7 +995936,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1037,
+          "line": 1036,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -996599,7 +996599,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1760,
+          "line": 1774,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -996632,7 +996632,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1769,
+          "line": 1783,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -998327,7 +998327,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1469,
+          "line": 1494,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -1621562,7 +1621562,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1541,
+          "line": 1555,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1737893,11 +1737893,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "b07488aed2fe7a120ed1f3f133eeaafc3cfff6a4efa92198c7953191f02f67b0",
+      "manifest_sha256": "ac05e534b6784c72cebbee6062daf7353428a1a9282fee2b46ffd512292f1859",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "98b219a544c63c4ea9b117c7d32ca18bd203d598b7d886bef26f8dc4dd08d1ea",
-      "version": "saas~19.3.1.13.47"
+      "source_sha256": "428b75fe0529a5555f46b73a93fa56ba81f94fc27ee0ad1cc0adb9225ba22e8e",
+      "version": "saas~19.3.1.13.48"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",

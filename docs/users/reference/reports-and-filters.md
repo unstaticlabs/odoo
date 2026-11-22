@@ -50,6 +50,12 @@ menu. The period-specific French tax-package mapping remains governed under
 **Configuration > Reports** until a definition applies to the selected fiscal
 year. There is one normal entry point for each end-user report.
 
+The cash flow statement opens with the net balance of cash and credit-card
+accounts before the selected period. Receipts less payments give the movement
+during the period. Add that movement to the opening balance to obtain closing
+cash. Open a row to inspect its contributing journal items. Use the same
+company, account and journal filters for a comparison with the ledger.
+
 ## Common filters
 
 The available subset depends on the report:
