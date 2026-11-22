@@ -75,7 +75,8 @@ help:
 	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make docs                           Run the journeys, then render the pages' \
-	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
+	  '  make docs-journeys                  Run all journeys into artifacts/usl-docs' \
+	  '  make docs-journeys MODULE=name      Run one add-on into .agent/docs-journeys/name' \
 	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
 	  '  make docs-reference                 Regenerate the reference pages from the action-risk closure' \
 	  '  make docs-mcp                       Regenerate the MCP tools page from the pinned odoo-mcp catalogue' \
