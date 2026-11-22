@@ -2426,6 +2426,70 @@ def _discover_from_args(args: argparse.Namespace) -> dict[str, object]:
     )
 
 
+REFERENCE_CRON = "l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows"
+REFERENCE_SERVER = f"{REFERENCE_CRON}_ir_actions_server"
+REFERENCE_REASONS = {
+    "ui:usl_feedback.action_feedback_collaborator": "same declared Feedback board",
+    "ui:usl_feedback.action_feedback_maintainer": "same declared Feedback board",
+    f"ui:{REFERENCE_SERVER}": "retained display label of the generated PDP action",
+    f"cron:{REFERENCE_CRON}": None,
+    f"server_action:{REFERENCE_SERVER}": None,
+}
+
+
+REFERENCE_ISSUES = {
+    "usl_feedback.action_feedback_collaborator: unverified Feedback board reference or context",
+    "usl_feedback.action_feedback_maintainer: unverified Feedback board reference or context",
+    f"{REFERENCE_CRON}: outside the declared noupdate binding",
+    f"{REFERENCE_SERVER}: outside the declared noupdate binding",
+    "PDP cron points to another server action",
+    "PDP execution principal does not match the declaration",
+}
+
+
+def compare_reference_diagnostics(expected, candidate):
+    """Compare two independent v1 registry observations without changing qualification."""
+    for side, receipt in (("expected", expected), ("candidate", candidate)):
+        if not isinstance(receipt, dict) or receipt.get("schema") != "usl-action-reference-diagnostic/v1":
+            return [], [f"Unsupported {side} diagnostic schema."]
+        refs = receipt.get("references")
+        if not isinstance(refs, dict) or set(refs) != REFERENCE_REASONS.keys():
+            return [], [f"Incomplete or unknown {side} reference set."]
+        if not all(type(receipt.get(key)) is int and receipt[key] > 0
+                   for key in ("module_count", "other_action_count")):
+            return [], [f"Invalid {side} inventory counts."]
+        hashes = [receipt.get("modules_sha256"), receipt.get("other_actions_sha256")]
+        for key, reason in REFERENCE_REASONS.items():
+            entry = refs[key]
+            if not isinstance(entry, dict) or set(entry) != {"exact", "meaning"}:
+                return [], [f"Invalid {side} reference entry for {key}."]
+            hashes.extend(entry.values())
+            if not reason and entry["exact"] != entry["meaning"]:
+                return [], [f"Inconsistent {side} execution fingerprint for {key}."]
+        if not all(isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) for value in hashes):
+            return [], [f"Invalid {side} diagnostic fingerprint."]
+        issues = receipt.get("issues")
+        if not isinstance(issues, list) or any(
+            not isinstance(issue, str) or issue not in REFERENCE_ISSUES for issue in issues
+        ):
+            return [], [f"Unrecognized or incomplete {side} observation."]
+        if issues:
+            return [], [f"{side.capitalize()} observation: {issue}" for issue in issues]
+    errors = []
+    for prefix, label in (("module", "Installed module cohort"), ("other_action", "Other runtime actions")):
+        if (expected[f"{prefix}_count"] != candidate[f"{prefix}_count"]
+                or expected[f"{prefix}s_sha256"] != candidate[f"{prefix}s_sha256"]):
+            errors.append(f"{label} changed.")
+    notes = []
+    for key, reason in REFERENCE_REASONS.items():
+        before, after = expected["references"][key], candidate["references"][key]
+        if before["meaning"] != after["meaning"]:
+            errors.append(f"Action changed: {key}")
+        elif before["exact"] != after["exact"]:
+            notes.append(f"{key} — {reason}")
+    return notes, errors
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -2499,6 +2563,10 @@ def _parser() -> argparse.ArgumentParser:
     carry.add_argument("--surface", type=Path, default=DEFAULT_SURFACE)
     carry.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
     carry.add_argument("--module", action="append", default=[])
+
+    diagnostics = subparsers.add_parser("compare-reference-diagnostics")
+    diagnostics.add_argument("--expected", type=Path, required=True)
+    diagnostics.add_argument("--candidate", type=Path, required=True)
 
     compare = subparsers.add_parser("compare-runtime")
     compare.add_argument("--root", type=Path, default=ROOT)
@@ -2587,6 +2655,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             write_json(args.policy, policy)
             print(f"Carried {len(renames)} moved sink keys forward in the policy.")
             return _print_errors("Moved sink review", unmatched)
+        if args.command == "compare-reference-diagnostics":
+            notes, errors = compare_reference_diagnostics(load_json(args.expected), load_json(args.candidate))
+            if errors:
+                return _print_errors("Reference diagnostic", errors)
+            print("Reference diagnostic: equivalent." if notes else "Reference diagnostic: identical.")
+            for note in notes:
+                print(f"- {note}")
+            return 0
         if args.command == "compare-runtime":
             expected = load_json(args.surface)
             runtime = load_json(args.runtime)
