@@ -53,13 +53,18 @@ that add pages never touch the same file.
 
 ```bash
 make docs            # run the journeys in the test container, then render pages and screenshots
-make docs-journeys   # only run the journeys on the product module set, as the qualification run does (MODULE=name narrows it for a quick look, but only the full set yields captures CI accepts); records land in artifacts/usl-docs
+make docs-journeys   # run the full product journey suite, with records in artifacts/usl-docs
+make docs-journeys MODULE=usl_feedback  # run only the selected add-on's journeys in its own QA database
 make docs-render     # only render from recorded journeys (scripts/docs generate render)
 make docs-reference  # extract the registry from the action-risk closure and render reference/generated/
 make docs-mcp        # render reference/mcp-tools.md from the pinned odoo-mcp commit (ODOO_MCP_REPOSITORY=../odoo-mcp)
 make docs-check      # front matter, directories, links, images, sources, decision numbering
 scripts/docs index   # print the llms.txt index with repository paths
 ```
+
+A targeted run writes records in `.agent/docs-journeys/<module>`. Use the same
+`MODULE` value for `make docs-render` to render those records. Refresh committed
+captures with the full run so they match the menus and layout of the release.
 
 `scripts/docs check` runs in CI on every pull request. The qualification
 database job runs every journey, proves the committed pages and screenshots
