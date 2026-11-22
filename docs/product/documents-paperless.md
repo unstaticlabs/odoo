@@ -7,6 +7,12 @@ drop in a file without choosing a folder, find text inside it, understand its
 business context, preview or download the received file, and link one archived
 document to several Odoo records. Advanced bulk work remains in Paperless.
 
+In **Linked records**, select a record name to read its native form inside Documents.
+The arrow opens the full record. The visible preview rechecks the document, its
+link and the target through the existing Open action every four seconds. The
+form clears if a request remains unanswered for eight seconds. Returning to a
+hidden tab requires a fresh check before the form appears again.
+
 The workspace is deliberately about documents, not integration health:
 
 - cards show title, date, correspondent, type, useful Odoo context, and
