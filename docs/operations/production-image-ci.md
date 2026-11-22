@@ -179,6 +179,12 @@ When reviewing a new pin, download the native package for each architecture,
 compare the whole-file MD5 with the official release object's
 `x-ms-blob-content-md5` response header, and calculate SHA-256 locally.
 The container build also checks the installed binary's patched Qt version.
+The Odoo runtime includes fontTools, which its native PDF/A converter uses to
+match the width of every printed glyph to its embedded font. This preserves
+text selection and font metrics in the electronic invoice PDF. When updating
+the renderer or fontTools, prepare a synthetic Factur-X through Odoo, extract
+its XML with `pdfdetach`, and validate the resulting PDF against veraPDF
+profile 3b. An embedded XML file alone does not establish PDF/A conformity.
 
 To test an image already built for one architecture, run the following on a
 host with Docker and Poppler. The test renders two pages in both portrait and

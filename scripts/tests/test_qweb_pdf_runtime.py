@@ -51,6 +51,7 @@ class QWebPDFRuntimeTest(unittest.TestCase):
                     with result.open("wb") as pdf:
                         subprocess.run([
                             "docker", "run", "--rm", "--network=none", "--read-only",
+                            "--user", f"{os.getuid()}:{os.getgid()}",
                             "--tmpfs", "/tmp", "--env", "XDG_CACHE_HOME=/tmp/cache",
                             "--cap-drop=ALL", "--security-opt=no-new-privileges",
                             "--mount", f"type=bind,source={path},target=/fixture,readonly",
