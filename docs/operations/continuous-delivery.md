@@ -475,8 +475,8 @@ choose a winner. Production and local targets retain `idle` before a run exists.
 
 Staging reports the latest instrumented `staging-upgrade` attempt from the
 launcher. The response contains the release identity, desired-state digest,
-observed phase and timestamp. A running attempt must still match the host boot
-and process start time. If its writer has stopped without recording a terminal
+observed phase and timestamp. A running attempt must still hold the observer's
+file lock with the same attempt token. If its writer has stopped without recording a terminal
 result, the observer reports `interrupted`. Staging with no progress record or
 legacy run reports `unobserved`. The runtime and health observers still report
 the current active generation, including when a separate staging reset took

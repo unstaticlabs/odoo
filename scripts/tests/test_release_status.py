@@ -93,12 +93,15 @@ class Host:
         self.files = files or {}
         self.entries = entries
         self.commands = []
+        self.probe_result = int(self.files.get("staging-probe-result", "1"))
 
     def run(self, command, *, check=True, input_text=None):
         self.commands.append(command)
         if command[0] == "cat":
             code = 0 if command[1] in self.files else 1
             result = subprocess.CompletedProcess(command, code, self.files.get(command[1], ""), "")
+        elif command[:2] == ["python3", "-c"]:
+            result = subprocess.CompletedProcess(command, self.probe_result, "", "")
         elif command[0] == "find":
             names = self.entries if self.entries is not None else [
                 path.rsplit("/", 1)[1] + "\tf" for path in self.files if path.startswith(ROOT + "/runs/")
@@ -198,37 +201,36 @@ class ReleaseStatusTests(unittest.TestCase):
         value, _host = self.observe(target="staging")
         self.assertEqual(value["status"], "unobserved")
 
-    def test_staging_progress_checks_process_identity_and_omits_it_from_output(self):
-        boot_id = "01234567-89ab-cdef-0123-456789abcdef"
+    def test_staging_progress_checks_attempt_lock_and_omits_it_from_output(self):
         value = {
             "schema": "usl-staging-release-progress/v1", "target": "staging",
             "release": RELEASE, "desired_state": OTHER, "phase": "checkpoint",
             "updated_at": "2026-11-22T22:00:00+00:00", "status": "running",
-            "pid": 812, "start_tick": 7312, "boot_id": boot_id,
+            "token": "c" * 32,
         }
         progress = f"{STAGING_ROOT}/staging-progress.json"
-        proc = "/proc/812/stat"
         files = {
             progress: json.dumps(seal(value)),
-            "/proc/sys/kernel/random/boot_id": boot_id,
-            proc: "812 (test ) launcher) S " + "0 " * 18 + "7312",
+            "staging-probe-result": "0",
         }
         running, _host = self.observe(files, target="staging")
         self.assertEqual((running["status"], running["phase"]), ("running", "checkpoint"))
         self.assertEqual(running["operation"], "staging-upgrade")
-        self.assertFalse({"pid", "boot_id", "start_tick"} & running.keys())
+        self.assertNotIn("token", running)
 
-        files[proc] = files[proc].replace("7312", "7313")
-        reused, _host = self.observe(files, target="staging")
-        self.assertEqual(reused["status"], "interrupted")
-        del files[proc]
+        files["staging-probe-result"] = "1"
         missing, _host = self.observe(files, target="staging")
         self.assertEqual(missing["status"], "interrupted")
 
         files[progress] = json.dumps(seal({**value, "status": "failed"}))
-        failed, host = self.observe(files, target="staging")
+        failed, _host = self.observe(files, target="staging")
         self.assertEqual(failed["status"], "failed")
-        self.assertFalse(any("/proc/" in " ".join(command) for command in host.commands))
+        files[progress] = json.dumps(seal({**value, "phase": "record", "status": "admitted_follow_up_deferred"}))
+        deferred, _host = self.observe(files, target="staging")
+        self.assertEqual(deferred["status"], "admitted_follow_up_deferred")
+        files["staging-probe-result"] = "2"
+        newer_attempt, _host = self.observe(files, target="staging")
+        self.assertEqual(newer_attempt["status"], "unobserved")
 
     def test_fixed_failed_and_recovered_states_expose_safe_recovery_metadata(self):
         for status in ("failed", "recovered"):

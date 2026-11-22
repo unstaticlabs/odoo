@@ -17,14 +17,16 @@ from operations.runtime import (
     read_active_release,
     read_active_state,
     release_run_inventory_command,
+    staging_progress_probe,
 )
 
 FIXED_SCHEMA = "usl-fixed-release-run/v3"
 STAGING_SCHEMA = "usl-staging-release-progress/v1"
 STAGING_PHASES = {
     "wake", "resolve", "plan", "prepare", "maintenance", "backup",
-    "checkpoint", "upgrade", "attestation", "reopen", "record",
+    "checkpoint", "upgrade", "attestation", "reopen", "record", "verify",
 }
+STAGING_ADMITTED = ("admitted", "admitted_follow_up_deferred")
 RUN_NAME = re.compile(r"release-([0-9a-f]{64})\.json\Z")
 STAGES = (
     "resolve", "prepare", "preflight", "maintenance", "quiesce",
@@ -152,7 +154,7 @@ def _project(value: dict) -> dict:
     return result
 
 
-def _staging_progress(text: str, runner) -> dict:
+def _staging_progress(text: str, root: str, runner) -> dict:
     try:
         value = json.loads(text)
     except json.JSONDecodeError as error:
@@ -162,18 +164,16 @@ def _staging_progress(text: str, runner) -> dict:
     body = {key: item for key, item in value.items() if key != "checksum"}
     expected = {
         "schema", "target", "release", "desired_state", "phase", "status",
-        "updated_at", "boot_id", "pid", "start_tick",
+        "updated_at", "token",
     }
     if (
         set(body) != expected or value.get("checksum") != _digest(body)
         or body["schema"] != STAGING_SCHEMA or body["target"] != "staging"
         or any(not re.fullmatch(r"[a-f0-9]{64}", str(body[key])) for key in ("release", "desired_state"))
         or not isinstance(body["phase"], str) or body["phase"] not in STAGING_PHASES
-        or body["status"] not in ("running", "failed", "admitted")
-        or type(body["pid"]) is not int or not 1 <= body["pid"] <= 2**31 - 1
-        or type(body["start_tick"]) is not int or body["start_tick"] < 0
-        or not re.fullmatch(r"[a-f0-9-]{36}", str(body["boot_id"]))
-        or (body["status"] == "admitted" and body["phase"] != "record")
+        or body["status"] not in ("running", "failed", *STAGING_ADMITTED)
+        or not isinstance(body["token"], str) or not re.fullmatch(r"[a-f0-9]{32}", body["token"])
+        or (body["status"] in STAGING_ADMITTED and body["phase"] != "record")
     ):
         raise RuntimeError("staging progress identity differs")
     timestamp = body["updated_at"]
@@ -184,13 +184,13 @@ def _staging_progress(text: str, runner) -> dict:
         raise RuntimeError("staging progress timestamp is invalid") from error
 
     status = body["status"]
-    if status == "running":
-        boot = runner.run(["cat", "/proc/sys/kernel/random/boot_id"]).stdout.strip()
-        process = _optional_read(runner, f"/proc/{body['pid']}/stat") if boot == body["boot_id"] else None
-        fields = process.rsplit(")", 1)[-1].split() if process else []
-        # Field 22 is the process start time; fields after the comm start at 3.
-        if len(fields) <= 19 or fields[0] == "Z" or fields[19] != str(body["start_tick"]):
-            status = "interrupted"
+    probe = runner.run(staging_progress_probe(root, body["token"]), check=False)
+    if probe.stderr or probe.returncode not in (0, 1, 2):
+        raise RuntimeError("staging progress lock cannot be inspected")
+    if probe.returncode == 2:
+        return {"schema": "usl-release-run/v1", "target": "staging", "status": "unobserved"}
+    if probe.returncode == 1 and status == "running":
+        status = "interrupted"
     return {
         "schema": "usl-release-status/v1", "source_schema": STAGING_SCHEMA,
         "source_checksum": value["checksum"], "status": status,
@@ -206,12 +206,12 @@ def observe(target, runner) -> dict:
         path = f"{root}/staging-progress.json"
         progress = _optional_read(runner, path)
         if progress is not None:
-            result = _staging_progress(progress, runner)
-            if result["status"] == "interrupted":
+            result = _staging_progress(progress, root, runner)
+            if result["status"] in ("interrupted", "unobserved"):
                 # The launcher can publish its terminal result between the file and process reads.
                 current = _optional_read(runner, path)
                 if current is not None and current != progress:
-                    return _staging_progress(current, runner)
+                    return _staging_progress(current, root, runner)
             return result
     legacy_text = _optional_read(runner, f"{root}/release-state.json")
     legacy = None
