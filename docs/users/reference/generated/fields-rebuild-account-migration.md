@@ -513,6 +513,21 @@ false
 | **Validation Status** (`validation_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warning**, **Blocked**. |
 | **Validation Summary** (`validation_summary`) | text |  |  |
 
+## DES and DAS2 source review
+
+`rebuild.account.declaration.candidate.review`, defined by this module. Transient: the record lives only while its dialog is open.
+
+Use the source dates and linked accounting documents to decide which items need a declaration review.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Company** (`company_id`) | many2one → `res.company` | yes | Active company whose accounting documents you want to review. |
+| **From** (`date_from`) | date | yes | First invoice or payment date to include. |
+| **To** (`date_to`) | date | yes | Last invoice or payment date to include. |
+| **Items to review** (`evidence_html`) | html |  | Source documents grouped by declaration period for the accountant to review. |
+| **Declaration** (`kind`) | selection | yes | Review DES by invoice month or DAS2 by payment year and beneficiary. Values: **DES**, **DAS2**. |
+| **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also identify the payment and its matched amount in company currency. |
+
 ## USL French Declaration Prefilled Field
 
 `rebuild.account.declaration.field`, defined by this module.
