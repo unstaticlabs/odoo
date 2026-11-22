@@ -29,8 +29,8 @@ class ProjectTask(models.Model):
     _inherit = "project.task"
 
     github_url = fields.Char(
-        string="GitHub URL",
-        help="The canonical GitHub issue, pull request or repository link for this task.",
+        string="Link",
+        help="The main link to this work in another system: a pull request, issue, document, deploy run...",
     )
 
     def _usl_migrate_github_references(self):

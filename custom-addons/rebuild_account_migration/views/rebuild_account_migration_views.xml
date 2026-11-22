@@ -2158,7 +2158,7 @@
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card">
                                         <div class="o_usl_overview_status">
-                                            <h4 class="o_usl_overview_card_title">Actionable issues</h4>
+                                            <h4 class="o_usl_overview_card_title">Open hygiene findings</h4>
                                             <field
                                                 name="hygiene_status"
                                                 nolabel="1"
@@ -2175,7 +2175,7 @@
                                             </span>
                                         </div>
                                         <span class="o_usl_overview_value"><field name="hygiene_issue_count" nolabel="1"/></span>
-                                        <div class="o_usl_overview_detail">Deterministic recommendations linked directly to records that need review.</div>
+                                        <div class="o_usl_overview_detail">All dates and severities, including information. The closing workspace counts actionable findings through its end date.</div>
                                         <button name="action_open_hygiene_issues" type="object" string="Review Accounting Hygiene" class="btn-link"/>
                                     </div>
                                 </div>
@@ -2206,6 +2206,15 @@
 
                         <section class="o_usl_overview_section">
                             <h3 class="o_usl_overview_section_title">Closing and declarations</h3>
+                            <div class="o_usl_overview_card mb-3" invisible="not open_annual_closing_id">
+                                <h4 class="o_usl_overview_card_title">Annual close coverage</h4>
+                                <field name="open_annual_closing_id" nolabel="1" readonly="1"/>
+                                <div class="d-flex gap-4 flex-wrap mt-2">
+                                    <div><label for="annual_posted_move_count" string="Posted entries" class="me-1 fw-normal text-muted"/> <strong><field name="annual_posted_move_count" nolabel="1"/></strong></div>
+                                    <div><label for="annual_journal_count" string="Journals used" class="me-1 fw-normal text-muted"/> <strong><field name="annual_journal_count" nolabel="1"/></strong></div>
+                                    <div><label for="annual_archived_journal_count" string="Of which archived" class="me-1 fw-normal text-muted"/> <strong><field name="annual_archived_journal_count" nolabel="1"/></strong></div>
+                                </div>
+                            </div>
                             <div class="row g-3">
                                 <div class="col-12 col-md-6">
                                     <div class="o_usl_overview_card">
@@ -2215,20 +2224,14 @@
                                                 name="latest_closing_readiness"
                                                 nolabel="1"
                                                 widget="badge"
-                                                invisible="latest_closing_period_id and latest_closing_blocking_count == 0 and latest_closing_warning_count == 0"
+                                                invisible="not latest_closing_period_id"
                                                 decoration-success="latest_closing_readiness == 'ready'"
                                                 decoration-warning="latest_closing_readiness == 'warning'"
                                                 decoration-danger="latest_closing_readiness == 'blocked'"
                                                 decoration-muted="latest_closing_readiness == 'not_run'"/>
-                                            <span
-                                                class="badge rounded-pill o_usl_ready_status_chip"
-                                                invisible="not latest_closing_period_id or latest_closing_blocking_count != 0 or latest_closing_warning_count != 0">
-                                                <i class="fa fa-check" aria-hidden="true"/>
-                                                Ready
-                                            </span>
                                         </div>
-                                        <span class="o_usl_overview_value"><field name="latest_closing_date_to" nolabel="1"/></span>
-                                        <div class="o_usl_overview_detail">
+                                        <div><field name="latest_closing_period_id" nolabel="1" readonly="1"/></div>
+                                        <div class="o_usl_overview_detail" invisible="not latest_closing_blocking_count">
                                             <field name="latest_closing_blocking_count" nolabel="1"/> blocking controls remain.
                                         </div>
                                         <button name="action_open_latest_closing" type="object" string="Review closing readiness" class="btn-link" invisible="not latest_closing_period_id"/>
@@ -2324,7 +2327,7 @@
                         type="object"
                         string="Current Closing Controls"
                         invisible="not latest_closing_period_id"/>
-                    <button name="action_open_hygiene_issues" type="object" string="Actionable Issues"/>
+                    <button name="action_open_hygiene_issues" type="object" string="Open Hygiene Findings"/>
                     <button name="action_open_user_guide" type="object" string="User Guide"/>
                 </header>
                 <sheet>
@@ -2368,7 +2371,7 @@
                             <field name="unusual_balance_count" widget="statinfo" string="Unusual Balances"/>
                         </button>
                         <button name="action_open_hygiene_issues" type="object" class="oe_stat_button" icon="fa-exclamation-triangle">
-                            <field name="hygiene_issue_count" widget="statinfo" string="Actionable Issues"/>
+                            <field name="hygiene_issue_count" widget="statinfo" string="Open Hygiene Findings"/>
                         </button>
                     </div>
                     <group>
@@ -3946,6 +3949,9 @@
         <field name="model">l10n_fr.fec.export.wizard</field>
         <field name="inherit_id" ref="l10n_fr_account.fec_export_wizard_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='date_from']" position="before">
+                <field name="rebuild_closing_company_id" invisible="not rebuild_closing_company_id" options="{'no_open': True}"/>
+            </xpath>
             <xpath expr="//field[@name='test_file']" position="before">
                 <field name="rebuild_can_generate_official_fec" invisible="1"/>
             </xpath>

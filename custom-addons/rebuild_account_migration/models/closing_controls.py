@@ -1,5 +1,7 @@
 """Configurable closing control definitions and their evaluated control lines."""
 
+from ast import literal_eval
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
 
@@ -444,6 +446,9 @@ class RebuildAccountClosingControl(models.Model):
     record_count = fields.Integer()
     amount = fields.Monetary(currency_field="currency_id")
     summary = fields.Text(required=True)
+    review_name = fields.Char(string="Control", compute="_compute_review_presentation")
+    review_result = fields.Char(string="Result", compute="_compute_review_presentation")
+    review_finding = fields.Text(string="Finding", compute="_compute_review_presentation")
     next_action = fields.Text(required=True)
     owner = fields.Selection(
         CLOSING_CONTROL_OWNERS,
@@ -452,6 +457,32 @@ class RebuildAccountClosingControl(models.Model):
         string="Responsible Role",
     )
     accountant_visible = fields.Boolean(default=True)
+
+    @api.depends("code", "name", "status", "summary")
+    @api.depends_context("lang")
+    def _compute_review_presentation(self):
+        statuses = dict(self._fields["status"]._description_selection(self.env))
+        standard_names = {
+            "Document completeness": self.env._("Document completeness"),
+            "FEC readiness": self.env._("FEC readiness"),
+            "Accounting Hygiene issues": self.env._("Accounting Hygiene issues"),
+            "Closing reports": self.env._("Closing reports"),
+        }
+        for control in self:
+            control.review_name = standard_names.get(control.name, control.name)
+            result = statuses.get(control.status, False)
+            finding = control.summary
+            if control.status != "technical_error":
+                if control.code in ("reports", "fec"):
+                    if control.status == "pass":
+                        result = self.env._("Export available")
+                    finding = self.env._("Review file contents separately. Accepted files are listed under Accepted Snapshots.") + " " + (finding or "")
+                elif control.code == "document_completeness":
+                    finding = self.env._("Check Documents for supporting files that are not linked as the main attachment.") + " " + (finding or "")
+                elif control.code == "issues":
+                    finding = self.env._("Open findings through the closing date, including undated findings.") + " " + (finding or "")
+            control.review_result = result
+            control.review_finding = finding
 
     @api.depends("status")
     def _compute_result_kind(self):
@@ -493,6 +524,7 @@ class RebuildAccountClosingControl(models.Model):
                 ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from),
                 ("date", "<=", closing.date_to),
                 ("move_type", "in", ["out_invoice", "out_refund", "in_invoice", "in_refund"]),
+                "|", ("state", "=", "draft"), "&", ("state", "=", "posted"), ("message_main_attachment_id", "=", False),
             ])
         if self.code == "bank_reconciliation":
             return self._action("Bank Matching Items", "account.bank.statement.line", [
@@ -521,7 +553,11 @@ class RebuildAccountClosingControl(models.Model):
             action["context"]["search_default_group_by_account"] = 1
             return action
         if self.code == "tax_declarations":
-            return closing.action_open_declarations()
+            return self._action(
+                "Declarations Requiring Attention", "rebuild.account.declaration",
+                [("id", "in", closing._filings_requiring_attention().ids)],
+                "list,form,calendar",
+            )
         if self.code == "issues":
             return self._action("Accounting Hygiene", "rebuild.account.hygiene.issue", [
                 ("company_id", "=", self.company_id.id),
@@ -530,10 +566,30 @@ class RebuildAccountClosingControl(models.Model):
                 ("issue_date", "=", False),
                 ("issue_date", "<=", closing.date_to),
             ])
-        if self.code == "reports":
-            return self.env.ref(
-                "rebuild_account_migration.action_rebuild_account_report_export_wizard",
-            ).read()[0]
+        if self.code in ("reports", "fec"):
+            action_name = "fec" if self.code == "fec" else "wizard"
+            export = self.env.ref(
+                f"rebuild_account_migration.action_rebuild_account_report_export_{action_name}",
+                raise_if_not_found=False,
+            )
+            action = export._get_action_dict() if export else {}
+            if action.get("res_model") not in self.env.registry:
+                raise UserError(self.env._("This export is unavailable. Ask an administrator to restore the reporting tool, then try again."))
+            # Both native actions have a literal default context. Preserve the FEC test mode.
+            action["context"] = {
+                **literal_eval(action["context"]),
+                "allowed_company_ids": [closing.company_id.id],
+                "default_date_from": fields.Date.to_string(closing.date_from),
+                "default_date_to": fields.Date.to_string(closing.date_to),
+            }
+            if self.code == "reports":
+                action["context"].update(
+                    default_company_id=closing.company_id.id,
+                    default_closing_period_id=closing.id,
+                )
+            else:
+                action["context"]["default_rebuild_closing_company_id"] = closing.company_id.id
+            return action
         return self._action("Closing Journal Items", "account.move.line", [
             ("company_id", "=", self.company_id.id), ("date", ">=", closing.date_from), ("date", "<=", closing.date_to),
         ], "list,form,pivot")

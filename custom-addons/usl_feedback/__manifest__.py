@@ -1,11 +1,11 @@
 {
     "name": "USL Product Feedback",
     "summary": "Conversational AI-assisted product feedback on native Project tasks",
-    "version": "saas~19.3.2.0.19",
+    "version": "saas~19.3.2.0.20",
     "category": "Productivity",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
-    "depends": ["base_setup", "project", "mail", "web"],
+    "depends": ["base_setup", "project", "mail", "web", "usl_project"],
     "data": [
         "security/feedback_security.xml",
         "security/ir.model.access.csv",

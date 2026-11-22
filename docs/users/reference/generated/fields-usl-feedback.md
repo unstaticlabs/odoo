@@ -49,7 +49,7 @@ false
 | **Gemini Interaction** (`usl_feedback_latest_interaction_id`) | char |  |  |
 | **Recent navigation** (`usl_feedback_navigation_context`) | json |  |  |
 | **Pending Reporter Message** (`usl_feedback_pending_message_id`) | many2one → `mail.message` |  |  |
-| **Pull request** (`usl_feedback_pr_url`) | char |  |  |
+| **Pull request (deprecated)** (`usl_feedback_pr_url`) | char |  | Deprecated: use the generic Link field. Kept for history only. |
 | **Related feedback** (`usl_feedback_related_task_ids`) | many2many → `project.task` |  |  |
 | **Release SHA** (`usl_feedback_release_sha`) | char |  |  |
 | **Reporter** (`usl_feedback_reporter_id`) | many2one → `res.users` |  |  |

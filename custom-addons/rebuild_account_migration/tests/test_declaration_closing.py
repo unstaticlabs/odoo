@@ -263,6 +263,293 @@ class TestDeclarationAndClosing(TransactionCase):
         self.assertEqual(set(later_is_instalments.mapped("preparation_status")), {"missing_data"})
         self.assertFalse(later_is_instalments.filtered("is_overdue"))
 
+    def test_rollover_keeps_unlocked_fy2026_declarations_and_vat_transition(self):
+        company = self._company("September rollover preserves tax obligations")
+        company.fiscalyear_lock_date = fields.Date.from_string("2025-09-30")
+        Declaration = self.env["rebuild.account.declaration"]
+        codes = {"FR_2572", "FR_2065", "FR_3517_S"}
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        fy2026 = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", list(codes)),
+        ])
+        self.assertEqual(set(fy2026.mapped("rule_id.code")), codes)
+        original_ids = set(fy2026.ids)
+        # Reproduce the data corruption that occurred in production when the
+        # FY2026 rows were incorrectly retired at the October rollover.
+        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+        fy2026.invalidate_recordset()
+        self.assertEqual(set(fy2026.ids), original_ids)
+        self.assertEqual(set(fy2026.mapped("applicability")), {"applicable"})
+        self.assertFalse(fy2026.filtered(lambda d: d.status == "not_applicable"))
+        self.assertTrue(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_3517_S"),
+            ("fiscalyear_end", "=", date(2027, 9, 30)),
+            ("applicability", "=", "applicable"),
+        ]))
+        self.assertTrue(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_CA3"),
+            ("period_start", "=", date(2027, 10, 1)),
+            ("applicability", "=", "applicable"),
+        ]))
+        self.assertFalse(Declaration.search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", "FR_CA3"),
+            ("period_start", "<", date(2027, 10, 1)),
+        ]))
+
+    def _fiscal_year_ends(self, company, code="FR_2065"):
+        return sorted(self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("rule_id.code", "=", code),
+        ]).mapped("fiscalyear_end"))
+
+    def test_multi_year_lock_gap_is_filled_without_pre_first_year_rows(self):
+        # The declaration rules start with the 2025 version, so a gap of two
+        # years is visible from FY2025 onward.
+        company = self._company("Old lock gap fill")
+        company.write({
+            "rebuild_first_fiscalyear_start": "2023-01-10",
+            "rebuild_first_fiscalyear_end": "2024-09-30",
+            "fiscalyear_lock_date": "2024-09-30",
+        })
+        with patch.object(fields.Date, "context_today", return_value=date(2027, 10, 17)):
+            self.env["rebuild.account.declaration"].sync_for_company(company)
+
+        # FY2025 and FY2026 sit between the lock and the year just completed
+        # (FY2027); the current year (FY2028) has no governed rule yet.
+        self.assertEqual(
+            self._fiscal_year_ends(company),
+            [date(2025, 9, 30), date(2026, 9, 30), date(2027, 9, 30)],
+        )
+        declarations = self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("rule_id.period_basis", "=", "fiscal_year"),
+        ])
+        self.assertFalse(declarations.filtered(lambda d: d.period_start < date(2024, 10, 1)))
+        self.assertFalse(declarations.filtered(lambda d: d.status == "not_applicable"))
+
+    def test_lock_gap_fill_never_goes_before_the_first_fiscal_year(self):
+        company = self._company("Lock before first year")
+        company.write({
+            "rebuild_first_fiscalyear_start": "2026-01-10",
+            "rebuild_first_fiscalyear_end": "2026-09-30",
+            "fiscalyear_lock_date": "2024-09-30",
+        })
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            self.env["rebuild.account.declaration"].sync_for_company(company)
+
+        self.assertEqual(
+            self._fiscal_year_ends(company),
+            [date(2026, 9, 30), date(2027, 9, 30)],
+        )
+        self.assertFalse(self.env["rebuild.account.declaration"].search([
+            ("company_id", "=", company.id),
+            ("period_start", "<", date(2026, 1, 10)),
+            ("rule_id.period_basis", "=", "fiscal_year"),
+        ]))
+
+    def test_sync_does_not_reopen_unreviewed_rows_of_a_locked_year(self):
+        company = self._company("Locked year stays closed")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        fy2026 = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
+        ])
+        self.assertEqual(len(fy2026), 2)
+        fy2026.write({"status": "not_applicable", "applicability": "not_applicable"})
+        fy2026.write({"preparation_status": "not_required"})
+        company.fiscalyear_lock_date = "2026-09-30"
+        protected = ["applicability", "status", "preparation_status", "last_refreshed_at"]
+        before = fy2026.read(protected)
+
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+            Declaration.sync_for_company(company)
+        self.assertEqual(fy2026.read(protected), before)
+
+    def test_recorded_exclusion_removes_filing_from_calendar_and_close_until_superseded(self):
+        company = self._company("Reviewed exclusion for the open year")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+            row = Declaration.search([
+                ("company_id", "=", company.id),
+                ("fiscalyear_end", "=", date(2026, 9, 30)),
+                ("rule_id.code", "=", "FR_2065"),
+            ])
+            closing = self.env["rebuild.account.closing.period"].create({
+                "name": "Test annual filing review",
+                "company_id": company.id, "period_type": "annual",
+                "date_from": "2025-10-01", "date_to": "2026-09-30",
+                "fiscalyear_start": "2025-10-01", "fiscalyear_end": "2026-09-30",
+            })
+            closing.action_refresh_controls()
+            control = closing.control_line_ids.filtered(lambda line: line.code == "tax_declarations")
+            documents = closing.control_line_ids.filtered(lambda line: line.code == "document_completeness")
+            documents.summary = "Previous independently qualified document review."
+            full_evaluation = closing.last_refreshed_at
+
+            def filings_opened_from_control():
+                action = control.action_open_records()
+                filings = Declaration.search(action["domain"])
+                self.assertEqual(len(filings), control.record_count)
+                self.assertEqual(closing.last_refreshed_at, full_evaluation)
+                self.assertEqual(documents.summary, "Previous independently qualified document review.")
+                return filings
+
+            pending = filings_opened_from_control()
+            self.assertIn(row, pending)
+            before = len(pending)
+            self.assertEqual(row.validation_status, "blocked")
+            Decision = self.env["rebuild.account.assurance.decision"]
+            decision = Decision.create({
+                "gate": "declaration_review", "conclusion": "not_applicable",
+                "company_id": company.id, "declaration_id": row.id,
+                "decision_summary": "Reviewed synthetic filing exclusion.",
+                "evidence_summary": "Synthetic evidence for this filing.",
+            })
+            decision.action_record()
+            for _ in range(2):
+                self.assertEqual(row.status, "not_applicable")
+                self.assertEqual(row.applicability, "not_applicable")
+                self.assertEqual(row.applicability_reason, decision.decision_summary)
+                self.assertEqual(row.preparation_status, "not_required")
+                self.assertEqual(row.review_status, "not_applicable")
+                self.assertEqual(row.filing_status, "not_open")
+                self.assertEqual(filings_opened_from_control(), pending - row)
+                self.assertEqual(control.record_count, before - 1)
+                self.assertEqual((decision.state, decision.conclusion), ("recorded", "not_applicable"))
+                row.action_refresh_preparation()
+                Declaration.sync_for_company(company)
+            replacement = decision.copy({
+                "state": "draft", "conclusion": "requires_change",
+                "decision_summary": "Synthetic new finding requires preparation.",
+            })
+            replacement.action_record()
+            self.assertEqual(row.status, "data_missing")
+            self.assertEqual(row.applicability, "applicable")
+            Declaration.sync_for_company(company)
+            self.assertEqual(filings_opened_from_control(), pending)
+            replacement.action_supersede()
+            self.assertEqual(row.status, "not_applicable")
+            decision.action_supersede()
+            self.assertEqual(row.status, "data_missing")
+            self.assertEqual(row.applicability, "applicable")
+            self.assertEqual(filings_opened_from_control(), pending)
+
+    def test_repair_distinguishes_current_and_superseded_legacy_filing_decisions(self):
+        for revoked in (False, True):
+            with self.subTest(revoked=revoked):
+                company = self._company("Legacy revoked filing" if revoked else "Legacy current filing", profile=False)
+                row = self._declaration(company)
+                decision = self.env["rebuild.account.assurance.decision"].create({
+                    "gate": "declaration_review", "conclusion": "not_applicable",
+                    "company_id": company.id, "declaration_id": row.id,
+                    "decision_summary": "Synthetic reviewed exception.", "evidence_summary": "Synthetic proof.",
+                })
+                decision.action_record()
+                if revoked:
+                    decision.action_supersede()
+                # Version .44 stored the same approval fields for a current and
+                # a superseded N/A decision, even if the row had been retired.
+                row.write({
+                    "status": "ready_to_file", "preparation_status": "reviewed",
+                    "review_status": "accepted_with_difference", "filing_status": "ready",
+                    "applicability": "not_applicable", "applicability_reason": "Former automatic retirement.",
+                })
+                for _ in range(2):
+                    row.sync_for_company(company)
+                    self.assertEqual(row.applicability, "applicable" if revoked else "not_applicable")
+                    self.assertEqual(row.filing_status, "not_open")
+                    if revoked:
+                        self.assertEqual(row.review_status, "not_started")
+                        self.assertNotEqual(row.status, "ready_to_file")
+                    else:
+                        self.assertEqual(row.status, "not_applicable")
+                        self.assertEqual(row.applicability_reason, decision.decision_summary)
+                        self.assertEqual(row.preparation_status, "not_required")
+
+    def test_non_applicability_decision_preserves_closed_or_completed_filing_history(self):
+        for protected_status in ("locked", "filed", "paid", "archived"):
+            with self.subTest(protected_status=protected_status):
+                company = self._company("Protected review " + protected_status)
+                row = self._declaration(company)
+                if protected_status == "locked":
+                    company.fiscalyear_lock_date = row.period_end
+                else:
+                    row.write({"status": protected_status, "external_filing_reference": "UNIT-HISTORY"})
+                protected = ["status", "applicability", "review_status", "preparation_status",
+                             "filing_status", "external_filing_reference", "last_refreshed_at"]
+                before = row.read(protected)
+                decision = self.env["rebuild.account.assurance.decision"].create({
+                    "gate": "declaration_review", "conclusion": "not_applicable",
+                    "company_id": company.id, "declaration_id": row.id,
+                    "decision_summary": "Note on a finished filing.", "evidence_summary": "Synthetic proof.",
+                })
+                decision.action_record()
+                self.assertEqual(row.read(protected), before)
+                row.sync_for_company(company)
+                self.assertEqual(row.read(protected), before)
+                decision.action_supersede()
+                self.assertEqual(row.read(protected), before)
+
+    def test_calendar_sync_preserves_filed_and_paid_declarations(self):
+        company = self._company("Completed filing history")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        completed = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "in", ["FR_2572", "FR_2065"]),
+        ])
+        self.assertEqual(len(completed), 2)
+        completed.write({
+            "filing_status": "filed", "external_filing_reference": "TEST-RETURN",
+            "preparation_status": "reviewed",
+        })
+        completed[0].write({"status": "filed"})
+        completed[1].write({"status": "paid", "payment_status": "paid", "amount_paid": 100})
+        protected = [
+            "status", "filing_status", "external_filing_reference", "payment_status",
+            "amount_paid", "applicability", "preparation_status", "last_refreshed_at",
+        ]
+        before = completed.read(protected)
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 10, 17)):
+            Declaration.sync_for_company(company)
+            Declaration.sync_for_company(company)
+        self.assertEqual(completed.read(protected), before)
+
+    def test_unreviewed_not_applicable_row_returns_to_preparation(self):
+        company = self._company("Manual N/A without review")
+        Declaration = self.env["rebuild.account.declaration"]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        row = Declaration.search([
+            ("company_id", "=", company.id),
+            ("fiscalyear_end", "=", date(2026, 9, 30)),
+            ("rule_id.code", "=", "FR_2065"),
+        ])
+        row.write({"status": "not_applicable"})
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 9, 29)):
+            Declaration.sync_for_company(company)
+        row.invalidate_recordset()
+        # The preparation refresh then recomputes the working status.
+        self.assertNotEqual(row.status, "not_applicable")
+        self.assertEqual(row.applicability, "applicable")
+
     def test_long_first_year_and_vat_transition_schedule(self):
         company = self._company("USL MEDIA schedule")
         company.write({

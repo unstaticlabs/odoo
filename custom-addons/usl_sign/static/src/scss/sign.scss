@@ -49,9 +49,10 @@
 }
 
 .usl_sign_save_status {
-    flex: 0 0 7.5rem;
+    min-inline-size: 7.5rem;
     text-align: right;
     font-size: .875rem;
+    white-space: nowrap;
 }
 
 .usl_sign_editor_workspace {

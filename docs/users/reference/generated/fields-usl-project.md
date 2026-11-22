@@ -29,7 +29,7 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| **GitHub URL** (`github_url`) | char |  | The canonical GitHub issue, pull request or repository link for this task. |
+| **Link** (`github_url`) | char |  | The main link to this work in another system: a pull request, issue, document, deploy run... |
 | **Planned Start** (`planned_date_begin`) | datetime |  | The date and time when work is planned to start. Together with the deadline, it defines the task's planned range. |
 | **Dependency Schedule Warning** (`usl_dependency_date_warning`) | char |  |  |
 | **Task content** (`usl_search_text`) | char |  |  |

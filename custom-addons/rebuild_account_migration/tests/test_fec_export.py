@@ -1,6 +1,7 @@
 import csv
 import io
 import re
+from datetime import date
 from unittest.mock import patch
 
 from odoo import Command
@@ -120,3 +121,52 @@ class TestFecExport(HttpCase):
         self.assertEqual(opening_rows[0][5], retained_earnings.name)
         self.assertTrue(all(re.match(r"^\d{3}", row[4]) for row in rows[1:]))
         self.assertFalse(result["file_name"].endswith(".txt"))
+
+    def test_closing_company_survives_the_http_download(self):
+        """An accountant's default company A differs from the open B closing."""
+        company_a = self.env.company
+        company_b = self.env["res.company"].create({"name": "Close B test company"})
+        self.user.company_ids = [Command.set((company_a | company_b).ids)]
+        for company, marker in ((company_a, "FEC-MARKER-A"), (company_b, "FEC-MARKER-B")):
+            accounts = self.env["account.account"].with_company(company)
+            expense, revenue = accounts.create([
+                {"code": code, "name": label, "account_type": account_type, "company_ids": [Command.set(company.ids)]}
+                for code, label, account_type in (
+                    ("698841", "Synthetic expense", "expense"), ("798841", "Synthetic revenue", "income"),
+                )
+            ])
+            journal = self.env["account.journal"].with_company(company).create({
+                "name": "Synthetic " + marker, "code": "FXQ", "type": "general",
+            })
+            move = self.env["account.move"].with_company(company).create({
+                "journal_id": journal.id, "date": date(2026, 1, 12),
+                "line_ids": [
+                    Command.create({"name": marker, "account_id": expense.id, "debit": 12}),
+                    Command.create({"name": marker, "account_id": revenue.id, "credit": 12}),
+                ],
+            })
+            move.action_post()
+        start, end = date(2026, 1, 1), date(2026, 1, 31)
+        period = self.env["rebuild.account.closing.period"]._upsert_period(
+            company_b, "month", start, end, start, date(2026, 12, 31),
+        )
+        control = self.env["rebuild.account.closing.control"]._upsert(period, "fec", period._control_fec())
+        action = control.with_user(self.user).with_context(allowed_company_ids=(company_a | company_b).ids).action_open_records()
+        wizard = self.env[action["res_model"]].with_user(self.user).with_context(action["context"]).create({})
+        self.assertTrue(wizard.test_file)
+        locks_before = [company_a.fiscalyear_lock_date, company_b.fiscalyear_lock_date]
+        url = wizard.create_fec_report_action()["url"]
+        self.authenticate(self.user.login, self.password)
+        download = self.url_open(url)
+        self.assertEqual(download.status_code, 200)
+        self.assertIn("attachment;", download.headers["Content-Disposition"])
+        self.assertIn(b"FEC-MARKER-B", download.content)
+        self.assertNotIn(b"FEC-MARKER-A", download.content)
+        (company_a | company_b).invalidate_recordset(["fiscalyear_lock_date"])
+        self.assertEqual([company_a.fiscalyear_lock_date, company_b.fiscalyear_lock_date], locks_before)
+
+        # Company membership can change between opening the wizard and downloading.
+        self.user.company_ids = [Command.set(company_a.ids)]
+        after_access_change = self.url_open(url)
+        self.assertEqual(after_access_change.status_code, 403)
+        self.assertNotIn(b"JournalCode|", after_access_change.content)

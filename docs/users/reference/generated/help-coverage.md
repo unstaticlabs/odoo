@@ -38,7 +38,7 @@ documentation work done in the code.
 
 | Module | Fields with help | Fields | Coverage |
 | --- | --- | --- | --- |
-| `rebuild_account_migration` | 66 | 885 | 7 % |
+| `rebuild_account_migration` | 68 | 890 | 8 % |
 | `usl_access_control` | 2 | 47 | 4 % |
 | `usl_accounting` | 26 | 344 | 8 % |
 | `usl_b2c` | 22 | 343 | 6 % |
@@ -48,7 +48,7 @@ documentation work done in the code.
 | `usl_documents_b2c` | 1 | 1 | 100 % |
 | `usl_enablebanking` | 4 | 55 | 7 % |
 | `usl_expense_batch` | 1 | 50 | 2 % |
-| `usl_feedback` | 2 | 60 | 3 % |
+| `usl_feedback` | 3 | 60 | 5 % |
 | `usl_home` | 0 | 19 | 0 % |
 | `usl_locale` | 1 | 1 | 100 % |
 | `usl_platform_billing` | 9 | 98 | 9 % |
