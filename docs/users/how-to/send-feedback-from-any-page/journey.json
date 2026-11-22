@@ -6,7 +6,7 @@
   "schema": "usl-docs-journey-sidecar/v1",
   "source_test": "odoo.addons.usl_feedback.tests.test_feedback_journeys.TestFeedbackJourneys.test_send_feedback_from_any_page",
   "source_test_file": {
-    "line": 27,
+    "line": 39,
     "path": "custom-addons/usl_feedback/tests/test_feedback_journeys.py"
   },
   "source_tour_file": {
@@ -81,7 +81,7 @@
       "index": 7,
       "run": "",
       "screenshot": "03-chatter.png",
-      "sha256": "5d4b5c9453a58966d6360f30524127ff15ff7003ea2b96dd31e32a882d83b7fd",
+      "sha256": "06de7dc0c7ad3a10f2c5793e48395e3fe55d73bf26876bccb897e0ccb4e4a444",
       "text": "Read the draft in the conversation. You can add a clarification or edit it before sharing it with the product team.",
       "trigger": ".o-usl-FeedbackPanel-conversation .o-mail-Chatter"
     },

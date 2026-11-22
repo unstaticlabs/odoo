@@ -6,7 +6,7 @@
   "schema": "usl-docs-journey-sidecar/v1",
   "source_test": "odoo.addons.usl_feedback.tests.test_feedback_journeys.TestFeedbackJourneys.test_send_feedback_from_any_page_in_french",
   "source_test_file": {
-    "line": 41,
+    "line": 53,
     "path": "custom-addons/usl_feedback/tests/test_feedback_journeys.py"
   },
   "source_tour_file": {
@@ -81,7 +81,7 @@
       "index": 7,
       "run": "",
       "screenshot": "03-chatter.png",
-      "sha256": "095aeb0d9d6d95f976b96e3630790a4f2f01315d5ee84b6d2636e468a20d44ae",
+      "sha256": "1e2136514a30dae137a7da445696ea498618751799b39ef083d644c50440ddc1",
       "text": "Relisez le brouillon dans la conversation. Vous pouvez ajouter une précision ou modifier le texte avant de le transmettre à l’équipe produit.",
       "trigger": ".o-usl-FeedbackPanel-conversation .o-mail-Chatter"
     },

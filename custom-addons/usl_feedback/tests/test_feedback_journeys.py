@@ -1,3 +1,6 @@
+import os
+from unittest.mock import patch
+
 from odoo.tests import tagged
 
 from odoo.addons.usl_docs.tests.journey import JourneyCase
@@ -19,6 +22,15 @@ class TestFeedbackJourneys(FeedbackTourCommon, JourneyCase):
         super().setUpClass()
         # The fixture's generated name would show in the screenshots.
         cls.user.name = "Journey Reader"
+        # The draft includes deployment details. Give the disposable release
+        # the same identity whether the tour runs on a workstation or in CI.
+        cls.enterClassContext(patch.dict(os.environ, {
+            "USL_DEPLOYMENT_ENV": "development",
+            "USL_RELEASE_COMMIT": cls.env["ir.config_parameter"].sudo().get_str("usl.release.commit"),
+            "USL_GITOPS_COMMIT": "",
+            "USL_DEPLOYMENT_GENERATION": "",
+            "USL_RELEASE_MANIFEST_SHA256": "",
+        }))
         # The assistant answers with its local, fixed scenarios when it is
         # enabled without a Gemini key, so the page shows a real reply and
         # nothing leaves the database.
