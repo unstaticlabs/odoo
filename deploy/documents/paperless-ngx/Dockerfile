@@ -31,9 +31,7 @@ RUN ./node_modules/.bin/ng build --configuration production
 
 FROM ${PAPERLESS_BASE_IMAGE}
 
-COPY --chmod=0644 \
-    deploy/documents/paperless-ngx/overlay/paperless_ai/semantic_api.py \
-    /usr/src/paperless/src/paperless_ai/semantic_api.py
+COPY --chmod=0644 deploy/documents/paperless-ngx/overlay/paperless_ai/*.py /usr/src/paperless/src/paperless_ai/
 COPY --chmod=0644 \
     deploy/documents/paperless-ngx/overlay/paperless_usl_ranges.py \
     /usr/src/paperless/src/paperless_usl_ranges.py
@@ -80,4 +78,4 @@ LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
       org.opencontainers.image.version="3.4.2-usl.1" \
       org.opencontainers.image.revision="d939d873e11dd14896d1bfe23f65b1baa6513ba7" \
       com.unstaticlabs.paperless.base-digest="sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84" \
-      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1"
+      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1"

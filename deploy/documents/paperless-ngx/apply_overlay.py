@@ -968,3 +968,70 @@ patch_file(
         ),
     ),
 )
+
+
+patch_file(
+    "paperless_ai/indexing.py",
+    "3ab3a9586e6018b075a2b60af6392c29b6a67de1a9c584d6e8e61eccc6d1a90a",
+    (
+        (
+            "from paperless_ai.db import db_connection_released\n",
+            "from paperless_ai.db import db_connection_released\n"
+            "from paperless_ai.index_generation import needs_model_rebuild, replacement_index, require_index_model\n",
+        ),
+        (
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+            "    require_index_model(store, get_configured_model_name(config))\n"
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+        ),
+        (
+            '''    if not rebuild:
+        with read_store() as store:
+            if store.table_exists() and store.config_mismatch(model_name):
+                logger.warning("Embedding model changed; forcing LLM index rebuild.")
+                rebuild = True
+
+''',
+            "",
+        ),
+        (
+            "        if rebuild or not store.table_exists():\n",
+            "        if not rebuild and needs_model_rebuild(store, model_name):\n"
+            "            logger.warning('The index model changed or is unknown; building a replacement.')\n"
+            "            rebuild = True\n"
+            "        if rebuild or not store.table_exists():\n",
+        ),
+        (
+            "    new_nodes = build_document_node(\n",
+            "    model_name = get_configured_model_name(config)\n"
+            "    with read_store() as current:\n"
+            "        require_index_model(current, model_name)\n"
+            "    new_nodes = build_document_node(\n",
+        ),
+        (
+            "    with write_store(embed_model_name=get_configured_model_name(config)) as store:\n",
+            "    with write_store(embed_model_name=model_name) as store:\n",
+        ),
+        (
+            '''            store.drop_table()
+            for document in iter_wrapper(
+                QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+            ):
+                nodes = build_document_node(document, chunk_size=chunk_size)
+                _embed_nodes(nodes, embed_model)
+                store.add(nodes)''',
+            '''            with replacement_index(store, model_name, settings.LLM_INDEX_DIR, _exclude_readers) as candidate:
+                for document in iter_wrapper(
+                    QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+                ):
+                    nodes = build_document_node(document, chunk_size=chunk_size)
+                    _embed_nodes(nodes, embed_model)
+                    candidate.add(nodes)''',
+        ),
+        (
+            "        store.upsert_document(str(document.id), new_nodes)\n",
+            "        require_index_model(store, model_name)\n"
+            "        store.upsert_document(str(document.id), new_nodes)\n",
+        ),
+    ),
+)

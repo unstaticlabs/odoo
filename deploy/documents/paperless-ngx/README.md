@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1` has nine bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -65,6 +65,17 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    The exact-source patches hide the action in the workflow editor, make the
    API refuse it, and make the worker refuse any stored instance. Personal
    Gemini generation stays tied to a person's own request.
+10. The optional tag scores expose the native classifier's estimate for a
+    tag the caller can read. The evaluation procedure below measures accuracy.
+11. A semantic index rebuild keeps the last complete SQLite database available
+    while the configured embedding model fills a second file on the same volume.
+    Readers finish before the atomic switch. An interrupted rebuild or a busy
+    reader leaves the previous index in place. The next update retries. Budget
+    space for the two files during the build. Incremental edits and semantic
+    queries require the model name recorded in the index. A legacy table without
+    a model name is rebuilt at the next index update. For the interval after a
+    model change, lexical search remains available. The application's model name
+    and deployment's Ollama digest check serve different purposes.
 
 `tests/test_workflow_ai_disabled.py` proves that the workflow action cannot be
 saved and that a stored instance never generates.
