@@ -244,6 +244,9 @@ export async function startJourney(name, options = {}, language) {
         }
     }
     tours.add(name, { ...tour, steps: () => wrapped }, { force: true });
+    const originalPage = original.type === "tutorial" && !original.namedTutorial
+        ? "TUTORIAL.md"
+        : `${original.type}/${original.id}.md`;
     console.log(
         `usl_docs:journey:${JSON.stringify({
             tour: name,
@@ -253,9 +256,8 @@ export async function startJourney(name, options = {}, language) {
             description: journey.description,
             persona: journey.persona,
             lang: journey.lang || "en",
-            translation_of: journey !== original
-                ? (original.type === "tutorial" ? "TUTORIAL.md" : `how-to/${original.id}.md`)
-                : undefined,
+            named_tutorial: original.namedTutorial || undefined,
+            translation_of: journey !== original ? originalPage : undefined,
             app: journey.app || "",
             models: journey.models || [],
             steps: documented,

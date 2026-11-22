@@ -222,21 +222,23 @@ class JourneyCase(HttpCase):
 
     journey_language = "en"
 
-    def run_journey(self, tour_name, url_path, login, viewports=("desktop",), timeout=180, screen=None):
+    def run_journey(self, tour_name, url_path, login, viewports=("desktop",), timeout=180, screen=None, session_id=None):
         """Run ``tour_name`` on each viewport and write its records. Returns them.
 
         ``url_path`` is where the browser starts. ``screen`` is what the page
         offers as "Open this screen in Odoo" when the start URL names a
         record: a journey that opens one Batch starts on
         ``/odoo/action-<xml id>/<database id>`` but the reader is sent to the
-        action, since the id differs on every database.
+        action, since the id differs on every database. An optional session_id
+        lets a login journey keep the session created by the native login
+        form. It is used only as a browser cookie and never recorded.
         """
         records = []
         for viewport in viewports:
-            records.append(self._run_on_viewport(tour_name, url_path, login, viewport, timeout, screen or url_path))
+            records.append(self._run_on_viewport(tour_name, url_path, login, viewport, timeout, screen or url_path, session_id))
         return records
 
-    def _run_on_viewport(self, tour_name, url_path, login, viewport, timeout, screen):
+    def _run_on_viewport(self, tour_name, url_path, login, viewport, timeout, screen, session_id):
         settings = VIEWPORTS[viewport]
         lang = self.journey_language
         capture_name = tour_name if lang == "en" else f"{tour_name}.{lang}"
@@ -268,7 +270,8 @@ class JourneyCase(HttpCase):
                 self.start_tour(
                     url_path,
                     tour_name,
-                    login=login,
+                    login=None if session_id else login,
+                    cookies={"session_id": session_id} if session_id else None,
                     code=f"odoo.uslDocsStartTour({tour_name!r}, {{stepDelay: 0, debug: false}}, {lang!r})",
                     timeout=timeout,
                 )
@@ -295,6 +298,7 @@ class JourneyCase(HttpCase):
             "description": journey["description"],
             "persona": journey["persona"],
             "lang": journey["lang"],
+            **({"named_tutorial": True} if journey.get("named_tutorial") else {}),
             **({"translation_of": journey["translation_of"]} if journey.get("translation_of") else {}),
             "app": journey.get("app") or "",
             "models": journey.get("models") or [],

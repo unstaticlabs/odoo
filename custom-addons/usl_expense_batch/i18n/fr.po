@@ -659,8 +659,10 @@ msgstr ""
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__ready
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__ready
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "Ready"
-msgstr "Prête"
+msgstr "Prêt"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search

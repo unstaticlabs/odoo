@@ -442,3 +442,82 @@ french.add("usl_expense_batch_readonly_audit.fr", {
         reconciliation: "Lisez l’état du rapprochement et l’historique. Si une correction est nécessaire, indiquez le lot et la ligne concernés à la personne chargée de la comptabilisation.",
     },
 });
+
+registry.category("web_tour.tours").add("usl_expense_first_posted_batch", {
+    steps: () => [
+        {
+            id: "home",
+            content: "Start on the signed-in Odoo home page",
+            trigger: ".o_usl_home .o_usl_home_header",
+        },
+        {
+            id: "launcher",
+            content: "Open the application menu",
+            trigger: ".o_navbar_apps_menu button",
+            run: "click",
+        },
+        {
+            id: "expenses",
+            content: "Open Expenses",
+            trigger: ".o_app[data-menu-xmlid='hr_expense.menu_hr_expense_root']",
+            run: "click",
+        },
+        {
+            id: "batches",
+            content: "Open the list of expense batches",
+            trigger: "[data-menu-xmlid='usl_expense_batch.menu_expense_batches']",
+            run: "click",
+        },
+        {
+            id: "example",
+            content: "Open the approved training trip",
+            trigger: `.o_list_view td[name='name']:contains('${user.lang.startsWith("fr") ? "Séminaire de démonstration" : "Training seminar"}')`,
+            run: "click",
+        },
+        {
+            content: "Both receipts have been reviewed and the batch is ready",
+            trigger: `.o_field_widget[name='readiness_summary']:contains('${user.lang.startsWith("fr") ? "Prêt" : "Ready"}')`,
+        },
+        ...registry.category("web_tour.tours").get("usl_expense_batch_accountant_handoff").steps(),
+    ],
+});
+
+registry.category("usl_docs.journeys").add("usl_expense_first_posted_batch", {
+    id: "post-your-first-expense-batch",
+    type: "tutorial",
+    namedTutorial: true,
+    title: "From your first sign-in to your first posted expense batch",
+    description: "Learn on an approved training trip. Post the part paid by the company and the part paid by the employee, then find both journal entries.",
+    lang: "en",
+    persona: "accountant",
+    app: "Expenses",
+    models: ["usl.expense.batch", "hr.expense", "account.move"],
+    steps: {
+        home: { text: "Use a training workspace with an approved expense batch and permission to post expenses. Sign in with your usual company account. You arrive on **Home**.", screenshot: true },
+        launcher: { text: "Choose the application menu in the upper-left corner." },
+        expenses: { text: "Open **Expenses**. You will work with an example that combines a hotel paid by the employee and a meal paid by the company." },
+        batches: { text: "Open **Expense Batches**. Find the approved training trip prepared for you." },
+        example: { text: "Open **Training seminar**, or the equivalent example in your training workspace." },
+        approved: { text: "Read the summary before posting. Identify who paid for each expense and follow the amounts through the next screens.", screenshot: true },
+        post: { text: "Choose **Post Batch**. Odoo posts the company-paid expense and opens a separate confirmation for the amount the employee advanced.", screenshot: true },
+        post_entries: { text: "Check the journal and accounting date, then choose **Post Expenses** to record the employee-paid expense." },
+        entries: { text: "You have posted your first batch. Compare the two amounts shown with the summary. The company charge and the employee reimbursement each have their own entry.", screenshot: true },
+    },
+});
+
+french.add("usl_expense_first_posted_batch.fr", {
+    id: "comptabiliser-votre-premier-lot-de-depenses",
+    title: "De la première connexion au premier lot de dépenses comptabilisé",
+    description: "Entraînez-vous sur un déplacement approuvé. Comptabilisez les frais payés par la société et l’avance du salarié, puis retrouvez les deux écritures.",
+    steps: {
+        home: "Utilisez une base de formation avec un lot approuvé et un compte autorisé à comptabiliser les dépenses. Connectez-vous avec votre compte habituel. Vous arrivez sur **Accueil**.",
+        launcher: "Ouvrez le menu des applications en haut à gauche.",
+        expenses: "Ouvrez **Dépenses**. Dans cet exemple, le salarié a avancé les frais d’hôtel et la société a réglé le repas.",
+        batches: "Ouvrez **Lots de dépenses**. Repérez le déplacement approuvé qui vous sert d’exercice.",
+        example: "Ouvrez **Séminaire de démonstration**, ou le lot équivalent dans votre base de formation.",
+        approved: "Lisez le récapitulatif avant de comptabiliser. Repérez qui a payé chaque dépense et gardez les deux montants en tête pour la suite.",
+        post: "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais payés par la société et ouvre une confirmation distincte pour la somme avancée par le salarié.",
+        post_entries: "Vérifiez le journal et la date comptable, puis cliquez sur **Comptabiliser les dépenses** pour enregistrer la part du salarié.",
+        entries: "Vous venez de comptabiliser votre premier lot. Comparez les montants des deux écritures avec le récapitulatif. Vous retrouvez séparément la dépense payée par la société et la somme à rembourser au salarié.",
+    },
+});
