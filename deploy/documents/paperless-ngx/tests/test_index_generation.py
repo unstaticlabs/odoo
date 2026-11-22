@@ -1,3 +1,5 @@
+import subprocess
+import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
@@ -120,3 +122,52 @@ class TestIndexGeneration(TestCase):
         with self.assertRaisesRegex(RuntimeError, 'real directory'):
             indexing.update_llm_index(rebuild=True)
         self.assert_index('a', self.docs)
+
+    def test_checkpoint_disk_failure_leaves_last_complete_vectors_available(self):
+        # A file-size limit in a separate Linux process simulates SQLite being
+        # unable to grow only the candidate's main file. No disk is filled.
+        from textwrap import dedent
+        script = dedent("""
+            import resource
+            import signal
+            import sqlite3
+            import sys
+            from contextlib import nullcontext
+            from pathlib import Path
+            from llama_index.core.schema import TextNode
+            from paperless_ai.index_generation import replacement_index
+            from paperless_ai.vector_store import DB_FILENAME, PaperlessSqliteVecVectorStore
+
+            directory = Path(sys.argv[1])
+            db = directory / 'usl-index-build' / DB_FILENAME
+            limits = resource.getrlimit(resource.RLIMIT_FSIZE)
+            signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
+            def node(number, text):
+                return TextNode(id_=str(number), text=text, embedding=[0., 1.],
+                                metadata={'document_id': number, 'modified': 'synthetic'})
+            fault_injected = False
+            try:
+                with PaperlessSqliteVecVectorStore(str(directory), 'a') as live:
+                    with replacement_index(live, 'b', directory, nullcontext) as candidate:
+                        conn = candidate.client
+                        conn.execute('PRAGMA wal_autocheckpoint=0')
+                        candidate.add([node(1, 'short first document')])
+                        assert tuple(conn.execute('PRAGMA wal_checkpoint(TRUNCATE)').fetchone()) == (0, 0, 0)
+                        size = db.stat().st_size
+                        candidate.add([node(2, 'x' * (size * 2))])
+                        assert Path(str(db) + '-wal').stat().st_size > size
+                        resource.setrlimit(resource.RLIMIT_FSIZE, (size, limits[1]))
+                        fault_injected = True
+            except (sqlite3.DatabaseError, OSError, RuntimeError):
+                if not fault_injected:
+                    raise
+            else:
+                raise AssertionError('a candidate with uncheckpointed frames was published')
+            finally:
+                resource.setrlimit(resource.RLIMIT_FSIZE, limits)
+        """)
+        result = subprocess.run([sys.executable, '-c', script, str(self.directory)],
+                                capture_output=True, text=True, check=False)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assert_index('a', self.docs)
+        self.assertFalse((self.directory / 'usl-index-build').exists())

@@ -69,9 +69,11 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
     tag the caller can read. The evaluation procedure below measures accuracy.
 11. A semantic index rebuild keeps the last complete SQLite database available
     while the configured embedding model fills a second file on the same volume.
-    Readers finish before the atomic switch. An interrupted rebuild or a busy
-    reader leaves the previous index in place. The next update retries. Budget
-    space for the two files during the build. Incremental edits and semantic
+    Before publication, SQLite flushes the new index's write-ahead journal
+    and checks the standalone database. Readers finish before the atomic switch.
+    A failed checkpoint, an interrupted rebuild or a busy reader leaves the
+    previous index in place. The next update retries. Allow room for both
+    databases and the new index's journal during the build. Incremental edits and semantic
     queries require the model name recorded in the index. A legacy table without
     a model name is rebuilt at the next index update. For the interval after a
     model change, lexical search remains available. The application's model name

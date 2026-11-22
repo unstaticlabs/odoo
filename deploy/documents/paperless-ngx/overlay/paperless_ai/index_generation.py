@@ -1,6 +1,7 @@
 """Build and publish a complete Paperless index under its existing writer lock."""
 
-from contextlib import contextmanager
+import sqlite3
+from contextlib import closing, contextmanager
 from pathlib import Path
 
 
@@ -22,6 +23,26 @@ def require_index_model(store, model_name):
         )
 
 
+def _checkpoint_candidate(candidate):
+    # sqlite3_close can succeed with committed frames left in the WAL after
+    # an I/O error. Only a completed TRUNCATE checkpoint is safe to publish.
+    result = candidate.client.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+    if tuple(result) != (0, 0, 0):
+        raise RuntimeError("The replacement semantic index could not finish its SQLite checkpoint.")
+
+
+def _verify_main_file(database):
+    wal = Path(f"{database}-wal")
+    if wal.exists() and wal.stat().st_size:
+        raise RuntimeError("The replacement semantic index still depends on its SQLite journal.")
+    # immutable=1 opens the main file in isolation, without creating or
+    # consulting its journal. Validate the file that will actually be renamed.
+    uri = database.resolve().as_uri() + "?mode=ro&immutable=1"
+    with closing(sqlite3.connect(uri, uri=True)) as standalone:
+        if standalone.execute("PRAGMA quick_check(1)").fetchall() != [("ok",)]:
+            raise RuntimeError("The replacement semantic index failed its SQLite integrity check.")
+
+
 @contextmanager
 def replacement_index(live, model_name, directory, exclude_readers):
     from paperless_ai.vector_store import DB_FILENAME, PaperlessSqliteVecVectorStore
@@ -39,6 +60,8 @@ def replacement_index(live, model_name, directory, exclude_readers):
             path.unlink(missing_ok=True)
         with PaperlessSqliteVecVectorStore(str(candidate_dir), model_name) as candidate:
             yield candidate
+            _checkpoint_candidate(candidate)
+        _verify_main_file(database)
         # The native compaction swap closes the old connection, replaces the
         # database in one rename and reopens it. Both paths share a filesystem.
         with exclude_readers():
