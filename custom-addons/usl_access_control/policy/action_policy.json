@@ -210650,7 +210650,7 @@
       ]
     },
     "declaration-source-review-3298-3299": {
-      "contract": "A French accounting reader can inspect the selected active company’s posted DES evidence by invoice month and 604 evidence by payment year, including partial settlements. Changing the transient filters creates no filing or accounting entry.",
+      "contract": "A French accounting reader can inspect posted DES sources by invoice month and 622 and supplementary 604 evidence by payment year. A mixed settlement appears once with the native prorated 622 amount. Filtering creates no filing or accounting entry.",
       "tests": [
         "custom-addons/rebuild_account_migration/tests/test_declaration_candidates.py"
       ]

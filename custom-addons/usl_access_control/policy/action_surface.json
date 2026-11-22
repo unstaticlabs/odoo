@@ -1620833,7 +1620833,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 563,
+          "line": 566,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1620848,7 +1620848,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 563,
+          "line": 566,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1620863,7 +1620863,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 592,
+          "line": 595,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1620878,7 +1620878,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 592,
+          "line": 595,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1739625,7 +1739625,7 @@
       "manifest_sha256": "174f7f1f393d10b608717572e48ec7c2726d1dbaedfd2df15ebe5ee875fcdb93",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "90c5c100a1fcba82f4986cb95b2d0b1f88e09d2ffebe9b457f015f625d04a1f8",
+      "source_sha256": "43adf4c0d18a88ce45e168a1472076174d1909376bfe7180e125cf602cddc44f",
       "version": "saas~19.3.1.13.50"
     },
     {

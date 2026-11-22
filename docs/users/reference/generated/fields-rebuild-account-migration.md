@@ -526,7 +526,7 @@ Use the source dates and linked accounting documents to decide which items need 
 | **To** (`date_to`) | date | yes | Last invoice or payment date to include. |
 | **Items to review** (`evidence_html`) | html |  | Source documents grouped by declaration period for the accountant to review. |
 | **Declaration** (`kind`) | selection | yes | Review DES by invoice month or DAS2 by payment year and beneficiary. Values: **DES**, **DAS2**. |
-| **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also identify the payment and its matched amount in company currency. |
+| **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also give the settlement, the 622 share in company currency and the date used by the calendar. |
 
 ## USL French Declaration Prefilled Field
 

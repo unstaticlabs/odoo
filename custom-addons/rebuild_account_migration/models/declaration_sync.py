@@ -349,18 +349,12 @@ class RebuildAccountDeclaration(models.Model):
             ("invoice_line_ids.account_id.code", "=like", "622%"),
         ])
         for bill in bills:
-            eligible_balance = sum(
-                bill.invoice_line_ids.filtered(
-                    lambda line: (line.account_id.code or "").startswith("622"),
-                ).mapped("balance"),
-            )
             payable_lines = bill.line_ids.filtered(
                 lambda line: line.account_id.account_type == "liability_payable",
             )
-            payable_total = sum(abs(line.balance) for line in payable_lines)
-            if not eligible_balance or not payable_total:
+            eligible_ratio = self._das2_622_bill_ratio(bill, payable_lines)
+            if not eligible_ratio:
                 continue
-            eligible_ratio = min(abs(eligible_balance) / payable_total, 1.0)
             paid_amount = 0.0
             for payable_line in payable_lines:
                 for partial in payable_line.matched_debit_ids | payable_line.matched_credit_ids:
@@ -387,6 +381,15 @@ class RebuildAccountDeclaration(models.Model):
                     sign * paid_amount * eligible_ratio
                 )
         return totals
+
+    @api.model
+    def _das2_622_bill_ratio(self, bill, payable_lines):
+        """Share the calendar's 622 allocation with its source-document review."""
+        eligible_balance = sum(
+            line.balance for line in bill.invoice_line_ids if (line.account_id.code or "").startswith("622")
+        )
+        payable_total = sum(abs(line.balance) for line in payable_lines)
+        return min(abs(eligible_balance) / payable_total, 1.0) if payable_total else 0.0
 
     @api.model
     def _turnover(self, company, period_start, period_end):
