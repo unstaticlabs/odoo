@@ -35,6 +35,10 @@ class Record:
     def exists(self):
         return self
 
+    def _get_external_ids(self):
+        xmlid = getattr(self, "xmlid", None)
+        return {self.id: [xmlid] if xmlid else []}
+
     def __getitem__(self, key):
         return getattr(self, key)
 
@@ -55,10 +59,19 @@ class SyntheticRegistry:
             inventory.REFERENCE_CRON: self.cron,
             inventory.REFERENCE_SERVER: self.server,
         }
+        self.rows = {}
+        diagnostic_views = []
+        for index, suffix in enumerate(("board_view", "list_view", "search_view")):
+            view = self.add_row("ir.ui.view", 100 + index, f"usl_feedback.{suffix}")
+            diagnostic_views.append(view)
         for index, xmlid in enumerate(self.windows):
             self.xmlids[xmlid] = Record(
                 "ir.actions.act_window", 30 + index, name="Product Feedback",
                 context=repr({"default_project_id": board_id, "create": bool(index)}), res_model="project.task",
+                res_id=False, view_mode="kanban,list", mobile_view_mode="kanban", filter=False, cache=True,
+                limit=80, usage=False, help=False, explanation=False, view_id=None,
+                search_view_id=diagnostic_views[-1], group_ids=[],
+                views=[(diagnostic_views[0].id, "kanban"), (diagnostic_views[1].id, "list")],
             )
         self.metadata = Mock()
         self.metadata.sudo.return_value.search_count.side_effect = lambda domain: domain in [
@@ -66,15 +79,32 @@ class SyntheticRegistry:
              ("model", "=", row._name), ("res_id", "=", row.id), ("noupdate", "=", True)]
             for xmlid, row in ((inventory.REFERENCE_CRON, self.cron), (inventory.REFERENCE_SERVER, self.server))
         ]
+        self.embedded = Mock()
+        self.embedded.sudo.return_value.search_count.return_value = 0
+        def table(name):
+            if name == "ir.model.data":
+                return self.metadata
+            if name == "ir.embedded.actions":
+                return self.embedded
+            return SimpleNamespace(browse=lambda row_id: self.rows.get((name, row_id)))
         env = type("Registry", (), {
             "ref": lambda _, name, raise_if_not_found: self.xmlids.get(name),
-            "__getitem__": lambda _, name: {"ir.model.data": self.metadata}[name],
+            "__getitem__": lambda _, name: table(name),
+            "__contains__": lambda _, name: name in {"ir.ui.view", "project.task"},
         })
         self.shell["env"] = env()
         self.module = {"name": "sale_project_stock_account", "version": "saas~19.3.1.0"}
         self.other_action = {"key": "ui:other.action", "digest": "a" * 64}
         self.cron_fields = {"interval_number": 8, "code": "model.run()", "model_id": "test.model"}
         self.server_fields = {"code": "model.run()", "model_id": "test.model", "state": "code"}
+
+    def add_row(self, model, row_id, xmlid):
+        row = Record(model, row_id)
+        row.xmlid = xmlid
+        self.rows[model, row_id] = row
+        if xmlid:
+            self.xmlids[xmlid] = row
+        return row
 
     def capture(self):
         digest = self.shell["digest"]
@@ -137,6 +167,58 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
                 self.assertEqual(errors, ["Action changed: ui:" + self.registry.windows[0]])
                 setattr(entry, field, old)
 
+    def test_record_destination_uses_its_external_id_across_databases(self):
+        clean = self.registry
+        restored = SyntheticRegistry(85)
+        key = clean.windows[0]
+        clean.xmlids[key].res_id = clean.add_row("project.task", 10, "fixture.ticket").id
+        restored.xmlids[key].res_id = restored.add_row("project.task", 77, "fixture.ticket").id
+        self.assertFalse(inventory.compare_reference_diagnostics(clean.capture(), restored.capture())[1])
+        restored.xmlids[key].res_id = restored.add_row("project.task", 10, "fixture.another_ticket").id
+        self.assertTrue(inventory.compare_reference_diagnostics(clean.capture(), restored.capture())[1])
+        for unresolved in (None, "__export__.project_task_10"):
+            restored.add_row("project.task", 10, unresolved)
+            receipt = restored.capture()
+            self.assertTrue(inventory.compare_reference_diagnostics(receipt, receipt)[1])
+
+    def test_window_modes_views_order_search_and_groups_are_compared(self):
+        for field in ("view_mode", "mobile_view_mode", "view_id", "views", "search_view_id", "group_ids"):
+            with self.subTest(field=field):
+                registry = SyntheticRegistry()
+                window = registry.xmlids[registry.windows[0]]
+                alternate_view = registry.add_row("ir.ui.view", 17, "fixture.alternate_view")
+                changes = {
+                    "view_mode": "form", "mobile_view_mode": "list", "view_id": alternate_view,
+                    "views": list(reversed(window.views)), "search_view_id": alternate_view,
+                    "group_ids": [registry.add_row("res.groups", 17, "fixture.group")],
+                }
+                setattr(window, field, changes[field])
+                errors = inventory.compare_reference_diagnostics(self.baseline, registry.capture())[1]
+                self.assertEqual(errors, ["Action changed: ui:" + registry.windows[0]])
+
+    def test_native_views_can_use_other_local_ids_but_unbound_views_cannot_compare(self):
+        registry = self.registry
+        window = registry.xmlids[registry.windows[0]]
+        view = registry.add_row("ir.ui.view", 5, "usl_feedback.board_view")
+        for xmlid in registry.windows:
+            window = registry.xmlids[xmlid]
+            window.views = [(view.id, "kanban"), window.views[1]]
+        self.assertFalse(inventory.compare_reference_diagnostics(self.baseline, registry.capture())[1])
+        view.xmlid = None
+        self.assertTrue(registry.capture()["issues"])
+
+    def test_implicit_view_resolution_requires_review(self):
+        for field, value in (("search_view_id", None), ("views", [(False, "kanban")])):
+            registry = SyntheticRegistry()
+            setattr(registry.xmlids[registry.windows[0]], field, value)
+            receipt = registry.capture()
+            self.assertTrue(inventory.compare_reference_diagnostics(receipt, receipt)[1])
+
+    def test_new_embedded_action_is_inconclusive_even_for_equal_receipts(self):
+        self.registry.embedded.sudo.return_value.search_count.return_value = 1
+        candidate = self.registry.capture()
+        self.assertTrue(inventory.compare_reference_diagnostics(candidate, candidate)[1])
+
     def test_real_code_target_and_schedule_differences_are_visible(self):
         for field, value in (("code", "model.other()"), ("model_id", "another.model"), ("interval_number", 2)):
             with self.subTest(field=field):
@@ -171,7 +253,7 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
                          ["Installed module cohort changed.", "Other runtime actions changed."])
 
     def test_partial_or_inconsistent_receipts_fail_even_if_both_match(self):
-        for field, value in (("schema", "v0"), ("references", {}), ("issues", None),
+        for field, value in (("schema", "usl-action-reference-diagnostic/v1"), ("references", {}), ("issues", None),
                              ("other_action_count", False), ("module_count", 0), ("modules_sha256", "bad")):
             with self.subTest(field=field):
                 broken = dict(self.baseline, **{field: value})

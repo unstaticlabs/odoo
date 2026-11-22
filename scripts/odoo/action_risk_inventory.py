@@ -541,6 +541,51 @@ def _feedback_reference_context(source, project):
     return ast.dump(node, include_attributes=False)
 
 
+def _window_navigation(action):
+    """Read native navigation by portable references. Never substitute a local row number."""
+    unresolved = False
+
+    def portable(record):
+        nonlocal unresolved
+        if record and record.exists():
+            # The single-ID helper may choose a different alias after a restore.
+            aliases = sorted(
+                xmlid for xmlid in record._get_external_ids().get(record.id, [])
+                if not xmlid.startswith("__") and env.ref(xmlid, raise_if_not_found=False) == record
+            )
+            if aliases:
+                return aliases
+        unresolved = True
+        return None
+
+    def target(model, row_id):
+        nonlocal unresolved
+        if not row_id:
+            return None
+        if model in env:
+            return portable(env[model].browse(row_id))
+        unresolved = True
+        return None
+
+    values = {key: action[key] for key in (
+        "view_mode", "mobile_view_mode", "filter", "cache", "limit", "usage", "help", "explanation",
+    )}
+    values["destination"] = target(action.res_model, action.res_id)
+    values["view"] = portable(action.view_id) if action.view_id else None
+    values["search_view"] = portable(action.search_view_id) if action.search_view_id else None
+    values["ordered_views"] = [(mode, target("ir.ui.view", row_id)) for row_id, mode in action.views]
+    values["groups"] = sorted(filter(None, (portable(group) for group in action.group_ids)))
+    # Native default views can vary by registry and user. These two Feedback
+    # actions explicitly declare their views; a fallback needs separate review.
+    if not action.search_view_id or any(not row_id for row_id, mode in action.views):
+        unresolved = True
+    # Embedded actions carry their own visibility, destinations and context.
+    # These two shipped windows contain none. A newly bound child needs review.
+    if env["ir.embedded.actions"].sudo().search_count([("parent_action_id", "=", action.id)]):
+        unresolved = True
+    return values, unresolved
+
+
 def reference_diagnostic(runtime_payload):
     """Explain the known restore differences separately from strict admission evidence."""
     feedback = ("usl_feedback.action_feedback_collaborator", "usl_feedback.action_feedback_maintainer")
@@ -567,7 +612,10 @@ def reference_diagnostic(runtime_payload):
         values["context"] = _feedback_reference_context(values.get("context"), project)
         if values["context"] is None:
             issues.append(f"{xmlid}: unverified Feedback board reference or context")
-        observe(f"ui:{xmlid}", exact, digest(values))
+        navigation, unresolved = _window_navigation(action)
+        if unresolved:
+            issues.append(f"{xmlid}: window destination or navigation cannot be verified")
+        observe(f"ui:{xmlid}", exact, digest({"ui": values, "navigation": navigation}))
 
     cron = env.ref(cron_ref, raise_if_not_found=False)
     server = env.ref(server_ref, raise_if_not_found=False)
@@ -598,7 +646,7 @@ def reference_diagnostic(runtime_payload):
     modules = sorted((item["name"], normalized_module_version(item["version"]))
                      for item in runtime_payload["modules"])
     return {
-        "schema": "usl-action-reference-diagnostic/v1",
+        "schema": "usl-action-reference-diagnostic/v2",
         "module_count": len(modules),
         "modules_sha256": digest(modules),
         "other_action_count": len(actions),

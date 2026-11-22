@@ -2440,6 +2440,8 @@ REFERENCE_REASONS = {
 REFERENCE_ISSUES = {
     "usl_feedback.action_feedback_collaborator: unverified Feedback board reference or context",
     "usl_feedback.action_feedback_maintainer: unverified Feedback board reference or context",
+    "usl_feedback.action_feedback_collaborator: window destination or navigation cannot be verified",
+    "usl_feedback.action_feedback_maintainer: window destination or navigation cannot be verified",
     f"{REFERENCE_CRON}: outside the declared noupdate binding",
     f"{REFERENCE_SERVER}: outside the declared noupdate binding",
     "PDP cron points to another server action",
@@ -2448,9 +2450,9 @@ REFERENCE_ISSUES = {
 
 
 def compare_reference_diagnostics(expected, candidate):
-    """Compare two independent v1 registry observations without changing qualification."""
+    """Compare two independent v2 registry observations without changing qualification."""
     for side, receipt in (("expected", expected), ("candidate", candidate)):
-        if not isinstance(receipt, dict) or receipt.get("schema") != "usl-action-reference-diagnostic/v1":
+        if not isinstance(receipt, dict) or receipt.get("schema") != "usl-action-reference-diagnostic/v2":
             return [], [f"Unsupported {side} diagnostic schema."]
         refs = receipt.get("references")
         if not isinstance(refs, dict) or set(refs) != REFERENCE_REASONS.keys():

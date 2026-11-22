@@ -198,9 +198,12 @@ target, unresolved context, changed code, schedule, model, delegated action,
 unexpected execution principal, module change or other changed runtime
 fingerprint requires investigation and returns a nonzero exit code.
 The Feedback check resolves the board by external ID and checks its project
-type and Feedback flag. The PDP check verifies its declared cron, linked server
+type and Feedback flag. The window destination, desktop and mobile modes,
+ordered effective views, search view and groups are compared by stable external
+reference where they refer to records. A record without a portable external ID
+or a window with implicit views or embedded actions requires a separate review. The PDP check verifies its declared cron, linked server
 action, original `noupdate` binding and declared execution principal.
-The versioned `usl-action-reference-diagnostic/v1` receipts carry counts,
+The versioned `usl-action-reference-diagnostic/v2` receipts carry counts,
 fingerprints, public action keys and fixed diagnostic messages. Actual execution
 user identities stay in the registry. The clean-registry checks and release
 procedures continue consuming their existing strict inventory and receipts.
