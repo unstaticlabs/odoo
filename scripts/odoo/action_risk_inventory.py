@@ -574,10 +574,20 @@ def _window_navigation(action):
     values["view"] = portable(action.view_id) if action.view_id else None
     values["search_view"] = portable(action.search_view_id) if action.search_view_id else None
     values["ordered_views"] = [(mode, target("ir.ui.view", row_id)) for row_id, mode in action.views]
+    # Native views is computed, and changing a binding sequence or view_id
+    # alone does not invalidate it in the current transaction. Read the actual
+    # bindings as well, in Odoo's (sequence, id) precedence; local IDs stay local.
+    bindings = sorted(action.view_ids, key=lambda row: (row.sequence, row.id))
+    values["declared_views"] = [
+        (row.view_mode, portable(row.view_id) if row.view_id else None, row.multi) for row in bindings
+    ]
     values["groups"] = sorted(filter(None, (portable(group) for group in action.group_ids)))
     # Native default views can vary by registry and user. These two Feedback
     # actions explicitly declare their views; a fallback needs separate review.
-    if not action.search_view_id or any(not row_id for row_id, mode in action.views):
+    if (
+        not action.search_view_id or any(not row_id for row_id, mode in action.views)
+        or any(not row.view_id for row in bindings)
+    ):
         unresolved = True
     # Embedded actions carry their own visibility, destinations and context.
     # These two shipped windows contain none. A newly bound child needs review.

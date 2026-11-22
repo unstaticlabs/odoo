@@ -71,6 +71,10 @@ class SyntheticRegistry:
                 res_id=False, view_mode="kanban,list", mobile_view_mode="kanban", filter=False, cache=True,
                 limit=80, usage=False, help=False, explanation=False, view_id=None,
                 search_view_id=diagnostic_views[-1], group_ids=[],
+                view_ids=[
+                    SimpleNamespace(sequence=i, id=i + 1, view_mode=mode, view_id=diagnostic_views[i], multi=False)
+                    for i, mode in enumerate(("kanban", "list"))
+                ],
                 views=[(diagnostic_views[0].id, "kanban"), (diagnostic_views[1].id, "list")],
             )
         self.metadata = Mock()
@@ -203,9 +207,19 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
         for xmlid in registry.windows:
             window = registry.xmlids[xmlid]
             window.views = [(view.id, "kanban"), window.views[1]]
+            window.view_ids[0].view_id = view
         self.assertFalse(inventory.compare_reference_diagnostics(self.baseline, registry.capture())[1])
         view.xmlid = None
         self.assertTrue(registry.capture()["issues"])
+
+    def test_changed_view_bindings_are_visible_even_when_computed_views_are_still_cached(self):
+        for field in ("sequence", "view_id", "multi"):
+            registry = SyntheticRegistry()
+            window = registry.xmlids[registry.windows[0]]
+            changes = {"sequence": 2, "view_id": window.search_view_id, "multi": True}
+            setattr(window.view_ids[0], field, changes[field])
+            errors = inventory.compare_reference_diagnostics(self.baseline, registry.capture())[1]
+            self.assertEqual(errors, ["Action changed: ui:" + registry.windows[0]])
 
     def test_implicit_view_resolution_requires_review(self):
         for field, value in (("search_view_id", None), ("views", [(False, "kanban")])):
@@ -213,6 +227,10 @@ class ActionReferenceDiagnosticTests(unittest.TestCase):
             setattr(registry.xmlids[registry.windows[0]], field, value)
             receipt = registry.capture()
             self.assertTrue(inventory.compare_reference_diagnostics(receipt, receipt)[1])
+
+        registry = SyntheticRegistry()
+        registry.xmlids[registry.windows[0]].view_ids[0].view_id = None
+        self.assertTrue(registry.capture()["issues"])
 
     def test_new_embedded_action_is_inconclusive_even_for_equal_receipts(self):
         self.registry.embedded.sudo.return_value.search_count.return_value = 1
