@@ -1,9 +1,9 @@
 from odoo import http
-from odoo.addons.base_setup.controllers.main import BaseSetup
+from odoo.addons.auth_signup.controllers.main import AuthBaseSetup
 from odoo.http import request
 
 
-class AgentSettings(BaseSetup):
+class AgentSettings(AuthBaseSetup):
     @http.route()
     def base_setup_data(self, **kw):
         data = super().base_setup_data(**kw)
