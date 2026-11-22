@@ -10,19 +10,19 @@
     "path": "custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py"
   },
   "source_tour_file": {
-    "line": 193,
+    "line": 198,
     "path": "custom-addons/usl_platform_billing/static/tests/tours/platform_billing_tours.js",
     "steps": {
-      "create-a-monthly-platform-billing-session": 511,
-      "documents": 208,
-      "draft": 196,
-      "moves": 238,
-      "no_payment": 243,
-      "open_moves": 232,
-      "paid": 226,
-      "post_documents": 214,
-      "preflight": 202,
-      "reconcile": 220
+      "create-a-monthly-platform-billing-session": 516,
+      "documents": 213,
+      "draft": 201,
+      "moves": 243,
+      "no_payment": 248,
+      "open_moves": 237,
+      "paid": 231,
+      "post_documents": 219,
+      "preflight": 207,
+      "reconcile": 225
     }
   },
   "steps": [

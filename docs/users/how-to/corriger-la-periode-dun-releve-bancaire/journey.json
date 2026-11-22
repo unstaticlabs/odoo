@@ -1,0 +1,80 @@
+{
+  "journey": "corriger-la-periode-dun-releve-bancaire",
+  "lang": "fr",
+  "login": "bank_period_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_accounting.tests.test_accounting_journeys.TestBankPeriodJourney.test_correct_a_bank_statement_period_in_french",
+  "source_test_file": {
+    "line": 94,
+    "path": "custom-addons/usl_accounting/tests/test_accounting_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 5,
+    "path": "custom-addons/usl_accounting/static/tests/tours/bank_period_tour.js",
+    "steps": {
+      "apply": 26,
+      "correct": 11,
+      "corrected": 28,
+      "dialog": 16,
+      "reason": 21
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The ingestion that needs attention offers a period correction",
+      "id": "correct",
+      "index": 1,
+      "run": "click",
+      "screenshot": "01-correct.png",
+      "sha256": "95edf657d3dcd0f67d2defb9fca5603d8fe48ebe37fb454366533e592092f2a3",
+      "text": "Ouvrez l’import depuis l’activité du journal bancaire. Si vous gérez la configuration, vous le retrouvez aussi dans **Comptabilité > Configuration > Configuration des e-mails de relevés bancaires**. Ouvrez l’import à vérifier, puis cliquez sur **Corriger la période**.",
+      "trigger": "button[name='action_correct_period']"
+    },
+    {
+      "assertion": "The correction dialog opens",
+      "id": "dialog",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Recopiez les dates de début et de fin qui figurent sur le relevé.",
+      "trigger": ".o_dialog [data-field='period_start']"
+    },
+    {
+      "assertion": "A reason is required and kept in the history",
+      "id": "reason",
+      "index": 3,
+      "run": "edit Dates vérifiées sur le relevé bancaire",
+      "screenshot": "02-reason.png",
+      "sha256": "a81daabc419ca9b23b429ec424d96ddee9e5639624b61020e39c736ab057dce0",
+      "text": "Indiquez sur quelle pièce vous avez vérifié les dates. Le motif de correction figurera dans l’historique de l’import avec votre nom.",
+      "trigger": ".o_dialog .o_field_widget[name='reason'] textarea"
+    },
+    {
+      "assertion": "Apply the corrected period",
+      "id": "apply",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez les deux dates, puis cliquez sur **Appliquer la correction**.",
+      "trigger": ".o_dialog button[name='action_apply']"
+    },
+    {
+      "assertion": "The ingestion carries the corrected period",
+      "id": "corrected",
+      "index": 5,
+      "run": "",
+      "screenshot": "03-corrected.png",
+      "sha256": "3fd7b3c25abf192db6bb549aa91722daea331834154df47a5491414e96e50d00",
+      "text": "Relisez la période sur la fiche d’import. Odoo peut poursuivre le traitement avec les dates corrigées.",
+      "trigger": "body:not(:has(.o_dialog)) .o_form_view .o_field_widget[name='period_start']"
+    }
+  ],
+  "title": "Corriger la période d’un relevé bancaire importé",
+  "tour": "usl_bank_period_correction",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

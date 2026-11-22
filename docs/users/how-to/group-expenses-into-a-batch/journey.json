@@ -10,17 +10,17 @@
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
-    "line": 3,
+    "line": 8,
     "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
     "steps": {
-      "add_to_batch": 26,
-      "confirm": 43,
-      "grouped": 49,
-      "preview": 37,
-      "proposed_batch": 32,
-      "select_first": 12,
-      "select_second": 19,
-      "work_list": 6
+      "add_to_batch": 31,
+      "confirm": 48,
+      "grouped": 54,
+      "preview": 42,
+      "proposed_batch": 37,
+      "select_first": 17,
+      "select_second": 24,
+      "work_list": 11
     }
   },
   "steps": [
@@ -92,7 +92,7 @@
       "screenshot": null,
       "sha256": null,
       "text": "Choose **Add to Batch**.",
-      "trigger": ".o_dialog footer button:contains('Add to Batch')"
+      "trigger": ".o_dialog footer button[name='action_create_batch']"
     },
     {
       "assertion": "The refreshed work list no longer contains grouped lines",

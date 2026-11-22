@@ -25,12 +25,14 @@ class TestFeedbackDesktopTour(FeedbackTourCommon):
     browser_size = "1440x900"
 
     def test_desktop_feedback_tour(self):
+        self.env["ir.config_parameter"].sudo().set_str("usl_feedback.gemini_enabled", "True")
         self.start_tour("/odoo", "usl_feedback_desktop_journey", login=self.user.login)
         task = self.env["project.task"].sudo().search(
             [("usl_feedback_reporter_id", "=", self.user.id)],
             limit=1,
         )
-        self.assertEqual(task.name, "The desktop status is unclear after reload.")
+        self.assertEqual(task.name, "After I reload the page, the status is unclear.")
+        self.assertEqual(task.usl_feedback_agent_state, "triaged")
         self.assertFalse(task.usl_feedback_context_included)
 
 

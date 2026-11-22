@@ -12,10 +12,11 @@ journey: send-feedback-from-any-page
 tour: usl_feedback_desktop_journey
 source:
   - custom-addons/usl_feedback/tests/test_feedback_journeys.py
-screenshot_01-open_drawer_png: a7ec22c269b49b94221e44e1a44a35692e16df0d67eebc86a0da9c23558888e1
-screenshot_02-conversation_png: 0d2fe16506148c5cbbfa5f2e66bdfbe89e00133ec61f850523dfe80c85efc7fd
-screenshot_03-chatter_png: ec8fc888e4f3ad6072f95bf38e198fb516d9c7babfd0d50b9f783b907ff25eb2
-screenshot_04-recent_list_png: 1b25fc5ca76425057d7639207ce9d0c3a888e01a1aef5b547b51101da639ca90
+screenshot_01-open_drawer_png: a63e9056708d0b7cea97071e4fed309fd53e550d94fa7c2130e350e49f82e319
+screenshot_02-conversation_png: f996286ca0ff35b8b147504cd51938b9507e39ccbf77fdcb365cff6d6274eb3e
+screenshot_03-chatter_png: 5d4b5c9453a58966d6360f30524127ff15ff7003ea2b96dd31e32a882d83b7fd
+screenshot_04-team_received_png: 7f5e9d0ab373cc8c9014b77ce5dbd58b1eaa06908064cee1db94f6c5c086c89c
+screenshot_05-recent_list_png: d908e6763f7171e52f11343d374d1921e3e12a002776207461617c13ae8d5f9d
 generated: true
 ---
 
@@ -39,18 +40,24 @@ Report a problem, suggest an improvement or ask a question without leaving the s
 
 5. **Page details** is ticked when the screen you are on gives useful context: the action, the record you can read, the company and the release, never the address, form values or passwords. Untick it when the page does not matter.
 
-6. Choose **Send feedback**.
+6. Choose **Send feedback** to start the conversation. The assistant prepares a draft for your review.
 
-7. Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status changes appear here.
+7. Read the draft in the conversation. You can add a clarification or edit it before sharing it with the product team.
 
-   ![Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status change](send-feedback-from-any-page/03-chatter.png)
+   ![Read the draft in the conversation](send-feedback-from-any-page/03-chatter.png)
 
-8. **New** starts another conversation. The card you just sent is kept.
+8. When the draft describes what you meant, choose **Send feedback** on the draft.
 
-9. **My feedback** lists every card you sent with its current status.
+9. The conversation confirms that the product team has received your feedback. Further replies appear here.
 
-10. Choose a card to reopen its conversation and reply.
+   ![The conversation confirms that the product team has received your feedback](send-feedback-from-any-page/04-team_received.png)
 
-11. Come back to **My feedback** at any time from the same drawer to see where each report stands.
+10. **New** starts another conversation. The card you just sent is kept.
 
-   ![Come back to My feedback at any time from the same drawer to see where each report stands](send-feedback-from-any-page/04-recent_list.png)
+11. **My feedback** lists every card you sent with its current status.
+
+12. Choose a card to reopen its conversation and reply.
+
+13. Come back to **My feedback** at any time from the same drawer to see where each report stands.
+
+   ![Come back to My feedback at any time from the same drawer to see where each report stands](send-feedback-from-any-page/05-recent_list.png)

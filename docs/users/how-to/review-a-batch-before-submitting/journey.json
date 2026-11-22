@@ -10,24 +10,24 @@
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
-    "line": 125,
+    "line": 130,
     "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
     "steps": {
-      "analytics": 134,
-      "approved": 200,
-      "batch": 128,
-      "check-the-receipt-on-an-expense": 255,
-      "context_action": 140,
-      "entries": 218,
-      "evidence": 228,
-      "exception": 146,
-      "history": 240,
-      "no_actions": 234,
-      "no_trash": 152,
-      "post": 205,
-      "post_entries": 211,
-      "reconciliation": 246,
-      "remove": 158
+      "analytics": 139,
+      "approved": 205,
+      "batch": 133,
+      "check-the-receipt-on-an-expense": 260,
+      "context_action": 145,
+      "entries": 223,
+      "evidence": 233,
+      "exception": 151,
+      "history": 245,
+      "no_actions": 239,
+      "no_trash": 157,
+      "post": 210,
+      "post_entries": 216,
+      "reconciliation": 251,
+      "remove": 163
     }
   },
   "steps": [
@@ -39,7 +39,7 @@
       "screenshot": "01-batch.png",
       "sha256": "fbfd6aad0177afff8bd9443cd9ff01077a73f36b70b19649d5429f252f961cec",
       "text": "Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
-      "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link:contains('Expenses'))"
+      "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])"
     },
     {
       "assertion": "Shared analytics stay editable while the Batch is open",
@@ -89,7 +89,7 @@
       "screenshot": null,
       "sha256": null,
       "text": "**Remove from Batch** is the only line action: the expense goes back to your work list unchanged, ready for another Batch.",
-      "trigger": ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']:contains('Remove from Batch')"
+      "trigger": ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']"
     }
   ],
   "title": "Review a Batch before submitting it",

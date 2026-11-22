@@ -30,4 +30,14 @@ class TestFeedbackJourneys(FeedbackTourCommon, JourneyCase):
             [("usl_feedback_reporter_id", "=", self.user.id)],
             limit=1,
         )
-        self.assertEqual(task.name, "The desktop status is unclear after reload.")
+        expected = (
+            "Le statut est difficile à comprendre après le rechargement."
+            if self.journey_language == "fr"
+            else "After I reload the page, the status is unclear."
+        )
+        self.assertEqual(task.name, expected)
+        self.assertEqual(task.usl_feedback_agent_state, "triaged")
+
+    def test_send_feedback_from_any_page_in_french(self):
+        self.journey_language = "fr"
+        self.test_send_feedback_from_any_page()

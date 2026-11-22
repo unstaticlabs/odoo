@@ -1,0 +1,166 @@
+{
+  "journey": "comptabiliser-les-versements-mensuels-des-plateformes",
+  "lang": "fr",
+  "login": "platform_billing_browser_operator",
+  "persona": "finance_operator",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_platform_billing.tests.test_platform_billing_journeys.TestPlatformBillingJourneys.test_create_a_monthly_platform_billing_session_in_french",
+  "source_test_file": {
+    "line": 61,
+    "path": "custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 8,
+    "path": "custom-addons/usl_platform_billing/static/tests/tours/platform_billing_tours.js",
+    "steps": {
+      "add_payout": 82,
+      "check": 155,
+      "confirm_coverage": 179,
+      "coverage": 173,
+      "create": 21,
+      "documents": 213,
+      "draft": 201,
+      "generate": 161,
+      "moves": 243,
+      "net_amount": 148,
+      "no_payment": 248,
+      "open_moves": 237,
+      "paid": 231,
+      "period": 57,
+      "post": 167,
+      "post_documents": 219,
+      "posted": 185,
+      "preflight": 207,
+      "reconcile": 225,
+      "reconcile_later": 191,
+      "sessions": 11
+    }
+  },
+  "steps": [
+    {
+      "assertion": "No session filter is selected by default",
+      "id": "sessions",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-sessions.png",
+      "sha256": "8961ffee1b1cb747db3efe74817daee8f1903d66e809aa0ba32be6b4a7bb7534",
+      "text": "Ouvrez **Facturation des plateformes > Sessions de facturation**. Consultez les sessions existantes pour vérifier que le mois reste à traiter.",
+      "trigger": ".o_control_panel:not(:has(.o_searchview_facet))"
+    },
+    {
+      "assertion": "Create a monthly platform billing session",
+      "id": "create",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Nouveau**.",
+      "trigger": ".o_list_button_add"
+    },
+    {
+      "assertion": "The historical French session name is suggested",
+      "id": "period",
+      "index": 3,
+      "run": "",
+      "screenshot": "02-period.png",
+      "sha256": "9171db2a86bae336bdf730edb6f605eb002f4825c004084b74488a316db9271e",
+      "text": "Choisissez le premier jour du mois à traiter. Odoo donne à la session le nom du mois. Vérifiez la date de facturation et choisissez le dernier jour du mois si la date précédente est encore affichée.",
+      "trigger": ".o_field_widget[name='name'] input:value('Août 2026')"
+    },
+    {
+      "assertion": "Add the platform payout",
+      "id": "add_payout",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ajoutez une ligne pour chaque versement déclaré par une plateforme au cours du mois.",
+      "trigger": "div[name='payout_ids'] .o_field_x2many_list_row_add button"
+    },
+    {
+      "assertion": "Enter the platform net amount",
+      "id": "net_amount",
+      "index": 5,
+      "run": "edit 80",
+      "screenshot": "03-net_amount.png",
+      "sha256": "581d6e13f7dd4e96fab27c91609fd6a8b7e4dc59341f738a8768efd8dbbced05",
+      "text": "Choisissez la plateforme et indiquez la date, la référence et le montant net figurant sur son relevé. Odoo calcule le montant brut et la commission à partir du taux de la plateforme.",
+      "trigger": ".o_selected_row .o_field_widget[name='net_platform_amount'] input"
+    },
+    {
+      "assertion": "Save through the real form and run the accounting checks",
+      "id": "check",
+      "index": 6,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Contrôle**. Odoo enregistre la session et vérifie les plateformes, les journaux, les produits et les montants nécessaires à la facturation.",
+      "trigger": "button[name='action_check']"
+    },
+    {
+      "assertion": "Generate customer invoice and commission bill drafts",
+      "id": "generate",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Générer les brouillons**. Chaque versement donne lieu à une facture de vente pour la recette et à une facture fournisseur pour la commission.",
+      "trigger": "button[name='action_generate_documents']"
+    },
+    {
+      "assertion": "Post the monthly accounting documents",
+      "id": "post",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez les pièces puis cliquez sur **Comptabiliser les pièces**.",
+      "trigger": "button[name='action_post_documents']"
+    },
+    {
+      "assertion": "Incomplete active-platform coverage is clearly identified",
+      "id": "coverage",
+      "index": 9,
+      "run": "",
+      "screenshot": "04-coverage.png",
+      "sha256": "1316712b7693b47c839852c3106b553596ddff097676cbaab85fd465d01eeb82",
+      "text": "Si une plateforme active n’a aucun versement ce mois-ci, Odoo indique son nom. Revenez à la saisie si une ligne manque.",
+      "trigger": ".modal .alert:contains('Browser platform without August payout')"
+    },
+    {
+      "assertion": "Confirm the deliberate monthly coverage exception",
+      "id": "confirm_coverage",
+      "index": 10,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Confirmez si l’absence est attendue, par exemple pour une plateforme qui paie chaque trimestre.",
+      "trigger": ".modal button[name='action_confirm']"
+    },
+    {
+      "assertion": "The delayed payout stays posted and open",
+      "id": "posted",
+      "index": 11,
+      "run": "",
+      "screenshot": "05-posted.png",
+      "sha256": "b89e3f85dffe98e8867a376e9633da010ed070cb5defc26298fbd8b9096a86de",
+      "text": "La session et les pièces sont comptabilisées. Un versement encore absent de la banque reste ouvert.",
+      "trigger": ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current"
+    },
+    {
+      "assertion": "Bank reconciliation remains available for the later receipt",
+      "id": "reconcile_later",
+      "index": 12,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Lorsque l’encaissement apparaît sur le relevé, revenez dans la session pour **Rapprocher les transactions bancaires**.",
+      "trigger": "button[name='action_reconcile_bank']"
+    }
+  ],
+  "title": "Comptabiliser les versements mensuels des plateformes",
+  "tour": "usl_platform_billing_operator_creation_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

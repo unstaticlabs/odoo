@@ -1,0 +1,100 @@
+{
+  "journey": "verifier-un-lot-avant-envoi",
+  "lang": "fr",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_review_a_batch_before_submitting_in_french",
+  "source_test_file": {
+    "line": 112,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 130,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "analytics": 139,
+      "approved": 205,
+      "batch": 133,
+      "check-the-receipt-on-an-expense": 260,
+      "context_action": 145,
+      "entries": 223,
+      "evidence": 233,
+      "exception": 151,
+      "history": 245,
+      "no_actions": 239,
+      "no_trash": 157,
+      "post": 210,
+      "post_entries": 216,
+      "reconciliation": 251,
+      "remove": 163
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The Batch opens on the focused review surface",
+      "id": "batch",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-batch.png",
+      "sha256": "fe545d2c0213a7acef4a91083faf723c3323d0e9f43e5a695bf494d93eb9b899",
+      "text": "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
+      "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])"
+    },
+    {
+      "assertion": "Shared analytics stay editable while the Batch is open",
+      "id": "analytics",
+      "index": 2,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez la répartition analytique du lot. Une modification s’applique aux lignes qui reprennent cette répartition.",
+      "trigger": ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)"
+    },
+    {
+      "assertion": "The context action explains its safe preview behavior",
+      "id": "context_action",
+      "index": 3,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Avec **Appliquer le contexte**, consultez l’aperçu avant de confirmer. Une ligne avec une affectation particulière conserve votre choix, sauf si vous demandez son remplacement.",
+      "trigger": "button[name='action_open_context_wizard'][data-tooltip*='Les choix propres à une dépense restent inchangés']"
+    },
+    {
+      "assertion": "A real line exception has a compact, specific helper",
+      "id": "exception",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-exception.png",
+      "sha256": "768dc2e910643da50fd8f1290a5282c7ca3a0474de3da298981288283a12a90a",
+      "text": "Un repère signale une ligne dont l’affectation diffère. Survolez-le pour lire la différence. Ouvrez la ligne pour la corriger si nécessaire.",
+      "trigger": ".o_usl_batch_attention[title*='diffère de celle du lot']"
+    },
+    {
+      "assertion": "The expense list has no destructive trash control",
+      "id": "no_trash",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vous pouvez corriger la composition du lot en conservant les dépenses.",
+      "trigger": ".o_field_widget[name='expense_ids'] .o_list_table:not(:has(.o_list_record_remove))"
+    },
+    {
+      "assertion": "Removal is the single explicit line action",
+      "id": "remove",
+      "index": 6,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Retirer du lot** pour remettre la dépense dans votre liste. Elle pourra rejoindre un autre lot.",
+      "trigger": ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']"
+    }
+  ],
+  "title": "Vérifier un lot de dépenses avant de le soumettre",
+  "tour": "usl_expense_batch_focused_review",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

@@ -1,0 +1,154 @@
+{
+  "journey": "envoyer-un-retour-depuis-une-page",
+  "lang": "fr",
+  "login": "feedback-tour-testfeedbackjourneys",
+  "persona": "everyone",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_feedback.tests.test_feedback_journeys.TestFeedbackJourneys.test_send_feedback_from_any_page_in_french",
+  "source_test_file": {
+    "line": 41,
+    "path": "custom-addons/usl_feedback/tests/test_feedback_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 156,
+    "path": "custom-addons/usl_feedback/static/tests/tours/feedback_tour.js",
+    "steps": {}
+  },
+  "steps": [
+    {
+      "assertion": "Open the native notifications drawer",
+      "id": "open_drawer",
+      "index": 1,
+      "run": "click",
+      "screenshot": "01-open_drawer.png",
+      "sha256": "32891066d7506a8c4926fa6f0f5f1b65cfa9070d467977274c86853e2049f9f2",
+      "text": "Ouvrez **Messages** dans la barre du haut. Le bouton de retour se trouve à côté de **Nouveau message**, dans chaque onglet.",
+      "trigger": ".o_menu_systray i[aria-label='Messages']"
+    },
+    {
+      "assertion": "Open Feedback",
+      "id": "open_feedback",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur le bouton de retour.",
+      "trigger": ".o-usl-FeedbackButton"
+    },
+    {
+      "assertion": "The drawer closes and a native floating conversation opens",
+      "id": "conversation",
+      "index": 3,
+      "run": "",
+      "screenshot": "02-conversation.png",
+      "sha256": "cad926cc97c848735d413cab68dab678b63b8122c20a47032c9aef6771445458",
+      "text": "Une conversation s’ouvre. Odoo prépare un aperçu de la page. Il reste sur votre appareil jusqu’à ce que vous choisissiez de l’envoyer.",
+      "trigger": ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "Describe the issue",
+      "id": "describe",
+      "index": 4,
+      "run": "edit Le statut est difficile à comprendre après le rechargement.",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Décrivez ce que vous vouliez faire, puis ce que vous avez observé.",
+      "trigger": ".o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "The page-details choice is explicit before sending",
+      "id": "context_off",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez **Détails de la page**. Cette option joint la page de travail, la fiche accessible, la société et la version. Décochez-la si la page n’aide pas à comprendre le retour.",
+      "trigger": ".o-usl-FeedbackPanel input#usl_feedback_context:not(:checked), .o-usl-FeedbackPanel textarea"
+    },
+    {
+      "assertion": "Send the saved feedback",
+      "id": "send",
+      "index": 6,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Envoyer un retour** pour démarrer la conversation. L’assistant prépare un brouillon à relire.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('Envoyer un retour'):not(:disabled)"
+    },
+    {
+      "assertion": "The task chatter replaces the initial prompt",
+      "id": "chatter",
+      "index": 7,
+      "run": "",
+      "screenshot": "03-chatter.png",
+      "sha256": "095aeb0d9d6d95f976b96e3630790a4f2f01315d5ee84b6d2636e468a20d44ae",
+      "text": "Relisez le brouillon dans la conversation. Vous pouvez ajouter une précision ou modifier le texte avant de le transmettre à l’équipe produit.",
+      "trigger": ".o-usl-FeedbackPanel-conversation .o-mail-Chatter"
+    },
+    {
+      "assertion": "Confirm the prepared draft for the product team",
+      "id": "confirm_draft",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Lorsque le brouillon exprime bien votre demande, cliquez sur **Envoyer un retour** sur la fiche du brouillon.",
+      "trigger": ".o-usl-FeedbackPanel-readyBar footer button.btn-primary:not(:disabled)"
+    },
+    {
+      "assertion": "The conversation confirms handoff to the product team",
+      "id": "team_received",
+      "index": 9,
+      "run": "",
+      "screenshot": "04-team_received.png",
+      "sha256": "d181d2fe93e1ac43d30b668ad542c85875b6abc8e670e42c9d49472bd26319da",
+      "text": "Le bandeau confirme la transmission à l’équipe produit. Retrouvez ses réponses dans cette conversation.",
+      "trigger": ".o-usl-FeedbackPanel-sentBar"
+    },
+    {
+      "assertion": "Start another conversation without losing the saved card",
+      "id": "new_conversation",
+      "index": 10,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Nouveau** pour préparer un autre retour. Le premier reste accessible.",
+      "trigger": ".o-usl-FeedbackPanel-nav button:contains('Nouveau')"
+    },
+    {
+      "assertion": "Open the clear feedback tracker",
+      "id": "tracker",
+      "index": 11,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Dans **Mes retours**, retrouvez vos demandes et leur statut.",
+      "trigger": ".o-usl-FeedbackPanel-nav button:contains('Mes retours')"
+    },
+    {
+      "assertion": "Resume the saved card after returning to the draft",
+      "id": "resume",
+      "index": 12,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choisissez une demande pour reprendre la conversation ou ajouter une précision.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('Le statut est difficile à comprendre après le rechargement.')"
+    },
+    {
+      "assertion": "The recent list preserves the saved feedback card",
+      "id": "recent_list",
+      "index": 13,
+      "run": "",
+      "screenshot": "05-recent_list.png",
+      "sha256": "5f2410eb4d8d893153d1d3cf98e1a88b6227620de1acb3a88398877c9f5eecc8",
+      "text": "Revenez dans **Mes retours** pour consulter l’avancement depuis n’importe quelle page.",
+      "trigger": ".o-usl-FeedbackPanel button:contains('Le statut est difficile à comprendre après le rechargement.')"
+    }
+  ],
+  "title": "Envoyer un retour depuis une page Odoo",
+  "tour": "usl_feedback_desktop_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

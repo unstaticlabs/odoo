@@ -26,6 +26,7 @@
  */
 
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
 import { rpcBus } from "@web/core/network/rpc";
 
 const tours = registry.category("web_tour.tours");
@@ -187,14 +188,32 @@ function screenshotStep(name, id, meta) {
 }
 
 /**
- * Start ``name`` as a journey. Options are passed to ``odoo.startTour``.
+ * A translation registers under ``usl_docs.journey_translations`` with
+ * key ``<tour>.<language>``, a distinct guide slug and one sentence per
+ * documented step. Both languages use the same interactions and capture points.
  */
-export async function startJourney(name, options = {}) {
-    const journey = journeys.get(name, null);
+export async function startJourney(name, options = {}, language) {
+    const original = journeys.get(name, null);
+    language ??= original?.lang || "en";
+    let journey = original;
+    if (original && language !== (original.lang || "en")) {
+        const variant = registry.category("usl_docs.journey_translations").get(`${name}.${language}`, null);
+        if (!variant || variant.id === original.id) {
+            throw new Error(`Missing distinct ${language} guide for ${name}`);
+        }
+        const steps = {};
+        for (const [id, step] of Object.entries(original.steps)) {
+            steps[id] = { ...step, text: variant.steps[id] };
+        }
+        journey = { ...original, ...variant, lang: language, steps };
+    }
     const tour = tours.get(name, null);
     if (!journey || !tour) {
         console.error(`usl_docs: ${name} is not both a tour and a journey`);
         return;
+    }
+    if (user.lang.split("-")[0] !== language) {
+        throw new Error(`Guide ${name} requires a ${language} reader, signed in as ${user.lang}`);
     }
     const steps = tour.steps();
     if (!validateJourney(name, journey, steps)) {
@@ -234,6 +253,9 @@ export async function startJourney(name, options = {}) {
             description: journey.description,
             persona: journey.persona,
             lang: journey.lang || "en",
+            translation_of: journey !== original
+                ? (original.type === "tutorial" ? "TUTORIAL.md" : `how-to/${original.id}.md`)
+                : undefined,
             app: journey.app || "",
             models: journey.models || [],
             steps: documented,

@@ -1,0 +1,113 @@
+{
+  "journey": "regrouper-des-depenses-en-lot",
+  "lang": "fr",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_group_expenses_into_a_batch_in_french",
+  "source_test_file": {
+    "line": 104,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 8,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "add_to_batch": 31,
+      "confirm": 48,
+      "grouped": 54,
+      "preview": 42,
+      "proposed_batch": 37,
+      "select_first": 17,
+      "select_second": 24,
+      "work_list": 11
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The two related expenses are available for grouping",
+      "id": "work_list",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-work_list.png",
+      "sha256": "6c7e5cbff37272e4c4d05065abeaad4d33f1f040695a4f7e14eb7685fc77885a",
+      "text": "Dans **Dépenses > Mes dépenses**, retrouvez les frais du déplacement. Dans cet exemple, il s’agit de l’hôtel et du taxi.",
+      "trigger": ".o_list_table tbody:has(tr:contains('Hôtel du déplacement')):has(tr:contains('Taxi du déplacement'))"
+    },
+    {
+      "assertion": "Select the hotel",
+      "id": "select_first",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cochez la première dépense.",
+      "trigger": ".o_list_table tbody tr:has(td:contains('Hôtel du déplacement')) .o_list_record_selector input"
+    },
+    {
+      "assertion": "Select the taxi",
+      "id": "select_second",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cochez les autres dépenses du déplacement.",
+      "trigger": ".o_list_table tbody tr:has(td:contains('Taxi du déplacement')) .o_list_record_selector input"
+    },
+    {
+      "assertion": "Grouping is the primary multi-expense action",
+      "id": "add_to_batch",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Ajouter à un lot de dépenses**.",
+      "trigger": ".o_control_panel button.btn-primary:contains('Ajouter à un lot de dépenses')"
+    },
+    {
+      "assertion": "The compatible travel Batch is proposed",
+      "id": "proposed_batch",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez le lot proposé. Odoo tient compte du salarié, de la société, des dates et de la répartition analytique. Vous pouvez aussi créer un lot.",
+      "trigger": ".o_dialog .o_field_widget[name='batch_id'] input"
+    },
+    {
+      "assertion": "The mixed payer context is previewed before mutation",
+      "id": "preview",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-preview.png",
+      "sha256": "08a4911db8b224a96765efe8b94269171546e44c2e9759561928e38c90b3d922",
+      "text": "Contrôlez les deux montants de l’aperçu. L’un correspond aux frais avancés par le salarié, l’autre aux frais réglés par la société.",
+      "trigger": ".o_dialog .o_form_view:has(.o_field_widget[name='employee_paid_total']):has(.o_field_widget[name='company_paid_total'])"
+    },
+    {
+      "assertion": "Add both expenses to the proposed Batch",
+      "id": "confirm",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Confirmez l’ajout au lot.",
+      "trigger": ".o_dialog footer button[name='action_create_batch']"
+    },
+    {
+      "assertion": "The refreshed work list no longer contains grouped lines",
+      "id": "grouped",
+      "index": 8,
+      "run": "",
+      "screenshot": "03-grouped.png",
+      "sha256": "7ffbebc36936bd6f3f2e440a3ef74ad19fffc400b2eeea8a195418bae86938ac",
+      "text": "Les dépenses quittent la liste des frais à regrouper. Ouvrez le lot pour les vérifier et les soumettre ensemble.",
+      "trigger": ".o_list_view:not(:has(tbody tr:contains('Hôtel du déplacement'))):not(:has(tbody tr:contains('Taxi du déplacement')))"
+    }
+  ],
+  "title": "Regrouper les dépenses d’un déplacement",
+  "tour": "usl_expense_batch_create_or_select",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

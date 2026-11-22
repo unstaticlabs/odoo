@@ -1,0 +1,113 @@
+{
+  "journey": "regler-une-facture-en-devise-au-taux-du-paiement",
+  "lang": "fr",
+  "login": "immediate_settlement_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_accounting.tests.test_accounting_journeys.TestImmediateSettlementJourney.test_settle_a_foreign_bill_at_the_payment_rate_in_french",
+  "source_test_file": {
+    "line": 50,
+    "path": "custom-addons/usl_accounting/tests/test_accounting_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 8,
+    "path": "custom-addons/usl_accounting/static/tests/tours/immediate_settlement_tour.js",
+    "steps": {
+      "actions": 11,
+      "best_match": 17,
+      "detail": 43,
+      "open_detail": 36,
+      "restored": 56,
+      "trace": 30,
+      "unreconcile": 49,
+      "use_rate": 23
+    }
+  },
+  "steps": [
+    {
+      "assertion": "All three actions coexist on an immediate payment",
+      "id": "actions",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-actions.png",
+      "sha256": "cb2177b4ca80ebba23bc03398bacf46cfb9ffe5cf8718cd208178cb7e3620d50",
+      "text": "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Lorsqu’un débit du même fournisseur satisfait les critères de date et de taux, Odoo propose trois actions de rapprochement. L’action recommandée apparaît en couleur.",
+      "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
+    },
+    {
+      "assertion": "The matching cue stays compact",
+      "id": "best_match",
+      "index": 2,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Consultez **Meilleur rapprochement** pour identifier la ligne bancaire proposée et examiner les autres possibilités.",
+      "trigger": ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Meilleur rapprochement')"
+    },
+    {
+      "assertion": "Use the immediate payment rate",
+      "id": "use_rate",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Si le débit justifie cette valorisation, cliquez sur **Utiliser le taux de paiement**. Odoo recalcule la valeur de la facture en devise de la société au taux observé sur le paiement.",
+      "trigger": ".o_form_view .payment_rate_assign:not([disabled])"
+    },
+    {
+      "assertion": "The invoice shows one concise settlement trace",
+      "id": "trace",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-trace.png",
+      "sha256": "f620003f15bb76dcab08dbdc4a99747c602a9be56e9e4c42378ed5c0bb9cd91d",
+      "text": "La facture passe à l’état payé. La ligne de règlement indique le taux de paiement et précise qu’aucun écart de change n’a été comptabilisé.",
+      "trigger": ".o_form_view .o_payment_label:contains('Taux de paiement ·'):contains('sans écart de change')"
+    },
+    {
+      "assertion": "Open the settlement accounting detail",
+      "id": "open_detail",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur l’icône d’information de la ligne de paiement.",
+      "trigger": ".o_form_view tr:has(.o_payment_label:contains('Taux de paiement ·')) .js_payment_info"
+    },
+    {
+      "assertion": "Source facts and the document repricing remain inspectable",
+      "id": "detail",
+      "index": 6,
+      "run": "",
+      "screenshot": "03-detail.png",
+      "sha256": "548b29ffd691b9f47a0d41c8ee7333070c584196cb3c0b2020103ee1a3f2fa7a",
+      "text": "Comparez l’estimation écartée, la valeur d’origine de la facture et sa valeur au taux du paiement. Les écritures associées permettent de retracer le règlement.",
+      "trigger": ".account_payment_popover:contains('Utiliser le taux de paiement'):contains('Estimation Odoo rejetée'):contains('Valeur d’origine du document'):contains('Valeur du document au taux du paiement')"
+    },
+    {
+      "assertion": "Reverse the whole linked settlement",
+      "id": "unreconcile",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Si le rapprochement est erroné, cliquez sur **Annuler le lettrage** dans le détail du paiement.",
+      "trigger": ".account_payment_popover button.js_unreconcile_payment"
+    },
+    {
+      "assertion": "Reversal restores the open document and all actions",
+      "id": "restored",
+      "index": 8,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "La facture est de nouveau ouverte à sa valeur d’origine. Vous pouvez vérifier les trois propositions et choisir le rapprochement qui convient.",
+      "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign)"
+    }
+  ],
+  "title": "Régler une facture en devise au taux du paiement",
+  "tour": "usl_immediate_settlement",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

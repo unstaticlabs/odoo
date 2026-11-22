@@ -79,3 +79,44 @@ class TestExpenseBatchJourneys(TestExpenseBatchBrowser, JourneyCase):
             login=self.readonly_reviewer.login,
             screen=BATCHES,
         )
+
+    def _use_french_fixtures(self):
+        self.journey_language = "fr"
+        self.batch.with_context(tracking_disable=True).write({
+            "name": "Déplacement de juillet", "purpose": "Atelier de formation",
+        })
+        self.lifecycle_batch.with_context(tracking_disable=True).write({
+            "name": "Déplacement d’août", "purpose": "Frais de formation",
+        })
+        expenses = self.expenses | self.lifecycle_expenses
+        names = {
+            "Browser Canada hotel": "Hôtel du déplacement",
+            "Browser Canada taxi": "Taxi du déplacement",
+            "Browser lifecycle hotel": "Hôtel avancé par le salarié",
+            "Browser lifecycle company card": "Repas payé par la société",
+        }
+        for expense in expenses.with_context(tracking_disable=True):
+            expense.name = names[expense.name]
+        self.exception_expense.with_context(tracking_disable=True).name = "Dépense avec affectation particulière"
+        self.receipt_expense.with_context(tracking_disable=True).name = "Repas avec justificatif"
+        self.receipt_attachment.name = "justificatif-repas.pdf"
+
+    def test_group_expenses_into_a_batch_in_french(self):
+        self._use_french_fixtures()
+        self.test_group_expenses_into_a_batch()
+
+    def test_check_the_receipt_on_an_expense_in_french(self):
+        self._use_french_fixtures()
+        self.test_check_the_receipt_on_an_expense()
+
+    def test_review_a_batch_before_submitting_in_french(self):
+        self._use_french_fixtures()
+        self.test_review_a_batch_before_submitting()
+
+    def test_post_an_approved_batch_in_french(self):
+        self._use_french_fixtures()
+        self.test_post_an_approved_batch()
+
+    def test_audit_a_batch_read_only_in_french(self):
+        self._use_french_fixtures()
+        self.test_audit_a_batch_read_only()

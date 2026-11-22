@@ -220,6 +220,8 @@ class JourneyCase(HttpCase):
             # a module need not depend on the guide to document a journey.
             self.skipTest("journeys need usl_docs installed; `make docs-journeys` installs it")
 
+    journey_language = "en"
+
     def run_journey(self, tour_name, url_path, login, viewports=("desktop",), timeout=180, screen=None):
         """Run ``tour_name`` on each viewport and write its records. Returns them.
 
@@ -236,7 +238,9 @@ class JourneyCase(HttpCase):
 
     def _run_on_viewport(self, tour_name, url_path, login, viewport, timeout, screen):
         settings = VIEWPORTS[viewport]
-        directory = output_directory() / tour_name / viewport
+        lang = self.journey_language
+        capture_name = tour_name if lang == "en" else f"{tour_name}.{lang}"
+        directory = output_directory() / capture_name / viewport
         capture = _Capture(self, viewport, directory)
         original_handle = ChromeBrowser._handle_console
 
@@ -249,6 +253,11 @@ class JourneyCase(HttpCase):
                     return None
             return original_handle(browser, type, args=args, stackTrace=stackTrace, **kw)
 
+        if lang != "en":
+            # usl_locale installs French. The browser must authenticate with that
+            # actual user language so the evidence captures translated Odoo controls.
+            user = self.env["res.users"].sudo().search([("login", "=", login)], limit=1)
+            user.lang = {"fr": "fr_FR"}[lang]
         self._pin_appearance(login)
         started = datetime.now(timezone.utc)
         self.browser_size = settings["size"]
@@ -260,7 +269,7 @@ class JourneyCase(HttpCase):
                     url_path,
                     tour_name,
                     login=login,
-                    code=f"odoo.uslDocsStartTour({tour_name!r}, {{stepDelay: 0, debug: false}})",
+                    code=f"odoo.uslDocsStartTour({tour_name!r}, {{stepDelay: 0, debug: false}}, {lang!r})",
                     timeout=timeout,
                 )
         finally:
@@ -270,6 +279,7 @@ class JourneyCase(HttpCase):
             raise AssertionError(f"journey {tour_name} could not be captured: {capture.failure}")
         self.assertTrue(capture.journey, f"journey {tour_name} never announced itself; is it registered in usl_docs.journeys?")
         journey = capture.journey
+        self.assertEqual(journey["lang"], lang)
         expected = [step["id"] for step in journey["steps"] if step["screenshot"]]
         self.assertEqual(
             list(capture.screenshots),
@@ -285,6 +295,7 @@ class JourneyCase(HttpCase):
             "description": journey["description"],
             "persona": journey["persona"],
             "lang": journey["lang"],
+            **({"translation_of": journey["translation_of"]} if journey.get("translation_of") else {}),
             "app": journey.get("app") or "",
             "models": journey.get("models") or [],
             "url_path": screen,
