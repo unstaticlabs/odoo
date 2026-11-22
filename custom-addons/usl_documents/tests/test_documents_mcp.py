@@ -589,12 +589,18 @@ class TestDocumentsMcp(TransactionCase):
             {"ETag": f'"{archive}"', "Content-Length": "12"},
             {"ETag": f'W/"{original}"', "Content-Length": "12"}, {"Content-Length": "12"},
             {"ETag": f'"{original}"', "Content-Length": "-1"}, {"ETag": f'"{original}"'},
+            {"ETag": f'"{original}"', "Content-Length": "9007199254740992"},
         ):
             with self.subTest(headers=headers), patch.object(PaperlessClient, "probe_download",
                     return_value={"status": 200, "headers": headers}):
                 result = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]["integrity"]
                 self.assertEqual(result["original"]["digest"], original)
                 self.assertIsNone(result["original"]["size_bytes"])
+        with patch.object(PaperlessClient, "probe_download", return_value={
+            "status": 200, "headers": {"ETag": f'"{original}"', "Content-Length": "9007199254740991"},
+        }):
+            result = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]["integrity"]
+            self.assertEqual(result["original"]["size_bytes"], 9007199254740991)
         with patch.object(PaperlessClient, "probe_download", side_effect=PaperlessError("unavailable")):
             result = documents.mcp_get_versions(document.id, include_integrity=True)["versions"][0]["integrity"]
             self.assertIsNone(result["original"]["size_bytes"])

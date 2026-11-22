@@ -1355117,7 +1355117,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 615,
+          "line": 618,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355152,7 +1355152,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 581,
+          "line": 584,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355186,7 +1355186,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 586,
+          "line": 589,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355220,7 +1355220,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 854,
+          "line": 857,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355255,7 +1355255,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 731,
+          "line": 734,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355286,7 +1355286,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 836,
+          "line": 839,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355317,7 +1355317,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 777,
+          "line": 780,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355347,7 +1355347,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 827,
+          "line": 830,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355374,7 +1355374,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 845,
+          "line": 848,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355499,7 +1355499,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 354,
+          "line": 357,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1738239,7 +1738239,7 @@
       "manifest_sha256": "856f76a4fdaf39b5ac10647f7a83d955f7dcae976bd1a163691fa1187186c7d5",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "3f9ad6f948190b2c715040c987bbe1a2c23e71c87f26e6992f46ec739ef620f6",
+      "source_sha256": "8076e23be739ba126e55607dc8a3891b47985b8797a3d9b193351dd47bd42459",
       "version": "saas~19.3.1.10.4"
     },
     {

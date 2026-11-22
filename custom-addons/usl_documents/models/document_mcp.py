@@ -49,7 +49,10 @@ def _version_integrity(document, version, *, original, check_size):
         and headers.get("content-encoding", "identity").lower() == "identity"
         and re.fullmatch(r"[0-9]{1,19}", length)
     ):
-        result["size_bytes"] = int(length)
+        # MCP consumers decode JSON numbers as exact integers only in this range.
+        byte_count = int(length)
+        if byte_count <= 2**53 - 1:
+            result["size_bytes"] = byte_count
     return result
 
 
