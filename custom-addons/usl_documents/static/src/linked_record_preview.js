@@ -1,21 +1,24 @@
 /** @odoo-module **/
 
-import { onError, onMounted, onWillDestroy, useExternalListener, useState } from "@odoo/owl";
+import { Component, onMounted, onWillDestroy, useExternalListener, useState } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
-import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
+import { Dialog } from "@web/core/dialog/dialog";
+import { ConnectionLostError } from "@web/core/network/rpc";
 
 // Only the open dialog polls. A stalled request must not leave the last form on screen.
 const CHECK_INTERVAL = 4000;
 const MAX_CHECK_AGE = 8000;
 
-export class LinkedRecordPreview extends FormViewDialog {
+export class LinkedRecordPreview extends Component {
     static template = "usl_documents.LinkedRecordPreview";
-    static props = { ...FormViewDialog.props, checkLink: Function, onUnavailable: Function };
+    static components = { Dialog };
+    static props = {
+        close: Function, title: String, resModel: String, resId: Number,
+        checkLink: Function, onUnavailable: Function,
+    };
 
     setup() {
-        super.setup();
-        this.viewProps.buttonDialogTemplate = "usl_documents.LinkedRecordPreview.NoButtons";
-        this.preview = useState({ phase: "checking" });
+        this.preview = useState({ phase: "checking", record: null });
         this.generation = 0;
         this.pending = false;
         onMounted(() => this.check());
@@ -34,17 +37,10 @@ export class LinkedRecordPreview extends FormViewDialog {
                 this.check();
             }
         });
-        onError((error) => {
-            // Native form loading can race the loss of an otherwise valid grant.
-            const name = error.cause?.data?.name || error.data?.name;
-            if (!["odoo.exceptions.AccessError", "odoo.exceptions.MissingError"].includes(name)) {
-                throw error;
-            }
-            this.unavailable();
-        });
     }
 
     invalidate() {
+        this.preview.record = null;
         this.generation++;
         this.pending = false;
         browser.clearTimeout(this.nextCheck);
@@ -82,6 +78,7 @@ export class LinkedRecordPreview extends FormViewDialog {
                 return;
             }
             this.pending = false;
+            this.preview.record = action;
             this.preview.phase = "ready";
             browser.clearTimeout(this.expiry);
             this.expiry = browser.setTimeout(() => this.disconnect(), MAX_CHECK_AGE);
@@ -94,8 +91,11 @@ export class LinkedRecordPreview extends FormViewDialog {
             if (["odoo.exceptions.AccessError", "odoo.exceptions.MissingError",
                 "odoo.exceptions.ValidationError", "odoo.exceptions.UserError"].includes(name)) {
                 this.unavailable();
-            } else {
+            } else if (error instanceof ConnectionLostError) {
                 this.disconnect();
+            } else {
+                this.invalidate();
+                this.preview.phase = "error";
             }
         }
     }

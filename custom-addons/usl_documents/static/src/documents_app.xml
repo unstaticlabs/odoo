@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="usl_documents.LinkedRecordPreview.NoButtons"/>
-
-    <t t-name="usl_documents.LinkedRecordPreview" t-inherit="web.FormViewDialog" t-inherit-mode="primary">
-        <xpath expr="//View" position="replace">
-            <View t-if="preview.phase === 'ready'" t-props="viewProps"/>
-            <div t-else="" class="p-4" role="status">
+    <t t-name="usl_documents.LinkedRecordPreview">
+        <Dialog title="props.title" size="'md'" footer="false">
+            <section t-if="preview.phase === 'ready'" class="o_usl_linked_record_summary">
+                <h3 class="mb-3 text-break" t-esc="preview.record.name"/>
+                <dl class="row mb-0" t-if="preview.record.fields.length">
+                    <t t-foreach="preview.record.fields" t-as="field" t-key="field_index">
+                        <dt class="col-sm-5 fw-normal text-muted" t-esc="field.label"/>
+                        <dd class="col-sm-7 text-break" t-esc="field.value"/>
+                    </t>
+                </dl>
+            </section>
+            <div t-else="" role="status">
                 <span t-if="preview.phase === 'checking'">Checking access…</span>
                 <span t-elif="preview.phase === 'unavailable'">You no longer have access to this linked record.</span>
                 <t t-else="">
-                    <p>The connection was interrupted. Reconnect to see this record.</p>
+                    <p t-if="preview.phase === 'error'">The preview could not be loaded.</p>
+                    <p t-else="">The connection was interrupted. Reconnect to see this record.</p>
                     <button type="button" class="btn btn-secondary" t-on-click="check">Try again</button>
                 </t>
             </div>
-        </xpath>
+        </Dialog>
     </t>
 
     <t t-name="usl_documents.DocumentBatchDialog">

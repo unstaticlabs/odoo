@@ -6731,3 +6731,9 @@ msgstr "Aperçu de la fiche"
 #: code:addons/usl_documents/static/src/documents_app.js:0
 msgid "The document could not be reloaded."
 msgstr "Le document n’a pas pu être rechargé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "The preview could not be loaded."
+msgstr "Impossible de charger l’aperçu."

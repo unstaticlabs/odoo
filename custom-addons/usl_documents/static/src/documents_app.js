@@ -3304,12 +3304,9 @@ export class DocumentsWorkspaceView extends Component {
             title: _t("Record preview"),
             resModel: link.model,
             resId: link.res_id,
-            context: this.props.action.context || {},
-            readonly: true,
-            preventCreate: true,
-            preventEdit: true,
-            canExpand: false,
-            checkLink: () => this.rpc("usl.document", "action_open_linked_record", [[documentId], link.id]),
+            checkLink: () => this.rpc(
+                "usl.document", "action_open_linked_record", [[documentId], link.id], { preview: true },
+            ),
             onUnavailable: () => this.refreshAfterLinkedAccessChange(documentId),
         });
     }

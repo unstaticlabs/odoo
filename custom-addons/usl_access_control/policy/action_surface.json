@@ -1337961,7 +1337961,7 @@
         "rpc:usl.document.ensure_one",
         "rpc:usl.document.sudo"
       ],
-      "digest": "037c5e5137236855a74b2a9cca2ef91383932fb35f518fe698e5e726560f7341",
+      "digest": "63816f9aca07b3e6d01709347e8f47d7002bd357338bae79388b8145d9834b62",
       "guards": [],
       "key": "rpc:usl.document.action_open_linked_record",
       "kind": "rpc",
@@ -1337972,7 +1337972,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "59036e432c8a595159af73744a9c25dd9f1706580b78bfcf149d236fc6a3fdff",
+      "runtime_digest": "d98c8b1c943bcbe192bf19043a4d62451c6bfd7e423ad88d28f32ee99b612804",
       "sinks": [
         "sudo"
       ],
@@ -1350554,7 +1350554,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 258,
+          "line": 260,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1350747,7 +1350747,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 89,
+          "line": 91,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1350785,7 +1350785,7 @@
       ],
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1354474,7 +1354474,7 @@
           "path": "addons/rating/models/mail_thread.py"
         },
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1354891,7 +1354891,7 @@
       ],
       "sources": [
         {
-          "line": 295,
+          "line": 334,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1656770,7 +1656770,7 @@
       ]
     },
     {
-      "digest": "24905f0c3f29926387efe119d6c00992e95969a292e1e5fe250b657db08a7ea1",
+      "digest": "9cc6fd00348a0c795bddc9ae491f3dc238cba43a3dbe6db456f3a1a3f6b12d09",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_open_linked_record:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1657856,7 +1657856,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 89,
+          "line": 91,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657874,7 +1657874,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657892,7 +1657892,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657910,7 +1657910,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657928,7 +1657928,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657946,7 +1657946,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657964,7 +1657964,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1657982,7 +1657982,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658000,7 +1658000,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658018,7 +1658018,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658036,7 +1658036,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 295,
+          "line": 334,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1738239,7 +1738239,7 @@
       "manifest_sha256": "3ba0901927d7440cb7fcf01eccedd206dd8dcf96a02864a4c103643d60504de2",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "ea5789bd83091eea5a364016ac90d5b6e2cb7dd30c2afdfcd6255884a715c67b",
+      "source_sha256": "a6c5527e5e2a21faa01df3ad9116502787ec4e84e6d31ad8edd817e02904cee2",
       "version": "saas~19.3.1.10.5"
     },
     {

@@ -1916,12 +1916,29 @@ class TestDocuments(TransactionCase):
             )
         self.assertNotEqual(internal_link, evidence_link)
 
+    def test_link_preview_shows_readable_facts_and_open_returns_the_native_action(self):
+        document = self._document(1421)
+        self.partner_a.city = "Lyon"
+        link = document.link_to_record("res.partner", self.partner_a.id)
+        doc = document.with_user(self.user)
+        snapshot = doc.action_open_linked_record(link.id, preview=True)
+        self.assertEqual(snapshot["name"], self.partner_a.display_name)
+        self.assertIn({"label": "City", "value": "Lyon"}, snapshot["fields"])
+        self.assertNotIn("type", snapshot)
+        action = doc.action_open_linked_record(link.id)
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual(action["res_model"], "res.partner")
+        self.assertEqual(action["res_id"], self.partner_a.id)
+        self.assertNotIn("fields", action)
+
     def test_linked_record_metadata_is_hidden_without_target_record_access(self):
         document = self._document(1420)
         employee = self.env["hr.employee"].create(
             {"name": "Restricted Employee", "company_id": self.company_a.id},
         )
-        document.link_to_record("hr.employee", employee.id)
+        link = document.link_to_record("hr.employee", employee.id)
+        with self.assertRaises(AccessError):
+            document.with_user(self.user).action_open_linked_record(link.id, preview=True)
 
         detail = document.with_user(self.user).document_detail(document.id)
         workspace = self.env["usl.document"].with_user(self.user).workspace_data(
