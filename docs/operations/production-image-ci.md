@@ -165,3 +165,25 @@ environment and verifies the authorization callback and client credentials.
 A healthy HTTP endpoint alone does not prove that users can authenticate.
 Late scheduled jobs remain visible as warnings while workers catch up; actual
 cron failures and changes to enabled-job policy still block admission.
+
+## Native QWeb PDF renderer
+
+The distribution installs the Bookworm build of wkhtmltox 0.12.6.1-3 for
+amd64 and arm64. Odoo uses its patched Qt to print the HTML header, footer and
+page count on each page. Governed invoices, letters and financial exports use
+the separate LaTeX service. [Odoo's packaging guidance](https://github.com/odoo/odoo/wiki/Wkhtmltopdf).
+
+BuildKit checks the SHA-256 of each [release asset](https://github.com/wkhtmltopdf/packaging/releases/tag/0.12.6.1-3)
+before apt installs it. The original release has no signed checksum manifest.
+When reviewing a new pin, download the native package for each architecture,
+compare the whole-file MD5 with the official release object's
+`x-ms-blob-content-md5` response header, and calculate SHA-256 locally.
+The container build also checks the installed binary's patched Qt version.
+
+To test an image already built for one architecture, run the following on a
+host with Docker and Poppler. The test renders two pages in both portrait and
+landscape, then checks every page's text, page numbers and embedded logo.
+
+```sh
+USL_QWEB_TEST_IMAGE=your-local-image python3 -m unittest scripts.tests.test_qweb_pdf_runtime -v
+```
