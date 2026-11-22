@@ -87,7 +87,7 @@ class TestVoice(TransactionCase):
     def test_deleted_note_cannot_be_populated_by_pending_job(self):
         message, voice = self.post_voice()
         voice_id = voice.id
-        message.sudo().unlink()
+        message.with_user(self.env.ref("base.user_root")).unlink()
         with patch("odoo.addons.usl_voice.models.transcribe") as server:
             message._usl_transcribe_voice(voice_id)
         server.assert_not_called()
