@@ -17,7 +17,8 @@ from documents.search._query import parse_simple_query
 from drf_spectacular.utils import extend_schema
 from paperless.config import AIConfig
 from paperless_ai.db import db_connection_released
-from paperless_ai.embedding import get_embedding_model
+from paperless_ai.embedding import get_configured_model_name, get_embedding_model
+from paperless_ai.index_generation import IndexModelMismatch, require_index_model
 from paperless_ai.indexing import (
     document_id_filters,
     llm_index_exists,
@@ -261,6 +262,7 @@ def query_semantic_index(
     per_batch_limit = min(limit * _RETRIEVAL_OVERSAMPLE, 200)
     try:
         with read_store() as store, db_connection_released():
+            require_index_model(store, get_configured_model_name(config))
             for batch in _batched(document_ids, _VECTOR_FILTER_BATCH_SIZE):
                 response = store.query(
                     VectorStoreQuery(
@@ -288,6 +290,10 @@ def query_semantic_index(
                             "excerpt": _bounded_excerpt(node),
                         },
                     )
+    except IndexModelMismatch as error:
+        raise SemanticSearchUnavailable(
+            "The semantic index needs a rebuild for the configured model. Keyword search is available.",
+        ) from error
     except SemanticSearchUnavailable:
         raise
     except Exception as error:

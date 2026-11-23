@@ -348,7 +348,8 @@ class UslDocumentMcp(models.Model):
         query = str(query or saved_filters.get("query") or "").strip()
         limit = int(limit)
         offset = int(offset)
-        if (not query and not saved_view) or len(query) > _MCP_MAX_QUERY_LENGTH:
+        linked_scope = bool(linked_model and linked_id)
+        if (not query and not saved_view and not linked_scope) or len(query) > _MCP_MAX_QUERY_LENGTH:
             raise ValidationError(_("Invalid document search query."))
         if mode not in ("hybrid", "exact", "semantic"):
             raise ValidationError(_("Unsupported archive search mode."))
@@ -388,11 +389,12 @@ class UslDocumentMcp(models.Model):
         )
         if not query:
             page = candidates[offset : offset + limit]
+            source = "odoo_saved_view" if saved_view else "odoo_linked_record"
             return {
                 "results": [
                     self._mcp_document_values(
                         document,
-                        provenance=[{"source": "odoo_saved_view"}],
+                        provenance=[{"source": source}],
                     )
                     for document in page
                 ],
