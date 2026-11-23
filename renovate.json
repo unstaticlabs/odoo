@@ -2,9 +2,9 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "description": "Renovate covers only the upstream sources that USL patches and builds itself: Pocket ID, Paperless-ngx, and Smokescreen. Dependabot (.github/dependabot.yml) keeps every other dependency, so the two bots never change the same pin. A pull request from Renovate is a signal that upstream moved. It usually fails CI until a person rebases the patch or updates the hashes.",
   "extends": [
-    "config:recommended",
-    ":dependencyDashboard"
+    "config:recommended"
   ],
+  "dependencyDashboard": false,
   "baseBranchPatterns": [
     "19-usl-staging"
   ],
@@ -81,11 +81,10 @@
       ]
     },
     {
-      "description": "Paperless upgrades need overlay work, so a pull request opens only after a tick on the Dependency Dashboard.",
+      "description": "Paperless upgrades need overlay work. The pull request opens at once and fails CI until someone does that work, so the open pull request is the reminder. Issues are off in this repository, so Renovate has no Dependency Dashboard, and no rule here can wait for a tick on it.",
       "matchPackageNames": [
         "paperless-ngx/paperless-ngx"
       ],
-      "dependencyDashboardApproval": true,
       "prBodyNotes": [
         "**Paperless overlay.** This pull request changes only the version and the source commit. Before you merge, follow `deploy/documents/paperless-ngx/README.md`:",
         "1. Update the base image digest everywhere it appears (`git grep paperless-ngx/paperless-ngx@sha256`).",
