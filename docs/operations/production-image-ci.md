@@ -180,7 +180,10 @@ compare the whole-file MD5 with the official release object's
 `x-ms-blob-content-md5` response header, and calculate SHA-256 locally.
 The container build also checks the installed binary's patched Qt version.
 The Odoo runtime includes fontTools, which its native PDF/A converter uses to
-match the width of every printed glyph to its embedded font. This preserves
+match character widths to the embedded TrueType fonts produced by Qt. A
+focused core compatibility patch preserves simple fonts and fonts with a
+custom character-to-glyph mapping. On upstream upgrades, recheck Odoo’s
+`test_tools:TestPdf` and this patch against the native conversion method. This preserves
 text selection and font metrics in the electronic invoice PDF. When updating
 the renderer or fontTools, prepare a synthetic Factur-X through Odoo, extract
 its XML with `pdfdetach`, and validate the resulting PDF against veraPDF
