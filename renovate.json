@@ -1,0 +1,109 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Renovate covers only the upstream sources that USL patches and builds itself: Pocket ID, Paperless-ngx, and Smokescreen. Dependabot (.github/dependabot.yml) keeps every other dependency, so the two bots never change the same pin. A pull request from Renovate is a signal that upstream moved. It usually fails CI until a person rebases the patch or updates the hashes.",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard"
+  ],
+  "baseBranchPatterns": [
+    "19-usl-staging"
+  ],
+  "enabledManagers": [
+    "custom.regex"
+  ],
+  "commitMessagePrefix": "chore(deps):",
+  "semanticCommits": "disabled",
+  "labels": [
+    "upstream-fork"
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Pocket ID source of the patched image. The version and the commit of its tag change together.",
+      "managerFilePatterns": [
+        "/^services/usl-pocket-id/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG POCKET_ID_VERSION=(?<currentValue>\\S+)\\nARG POCKET_ID_COMMIT=(?<currentDigest>[0-9a-f]{40})"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "The image tag that the Pocket ID workflow publishes, <upstream version>-usl<n>. Gitops Renovate watches this tag, so it must follow the upstream version.",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/pocket-id-image\\.yml$/"
+      ],
+      "matchStrings": [
+        "TAG: (?<currentValue>\\d+\\.\\d+\\.\\d+)-usl\\d+"
+      ],
+      "depNameTemplate": "pocket-id/pocket-id",
+      "datasourceTemplate": "github-tags",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Paperless-ngx source of the overlay. The version and the commit in the archive URL change together.",
+      "managerFilePatterns": [
+        "/^deploy/documents/paperless-ngx/Dockerfile$/"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\nARG PAPERLESS_VERSION=(?<currentValue>\\S+)\\n(?:.*\\n)*?ARG PAPERLESS_SOURCE_URL=https://github\\.com/paperless-ngx/paperless-ngx/archive/(?<currentDigest>[0-9a-f]{40})\\.tar\\.gz"
+      ]
+    },
+    {
+      "customType": "regex",
+      "description": "Smokescreen has no release tags after v0.1.0, so the build follows commits on its default branch.",
+      "managerFilePatterns": [
+        "/^services/usl-receipt-egress/Dockerfile$/",
+        "/^compose\\.yaml$/"
+      ],
+      "matchStrings": [
+        "SMOKESCREEN_COMMIT[:=] ?(?<currentDigest>[0-9a-f]{40})",
+        "codeload\\.github\\.com/stripe/smokescreen/tar\\.gz/(?<currentDigest>[0-9a-f]{40})"
+      ],
+      "depNameTemplate": "https://github.com/stripe/smokescreen",
+      "currentValueTemplate": "master",
+      "datasourceTemplate": "git-refs"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "One pull request for each Pocket ID release: the Dockerfile and the workflow tag.",
+      "matchPackageNames": [
+        "pocket-id/pocket-id"
+      ],
+      "groupName": "pocket-id fork",
+      "prBodyNotes": [
+        "**Pocket ID fork.** Before you merge:",
+        "1. Rebase `services/usl-pocket-id/*.patch` onto the new tag, and rename the file to the new version.",
+        "2. Check that the `Pocket ID image` workflow passes.",
+        "3. After the merge, pin the published digest in the gitops Pocket ID stack."
+      ]
+    },
+    {
+      "description": "Paperless upgrades need overlay work, so a pull request opens only after a tick on the Dependency Dashboard.",
+      "matchPackageNames": [
+        "paperless-ngx/paperless-ngx"
+      ],
+      "dependencyDashboardApproval": true,
+      "prBodyNotes": [
+        "**Paperless overlay.** This pull request changes only the version and the source commit. Before you merge, follow `deploy/documents/paperless-ngx/README.md`:",
+        "1. Update the base image digest everywhere it appears (`git grep paperless-ngx/paperless-ngx@sha256`).",
+        "2. Update the source archive SHA-256.",
+        "3. Rebase the overlay and its file hashes."
+      ]
+    },
+    {
+      "description": "Smokescreen changes often, and its updates are not urgent. One check each month is enough.",
+      "matchPackageNames": [
+        "https://github.com/stripe/smokescreen"
+      ],
+      "schedule": [
+        "* 0-5 1 * *"
+      ],
+      "prBodyNotes": [
+        "**Smokescreen.** Before you merge: update the archive SHA-256 and the short commit in the `usl-receipt-egress` image tag in `compose.yaml`, and check that `port-443-only.patch` still applies."
+      ]
+    }
+  ]
+}

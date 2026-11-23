@@ -170,6 +170,29 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
+  # Base images of the USL service builds. No entry above reads services/.
+  # The upstream sources that these builds patch (Pocket ID, Smokescreen) are
+  # in renovate.json, because Dependabot cannot read a commit pin.
+  - package-ecosystem: "docker"
+    directories:
+      - "/services/*"
+    target-branch: "19-usl-staging"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:45"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 2
+    groups:
+      compatible-service-image-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "chore(deps)"
+
   # Runtime services shared by development, migration and pre-production.
   # A PR is only a candidate: Paperless, Pocket ID and data-service updates
   # still require the documented clean-install, reconstruction and release
