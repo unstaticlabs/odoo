@@ -11,16 +11,16 @@ isodate==0.7.2
 # Cleaner 0.4.5 requires lxml>=6.1.1; retain the qualified older-runtime pins.
 lxml-html-clean==0.4.4; python_version < '3.14'
 lxml-html-clean==0.4.6; python_version >= '3.14'
-maxminddb==3.2.0
+maxminddb==3.3.0
 mdurl==0.1.2
-platformdirs==4.14.0
+platformdirs==4.14.8
 phonenumbers==8.13.55
 pyasn1==0.6.5
 pyasn1_modules==0.4.2
 pycparser==3.12
-pycryptodomex==3.24.1
+pycryptodomex==3.24.2
 pypng==0.20220715.0
-pytz==2026.5
+pytz==2026.6
 python-bitcoinlib==0.12.2
 requests-file==3.0.1
 requests-toolbelt==1.0.0
