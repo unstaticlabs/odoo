@@ -10,7 +10,7 @@
 ARG POCKET_ID_VERSION=v2.19.2
 ARG POCKET_ID_COMMIT=2b2750ed61e0016f4c15630322d15ca22143cdb6
 
-FROM alpine/git:2.49.1 AS source
+FROM alpine/git:v2.54.0 AS source
 ARG POCKET_ID_COMMIT
 WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
@@ -21,7 +21,7 @@ RUN git apply --check /tmp/fresh-passkey.patch \
     && git apply /tmp/fresh-passkey.patch \
     && rm -rf .git
 
-FROM --platform=$BUILDPLATFORM ghcr.io/voidzero-dev/vite-plus:1.4.0 AS frontend-builder
+FROM --platform=$BUILDPLATFORM ghcr.io/voidzero-dev/vite-plus:1.7.0 AS frontend-builder
 ENV CI=true
 WORKDIR /app
 COPY --from=source --chown=vp:vp /src/package.json /src/pnpm-workspace.yaml /src/pnpm-lock.yaml /src/.node-version ./
@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/app/frontend/node_modules/.vite,uid=1000,gid=1000
     --mount=type=cache,target=/app/frontend/.svelte-kit,uid=1000,gid=1000 \
     BUILD_OUTPUT_PATH=dist vp -C frontend run build
 
-FROM golang:1.27.3-alpine AS backend-builder
+FROM golang:1.27.4-alpine AS backend-builder
 ARG BUILD_TAGS=""
 WORKDIR /build
 COPY --from=source /src/backend/go.mod /src/backend/go.sum ./
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go test -tags=exclude_frontend,unit ./internal/common ./internal/controller ./internal/oidc ./internal/service ./internal/webauthn
 
-FROM alpine:3.24.3
+FROM alpine:3.24.4
 WORKDIR /app
 RUN apk add --no-cache curl su-exec
 COPY --from=backend-builder /build/pocket-id /app/pocket-id

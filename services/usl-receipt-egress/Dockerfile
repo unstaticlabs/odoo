@@ -1,4 +1,4 @@
-FROM golang:1.25-bookworm@sha256:3b4a11519ad929d1e1d261a12cff056f0c85b735253d7d861346b9c6f8b36437 AS build
+FROM golang:1.27-bookworm@sha256:4fa7c968ba93f1635670522dbb01a2c78150443e1385746924566079f36570ea AS build
 ARG SMOKESCREEN_COMMIT=d4da883a671475551d78da812db547341c8fe6c3
 ADD https://codeload.github.com/stripe/smokescreen/tar.gz/d4da883a671475551d78da812db547341c8fe6c3 /tmp/smokescreen.tar.gz
 RUN echo "04ff26a2675afced7a6422748a7a680782a4050eb367d10bf511f9c879f2f32a  /tmp/smokescreen.tar.gz" | sha256sum --check \
