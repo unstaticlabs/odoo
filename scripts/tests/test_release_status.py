@@ -30,6 +30,7 @@ STAGES = (
 RELEASE = "a" * 64
 OTHER = "b" * 64
 ROOT = "/var/lib/usl-odoo/runtime/production"
+STAGING_ROOT = "/var/lib/usl-odoo/runtime/staging"
 
 
 def digest(value):
@@ -92,12 +93,15 @@ class Host:
         self.files = files or {}
         self.entries = entries
         self.commands = []
+        self.probe_result = int(self.files.get("staging-probe-result", "1"))
 
     def run(self, command, *, check=True, input_text=None):
         self.commands.append(command)
         if command[0] == "cat":
             code = 0 if command[1] in self.files else 1
             result = subprocess.CompletedProcess(command, code, self.files.get(command[1], ""), "")
+        elif command[:2] == ["python3", "-c"]:
+            result = subprocess.CompletedProcess(command, self.probe_result, "", "")
         elif command[0] == "find":
             names = self.entries if self.entries is not None else [
                 path.rsplit("/", 1)[1] + "\tf" for path in self.files if path.startswith(ROOT + "/runs/")
@@ -184,7 +188,7 @@ class ReleaseStatusTests(unittest.TestCase):
             self.assertEqual(value, expected)
 
     def test_local_and_bootstrap_idle_preserve_the_legacy_contract(self):
-        for target in ("production", "staging", "local"):
+        for target in ("production", "local"):
             value, host = self.observe(target=target)
             self.assertEqual(value, {"schema": "usl-release-run/v1", "target": target, "status": "idle"})
             if target == "local":
@@ -192,6 +196,41 @@ class ReleaseStatusTests(unittest.TestCase):
         local = legacy_run(target="local")
         value, _ = self.observe({"/tmp/usl-odoo-local/runtime/release-state.json": json.dumps(local)}, target="local")
         self.assertEqual(value, local)
+
+    def test_staging_without_writer_reports_unobserved(self):
+        value, _host = self.observe(target="staging")
+        self.assertEqual(value["status"], "unobserved")
+
+    def test_staging_progress_checks_attempt_lock_and_omits_it_from_output(self):
+        value = {
+            "schema": "usl-staging-release-progress/v1", "target": "staging",
+            "release": RELEASE, "desired_state": OTHER, "phase": "checkpoint",
+            "updated_at": "2026-11-22T22:00:00+00:00", "status": "running",
+            "token": "c" * 32,
+        }
+        progress = f"{STAGING_ROOT}/staging-progress.json"
+        files = {
+            progress: json.dumps(seal(value)),
+            "staging-probe-result": "0",
+        }
+        running, _host = self.observe(files, target="staging")
+        self.assertEqual((running["status"], running["phase"]), ("running", "checkpoint"))
+        self.assertEqual(running["operation"], "staging-upgrade")
+        self.assertNotIn("token", running)
+
+        files["staging-probe-result"] = "1"
+        missing, _host = self.observe(files, target="staging")
+        self.assertEqual(missing["status"], "interrupted")
+
+        files[progress] = json.dumps(seal({**value, "status": "failed"}))
+        failed, _host = self.observe(files, target="staging")
+        self.assertEqual(failed["status"], "failed")
+        files[progress] = json.dumps(seal({**value, "phase": "record", "status": "admitted_follow_up_deferred"}))
+        deferred, _host = self.observe(files, target="staging")
+        self.assertEqual(deferred["status"], "admitted_follow_up_deferred")
+        files["staging-probe-result"] = "2"
+        newer_attempt, _host = self.observe(files, target="staging")
+        self.assertEqual(newer_attempt["status"], "unobserved")
 
     def test_fixed_failed_and_recovered_states_expose_safe_recovery_metadata(self):
         for status in ("failed", "recovered"):

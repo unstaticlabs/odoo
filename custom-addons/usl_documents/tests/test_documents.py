@@ -1497,6 +1497,35 @@ class TestDocuments(TransactionCase):
             ],
         )
 
+    def test_optional_tag_scores_only_reach_accessible_proposals_and_never_apply(self):
+        tag = self._tag(505, "Synthetic classifier proposal")
+        rule = self._tag(506, "Synthetic matching rule")
+        document = self._document(497)
+        payload = {
+            "tags": [505, 506, 999999],
+            "tag_scores": {"505": 0.81, "506": True, "999999": 0.99},
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility"),
+            patch.object(PaperlessClient, "get_document_suggestions", return_value=payload) as read,
+        ):
+            proposals = document.document_detail(
+                document.id, check_archive=True, include_tag_scores=True,
+            )["paperless_suggestions"]
+            read.assert_called_once_with(document.paperless_id, include_tag_scores=True)
+            self.assertEqual(
+                {item["record_id"]: item.get("classifier_score") for item in proposals},
+                {tag.id: 0.81, rule.id: None},
+            )
+            ordinary = document.document_detail(document.id, check_archive=True)["paperless_suggestions"]
+            self.assertFalse(any("classifier_score" in item for item in ordinary))
+            payload.pop("tag_scores")
+            compatible = document.document_detail(
+                document.id, check_archive=True, include_tag_scores=True,
+            )["paperless_suggestions"]
+            self.assertEqual(ordinary, compatible)
+        self.assertFalse(document.tag_ids)
+
     def test_suggestion_outage_does_not_hide_available_archive(self):
         document = self._document(406)
         with (
