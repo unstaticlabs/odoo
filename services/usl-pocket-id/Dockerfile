@@ -3,6 +3,11 @@
 # Pocket ID v2.19.2 with the USL fresh-passkey patch. The build stages mirror
 # upstream's docker/Dockerfile for this release; only the source checkout, the
 # patch and the test stage are ours.
+# Renovate reads the version and the commit of the tag together
+# (renovate.json). A new release changes both in one pull request, and the
+# patch then fails `git apply --check` until someone rebases it.
+# renovate: datasource=github-tags depName=pocket-id/pocket-id
+ARG POCKET_ID_VERSION=v2.19.2
 ARG POCKET_ID_COMMIT=2b2750ed61e0016f4c15630322d15ca22143cdb6
 
 FROM alpine/git:2.49.1 AS source
