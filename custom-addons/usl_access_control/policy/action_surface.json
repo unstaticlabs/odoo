@@ -657986,6 +657986,44 @@
     {
       "abstract": false,
       "archiveable": false,
+      "delegates": [
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo"
+      ],
+      "digest": "0752501012a73e9e64cf7a34601987d862dff1a4c916530f59f72faf77b56f58",
+      "guards": [],
+      "key": "rpc:mail.message.action_retract_from_chatter",
+      "kind": "rpc",
+      "method": "action_retract_from_chatter",
+      "model": "mail.message",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d2ff53300b8c7259ffad7ff46f13ac244eebe6b987854ecc730731ba2b7b1956",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
       "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
       "guards": [],
       "key": "rpc:mail.message.action_unarchive",
@@ -1641728,6 +1641766,42 @@
       ]
     },
     {
+      "digest": "92a8ef66362e7a17caf6c0cce087dadb5087a6494b6590de0783ba34d0dcfdf8",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.message.action_retract_from_chatter"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ]
+    },
+    {
+      "digest": "13a9dca4b4c426aee0eb9c9e3afa3f5d6632eae4353b86eec031a3685e9d3792",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.message.action_retract_from_chatter"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ]
+    },
+    {
       "digest": "181d530284413e5f4ed134da754be47456b7dd58b0bc0be666239f50374fd4e4",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1",
       "kind": "sink",
@@ -1738197,7 +1738271,7 @@
       "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "4f2148d8d428499ef670e09d2a62fa27922e706ccea686f56e5652093d8d7f58",
+      "source_sha256": "b9fb9bef011ddc8657ab02343bd570efaa8496c23fd98e08d19722efedc99022",
       "version": "saas~19.3.1.8.12"
     },
     {
