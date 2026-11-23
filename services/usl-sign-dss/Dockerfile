@@ -5,7 +5,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B dependency:go-offline
 COPY services/usl-sign-dss/src src
 RUN --mount=type=cache,target=/root/.m2 mvn -B verify
 
-FROM eclipse-temurin:21-jre-alpine AS verapdf
+FROM eclipse-temurin:25-jre-alpine AS verapdf
 RUN apk add --no-cache bash curl unzip
 WORKDIR /build
 COPY services/usl-sign-dss/verapdf-auto-install.xml /build/auto-install.xml
@@ -15,7 +15,7 @@ RUN curl -fsSLo verapdf.zip https://software.verapdf.org/rel/1.30/verapdf-greenf
     && bash ./verapdf-greenfield-1.30.2/verapdf-install /build/auto-install.xml \
     && rm -rf /opt/verapdf/corpus /opt/verapdf/doc /opt/verapdf/plugins
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 COPY services/usl-sign-dss/pyhanko-requirements.txt /tmp/pyhanko-requirements.txt
 RUN apk add --no-cache py3-pip python3 \
     && python3 -m venv /opt/pyhanko \
