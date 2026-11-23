@@ -60,6 +60,71 @@ class TestPdf(TransactionCase):
             r = pdf.OdooPdfFileReader(io.BytesIO(out.getvalue()))
             self.assertEqual(len(list(r.get_attachments())), count)
 
+    def test_clone_plain_binary_pdf_requires_pdfa_conversion(self):
+        source = pdf.OdooPdfFileWriter()
+        source.add_blank_page(width=72, height=72)
+        with io.BytesIO() as content:
+            source.write(content)
+            binary_comment = content.getvalue().split(b"\n", 2)[1]
+            self.assertTrue(binary_comment.startswith(b"%"))
+            self.assertTrue(all(byte > 127 for byte in binary_comment[1:5]))
+            writer = pdf.OdooPdfFileWriter()
+            writer.clone_reader_document_root(pdf.OdooPdfFileReader(content))
+            self.assertFalse(writer.is_pdfa)
+
+    def test_clone_keeps_pdfa_identification_and_binary_header(self):
+        descriptions = (
+            b'<rdf:Description rdf:about="" pdfaid:part="3" pdfaid:conformance="B"/>',
+            b'<rdf:Description rdf:about=""><pdfaid:part>3</pdfaid:part>'
+            b'<pdfaid:conformance>B</pdfaid:conformance></rdf:Description>',
+        )
+        for description in descriptions:
+            with self.subTest(description=description), io.BytesIO() as content, io.BytesIO() as cloned:
+                source = pdf.OdooPdfFileWriter()
+                source.add_blank_page(width=72, height=72)
+                source.add_file_metadata(
+                    b'<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"'
+                    b' xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/">'
+                    + description + b'</rdf:RDF>'
+                )
+                source.write(content)
+                writer = pdf.OdooPdfFileWriter()
+                writer.clone_reader_document_root(pdf.OdooPdfFileReader(content))
+                self.assertTrue(writer.is_pdfa)
+                self.assertEqual(writer.pdfa_part, 3)
+                self.assertEqual(writer.pdfa_conformance, 'B')
+                writer.write(cloned)
+                binary_comment = cloned.getvalue().split(b"\n", 2)[1]
+                self.assertTrue(binary_comment.startswith(b"%"))
+                self.assertTrue(all(byte > 127 for byte in binary_comment[1:5]))
+
+    def test_clone_ignores_unrelated_or_malformed_xmp(self):
+        for metadata in (
+            b'<resource xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" pdfaid:part="3"/>',
+            b'<xmp',
+        ):
+            with self.subTest(metadata=metadata), io.BytesIO() as content:
+                source = pdf.OdooPdfFileWriter()
+                source.add_blank_page(width=72, height=72)
+                source.add_file_metadata(metadata)
+                source.write(content)
+                writer = pdf.OdooPdfFileWriter()
+                writer.clone_reader_document_root(pdf.OdooPdfFileReader(content))
+                self.assertFalse(writer.is_pdfa)
+
+    def test_clone_keeps_metadata_stream_with_invalid_compression(self):
+        source = pdf.OdooPdfFileWriter()
+        source.add_blank_page(width=72, height=72)
+        source.add_file_metadata(b'<xmpmeta/>')
+        source._root_object['/Metadata'][pdf.NameObject('/Filter')] = pdf.NameObject('/FlateDecode')
+        with io.BytesIO() as content, io.BytesIO() as cloned:
+            source.write(content)
+            writer = pdf.OdooPdfFileWriter()
+            writer.clone_reader_document_root(pdf.OdooPdfFileReader(content))
+            self.assertFalse(writer.is_pdfa)
+            writer.write(cloned)
+            self.assertEqual(len(pdf.OdooPdfFileReader(cloned).pages), 1)
+
     def test_odoo_pdf_file_reader_with_owner_encryption(self):
         pdf_writer = pdf.OdooPdfFileWriter()
         pdf_writer.clone_reader_document_root(self.minimal_pdf_reader)

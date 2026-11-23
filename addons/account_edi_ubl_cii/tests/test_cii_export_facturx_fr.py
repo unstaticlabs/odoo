@@ -1,5 +1,10 @@
+from io import BytesIO
+from unittest.mock import patch
+
+from odoo import tools
 from odoo.addons.account_edi_ubl_cii.tests.common import TestCiiFacturXCommon, TestUblCiiFRCommon
 from odoo.tests import tagged
+from odoo.tools.pdf import OdooPdfFileReader, OdooPdfFileWriter
 
 from freezegun import freeze_time
 
@@ -41,6 +46,51 @@ class CiiExportFacturXFR(TestCiiFacturXCommon, TestUblCiiFRCommon):
         partner = super()._create_partner_fr(**kwargs)
         partner.write({'invoice_edi_format': 'facturx'})
         return partner
+
+    def test_facturx_preserves_existing_pdfa3_metadata(self):
+        invoice = self._create_invoice_one_line(
+            partner_id=self.partner_fr, product_id=self.product, tax_ids=self.tax_20,
+            partner_bank_id=self.recipient_bank, post=True,
+        )
+        invoice_xml = invoice.partner_id._get_edi_builder('facturx')._export_invoice(invoice)[0]
+        sender = self.env['account.move.send'].with_context(custom_template_facturx=True)
+        for part in (1, 3):
+            with self.subTest(part=part), BytesIO() as source:
+                pdf_writer = OdooPdfFileWriter()
+                pdf_writer.add_blank_page(width=72, height=72)
+                pdf_writer.add_file_metadata(f"""
+                    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                             xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/"
+                             xmlns:dc="http://purl.org/dc/elements/1.1/">
+                        <rdf:Description rdf:about="" pdfaid:part="{part}" pdfaid:conformance="B">
+                            <dc:description>Original report metadata</dc:description>
+                        </rdf:Description>
+                    </rdf:RDF>
+                """.encode())
+                pdf_writer.write(source)
+                values = {'raw': source.getvalue()}
+                with patch.dict(tools.config.options, {'test_enable': False}):
+                    sender._hook_invoice_document_after_pdf_report_render(invoice, {
+                        'pdf_attachment_values': values,
+                        'ubl_cii_xml_attachment_values': {'raw': invoice_xml},
+                        'ubl_cii_xml_options': {'ubl_cii_format': 'facturx'},
+                    })
+                reader = OdooPdfFileReader(BytesIO(values['raw']))
+                self.assertEqual(list(reader.get_attachments()), [('factur-x.xml', invoice_xml)])
+                generated_pdf = OdooPdfFileWriter()
+                generated_pdf.clone_reader_document_root(reader)
+                self.assertEqual(generated_pdf.pdfa_part, 3)
+                self.assertEqual(generated_pdf.pdfa_conformance, 'B' if part == 3 else 'A')
+                metadata = generated_pdf.get_xmp_metadata()
+                self.assertEqual(
+                    metadata.findtext('.//{urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#}DocumentFileName'),
+                    'factur-x.xml',
+                )
+                if part == 3:
+                    self.assertEqual(
+                        metadata.findtext('.//{http://purl.org/dc/elements/1.1/}description'),
+                        'Original report metadata',
+                    )
 
     def test_invoice_document_header(self):
         self.ensure_installed("l10n_fr_pdp")
