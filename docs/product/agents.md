@@ -273,6 +273,17 @@ subtype rules apply to that helper. Generic native message writes keep their
 ordinary rules without those additional limits. Owner/current-identity,
 company, read-only delegation and protected deletion controls remain unchanged.
 
+To retract a comment or internal note from an accessible business record, call
+`mail.message.action_retract_from_chatter` with the single message ID and no
+arguments. The author or a native administrator can retract an eligible comment
+regardless of its age. Odoo returns the message ID and its parent model and ID.
+The row and author remain, and Odoo clears the content, subject and mentions.
+Notifications already delivered may still be visible to their recipients.
+An evaluation attached to the message is removed with it, as in Chatter.
+Removing an attached file requires the existing irreversible-action permission.
+If that check fails, the note, evaluation and file stay together. System notifications,
+tracking entries, Discuss channels and polls have their own native behavior.
+
 ### Read-only Accounting reports
 
 Read-only Accounting Agents can use the ordinary report client to load reports,
