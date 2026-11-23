@@ -13,3 +13,4 @@ from . import (
     res_users,
     readonly_accounting_report,
 )
+from . import mail_message_retraction

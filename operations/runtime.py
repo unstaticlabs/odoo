@@ -421,6 +421,25 @@ def release_run_inventory_command(root: str) -> list[str]:
     ]
 
 
+STAGING_PROGRESS_PROBE = """import fcntl
+import sys
+
+try:
+    with open(sys.argv[1], "rb") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
+        except BlockingIOError:
+            sys.exit(0 if lock.read(33) == sys.argv[2].encode("ascii") else 2)
+except FileNotFoundError:
+    pass
+sys.exit(1)
+"""
+
+
+def staging_progress_probe(root: str, token: str) -> list[str]:
+    return ["python3", "-c", STAGING_PROGRESS_PROBE, f"{root}/staging-progress.lock", token]
+
+
 def read_only_command_problem(command: list[str], input_text: str | None = None) -> str | None:
     """Return why ``command`` may write, or None when it is a known read."""
     if input_text is not None:
@@ -429,6 +448,12 @@ def read_only_command_problem(command: list[str], input_text: str | None = None)
         return "empty command"
     head = command[0]
     if head in _READ_ONLY_HOST_COMMANDS:
+        return None
+    if (
+        len(command) == 5 and command[:3] == ["python3", "-c", STAGING_PROGRESS_PROBE]
+        and command[3] == "/var/lib/usl-odoo/runtime/staging/staging-progress.lock"
+        and re.fullmatch(r"[a-f0-9]{32}", command[4])
+    ):
         return None
     if (
         len(command) == 10 and command[0] == "find"

@@ -124,11 +124,15 @@ class ReleaseControllerTests(unittest.TestCase):
             self.assertEqual(load(path)["recovery"], "rollback-previous-generation")
 
     def test_public_status_rejects_tampered_state(self):
-        runner = SimpleNamespace(
-            run=lambda *_args, **_kwargs: subprocess.CompletedProcess(
-                [], 0, '{"schema":"usl-release-run/v1","checksum":"bad"}', ""
-            )
-        )
+        def read(command, **_kwargs):
+            if command == ["cat", "/state/release-state.json"]:
+                return subprocess.CompletedProcess(command, 0, '{"schema":"usl-release-run/v1","checksum":"bad"}', "")
+            if command == ["cat", "/state/staging-progress.json"]:
+                return subprocess.CompletedProcess(command, 1, "", "")
+            self.assertEqual(command, ["test", "!", "-e", "/state/staging-progress.json"])
+            return subprocess.CompletedProcess(command, 0, "", "")
+
+        runner = SimpleNamespace(run=read)
         target = SimpleNamespace(
             name="staging",
             value={"state_directory": "/state"},

@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1` has nine bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -65,6 +65,20 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    The exact-source patches hide the action in the workflow editor, make the
    API refuse it, and make the worker refuse any stored instance. Personal
    Gemini generation stays tied to a person's own request.
+10. The optional tag scores expose the native classifier's estimate for a
+    tag the caller can read. The evaluation procedure below measures accuracy.
+11. A semantic index rebuild keeps the last complete SQLite database available
+    while the configured embedding model fills a second file on the same volume.
+    Before publication, SQLite flushes the new index's write-ahead journal
+    and checks the standalone database. Once readers finish, SQLite flushes
+    the previous index’s journal before the atomic switch.
+    A failed checkpoint, an interrupted rebuild or a busy reader leaves the
+    previous index in place. The next update retries. Allow room for both
+    databases and the new index's journal during the build. Incremental edits and semantic
+    queries require the model name recorded in the index. A legacy table without
+    a model name is rebuilt at the next index update. For the interval after a
+    model change, lexical search remains available. The application's model name
+    and deployment's Ollama digest check serve different purposes.
 
 `tests/test_workflow_ai_disabled.py` proves that the workflow action cannot be
 saved and that a stored instance never generates.
@@ -93,6 +107,39 @@ contains only ranked root IDs and a truncation flag by default. MCP callers may
 request a whitespace-normalized OCR excerpt capped at 500 characters; that
 mode is additionally limited to 50 results and still uses the same POST. It is
 read-only and never invokes embedding or generative models.
+
+## Evaluate automatic tag proposals
+
+Request `GET /api/documents/{id}/suggestions/?include_tag_scores=1` to
+receive a `tag_scores` object alongside the usual suggestions. Its keys are
+Paperless tag IDs. Its values are the local model's output for each proposed
+tag the caller can see. Several tags may score highly on the same document.
+A text-matching rule can propose a tag without a model score. A missing
+classifier or a model trained on only one outcome also yields no score.
+
+The scored request recomputes the proposals for the requesting user's access.
+Ordinary requests keep their existing shared suggestion cache. In Odoo,
+call `usl.document.document_detail(id, check_archive=True, include_tag_scores=True)`.
+A readable, unapplied tag proposal with a score carries `classifier_score`.
+An older Paperless server can continue returning its usual suggestions.
+
+To assess a threshold, freeze one model revision and independently label a
+held-out sample, including documents with no applicable automatic tag. Keep
+documents from the same series together when splitting training and evaluation.
+For each document, store its `tag_scores` and reviewed `expected_tag_ids` in
+a private JSON-lines file. Include every reviewed document, including rows
+with an empty score object or empty label list. Use the Paperless IDs for both
+columns. The evaluator only prints aggregate counts and rates.
+
+```sh
+python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85
+```
+
+Precision answers how often the proposed tags above the threshold were right.
+Recall answers how many of the expected tags the threshold recovered.
+With zero proposals precision is undefined. Review both measures and the
+number of examples before selecting an automatic policy. The scored API
+and evaluator perform no tag writes.
 
 ## Semantic API contract
 
