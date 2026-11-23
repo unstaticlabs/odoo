@@ -871,7 +871,7 @@ class UslDocument(models.Model):
         }
 
     @api.model
-    def document_detail(self, document_id, check_archive=False):
+    def document_detail(self, document_id, check_archive=False, *, include_tag_scores=False):
         document = self.browse(int(document_id)).exists()
         if not document:
             raise ValidationError(_("The archived document no longer exists."))
@@ -885,7 +885,7 @@ class UslDocument(models.Model):
                 archive_available = False
             if archive_available:
                 try:
-                    paperless_suggestions = document._paperless_suggestion_values()
+                    paperless_suggestions = document._paperless_suggestion_values(include_tag_scores=include_tag_scores)
                 except PaperlessError as error:
                     _logger.info(
                         "Paperless suggestions are unavailable for document %s: %s",
@@ -1074,10 +1074,13 @@ class UslDocument(models.Model):
         )
         return values
 
-    def _paperless_suggestion_values(self):
+    def _paperless_suggestion_values(self, *, include_tag_scores=False):
         """Return accessible classifier proposals without applying any metadata."""
         self.ensure_one()
-        payload = self._paperless().get_document_suggestions(self.paperless_id) or {}
+        payload = self._paperless().get_document_suggestions(
+            self.paperless_id, include_tag_scores=include_tag_scores,
+        ) or {}
+        scores = payload.get("tag_scores") if include_tag_scores else None
         suggestions = []
         definitions = (
             (
@@ -1112,14 +1115,15 @@ class UslDocument(models.Model):
                 record = records_by_remote_id.get(remote_id)
                 if not record or record.id in current_ids:
                     continue
-                suggestions.append(
-                    {
-                        "kind": kind,
-                        "field": field_name,
-                        "record_id": record.id,
-                        "label": record.display_name,
-                    },
-                )
+                proposal = {
+                    "kind": kind, "field": field_name,
+                    "record_id": record.id, "label": record.display_name,
+                }
+                if kind == "tag" and isinstance(scores, dict):
+                    score = scores.get(str(remote_id))
+                    if type(score) in (float, int) and 0 <= score <= 1:
+                        proposal["classifier_score"] = score
+                suggestions.append(proposal)
         for raw_date in payload.get("dates") or []:
             try:
                 suggested_date = fields.Date.to_date(raw_date)

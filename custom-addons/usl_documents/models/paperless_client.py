@@ -627,9 +627,10 @@ class PaperlessClient:
             "GET", f"/api/documents/{int(document_id)}/", query=query,
         )[0]
 
-    def get_document_suggestions(self, document_id):
+    def get_document_suggestions(self, document_id, *, include_tag_scores=False):
         return self._request(
             "GET", f"/api/documents/{int(document_id)}/suggestions/",
+            query={"include_tag_scores": "1"} if include_tag_scores else None,
         )[0]
 
     def get_user(self, user_id):

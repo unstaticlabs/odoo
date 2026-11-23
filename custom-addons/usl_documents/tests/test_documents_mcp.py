@@ -381,6 +381,42 @@ class TestDocumentsMcp(TransactionCase):
             [{"id": self.scope_tag.id, "name": self.scope_tag.name}],
         )
 
+    def test_record_only_browse_respects_document_rules_and_paginates(self):
+        project = self.env["project.project"].create({"name": "Evidence audit"})
+        task = self.env["project.task"].create({"name": "Match the export", "project_id": project.id})
+        first = self._document(5151, name="First export", document_date="2026-07-01")
+        second = self._document(5152, name="Second export", document_date="2026-07-02")
+        hidden = self._document(5153, company_id=self.company_b.id)
+        self._document(5154, name="Unrelated export")
+        links = self.env["usl.document.link"].sudo().with_context(usl_documents_link_policy_write=True)
+        links.create([
+            {
+                "document_id": document.id,
+                "res_model": task._name,
+                "res_id": task.id,
+                "record_name": task.name,
+                "company_id": document.company_id.id,
+            }
+            for document in first | second | hidden
+        ])
+        documents = self.env["usl.document"].with_user(self.user)
+        scope = {"linked_model": task._name, "linked_id": task.id}
+        with patch.object(PaperlessClient, "scoped_search") as remote_search:
+            page = documents.mcp_search(**scope, limit=1)
+            next_page = documents.mcp_search(**scope, limit=1, offset=1)
+
+        self.assertEqual([item["id"] for item in page["results"]], [second.id])
+        self.assertTrue(page["has_more"])
+        self.assertEqual([item["id"] for item in next_page["results"]], [first.id])
+        self.assertFalse(next_page["has_more"])
+        self.assertEqual(page["results"][0]["provenance"], [{"source": "odoo_linked_record"}])
+        remote_search.assert_not_called()
+        with self.assertRaises(ValidationError):
+            documents.mcp_search(linked_model=task._name)
+        project.privacy_visibility = "followers"
+        with self.assertRaises(AccessError):
+            documents.mcp_search(**scope)
+
     def test_hidden_and_missing_saved_views_share_one_denial(self):
         other_values = self.env["usl.document.smart.view"].with_user(
             self.other_user,
