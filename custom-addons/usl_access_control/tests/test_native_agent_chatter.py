@@ -199,6 +199,28 @@ class TestNativeAgentChatter(TransactionCase):
         with self.assertRaises(AccessError):
             self._call("action_retract_from_chatter", actor="ro", ids=other.ids)
 
+    def _add_consumed_rating(self, message):
+        return self.env["rating.rating"].create({
+            "res_model_id": self.env["ir.model"]._get_id(message.model), "res_id": message.res_id,
+            "message_id": message.id, "rating": 5, "consumed": True,
+        })
+
+    def test_retract_rating_matches_native_remove(self):
+        native = self.env["mail.message"].with_user(self.owner).create(self._values())
+        delegated = self._call("create", vals_list=[self._values()])
+        for message in (native, delegated):
+            rating = self._add_consumed_rating(message)
+            self.assertEqual(message.sudo().rating_id, rating)
+            if message == native:
+                self.tasks[0].with_user(self.owner)._message_update_content(
+                    native.sudo(), body="", attachment_ids=[], partner_ids=[], subject="", rating_value=False,
+                )
+            else:
+                self._call("action_retract_from_chatter", ids=message.ids)
+            self.assertFalse(rating.exists())
+            self.assertTrue(message.exists())
+            self.assertTrue(message.sudo()._filter_empty())
+
     def test_retract_attached_file_obeys_native_irreversible_guard(self):
         for actor in ("human", "rw"):
             user = self.owner if actor == "human" else self.agents[actor].user_id
@@ -211,6 +233,7 @@ class TestNativeAgentChatter(TransactionCase):
                 message = self.env["mail.message"].with_user(user).create(values)
             else:
                 message = self._call("create", vals_list=[values])
+            rating = self._add_consumed_rating(message)
             before = message.body
             with self.assertRaisesRegex(AccessError, "(?i)irreversible action"), self.env.cr.savepoint():
                 if actor == "human":
@@ -219,6 +242,8 @@ class TestNativeAgentChatter(TransactionCase):
                     self._call("action_retract_from_chatter", ids=message.ids)
             self.assertEqual(message.body, before)
             self.assertEqual(message.attachment_ids, file)
+            self.assertEqual(message.sudo().rating_id, rating)
+            self.assertTrue(rating.consumed)
             self.assertEqual(bytes(file.raw), ORIGINAL)
 
     def test_retract_refuses_notifications_and_bulk(self):

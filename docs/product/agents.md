@@ -279,8 +279,9 @@ arguments. The author or a native administrator can retract an eligible comment
 regardless of its age. Odoo returns the message ID and its parent model and ID.
 The row and author remain, and Odoo clears the content, subject and mentions.
 Notifications already delivered may still be visible to their recipients.
+An evaluation attached to the message is removed with it, as in Chatter.
 Removing an attached file requires the existing irreversible-action permission.
-If that check fails, the note and file stay together. System notifications,
+If that check fails, the note, evaluation and file stay together. System notifications,
 tracking entries, Discuss channels and polls have their own native behavior.
 
 ### Read-only Accounting reports

@@ -27,10 +27,9 @@ class MailMessage(models.Model):
         if message.has_poll:
             raise UserError(self.env._("Use the poll action to remove a poll."))
         thread = thread._usl_agent_collaboration()
-        # The normal Remove action supplies these four values. Odoo checks the
-        # message type and performs attachment, translation and bus updates.
-        thread._message_update_content(
-            message.with_context(thread.env.context),
-            body="", attachment_ids=[], partner_ids=[], subject="",
-        )
+        remove_values = {"body": "", "attachment_ids": [], "partner_ids": [], "subject": ""}
+        # Rating extends both the Remove button and this native parameter list.
+        if "rating_value" in thread._get_allowed_message_params():
+            remove_values["rating_value"] = False
+        thread._message_update_content(message.with_context(thread.env.context), **remove_values)
         return {"message_id": message.id, "model": thread._name, "res_id": thread.id}

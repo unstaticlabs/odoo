@@ -657990,7 +657990,7 @@
         "rpc:mail.message.ensure_one",
         "rpc:mail.message.sudo"
       ],
-      "digest": "0752501012a73e9e64cf7a34601987d862dff1a4c916530f59f72faf77b56f58",
+      "digest": "712a7d933d7c0ef1f81ffba25102052cb14f962d4ddfb897b64868e3fa3ff889",
       "guards": [],
       "key": "rpc:mail.message.action_retract_from_chatter",
       "kind": "rpc",
@@ -658001,7 +658001,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "d2ff53300b8c7259ffad7ff46f13ac244eebe6b987854ecc730731ba2b7b1956",
+      "runtime_digest": "1605732af45022ef37b4b20241c40570601a501707ea79c9f2998cfe0e8452c9",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1641766,7 +1641766,7 @@
       ]
     },
     {
-      "digest": "92a8ef66362e7a17caf6c0cce087dadb5087a6494b6590de0783ba34d0dcfdf8",
+      "digest": "9fa88bd13eb46e34d9a24ff3d97fe5be009ca558cddb4174b17b6c2187827b3d",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1641784,7 +1641784,7 @@
       ]
     },
     {
-      "digest": "13a9dca4b4c426aee0eb9c9e3afa3f5d6632eae4353b86eec031a3685e9d3792",
+      "digest": "a10c141babcc9a81320aaa6e916f9603099f1f03824c4476e8d06035057df273",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1738268,11 +1738268,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
+      "manifest_sha256": "a09f9f9cf6b8422b32eb95f807fb60057571205ba7b83fcf1fdb7ddc684d39bc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "b9fb9bef011ddc8657ab02343bd570efaa8496c23fd98e08d19722efedc99022",
-      "version": "saas~19.3.1.8.12"
+      "source_sha256": "820c42284848fc186c5c036e553f71a50a206d7ce28730fe738655668e19c1f6",
+      "version": "saas~19.3.1.8.15"
     },
     {
       "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
