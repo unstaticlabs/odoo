@@ -553,6 +553,7 @@ from paperless_ai.exceptions import LLMTimeoutError
             """from paperless_ai.exceptions import LLMProviderError
 from paperless_ai.exceptions import LLMTimeoutError
 from paperless_usl_ranges import ranged_file_response
+from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator, wants_tag_scores
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
 from paperless_personal_ai.runtime import PersonalAIGenerationError
@@ -562,6 +563,32 @@ from paperless_personal_ai.service import PersonalAIEligibilityError
 from paperless_personal_ai.service import personal_ai_cache_identity
 from paperless_personal_ai.service import resolve_personal_llm_config
 """,
+        ),
+        (
+            "            etag_func=suggestions_etag,\n            last_modified_func=suggestions_last_modified,",
+            "            etag_func=unscored_cache_validator(suggestions_etag),\n"
+            "            last_modified_func=unscored_cache_validator(suggestions_last_modified),",
+        ),
+        (
+            "        document_suggestions = get_suggestion_cache(doc.pk)\n",
+            "        include_scores = wants_tag_scores(request)\n"
+            "        document_suggestions = None if include_scores else get_suggestion_cache(doc.pk)\n",
+        ),
+        (
+            '        resp_data = {\n            "correspondents": [',
+            '        tags = match_tags(doc, classifier, request.user)\n'
+            '        resp_data = {\n            "correspondents": [',
+        ),
+        (
+            '"tags": [t.id for t in match_tags(doc, classifier, request.user)],',
+            '"tags": [t.id for t in tags],',
+        ),
+        (
+            "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
+            "        if include_scores:\n"
+            "            resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
+            "            return Response(resp_data, headers={'Cache-Control': 'private, no-store'})\n"
+            "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
         ),
         (
             """        return serve_file(
@@ -938,6 +965,73 @@ patch_file(
     )
     return []
 ''',
+        ),
+    ),
+)
+
+
+patch_file(
+    "paperless_ai/indexing.py",
+    "3ab3a9586e6018b075a2b60af6392c29b6a67de1a9c584d6e8e61eccc6d1a90a",
+    (
+        (
+            "from paperless_ai.db import db_connection_released\n",
+            "from paperless_ai.db import db_connection_released\n"
+            "from paperless_ai.index_generation import needs_model_rebuild, replacement_index, require_index_model\n",
+        ),
+        (
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+            "    require_index_model(store, get_configured_model_name(config))\n"
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+        ),
+        (
+            '''    if not rebuild:
+        with read_store() as store:
+            if store.table_exists() and store.config_mismatch(model_name):
+                logger.warning("Embedding model changed; forcing LLM index rebuild.")
+                rebuild = True
+
+''',
+            "",
+        ),
+        (
+            "        if rebuild or not store.table_exists():\n",
+            "        if not rebuild and needs_model_rebuild(store, model_name):\n"
+            "            logger.warning('The index model changed or is unknown; building a replacement.')\n"
+            "            rebuild = True\n"
+            "        if rebuild or not store.table_exists():\n",
+        ),
+        (
+            "    new_nodes = build_document_node(\n",
+            "    model_name = get_configured_model_name(config)\n"
+            "    with read_store() as current:\n"
+            "        require_index_model(current, model_name)\n"
+            "    new_nodes = build_document_node(\n",
+        ),
+        (
+            "    with write_store(embed_model_name=get_configured_model_name(config)) as store:\n",
+            "    with write_store(embed_model_name=model_name) as store:\n",
+        ),
+        (
+            '''            store.drop_table()
+            for document in iter_wrapper(
+                QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+            ):
+                nodes = build_document_node(document, chunk_size=chunk_size)
+                _embed_nodes(nodes, embed_model)
+                store.add(nodes)''',
+            '''            with replacement_index(store, model_name, settings.LLM_INDEX_DIR, _exclude_readers) as candidate:
+                for document in iter_wrapper(
+                    QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+                ):
+                    nodes = build_document_node(document, chunk_size=chunk_size)
+                    _embed_nodes(nodes, embed_model)
+                    candidate.add(nodes)''',
+        ),
+        (
+            "        store.upsert_document(str(document.id), new_nodes)\n",
+            "        require_index_model(store, model_name)\n"
+            "        store.upsert_document(str(document.id), new_nodes)\n",
         ),
     ),
 )

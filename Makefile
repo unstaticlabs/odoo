@@ -75,7 +75,8 @@ help:
 	  '  make addon-tests MODULE=usl_documents  Run one add-on'"'"'s test suite' \
 	  '  make accounting-addon-tests         Run focused Accounting module tests' \
 	  '  make docs                           Run the journeys, then render the pages' \
-	  '  make docs-journeys [MODULE=name]    Run the documented journeys into artifacts/usl-docs' \
+	  '  make docs-journeys                  Run all journeys into artifacts/usl-docs' \
+	  '  make docs-journeys MODULE=name      Run one add-on into .agent/docs-journeys/name' \
 	  '  make docs-render                    Render pages and screenshots from recorded journeys' \
 	  '  make docs-reference                 Regenerate the reference pages from the action-risk closure' \
 	  '  make docs-mcp                       Regenerate the MCP tools page from the pinned odoo-mcp catalogue' \
@@ -226,7 +227,8 @@ addon-tests: oca-addons-sync
 		--test-enable --test-tags=$(ADDON_TEST_TAGS) --stop-after-init \
 		--log-level=$(ADDON_TEST_LOG_LEVEL)
 
-docs: docs-journeys docs-render
+docs: docs-journeys
+	@$(MAKE) docs-render
 
 # Journeys run in the test container so screenshots come from the same
 # Chromium as CI, on the whole product set as the qualification run does:
@@ -234,21 +236,25 @@ docs: docs-journeys docs-render
 # draws other smart buttons, columns and home screens. MODULE=name narrows
 # the run for a quick iteration; only the default produces captures CI
 # accepts. The set is read lazily, only when a docs target expands it.
-DOCS_JOURNEY_DB ?= odoo_docs_journeys
+DOCS_JOURNEY_DB ?= odoo_docs_journeys$(if $(MODULE),_$(MODULE))
 DOCS_JOURNEY_ALL_MODULES = $(shell scripts/product-modules)
 DOCS_JOURNEY_MODULES ?= $(or $(MODULE),$(DOCS_JOURNEY_ALL_MODULES))
+DOCS_JOURNEY_TAGS = usl_docs_journey$(if $(MODULE),/$(MODULE))
+DOCS_JOURNEY_RECORDS = $(if $(MODULE),.agent/docs-journeys/$(MODULE),artifacts/usl-docs)
 docs-journeys:
-	@mkdir -p artifacts/usl-docs && chmod 777 artifacts/usl-docs
+	@mkdir -p "$(DOCS_JOURNEY_RECORDS)" && chmod 777 "$(DOCS_JOURNEY_RECORDS)"
 	@docker compose -p $(COMPOSE_PROJECT) --profile test run --rm -T \
-		-e USL_DOCS_JOURNEYS=1 -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-artifacts \
+		-v "$(abspath $(DOCS_JOURNEY_RECORDS)):/mnt/usl-docs-output" \
+		-e USL_DOCS_JOURNEYS=1 -e USL_DOCS_JOURNEY_OUTPUT=/mnt/usl-docs-output \
 		-e ODOO_INIT_DB=$(DOCS_JOURNEY_DB) -e ODOO_DB_FILTER='^$(DOCS_JOURNEY_DB)$$' \
 		-e USL_EINVOICE_LIVE_ENABLED=0 -e USL_EREPORTING_LIVE_ENABLED=0 \
 		test odoo --config=/etc/odoo/odoo.conf --database=$(DOCS_JOURNEY_DB) \
 		--init=usl_docs,$(DOCS_JOURNEY_MODULES) --without-demo=true --test-enable \
-		--test-tags=usl_docs_journey --stop-after-init --log-level=test
+		--update=usl_docs,$(DOCS_JOURNEY_MODULES) \
+		--test-tags=$(DOCS_JOURNEY_TAGS) --stop-after-init --log-level=test
 
 docs-render:
-	@scripts/docs generate render
+	@scripts/docs generate render --records "$(DOCS_JOURNEY_RECORDS)"
 
 # The reference pages come from the registry of the full product closure,
 # the same database make action-risk-db builds, so a page never describes a

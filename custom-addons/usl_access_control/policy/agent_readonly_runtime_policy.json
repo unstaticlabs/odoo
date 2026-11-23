@@ -37024,6 +37024,7 @@
     "rpc:mail.mail.web_save_multi",
     "rpc:mail.mail.web_search_read",
     "rpc:mail.mail.write",
+    "rpc:mail.message.action_retract_from_chatter",
     "rpc:mail.message.action_usl_retry_voice",
     "rpc:mail.message.copy",
     "rpc:mail.message.copy_data",

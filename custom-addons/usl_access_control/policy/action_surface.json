@@ -5556,7 +5556,7 @@
       ],
       "sources": [
         {
-          "line": 317,
+          "line": 319,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5573,7 +5573,7 @@
       ],
       "sources": [
         {
-          "line": 303,
+          "line": 305,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5590,7 +5590,7 @@
       ],
       "sources": [
         {
-          "line": 310,
+          "line": 312,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5611,11 +5611,11 @@
       ],
       "sources": [
         {
-          "line": 277,
+          "line": 279,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 287,
+          "line": 289,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5636,11 +5636,11 @@
       ],
       "sources": [
         {
-          "line": 255,
+          "line": 257,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 265,
+          "line": 267,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5660,7 +5660,7 @@
       ],
       "sources": [
         {
-          "line": 336,
+          "line": 338,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5680,7 +5680,7 @@
       ],
       "sources": [
         {
-          "line": 329,
+          "line": 331,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5700,7 +5700,7 @@
       ],
       "sources": [
         {
-          "line": 365,
+          "line": 367,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5717,7 +5717,7 @@
       ],
       "sources": [
         {
-          "line": 404,
+          "line": 406,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5737,7 +5737,7 @@
       ],
       "sources": [
         {
-          "line": 379,
+          "line": 381,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5757,7 +5757,7 @@
       ],
       "sources": [
         {
-          "line": 372,
+          "line": 374,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5777,7 +5777,7 @@
       ],
       "sources": [
         {
-          "line": 386,
+          "line": 388,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5797,7 +5797,7 @@
       ],
       "sources": [
         {
-          "line": 347,
+          "line": 349,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5817,7 +5817,7 @@
       ],
       "sources": [
         {
-          "line": 393,
+          "line": 395,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5837,7 +5837,7 @@
       ],
       "sources": [
         {
-          "line": 411,
+          "line": 413,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -5947,7 +5947,7 @@
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 358,
+          "line": 360,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         }
       ]
@@ -658027,6 +658027,44 @@
     {
       "abstract": false,
       "archiveable": false,
+      "delegates": [
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo"
+      ],
+      "digest": "712a7d933d7c0ef1f81ffba25102052cb14f962d4ddfb897b64868e3fa3ff889",
+      "guards": [],
+      "key": "rpc:mail.message.action_retract_from_chatter",
+      "kind": "rpc",
+      "method": "action_retract_from_chatter",
+      "model": "mail.message",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1605732af45022ef37b4b20241c40570601a501707ea79c9f2998cfe0e8452c9",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.message.ensure_one",
+        "rpc:mail.message.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
       "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
       "guards": [],
       "key": "rpc:mail.message.action_unarchive",
@@ -788654,7 +788692,7 @@
       ],
       "sources": [
         {
-          "line": 411,
+          "line": 413,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -788701,7 +788739,7 @@
           "path": "addons/l10n_fr_pdp/wizard/pdp_config_wizard.py"
         },
         {
-          "line": 404,
+          "line": 406,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -792146,7 +792184,7 @@
       ],
       "sources": [
         {
-          "line": 336,
+          "line": 338,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -792299,7 +792337,7 @@
       ],
       "sources": [
         {
-          "line": 329,
+          "line": 331,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -795803,7 +795841,7 @@
       ],
       "sources": [
         {
-          "line": 347,
+          "line": 349,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1092342,7 +1092380,7 @@
           "path": "addons/account/models/res_config_settings.py"
         },
         {
-          "line": 358,
+          "line": 360,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1092878,7 +1092916,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 379,
+          "line": 381,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1093001,7 +1093039,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 386,
+          "line": 388,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1093051,7 +1093089,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 365,
+          "line": 367,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1093099,7 +1093137,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 393,
+          "line": 395,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1093146,7 +1093184,7 @@
           "path": "addons/account_peppol/models/res_config_settings.py"
         },
         {
-          "line": 372,
+          "line": 374,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1337807,7 +1337845,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 265,
+          "line": 267,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1338175,7 +1338213,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 287,
+          "line": 289,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1338789,7 +1338827,7 @@
       ],
       "sources": [
         {
-          "line": 255,
+          "line": 257,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1340774,7 +1340812,7 @@
         "rpc:res.partner.search",
         "rpc:usl.document.browse"
       ],
-      "digest": "0d1f71a049667752c47dc5a6732380a29017a49ac6669470d645e40e9a8e290e",
+      "digest": "4f844243a906fc62469fd8748fda72970d5683d5cfdfc7047f651615072b87a8",
       "guards": [],
       "key": "rpc:usl.document.document_detail",
       "kind": "rpc",
@@ -1340786,7 +1340824,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2012a7e9d932afa09ab6ad7284ae51d8345b960bfd08a1d03ae257146205e6ff",
+      "runtime_digest": "88d8dc23817b5c6a95ff0805ee35186ed069331d7eac0d5ef73a53ac4a140078",
       "sinks": [
         "sudo"
       ],
@@ -1347506,7 +1347544,7 @@
       ],
       "sources": [
         {
-          "line": 317,
+          "line": 319,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1347619,7 +1347657,7 @@
       ],
       "sources": [
         {
-          "line": 303,
+          "line": 305,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1347661,7 +1347699,7 @@
       ],
       "sources": [
         {
-          "line": 310,
+          "line": 312,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1355202,7 +1355240,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 577,
+          "line": 579,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355237,7 +1355275,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 543,
+          "line": 545,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355271,7 +1355309,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 548,
+          "line": 550,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355305,7 +1355343,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 808,
+          "line": 810,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355340,7 +1355378,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 693,
+          "line": 695,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355371,7 +1355409,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 790,
+          "line": 792,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355402,7 +1355440,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 731,
+          "line": 733,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355432,7 +1355470,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 781,
+          "line": 783,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355459,7 +1355497,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 799,
+          "line": 801,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1355569,7 +1355607,7 @@
         "rpc:usl.document.search",
         "rpc:usl.document.smart.view.accessible_views"
       ],
-      "digest": "08a2756c53450680a93170029cc79bcc1ced16793d4d6de382a10d873ab2428e",
+      "digest": "a8b204d8ffd964d24abb2b3fbcccfed9553f798ba55041a497cd3a017d373d94",
       "guards": [],
       "key": "rpc:usl.document.mcp_search",
       "kind": "rpc",
@@ -1355580,7 +1355618,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "4c00aab203387806e8a9a3e320ca993e042e99d9eb063bd7abe4b4ae393fcc16",
+      "runtime_digest": "341488251e398775d8ca769621474cb7f19158160187caf40eb7df3232111515",
       "sinks": [],
       "sources": [
         {
@@ -1358429,7 +1358467,7 @@
       ],
       "sources": [
         {
-          "line": 277,
+          "line": 279,
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
@@ -1641813,6 +1641851,42 @@
       ]
     },
     {
+      "digest": "9fa88bd13eb46e34d9a24ff3d97fe5be009ca558cddb4174b17b6c2187827b3d",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.message.action_retract_from_chatter"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ]
+    },
+    {
+      "digest": "a10c141babcc9a81320aaa6e916f9603099f1f03824c4476e8d06035057df273",
+      "key": "sink:usl_access_control:custom-addons/usl_access_control/models/mail_message_retraction.py:mail.message.action_retract_from_chatter:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_access_control"
+      ],
+      "parents": [
+        "rpc:mail.message.action_retract_from_chatter"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 8,
+          "path": "custom-addons/usl_access_control/models/mail_message_retraction.py"
+        }
+      ]
+    },
+    {
       "digest": "181d530284413e5f4ed134da754be47456b7dd58b0bc0be666239f50374fd4e4",
       "key": "sink:usl_access_control:custom-addons/usl_access_control/models/notification_delivery.py:mail.thread._notify_get_recipients:sudo:1",
       "kind": "sink",
@@ -1659984,7 +1660058,7 @@
       ]
     },
     {
-      "digest": "36b2b698b972405a74d437c129fe3a55a4d293048660243ca63c846accd47663",
+      "digest": "2ba3aa0668fa3d4b59b794245036f79ce1b84fb216237815975dbe1b1736fb01",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1660002,7 +1660076,7 @@
       ]
     },
     {
-      "digest": "9e5b4d0365731ad9ed5d52122cba120b046846b80abc8ec07f2e69f7360f1748",
+      "digest": "565da6bce81d92ba9a21dea399f22b5d660af6f5de630e2a2400a0232236dc62",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1660917,7 +1660991,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 787,
+          "line": 788,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1660962,7 +1661036,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 977,
+          "line": 978,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1660977,7 +1661051,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 977,
+          "line": 978,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1660992,7 +1661066,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 894,
+          "line": 895,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1661007,7 +1661081,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 894,
+          "line": 895,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1738414,11 +1738488,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "1972ad743a39d8be2ce0d6b12988b7d5b722aae347629a964e44ef963735012c",
+      "manifest_sha256": "a09f9f9cf6b8422b32eb95f807fb60057571205ba7b83fcf1fdb7ddc684d39bc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "4f2148d8d428499ef670e09d2a62fa27922e706ccea686f56e5652093d8d7f58",
-      "version": "saas~19.3.1.8.12"
+      "source_sha256": "d401e11cd0efa23995307ce3e09286b501e3d8a3299a1d51273bc4efa305dced",
+      "version": "saas~19.3.1.8.15"
     },
     {
       "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
@@ -1738456,11 +1738530,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "856f76a4fdaf39b5ac10647f7a83d955f7dcae976bd1a163691fa1187186c7d5",
+      "manifest_sha256": "9d4b331038ddea72240a1aaf78765182a7470552c71e400b597b11b751bbf759",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "17463e67243fa71968d50a388f43eb7842a29b3291096eea64af3a1eb0dbd3d2",
-      "version": "saas~19.3.1.10.4"
+      "source_sha256": "e30993eccbb4f8e7d83e365e9a7f831579124800f3ae7920fa3bbd662ef3c476",
+      "version": "saas~19.3.1.10.6"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
