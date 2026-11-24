@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import json
 import os
@@ -150,6 +151,214 @@ def copy_tree(source: Path, destination: Path, *, required: bool = True) -> None
     run(["cp", "--archive", "--reflink=auto", str(source), str(destination)])
 
 
+SQLITE_MAGIC = b"SQLite format 3\x00"
+SQLITE_COMPANIONS = ("-wal", "-shm", "-journal")
+TANTIVY_REBUILD_MARKER = ".rebuilding"
+ONLINE_STATE = ".online-state.json"
+ONLINE_STATE_SCHEMA = "usl-online-capture-state/v1"
+ONLINE_PHASES = ("begin", "sign", "finish", "abort")
+# Everything an Odoo database row can point at in the filestore, once per file.
+ODOO_FILE_SQL = (
+    "SELECT DISTINCT store_fname, checksum FROM ir_attachment "
+    "WHERE store_fname IS NOT NULL ORDER BY 1, 2"
+)
+# Every Paperless document row, soft-deleted ones included: their originals stay
+# on disk until the trash is emptied.
+PAPERLESS_FILE_SQL = "SELECT id, filename, checksum FROM documents_document ORDER BY id"
+COMPLETENESS_EXAMPLES = 5
+
+
+def _is_sqlite(path: Path) -> bool:
+    try:
+        with path.open("rb") as stream:
+            return stream.read(len(SQLITE_MAGIC)) == SQLITE_MAGIC
+    except OSError:
+        return False
+
+
+def sqlite_backup(source: Path, destination: Path) -> None:
+    """Copy a SQLite database that another process may be writing."""
+    import sqlite3
+    from urllib.parse import quote
+
+    temporary = destination.with_name(destination.name + ".backup-tmp")
+    temporary.unlink(missing_ok=True)
+    uri = f"file:{quote(str(source))}?mode=ro"
+    reader = sqlite3.connect(uri, uri=True, timeout=30)
+    try:
+        try:
+            reader.execute("SELECT count(*) FROM sqlite_master").fetchone()
+        except sqlite3.OperationalError:
+            # A write-ahead-log database on a read-only mount cannot be opened
+            # without its shared-memory file. Its absence means no process has
+            # the database open, so nothing can be changing it.
+            if any(
+                source.with_name(source.name + suffix).exists()
+                for suffix in ("-wal", "-shm")
+            ):
+                raise
+            reader.close()
+            reader = sqlite3.connect(uri + "&immutable=1", uri=True, timeout=30)
+        writer = sqlite3.connect(str(temporary))
+        try:
+            reader.backup(writer)
+        finally:
+            writer.close()
+    finally:
+        reader.close()
+    status = source.stat()
+    shutil.copystat(source, temporary)
+    with contextlib.suppress(PermissionError):
+        os.chown(temporary, status.st_uid, status.st_gid)
+    os.replace(temporary, destination)
+    for suffix in SQLITE_COMPANIONS:
+        destination.with_name(destination.name + suffix).unlink(missing_ok=True)
+
+
+def copy_tree_online(source: Path, destination: Path, *, required: bool = True) -> None:
+    """Copy a tree whose SQLite databases may be open for writing.
+
+    Plain files are copied as they are. A SQLite database is copied through
+    SQLite's own backup, so the copy is one consistent point in time instead of
+    a database file torn between two writes.
+    """
+    copy_tree(source, destination, required=required)
+    if not source.is_dir() or source.is_symlink():
+        return
+    for path in sorted(source.rglob("*")):
+        if path.is_symlink() or not path.is_file() or not _is_sqlite(path):
+            continue
+        sqlite_backup(path, destination / path.relative_to(source))
+
+
+def mark_unreadable_index_for_rebuild(index: Path) -> bool:
+    """Make Paperless rebuild a search index that was copied while it changed.
+
+    A Tantivy index is immutable segments plus ``meta.json``. A merge can delete
+    a segment between the moment ``meta.json`` was copied and the moment that
+    segment would have been, which leaves an index that cannot open. The index is
+    a reusable cache, so such a copy is flagged with Paperless's own marker and
+    rebuilt when the restored stack starts.
+    """
+    problem = None
+    try:
+        meta = json.loads((index / "meta.json").read_text(encoding="utf-8"))
+        names = [path.name for path in index.iterdir()]
+        for segment in meta["segments"]:
+            prefix = str(segment["segment_id"]).replace("-", "").lower() + "."
+            if not any(name.lower().startswith(prefix) for name in names):
+                problem = "segment file is missing"
+                break
+    except (OSError, ValueError, KeyError, TypeError):
+        problem = "metadata is unreadable"
+    if problem is None:
+        return False
+    (index / TANTIVY_REBUILD_MARKER).touch()
+    return True
+
+
+@contextlib.contextmanager
+def exported_snapshot(prefix: str):
+    """Hold a repeatable-read transaction whose snapshot ``pg_dump`` can join.
+
+    Anything read through the yielded cursor, and everything a ``pg_dump
+    --snapshot`` of the returned identifier reads, describes the same instant.
+    """
+    import psycopg2
+
+    values = {
+        key: os.environ.get(f"{prefix}_DB_{name}", "").strip()
+        for key, name in (
+            ("host", "HOST"), ("port", "PORT"), ("dbname", "NAME"),
+            ("user", "USER"), ("password", "PASSWORD"),
+        )
+    }
+    if not all(values.values()):
+        missing = [f"{prefix}_DB_{key.upper()}" for key, value in values.items() if not value]
+        raise CohortError(f"database settings are missing: {', '.join(missing)}")
+    connection = psycopg2.connect(**values)
+    try:
+        connection.set_session(isolation_level="REPEATABLE READ", readonly=True)
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_export_snapshot()")
+            yield cursor, cursor.fetchone()[0]
+    finally:
+        connection.rollback()
+        connection.close()
+
+
+def snapshot_json(cursor, prefix: str, query: str) -> dict[str, Any]:
+    cursor.execute(query)
+    value = cursor.fetchone()[0]
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except json.JSONDecodeError as error:
+            raise CohortError(f"{prefix} control query did not return JSON") from error
+    if not isinstance(value, dict):
+        raise CohortError(f"{prefix} control query did not return an object")
+    return value
+
+
+def _file_digest(path: Path, algorithm: str) -> str:
+    digest = hashlib.new(algorithm)
+    with path.open("rb") as stream:
+        while chunk := stream.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def verify_capture_completeness(
+    *,
+    odoo_files: list[tuple[str, str | None]],
+    filestore: Path,
+    paperless_documents: list[tuple[int, str | None, str | None]],
+    originals: Path,
+) -> dict[str, Any]:
+    """Every file the captured databases reference must be in the copy, intact.
+
+    The databases and the files are copied at slightly different moments while
+    the application keeps writing. Both applications only ever add files, so a
+    file the earlier database export references exists in the later copy. This
+    proves it, by name and by content, and refuses the capture otherwise.
+    """
+    problems: list[str] = []
+    counts = {"missing": 0, "mismatched": 0}
+
+    def check(label: str, root: Path, relative: str, expected: str | None, algorithm: str) -> None:
+        path = (root / relative).resolve()
+        if root.resolve() not in path.parents:
+            counts["mismatched"] += 1
+            problems.append(f"{label} path escapes its root")
+            return
+        if not path.is_file():
+            counts["missing"] += 1
+            problems.append(f"{label} is missing")
+            return
+        if expected is not None and _file_digest(path, algorithm) != expected.lower():
+            counts["mismatched"] += 1
+            problems.append(f"{label} has a different checksum")
+
+    for store_fname, checksum in odoo_files:
+        check(f"Odoo file {store_fname}", filestore, store_fname, checksum, "sha1")
+    for identifier, filename, checksum in paperless_documents:
+        if not filename:
+            counts["missing"] += 1
+            problems.append(f"Paperless document {identifier} has no stored filename")
+            continue
+        check(f"Paperless document {identifier} original", originals, filename, checksum, "md5")
+    if problems:
+        shown = "; ".join(problems[:COMPLETENESS_EXAMPLES])
+        raise CohortError(
+            "online capture is incomplete: "
+            f"{counts['missing']} missing, {counts['mismatched']} mismatched ({shown})",
+        )
+    return {
+        "odoo_files": len(odoo_files),
+        "paperless_originals": len(paperless_documents),
+    }
+
+
 def validate_sign_secrets(root: Path) -> dict[str, Any]:
     """Validate complete Sign recovery material without exposing its contents."""
     if not root.is_dir() or root.is_symlink():
@@ -251,23 +460,35 @@ def database_environment(prefix: str) -> tuple[list[str], dict[str, str]]:
     return command, environment
 
 
-def dump_database(prefix: str, destination: Path) -> dict[str, Any]:
+def dump_database(
+    prefix: str,
+    destination: Path,
+    *,
+    snapshot: str | None = None,
+    low_priority: bool = False,
+) -> dict[str, Any]:
     connection, environment = database_environment(prefix)
     name = os.environ[f"{prefix}_DB_NAME"]
     destination.parent.mkdir(parents=True, exist_ok=True)
-    run(
-        [
-            "pg_dump",
-            *connection,
-            "--format=custom",
-            "--no-owner",
-            "--no-acl",
-            "--file",
-            str(destination),
-            name,
-        ],
-        environment=environment,
-    )
+    command = [
+        "pg_dump",
+        *connection,
+        "--format=custom",
+        "--no-owner",
+        "--no-acl",
+        *([f"--snapshot={snapshot}"] if snapshot else []),
+        "--file",
+        str(destination),
+        name,
+    ]
+    if low_priority:
+        # An online capture shares the host with the running application.
+        command = [
+            *(["nice", "-n", "10"] if shutil.which("nice") else []),
+            *(["ionice", "-c", "3"] if shutil.which("ionice") else []),
+            *command,
+        ]
+    run(command, environment=environment)
     if not destination.is_file() or destination.stat().st_size < 1:
         raise CohortError(f"{prefix} database dump is empty")
     run(["pg_restore", "--list", str(destination)], capture=True)
@@ -402,7 +623,7 @@ def _capture_release_manifest() -> str:
     return release_raw
 
 
-def capture(arguments: argparse.Namespace) -> dict[str, Any]:
+def _capture_workspace(arguments: argparse.Namespace) -> tuple[Path, Path]:
     if not RUN_ID.fullmatch(arguments.run_id):
         raise CohortError("run ID is invalid")
     root = Path(arguments.root) / arguments.run_id
@@ -414,6 +635,182 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
             raise CohortError(f"unsafe interrupted capture workspace: {partial}")
         shutil.rmtree(partial)
     partial.mkdir(parents=True, mode=0o700)
+    return root, partial
+
+
+def _copy_durable_material(
+    durable: Path,
+    odoo_database: str,
+    *,
+    online: bool = False,
+) -> dict[str, dict[str, Any] | None]:
+    """Copy every durable resource except Sign, validating the secret roots.
+
+    Returns the identity each validated secret root had before it was copied.
+    """
+    copy_tree(
+        Path("/source/odoo-data/filestore") / odoo_database,
+        durable / "odoo-filestore" / odoo_database,
+    )
+    copy_tree(
+        Path("/source/paperless-media/documents/originals"),
+        durable / "paperless-media/documents/originals",
+    )
+    copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
+    copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
+    (copy_tree_online if online else copy_tree)(
+        Path("/source/mcp-oauth"), durable / "mcp-oauth",
+    )
+    mcp_secrets_source = Path("/source/mcp-secrets")
+    mcp_secrets_identity = None
+    if mcp_secrets_source.exists():
+        mcp_secrets_identity = validate_mcp_secrets(mcp_secrets_source)
+        copy_tree(mcp_secrets_source, durable / "mcp-secrets")
+    elif _required_environment("USL_TARGET") == "production":
+        raise CohortError("complete MCP recovery material is missing")
+    renderer_secrets_source = Path("/source/renderer-secrets")
+    renderer_secrets_identity = None
+    if renderer_secrets_source.exists():
+        renderer_secrets_identity = validate_renderer_secrets(renderer_secrets_source)
+        copy_tree(renderer_secrets_source, durable / "renderer-secrets")
+    elif _required_environment("USL_TARGET") == "production":
+        raise CohortError("complete renderer recovery material is missing")
+    paperless_keys_source = Path("/source/paperless-personal-ai-keys.json")
+    paperless_keys_identity = None
+    if paperless_keys_source.exists():
+        validate_paperless_personal_ai_keys(paperless_keys_source)
+        destination = durable / "paperless-secrets"
+        destination.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(paperless_keys_source, destination / "personal-ai-keys.json")
+        paperless_keys_identity = tree_identity(destination)
+    elif _required_environment("USL_TARGET") == "production":
+        raise CohortError("Paperless Personal-AI recovery material is missing")
+    return {
+        "mcp_secrets": mcp_secrets_identity,
+        "renderer_secrets": renderer_secrets_identity,
+        "paperless_personal_ai_keys": paperless_keys_identity,
+    }
+
+
+def _copy_sign_material(durable: Path) -> dict[str, Any]:
+    sign_secrets_identity = validate_sign_secrets(Path("/source/sign-secrets"))
+    copy_tree(Path("/source/sign-secrets"), durable / "sign-secrets")
+    copy_tree(Path("/source/sign-evidence"), durable / "sign-evidence", required=False)
+    return sign_secrets_identity
+
+
+def _copy_cache_material(cache: Path, *, online: bool = False) -> None:
+    copy_tree(
+        Path("/source/paperless-media/documents/archive"),
+        cache / "paperless-media/documents/archive",
+    )
+    copy_tree(
+        Path("/source/paperless-media/documents/thumbnails"),
+        cache / "paperless-media/documents/thumbnails",
+    )
+    copy_tree(Path("/source/paperless-data/index"), cache / "paperless-data/index")
+    if online:
+        mark_unreadable_index_for_rebuild(cache / "paperless-data/index")
+    (copy_tree_online if online else copy_tree)(
+        Path("/source/paperless-data/llm_index"), cache / "paperless-data/llm_index",
+    )
+
+
+def _seal_capture(
+    *,
+    partial: Path,
+    root: Path,
+    run_id: str,
+    odoo_database: str,
+    databases: dict[str, Any],
+    controls: dict[str, Any],
+    identities: dict[str, dict[str, Any] | None],
+    sign_secrets_identity: dict[str, Any],
+) -> dict[str, Any]:
+    durable = partial / "durable"
+    cache = partial / "cache"
+    resource_paths = {
+        "odoo_filestore": ("durable", durable / "odoo-filestore" / odoo_database),
+        "paperless_originals": ("durable", durable / "paperless-media/documents/originals"),
+        "paperless_trash": ("durable", durable / "paperless-trash"),
+        "paperless_consume": ("durable", durable / "paperless-consume"),
+        "mcp_oauth": ("durable", durable / "mcp-oauth"),
+        "sign_secrets": ("durable", durable / "sign-secrets"),
+        "sign_evidence": ("durable", durable / "sign-evidence"),
+        "paperless_archive": ("cache", cache / "paperless-media/documents/archive"),
+        "paperless_thumbnails": ("cache", cache / "paperless-media/documents/thumbnails"),
+        "paperless_tantivy": ("cache", cache / "paperless-data/index"),
+        "paperless_vectors": ("cache", cache / "paperless-data/llm_index"),
+    }
+    mcp_secrets_identity = identities["mcp_secrets"]
+    renderer_secrets_identity = identities["renderer_secrets"]
+    paperless_keys_identity = identities["paperless_personal_ai_keys"]
+    if mcp_secrets_identity is not None:
+        resource_paths["mcp_secrets"] = ("durable", durable / "mcp-secrets")
+    if renderer_secrets_identity is not None:
+        resource_paths["renderer_secrets"] = ("durable", durable / "renderer-secrets")
+    if paperless_keys_identity is not None:
+        resource_paths["paperless_personal_ai_keys"] = (
+            "durable", durable / "paperless-secrets",
+        )
+    resources = {
+        role: {
+            "class": classification,
+            "path": path.relative_to(partial).as_posix(),
+            "identity": tree_identity(path),
+        }
+        for role, (classification, path) in resource_paths.items()
+    }
+    if resources["sign_secrets"]["identity"] != sign_secrets_identity:
+        raise CohortError("Sign recovery material changed during capture")
+    if mcp_secrets_identity is not None and resources["mcp_secrets"]["identity"] != mcp_secrets_identity:
+        raise CohortError("MCP recovery material changed during capture")
+    if (
+        renderer_secrets_identity is not None
+        and resources["renderer_secrets"]["identity"] != renderer_secrets_identity
+    ):
+        raise CohortError("renderer recovery material changed during capture")
+    if (
+        paperless_keys_identity is not None
+        and resources["paperless_personal_ai_keys"]["identity"] != paperless_keys_identity
+    ):
+        raise CohortError("Paperless Personal-AI recovery material changed during capture")
+    manifest = {
+        "schema": SCHEMA,
+        "run_id": run_id,
+        "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+        "target": _required_environment("USL_TARGET"),
+        "release": {
+            "commit": _required_environment("USL_RELEASE_COMMIT"),
+            "identity": _required_environment("USL_RELEASE_IDENTITY"),
+            "manifest_sha256": _required_environment("USL_RELEASE_MANIFEST_SHA256"),
+            "path": "durable/release.json",
+        },
+        "ollama": {
+            "model": _required_environment("USL_OLLAMA_MODEL"),
+            "manifest_sha256": _required_environment("USL_OLLAMA_MANIFEST_SHA256"),
+            "dimension": int(_required_environment("USL_OLLAMA_DIMENSION")),
+        },
+        "databases": databases,
+        "controls": controls,
+        "durable": tree_identity(durable),
+        "cache": tree_identity(cache),
+        "resources": resources,
+        "cache_snapshot_id": None,
+    }
+    validate_manifest(manifest)
+    (partial / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    partial.rename(root)
+    return manifest
+
+
+def capture(arguments: argparse.Namespace) -> dict[str, Any]:
+    if getattr(arguments, "mode", "quiesced") == "online":
+        return capture_online(arguments)
+    root, partial = _capture_workspace(arguments)
     durable = partial / "durable"
     cache = partial / "cache"
     try:
@@ -426,127 +823,144 @@ def capture(arguments: argparse.Namespace) -> dict[str, Any]:
         (durable / "release.json").write_text(release_raw, encoding="utf-8")
         _capture_runtime_images(durable)
         odoo_database = os.environ["ODOO_DB_NAME"]
-        copy_tree(
-            Path("/source/odoo-data/filestore") / odoo_database,
-            durable / "odoo-filestore" / odoo_database,
+        identities = _copy_durable_material(durable, odoo_database)
+        sign_secrets_identity = _copy_sign_material(durable)
+        _copy_cache_material(cache)
+        return _seal_capture(
+            partial=partial,
+            root=root,
+            run_id=arguments.run_id,
+            odoo_database=odoo_database,
+            databases=databases,
+            controls=controls,
+            identities=identities,
+            sign_secrets_identity=sign_secrets_identity,
         )
-        copy_tree(
-            Path("/source/paperless-media/documents/originals"),
-            durable / "paperless-media/documents/originals",
+    except Exception:
+        shutil.rmtree(partial, ignore_errors=True)
+        raise
+
+
+def _online_state_path(partial: Path) -> Path:
+    return partial / ONLINE_STATE
+
+
+def _online_workspace(arguments: argparse.Namespace, expected_phase: str) -> tuple[Path, Path, dict]:
+    if not RUN_ID.fullmatch(arguments.run_id):
+        raise CohortError("run ID is invalid")
+    root = Path(arguments.root) / arguments.run_id
+    partial = root.with_name(f".{arguments.run_id}.partial")
+    if partial.is_symlink() or not partial.is_dir() or partial.parent != root.parent:
+        raise CohortError("online capture workspace is missing")
+    try:
+        state = json.loads(_online_state_path(partial).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise CohortError("online capture state is missing or invalid") from error
+    if (
+        not isinstance(state, dict)
+        or state.get("schema") != ONLINE_STATE_SCHEMA
+        or state.get("run_id") != arguments.run_id
+        or state.get("phase") != expected_phase
+    ):
+        raise CohortError(f"online capture is not ready for the next phase: {expected_phase}")
+    return root, partial, state
+
+
+def _write_online_state(partial: Path, state: dict) -> None:
+    _online_state_path(partial).write_text(
+        json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8",
+    )
+
+
+def capture_online(arguments: argparse.Namespace) -> dict[str, Any]:
+    """Capture without stopping Odoo, Paperless or MCP.
+
+    The caller runs three phases and pauses only the Sign services around the
+    second one: ``begin`` (databases, files, completeness), ``sign`` (Sign
+    recovery material), ``finish`` (manifest). ``abort`` discards the workspace.
+    """
+    phase = getattr(arguments, "phase", None)
+    if phase not in ONLINE_PHASES:
+        raise CohortError("online capture requires --phase begin, sign, finish or abort")
+    if phase == "abort":
+        if not RUN_ID.fullmatch(arguments.run_id):
+            raise CohortError("run ID is invalid")
+        partial = (Path(arguments.root) / arguments.run_id).with_name(f".{arguments.run_id}.partial")
+        if partial.is_symlink():
+            raise CohortError(f"unsafe interrupted capture workspace: {partial}")
+        shutil.rmtree(partial, ignore_errors=True)
+        return {"phase": "abort", "status": "discarded"}
+    if phase == "begin":
+        root, partial = _capture_workspace(arguments)
+        state: dict[str, Any] = {}
+    else:
+        root, partial, state = _online_workspace(
+            arguments, "begun" if phase == "sign" else "signed",
         )
-        copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
-        copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
-        copy_tree(Path("/source/mcp-oauth"), durable / "mcp-oauth")
-        mcp_secrets_source = Path("/source/mcp-secrets")
-        mcp_secrets_identity = None
-        if mcp_secrets_source.exists():
-            mcp_secrets_identity = validate_mcp_secrets(mcp_secrets_source)
-            copy_tree(mcp_secrets_source, durable / "mcp-secrets")
-        elif _required_environment("USL_TARGET") == "production":
-            raise CohortError("complete MCP recovery material is missing")
-        renderer_secrets_source = Path("/source/renderer-secrets")
-        renderer_secrets_identity = None
-        if renderer_secrets_source.exists():
-            renderer_secrets_identity = validate_renderer_secrets(renderer_secrets_source)
-            copy_tree(renderer_secrets_source, durable / "renderer-secrets")
-        elif _required_environment("USL_TARGET") == "production":
-            raise CohortError("complete renderer recovery material is missing")
-        paperless_keys_source = Path("/source/paperless-personal-ai-keys.json")
-        paperless_keys_identity = None
-        if paperless_keys_source.exists():
-            validate_paperless_personal_ai_keys(paperless_keys_source)
-            destination = durable / "paperless-secrets"
-            destination.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(paperless_keys_source, destination / "personal-ai-keys.json")
-            paperless_keys_identity = tree_identity(destination)
-        elif _required_environment("USL_TARGET") == "production":
-            raise CohortError("Paperless Personal-AI recovery material is missing")
-        sign_secrets_identity = validate_sign_secrets(Path("/source/sign-secrets"))
-        copy_tree(Path("/source/sign-secrets"), durable / "sign-secrets")
-        copy_tree(Path("/source/sign-evidence"), durable / "sign-evidence", required=False)
-        copy_tree(
-            Path("/source/paperless-media/documents/archive"),
-            cache / "paperless-media/documents/archive",
-        )
-        copy_tree(
-            Path("/source/paperless-media/documents/thumbnails"),
-            cache / "paperless-media/documents/thumbnails",
-        )
-        copy_tree(Path("/source/paperless-data/index"), cache / "paperless-data/index")
-        copy_tree(Path("/source/paperless-data/llm_index"), cache / "paperless-data/llm_index")
-        resource_paths = {
-            "odoo_filestore": ("durable", durable / "odoo-filestore" / odoo_database),
-            "paperless_originals": ("durable", durable / "paperless-media/documents/originals"),
-            "paperless_trash": ("durable", durable / "paperless-trash"),
-            "paperless_consume": ("durable", durable / "paperless-consume"),
-            "mcp_oauth": ("durable", durable / "mcp-oauth"),
-            "sign_secrets": ("durable", durable / "sign-secrets"),
-            "sign_evidence": ("durable", durable / "sign-evidence"),
-            "paperless_archive": ("cache", cache / "paperless-media/documents/archive"),
-            "paperless_thumbnails": ("cache", cache / "paperless-media/documents/thumbnails"),
-            "paperless_tantivy": ("cache", cache / "paperless-data/index"),
-            "paperless_vectors": ("cache", cache / "paperless-data/llm_index"),
-        }
-        if mcp_secrets_identity is not None:
-            resource_paths["mcp_secrets"] = ("durable", durable / "mcp-secrets")
-        if renderer_secrets_identity is not None:
-            resource_paths["renderer_secrets"] = ("durable", durable / "renderer-secrets")
-        if paperless_keys_identity is not None:
-            resource_paths["paperless_personal_ai_keys"] = (
-                "durable", durable / "paperless-secrets",
+    durable = partial / "durable"
+    cache = partial / "cache"
+    try:
+        if phase == "begin":
+            odoo_database = os.environ["ODOO_DB_NAME"]
+            databases: dict[str, Any] = {}
+            controls: dict[str, Any] = {}
+            # The databases come first and the files after them. Odoo holds the
+            # ids of Paperless documents and Paperless holds no Odoo id, so
+            # exporting Paperless second makes it the superset.
+            with exported_snapshot("ODOO") as (cursor, snapshot):
+                controls["odoo"] = snapshot_json(cursor, "ODOO", ODOO_CONTROL_SQL)
+                cursor.execute(ODOO_FILE_SQL)
+                odoo_files = [(row[0], row[1]) for row in cursor.fetchall()]
+                databases["odoo"] = dump_database(
+                    "ODOO", durable / "databases/odoo.dump",
+                    snapshot=snapshot, low_priority=True,
+                )
+            with exported_snapshot("PAPERLESS") as (cursor, snapshot):
+                controls["paperless"] = snapshot_json(cursor, "PAPERLESS", PAPERLESS_CONTROL_SQL)
+                cursor.execute(PAPERLESS_FILE_SQL)
+                paperless_documents = [(row[0], row[1], row[2]) for row in cursor.fetchall()]
+                databases["paperless"] = dump_database(
+                    "PAPERLESS", durable / "databases/paperless.dump",
+                    snapshot=snapshot, low_priority=True,
+                )
+            release_raw = _capture_release_manifest()
+            (durable / "release.json").write_text(release_raw, encoding="utf-8")
+            _capture_runtime_images(durable)
+            identities = _copy_durable_material(durable, odoo_database, online=True)
+            _copy_cache_material(cache, online=True)
+            completeness = verify_capture_completeness(
+                odoo_files=odoo_files,
+                filestore=durable / "odoo-filestore" / odoo_database,
+                paperless_documents=paperless_documents,
+                originals=durable / "paperless-media/documents/originals",
             )
-        resources = {
-            role: {
-                "class": classification,
-                "path": path.relative_to(partial).as_posix(),
-                "identity": tree_identity(path),
-            }
-            for role, (classification, path) in resource_paths.items()
-        }
-        if resources["sign_secrets"]["identity"] != sign_secrets_identity:
-            raise CohortError("Sign recovery material changed during capture")
-        if mcp_secrets_identity is not None and resources["mcp_secrets"]["identity"] != mcp_secrets_identity:
-            raise CohortError("MCP recovery material changed during capture")
-        if (
-            renderer_secrets_identity is not None
-            and resources["renderer_secrets"]["identity"] != renderer_secrets_identity
-        ):
-            raise CohortError("renderer recovery material changed during capture")
-        if (
-            paperless_keys_identity is not None
-            and resources["paperless_personal_ai_keys"]["identity"] != paperless_keys_identity
-        ):
-            raise CohortError("Paperless Personal-AI recovery material changed during capture")
-        manifest = {
-            "schema": SCHEMA,
-            "run_id": arguments.run_id,
-            "created_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-            "target": _required_environment("USL_TARGET"),
-            "release": {
-                "commit": _required_environment("USL_RELEASE_COMMIT"),
-                "identity": _required_environment("USL_RELEASE_IDENTITY"),
-                "manifest_sha256": _required_environment("USL_RELEASE_MANIFEST_SHA256"),
-                "path": "durable/release.json",
-            },
-            "ollama": {
-                "model": _required_environment("USL_OLLAMA_MODEL"),
-                "manifest_sha256": _required_environment("USL_OLLAMA_MANIFEST_SHA256"),
-                "dimension": int(_required_environment("USL_OLLAMA_DIMENSION")),
-            },
-            "databases": databases,
-            "controls": controls,
-            "durable": tree_identity(durable),
-            "cache": tree_identity(cache),
-            "resources": resources,
-            "cache_snapshot_id": None,
-        }
-        validate_manifest(manifest)
-        (partial / "manifest.json").write_text(
-            json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
+            _write_online_state(partial, {
+                "schema": ONLINE_STATE_SCHEMA,
+                "run_id": arguments.run_id,
+                "phase": "begun",
+                "odoo_database": odoo_database,
+                "databases": databases,
+                "controls": controls,
+                "identities": identities,
+                "completeness": completeness,
+            })
+            return {"phase": "begin", "status": "begun", "completeness": completeness}
+        if phase == "sign":
+            state["sign_secrets_identity"] = _copy_sign_material(durable)
+            state["phase"] = "signed"
+            _write_online_state(partial, state)
+            return {"phase": "sign", "status": "signed"}
+        _online_state_path(partial).unlink()
+        return _seal_capture(
+            partial=partial,
+            root=root,
+            run_id=arguments.run_id,
+            odoo_database=state["odoo_database"],
+            databases=state["databases"],
+            controls=state["controls"],
+            identities=state["identities"],
+            sign_secrets_identity=state["sign_secrets_identity"],
         )
-        partial.rename(root)
-        return manifest
     except Exception:
         shutil.rmtree(partial, ignore_errors=True)
         raise
@@ -1380,6 +1794,8 @@ def parser() -> argparse.ArgumentParser:
     )
     command.add_argument("--root", default="/cohort")
     command.add_argument("--run-id")
+    command.add_argument("--mode", choices=("quiesced", "online"), default="quiesced")
+    command.add_argument("--phase", choices=ONLINE_PHASES)
     command.add_argument("--durable-snapshot")
     command.add_argument("--protected-anchor-json", type=json.loads)
     return command

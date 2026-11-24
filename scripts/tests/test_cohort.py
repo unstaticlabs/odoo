@@ -18,6 +18,7 @@ from operations import cohort
 from operations.runtime import RuntimeError as OperationsError
 from operations.runtime import compose_command, load_target
 from operations.stack import (
+    BACKUP_ONLINE_PAUSE_SERVICE_ROLES,
     BACKUP_WRITER_SERVICE_ROLES,
     _compose_services,
     VOLUME_LOGICAL_NAMES,
@@ -3386,12 +3387,13 @@ class CohortContractTests(unittest.TestCase):
         target.project = configured.project
         return runner, target
 
-    def test_production_backup_writer_restart_skips_stale_one_shot_dependencies(self) -> None:
+    def test_production_online_backup_restart_skips_stale_one_shot_dependencies(self) -> None:
         # The captured Compose identity may point at a stale checkout whose
         # one-shot services (odoo-upgrade, odoo-mcp-oauth-init) already exited.
-        # The writer restart must start only the writers it stopped.
+        # The restart must start only the services it stopped: with an online
+        # capture, only Sign and its certificate authority.
         runner, target = self._backup_runner_and_target("production")
-        writer_services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        writer_services = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
         identity = {
             "project": "usl-odoo-production-main",
             "working_directory": "/etc/komodo/stacks/usl-odoo-production-main",
@@ -3406,14 +3408,19 @@ class CohortContractTests(unittest.TestCase):
         }
         release_raw = json.dumps(release) + " " * (2 * 1024 * 1024)
         cohort_results = {
-            "capture": {"status": "captured"},
+            "capture": {"status": "captured", "completeness": {"odoo_files": 1, "paperless_originals": 1}},
             "push": {"durable_snapshot_id": "d" * 64},
             "qualify": {"status": "verified"},
         }
 
+        phases = []
+
         def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
             if action == "capture":
-                self.assertEqual(_kwargs["input_text"], release_raw)
+                phase = _args[0][_args[0].index("--phase") + 1]
+                phases.append(phase)
+                # Only the first phase reads the release manifest, from stdin.
+                self.assertEqual(_kwargs["input_text"], release_raw if phase == "begin" else None)
                 environment = _args[1]
                 self.assertIn("USL_RELEASE_MANIFEST_STDIN=1", environment)
                 self.assertFalse(any(value.startswith("USL_RELEASE_MANIFEST_JSON=") for value in environment))
@@ -3441,6 +3448,7 @@ class CohortContractTests(unittest.TestCase):
             mock.patch("builtins.print"),
         ):
             self.assertEqual(backup_command(arguments), 0)
+        self.assertEqual(phases, ["begin", "sign", "finish"])
         commands = [call.args[0] for call in runner.run.call_args_list]
         stops = [command for command in commands if "stop" in command]
         ups = [command for command in commands if "up" in command]

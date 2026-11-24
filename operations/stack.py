@@ -15,7 +15,7 @@ import re
 import sys
 import textwrap
 import time
-from contextlib import ExitStack, contextmanager, redirect_stdout
+from contextlib import ExitStack, contextmanager, redirect_stdout, suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -170,6 +170,10 @@ RESOURCE_FIELDS = {
     "pids_limit",
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
+# An online capture pauses only what cannot be copied while it runs: the Step CA
+# Badger database, and Sign, which writes to the material that goes with it.
+BACKUP_ONLINE_PAUSE_SERVICE_ROLES = ("sign", "sign_ca")
+BACKUP_CAPTURE_MODES = ("online", "quiesced")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 # Odoo runs as this fixed unprivileged identity inside the distribution image.
 ODOO_RUNTIME_UID = "1000"
@@ -3382,8 +3386,13 @@ def _backup_run_receipt(
         "runtime_images", "writers_quiesced", "writer_interval_complete",
         "writers_stopped_at", "writers_resumed_at", "quiescence", "status", "sha256",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    # Receipts written before the online capture have no ``capture_mode``; every
+    # one of them was taken with the writers stopped.
+    if not isinstance(value, dict) or set(value) not in (required, required | {"capture_mode"}):
         raise RuntimeError("backup receipt fields differ")
+    capture_mode = value.get("capture_mode", "quiesced")
+    if capture_mode not in BACKUP_CAPTURE_MODES:
+        raise RuntimeError("backup receipt capture mode is invalid")
     if value.get("schema") != "usl-backup-run/v2":
         raise RuntimeError("backup receipt schema differs")
     if value.get("status") != "qualified":
@@ -3445,6 +3454,19 @@ def _backup_run_receipt(
         raise RuntimeError("backup receipt capture timestamp is invalid") from error
     if created.tzinfo is None:
         raise RuntimeError("backup receipt capture timestamp is invalid")
+    if capture_mode == "online":
+        # Nothing was stopped but Sign, which is not a writer interval: the
+        # receipt must not claim one.
+        if (
+            value.get("writers_quiesced") is not False
+            or value.get("writer_interval_complete") is not False
+            or value.get("writers_stopped_at") is not None
+            or value.get("writers_resumed_at") is not None
+            or value.get("quiescence") is not None
+            or performance.get("writer_freeze_seconds") is not None
+            or performance.get("writer_freeze_sla_passed") is not None
+        ):
+            raise RuntimeError("online backup receipt claims a writer interval")
     if require_quiesced and (
         value.get("writers_quiesced") is not True
         or value.get("writer_interval_complete") is not False
@@ -3494,6 +3516,26 @@ def _backup_run_receipt(
     ).hexdigest():
         raise RuntimeError("backup receipt digest differs")
     return value
+
+
+def _resumed_capture_mode(target, runner, run_id: str) -> str:
+    """The mode a backup run was captured in, from what it left on the host.
+
+    An online capture pauses only the Sign services, which its quiescence
+    artifact names. A run that left none was captured before online captures
+    existed, with every writer stopped.
+    """
+    root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+    online = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
+    for filename in ("quiesced.json", "prepared.json"):
+        result = runner.run(["cat", f"{root}/{filename}"], check=False)
+        if not result.returncode:
+            try:
+                services = json.loads(result.stdout).get("writer_services")
+            except (json.JSONDecodeError, AttributeError) as error:
+                raise RuntimeError("resumed backup quiescence receipt is invalid") from error
+            return "online" if services == online else "quiesced"
+    return "quiesced"
 
 
 def _backup_quiescence_receipt(
@@ -4064,6 +4106,9 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
 def backup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     leave_quiesced = bool(getattr(arguments, "leave_quiesced", False))
+    # The release path stops every writer because its upgrade needs them stopped
+    # anyway. Every other capture is taken online.
+    capture_mode = "quiesced" if leave_quiesced else "online"
     if leave_quiesced and arguments.action != "create":
         raise RuntimeError("--leave-quiesced is valid only for backup create")
     if leave_quiesced and arguments.resume:
@@ -4148,10 +4193,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 )
                 writer_services = [
                     target.value["services"][name]
-                    for name in BACKUP_WRITER_SERVICE_ROLES
+                    for name in (
+                        BACKUP_WRITER_SERVICE_ROLES if capture_mode == "quiesced"
+                        else BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+                    )
                 ]
 
-                def capture_phase():
+                def capture_phase(phase_arguments=(), *, with_release=True):
                     environment = [
                         *_database_environment(target),
                         "--env",
@@ -4178,10 +4226,10 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         runner,
                         image,
                         "capture",
-                        ["--run-id", run_id],
+                        ["--run-id", run_id, *phase_arguments],
                         environment,
                         volumes=runtime["volumes"],
-                        input_text=release_raw,
+                        input_text=release_raw if with_release else None,
                     )
 
                 freeze_started = time.monotonic()
@@ -4202,55 +4250,121 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
                 )
                 _record_event(target, runner, run_id, "backup", "capture", "started")
-                capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
-                capture_succeeded = False
-                try:
-                    runner.run(compose_command(
-                        identity, ["stop", "--timeout", "30", *writer_services],
-                    ))
-                    writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                    stopped_quiescence = _backup_quiescence_receipt(
-                        target=target.name,
-                        run_id=run_id,
-                        baseline=baseline_runtime_sha256,
-                        services=writer_services,
-                        status="quiesced",
-                        prepared_at=prepared_at,
-                        stopped_at=writers_stopped_at,
-                    )
-                    _write_remote(
-                        target, runner, f"{quiescence_root}/quiesced.json",
-                        json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
-                    )
-                    captured = capture_phase()
-                    _write_remote(
+                if capture_mode == "online":
+                    pause_seconds = 0.0
+                    try:
+                        begun = capture_phase(
+                            ["--mode", "online", "--phase", "begin"],
+                        )
+                        _record_event(
+                            target, runner, run_id, "backup", "completeness", "completed",
+                            **begun["completeness"],
+                        )
+                        pause_started = time.monotonic()
+                        try:
+                            runner.run(compose_command(
+                                identity, ["stop", "--timeout", "30", *writer_services],
+                            ))
+                            stopped_quiescence = _backup_quiescence_receipt(
+                                target=target.name,
+                                run_id=run_id,
+                                baseline=baseline_runtime_sha256,
+                                services=writer_services,
+                                status="quiesced",
+                                prepared_at=prepared_at,
+                                stopped_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                            )
+                            _write_remote(
+                                target, runner, f"{quiescence_root}/quiesced.json",
+                                json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n",
+                                "0444",
+                            )
+                            capture_phase(
+                                ["--mode", "online", "--phase", "sign"], with_release=False,
+                            )
+                        finally:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            pause_seconds = round(time.monotonic() - pause_started, 3)
+                        captured = capture_phase(
+                            ["--mode", "online", "--phase", "finish"], with_release=False,
+                        )
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                    except Exception:
+                        with suppress(Exception):
+                            capture_phase(
+                                ["--mode", "online", "--phase", "abort"], with_release=False,
+                            )
+                        raise
+                    freeze_seconds = pause_seconds
+                    _record_event(
                         target,
                         runner,
-                        f"{quiescence_root}/capture.json",
-                        json.dumps(captured, indent=2, sort_keys=True) + "\n",
-                        "0444",
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=round(time.monotonic() - freeze_started, 3),
+                        sign_pause_seconds=pause_seconds,
                     )
-                    capture_succeeded = True
-                finally:
-                    if not leave_quiesced or not capture_succeeded:
+                else:
+                    capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
+                    capture_succeeded = False
+                    try:
                         runner.run(compose_command(
-                            identity,
-                            ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            identity, ["stop", "--timeout", "30", *writer_services],
                         ))
-                        writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                        backup_maintenance.release(runner, capture_maintenance)
-                if leave_quiesced:
-                    quiescence = stopped_quiescence
-                freeze_seconds = round(time.monotonic() - freeze_started, 3)
-                _record_event(
-                    target,
-                    runner,
-                    run_id,
-                    "backup",
-                    "capture",
-                    "completed",
-                    duration_seconds=freeze_seconds,
-                )
+                        writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                        stopped_quiescence = _backup_quiescence_receipt(
+                            target=target.name,
+                            run_id=run_id,
+                            baseline=baseline_runtime_sha256,
+                            services=writer_services,
+                            status="quiesced",
+                            prepared_at=prepared_at,
+                            stopped_at=writers_stopped_at,
+                        )
+                        _write_remote(
+                            target, runner, f"{quiescence_root}/quiesced.json",
+                            json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                        )
+                        captured = capture_phase()
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                        capture_succeeded = True
+                    finally:
+                        if not leave_quiesced or not capture_succeeded:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                            backup_maintenance.release(runner, capture_maintenance)
+                    if leave_quiesced:
+                        quiescence = stopped_quiescence
+                    freeze_seconds = round(time.monotonic() - freeze_started, 3)
+                    _record_event(
+                        target,
+                        runner,
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=freeze_seconds,
+                    )
             else:
                 capture_path = (
                     f"{target.value['state_directory']}/backup-runs/{run_id}/capture.json"
@@ -4269,6 +4383,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     or captured.get("release", {}).get("manifest_sha256") != release_sha
                 ):
                     raise RuntimeError("resumed backup capture identity differs")
+                capture_mode = _resumed_capture_mode(target, runner, run_id)
 
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
@@ -4339,22 +4454,17 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "qualification": qualified,
                 "performance": {
                     "capture_pause_seconds": freeze_seconds,
-                    "writer_freeze_seconds": (
-                        freeze_seconds if not leave_quiesced and not arguments.resume else None
-                    ),
+                    "writer_freeze_seconds": None,
                     "writer_freeze_sla_seconds": 120,
-                    "writer_freeze_sla_passed": (
-                        freeze_seconds <= 120
-                        if not leave_quiesced and not arguments.resume
-                        else None
-                    ),
+                    "writer_freeze_sla_passed": None,
                     "upload_seconds": upload_seconds,
                     "verification_seconds": verify_seconds,
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
+                "capture_mode": capture_mode,
                 "writers_quiesced": leave_quiesced,
-                "writer_interval_complete": not leave_quiesced and not arguments.resume,
+                "writer_interval_complete": False,
                 "writers_stopped_at": writers_stopped_at,
                 "writers_resumed_at": writers_resumed_at,
                 "quiescence": quiescence,
@@ -9944,7 +10054,14 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
         raise RuntimeError(
             "interrupted recovery proof backup has no quiescence receipt",
         )
+    # An interrupted online capture can have stopped only the Sign services; an
+    # older, fully quiesced one stopped every writer.
     services = [target.value["services"][name] for name in BACKUP_WRITER_SERVICE_ROLES]
+    online_services = [
+        target.value["services"][name] for name in BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+    ]
+    if isinstance(quiescence, dict) and quiescence.get("writer_services") == online_services:
+        services = online_services
     quiescence = _validate_backup_quiescence_receipt(
         quiescence,
         target="production",
@@ -11222,8 +11339,9 @@ def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
             raise RuntimeError("full usable recovery anchor capture interval differs")
         captured_at = quiesced["prepared_at"]
     else:
-        # Older complete receipts retain their sealed writer-stop boundary.
-        captured_at = bound["writers_stopped_at"]
+        # Older complete receipts retain their sealed writer-stop boundary; an
+        # online capture stops no writer and is dated by its manifest.
+        captured_at = bound["writers_stopped_at"] or bound["capture"]["created_at"]
     _recovery_proof_timestamp(captured_at, "anchor captured_at")
     return {
         "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,

@@ -391,17 +391,20 @@ marker volumes; no Odoo database or provider is involved.
 
 ## Backup capture maintenance
 
-An ordinary production or staging backup uses the existing runtime operation
-lock, enables the native gateway's maintenance marker before stopping writers,
-and removes its own marker only after the existing Compose `up --wait` has
-resumed them. The marker is created exclusively. A release-owned, empty or
+An ordinary production or staging backup is captured online: it uses the
+existing runtime operation lock, creates no maintenance marker and stops only
+the Sign and Step CA services while it copies their recovery material. A backup
+captured with `--leave-quiesced` (the release path) uses the existing runtime
+operation lock, enables the native gateway's maintenance marker before stopping
+writers, and removes its own marker only after the existing Compose `up --wait`
+has resumed them. The marker is created exclusively. A release-owned, empty or
 legacy marker is preserved byte for byte; a marker replaced by another owner
 is retained. An unhealthy resume keeps maintenance enabled for recovery.
 
 | Input | Maintenance behavior |
 |---|---|
-| Ordinary production backup | Temporary owned marker; production MCP receives the existing JSON 503 and `Retry-After: 60` during capture. |
-| Ordinary staging backup | Temporary owned marker on the existing Odoo/WebSocket gateway. Direct loopback staging MCP remains outside this gateway until its separate routing companion is delivered. |
+| Ordinary (online) production or staging backup | No marker; Odoo, Paperless and MCP keep serving. Only Sign and Step CA stop, briefly. |
+| `--leave-quiesced` production or staging backup | Temporary owned marker; production MCP receives the existing JSON 503 and `Retry-After: 60` during capture. On the staging gateway the marker covers Odoo/WebSocket; direct loopback staging MCP remains outside it until its separate routing companion is delivered. |
 | Release-owned or legacy maintenance | Preserve the existing marker through capture, resume and errors. |
 | Successful `--leave-quiesced` capture | Preserve maintenance and leave writers quiesced for the caller. |
 | Failed capture or partial stop | Attempt the existing healthy writer resume; remove only the capture's marker after success. |
@@ -411,10 +414,12 @@ is retained. An unhealthy resume keeps maintenance enabled for recovery.
 | Local/bootstrap runtime without a gateway | Retain the existing capture/resume behavior; no gateway is provisioned. |
 | Upload/verification retry from an existing capture | No new writer freeze or maintenance claim. |
 
-The 12 November 2026 incident mapped to the ordinary daily-proof class: its
-111-second writer freeze temporarily removed the MCP Docker DNS upstream and
-returned gateway 502. The retained pre-release backup from the same day is the
-other legitimate class: qualified v2 receipt, non-null quiesced evidence,
+The 12 November 2026 incident mapped to the ordinary proof-backup class of that
+time: its 111-second writer freeze temporarily removed the MCP Docker DNS
+upstream and returned gateway 502. Online capture removed that class: the proof
+backup no longer stops Odoo, Paperless or MCP. Receipts of that class stay
+valid input. The retained pre-release backup from the same day is the other
+legitimate class: qualified v2 receipt, non-null quiesced evidence,
 `writers_quiesced=true`, and `writer_interval_complete=false`. It must keep
 release-owned maintenance. Tests use synthetic equivalents of both classes;
 private receipts and payloads remain on the host.
@@ -607,8 +612,9 @@ fail the successful production release; CI reports the receipt as a warning.
 Production runtime secrets, Sign keys and
 MCP OAuth data never cross environments; the reset preserves the paused,
 environment-owned staging OAuth vault and records non-secret source and
-destination tree identities. A daily run with no production change performs a
+destination tree identities. A run with no production change performs a
 backup and disposable recovery proof only—it does not reset persistent staging.
+The same proof also runs every four hours (GitLab schedule `20 */4 * * *`, UTC).
 The GitOps launcher invokes the public interface with a stable attempt ID and a
 dedicated evidence root:
 
@@ -711,10 +717,12 @@ Any failure before `release activate` rolls back while public ingress remains
 closed. Once activation begins, recovery is forward-only because an external
 worker may have observed the new state.
 
-Backup evidence records the wall-clock instants immediately before writers are
-stopped and after they are healthy again. A capture that deliberately leaves
-writers stopped has no synthetic completion time or SLA result; the release
-controller must close that interval only when the admitted generation starts.
+An online backup stops no writer, so its receipt records no writer interval and
+no writer-freeze SLA result (`capture_mode: "online"`); `capture_pause_seconds`
+is the time Sign and Step CA were stopped. A capture that deliberately leaves
+writers stopped has no synthetic completion time or SLA result either; the
+release controller must close that interval only when the admitted generation
+starts.
 
 Admission compares captured before/after controls rather than merely checking
 that tables are non-empty. Controls are deliberately separated into three
