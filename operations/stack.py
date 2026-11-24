@@ -207,10 +207,12 @@ RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
 # proof restores from Restic, never from this directory, so a qualified
 # capture is a local duplicate of its remote snapshots. Each one is about
 # 2.3 GB on the root filesystem of the Odoo host, which filled it on
-# 2026-11-19. Production keeps the newest qualified capture and the capture
-# of the usable recovery anchor; every other qualified capture goes. The
-# newest one stays because a proof qualifies its capture before it restores,
-# and because it is the local copy if the remote repositories are lost.
+# 2026-11-19. ``cleanup apply`` keeps the newest qualified capture and the
+# capture of the usable recovery anchor; every other qualified capture goes.
+# The newest one stays because a proof qualifies its capture before it
+# restores. Every successful backup then deletes all older captures, the
+# anchor's included, so no local copy survives the loss of the remote
+# repositories.
 PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
 PROOF_CAPTURE_KEEP = 1
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
@@ -11182,7 +11184,8 @@ def _cleanup_captures(target, runner) -> dict:
     ``STAGING_CAPTURE_KEEP`` captures.  Both keep captures that are not
     ``qualified`` and captures of attempts whose launcher run is still
     running or resumable.  Entries that are not managed capture runs are
-    ignored.
+    ignored.  ``cleanup apply`` keeps the anchor capture, but every
+    successful backup deletes it (see ``_prune_superseded_captures``).
     """
     captures: dict[str, str] = {}
     proofs: list[str] = []
@@ -11250,6 +11253,8 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
     the newest data-qualified capture, even after later service proofs fail.
     If no anchor exists yet, every qualified capture stays and nothing is
     deleted, so a release cleanup does not stop on a missing anchor.
+    ``cleanup apply`` keeps the anchor capture; every successful backup deletes
+    it, and older unqualified captures, through ``_prune_superseded_captures``.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11434,9 +11439,8 @@ def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
             if kind != "d":
                 raise RuntimeError(f"cleanup capture is not a directory: {name}")
             capture = _qualified_capture(target, runner, name)
-            # The runtime lock serialises backups, so a capture that never
-            # qualified is a finished failure, not a run that could still
-            # resume once a newer backup has qualified.
+            # Once a newer backup has qualified, an older failed run can no
+            # longer be resumed; it must be re-run with a new run id.
             if attempt in unfinished or (
                 capture is not None and capture["created_at"] > kept["created_at"]
             ):

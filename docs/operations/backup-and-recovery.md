@@ -388,8 +388,8 @@ succeeded. It goes through the validation `cleanup apply` uses, except that the
 capture of the last usable recovery anchor is no longer kept: the anchor reads
 `backup-runs/<run-id>/` receipts, the proof evidence and the remote snapshot
 pair, never the capture directory. Older captures that never qualified (failed backups
-or proofs) are deleted too, since the runtime lock means none can resume once a
-newer backup has qualified. Captures of an unfinished release attempt and
+or proofs) are deleted too: once a newer backup has qualified, an older failed run can no
+longer be resumed and must be re-run with a new run id. Captures of an unfinished release attempt and
 anything newer stay. A failed backup
 deletes nothing, and a failed deletion is reported on stderr without failing the
 backup. The proof evidence under `/var/lib/usl-odoo/recovery-proofs/` is not
@@ -418,7 +418,7 @@ Retention keeps a capture when one of these conditions is true:
 - On production, the proof capture is the newest qualified one, or the
   capture of the usable recovery anchor. If no anchor exists, every qualified
   proof capture stays.
-- On staging, the capture is one of the two newest qualified captures.
+- On staging, the capture is the newest qualified capture (`STAGING_CAPTURE_KEEP = 1`).
 
 Retention manages only the run names that the release launcher creates:
 `release-pre-<attempt>`, `release-candidate-<attempt>`, and
@@ -614,8 +614,8 @@ rule, so the existing backlog still needs its own operational follow-up.
 Production retention keeps the last validated full usable-service recovery point
 in addition to its normal calendar buckets. Its exact durable snapshot and
 paired reusable-cache snapshot must still exist and belong to the same run.
-The local capture also stays alongside the two newest data-qualified proof
-captures. A newer backup that passes file verification but fails service startup
+`cleanup apply` also keeps the local capture alongside the newest
+data-qualified proof capture; every successful backup then deletes it. A newer backup that passes file verification but fails service startup
 does not replace this anchor.
 
 A successful proof atomically copies its validated completion receipt to
