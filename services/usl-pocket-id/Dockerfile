@@ -46,7 +46,7 @@ COPY --from=source /src/.version .version
 WORKDIR /build/cmd
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    VERSION="$(cat /build/.version)-usl1" \
+    VERSION="$(cat /build/.version)-usl2" \
     && CGO_ENABLED=0 GOOS=linux go build \
     -tags "${BUILD_TAGS}" \
     -ldflags="-X github.com/pocket-id/pocket-id/backend/internal/common.Version=${VERSION} -buildid=${VERSION}" \
