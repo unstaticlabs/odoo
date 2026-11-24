@@ -6,6 +6,7 @@ access_usl_agent_owner,usl.agent owner,model_usl_agent,base.group_user,1,1,1,0
 access_usl_agent_admin,usl.agent administrator,model_usl_agent,base.group_system,1,1,1,0
 access_usl_agent_credential_owner,usl.agent.credential owner,model_usl_agent_credential,base.group_user,1,0,0,0
 access_usl_agent_credential_admin,usl.agent.credential administrator,model_usl_agent_credential,base.group_system,1,0,0,0
+access_usl_agent_connect_grant_admin,usl.agent.connect.grant administrator,model_usl_agent_connect_grant,base.group_system,1,0,0,0
 access_usl_agent_key_wizard,usl.agent.key.wizard,model_usl_agent_key_wizard,base.group_user,1,1,1,1
 access_usl_agent_transfer_wizard,usl.agent.transfer.wizard,model_usl_agent_transfer_wizard,base.group_system,1,1,1,1
 access_ir_module_module_technical_reader,ir.module.module technical reader,base.model_ir_module_module,group_technical_administrator,1,0,0,0

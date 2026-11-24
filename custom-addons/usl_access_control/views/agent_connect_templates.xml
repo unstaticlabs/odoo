@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="agent_connect_layout" name="Agent connection layout">
+        <t t-call="web.frontend_layout"
+            html_data="{'style': 'height: 100%;'}"
+            body_classname.f="bg-100"
+            no_header="True"
+            no_footer="True">
+            <div class="container py-5">
+                <div class="card border-0 shadow-sm mx-auto o_usl_agent_connect" style="max-width: 34rem;">
+                    <div class="card-body p-4">
+                        <div class="text-center pb-3 border-bottom mb-4">
+                            <img src="/web/binary/company_logo" alt="Logo" style="max-height: 80px; max-width: 100%; width: auto;"/>
+                        </div>
+                        <t t-out="0"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="agent_connect_sign_in" name="Agent connection sign-in">
+        <t t-call="usl_access_control.agent_connect_layout">
+            <h1 class="h4 mb-2">Connect an Agent</h1>
+            <p class="text-muted">
+                <strong t-out="parameters['client_name']"/> asks for access through one of your Agents.
+                Sign in to Odoo to select the Agent.
+            </p>
+            <a class="btn btn-primary w-100" t-att-href="login_url">Sign in to Odoo</a>
+            <p class="small text-center mt-3 mb-0">
+                <a t-att-href="manual_url">Enter an Agent API key by hand</a>
+            </p>
+        </t>
+    </template>
+
+    <template id="agent_connect_denied" name="Agent connection denied">
+        <t t-call="usl_access_control.agent_connect_layout">
+            <h1 class="h4 mb-2">Connect an Agent</h1>
+            <p class="alert alert-danger" role="alert">Only internal users can connect an Agent.</p>
+            <a class="btn btn-secondary w-100" t-att-href="cancel_url">Go back</a>
+        </t>
+    </template>
+
+    <template id="agent_connect" name="Agent connection">
+        <t t-call="usl_access_control.agent_connect_layout">
+            <h1 class="h4 mb-2">Connect an Agent</h1>
+            <p class="text-muted">
+                <strong t-out="parameters['client_name']"/> asks for access through one of your Agents.
+                Odoo creates a new API key for the Agent that you select. The key goes directly to the MCP server.
+            </p>
+            <p t-if="error" class="alert alert-danger" role="alert"><t t-out="error"/></p>
+            <form method="post" t-att-action="'/usl/agent-access/connect'">
+                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                <input type="hidden" name="state" t-att-value="parameters['state']"/>
+                <input type="hidden" name="code_challenge" t-att-value="parameters['code_challenge']"/>
+                <input type="hidden" name="return_url" t-att-value="parameters['return_url']"/>
+                <input type="hidden" name="client_name" t-att-value="parameters['client_name']"/>
+                <fieldset>
+                    <legend class="h6">Your Agents</legend>
+                    <p t-if="not agents" class="text-muted small">You own no Agent. Create one below.</p>
+                    <div class="list-group mb-3">
+                        <label t-foreach="agents" t-as="agent"
+                            t-attf-class="list-group-item d-flex gap-3 {{ 'disabled' if agent.state != 'active' else '' }}">
+                            <input class="form-check-input flex-shrink-0 mt-1" type="radio" name="agent"
+                                required="required"
+                                t-att-value="agent.id"
+                                t-att-disabled="agent.state != 'active'"
+                                t-att-checked="selected == str(agent.id)"/>
+                            <span>
+                                <span class="fw-bold" t-out="agent.name"/>
+                                <span t-if="agent.state != 'active'" class="badge text-bg-secondary ms-1">Suspended</span>
+                                <span class="d-block small text-muted" t-out="agent.access_summary"/>
+                                <span class="d-block small text-muted" t-out="', '.join(agent.company_ids.mapped('name'))"/>
+                            </span>
+                        </label>
+                        <label class="list-group-item d-flex gap-3">
+                            <input class="form-check-input flex-shrink-0 mt-1" type="radio" name="agent" value="new"
+                                required="required"
+                                t-att-checked="selected == 'new' or not agents"/>
+                            <span class="flex-grow-1">
+                                <span class="fw-bold">Create a new Agent</span>
+                                <span class="d-block small text-muted">
+                                    The new Agent gets read-only access in all your companies. Change its access in My Agents.
+                                </span>
+                                <input class="form-control form-control-sm mt-2" name="name" maxlength="120"
+                                    placeholder="Name" aria-label="Name of the new Agent" t-att-value="new_name"/>
+                                <input class="form-control form-control-sm mt-2" name="purpose" maxlength="2000"
+                                    placeholder="Purpose" aria-label="Purpose of the new Agent" t-att-value="new_purpose"/>
+                            </span>
+                        </label>
+                    </div>
+                </fieldset>
+                <button type="submit" class="btn btn-primary w-100">Connect</button>
+            </form>
+            <a class="btn btn-link w-100 mt-2" t-att-href="cancel_url">Cancel</a>
+            <p class="small text-center mt-2 mb-0">
+                <a t-att-href="manual_url">Enter an Agent API key by hand</a>
+            </p>
+        </t>
+    </template>
+</odoo>

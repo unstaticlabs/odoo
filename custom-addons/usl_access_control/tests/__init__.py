@@ -24,3 +24,4 @@ from . import test_native_action_dispatch
 from . import test_agent_docs_guide
 from . import test_native_template_reset
 from . import test_agent_queue_job_acl
+from . import test_agent_connect
