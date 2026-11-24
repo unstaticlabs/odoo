@@ -11414,8 +11414,8 @@ def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
     Nothing reads a finished capture directory again: restore, rollback and
     proofs read the Restic snapshots; the anchor reads ``backup-runs/`` receipts
     and the remote snapshot pair; ``--resume`` and ``push`` read only the run
-    they continue. A capture that is not qualified (it may still be resumed) and
-    one owned by an unfinished release attempt are kept. The backup has already
+    they continue. A capture owned by an unfinished release attempt and any
+    newer capture are kept; older failed (unqualified) captures are deleted. The backup has already
     succeeded, so a failure here is reported and never fails it. Deletion goes
     through the same validation as ``cleanup apply``.
     """
@@ -11434,15 +11434,17 @@ def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
             if kind != "d":
                 raise RuntimeError(f"cleanup capture is not a directory: {name}")
             capture = _qualified_capture(target, runner, name)
-            if (
-                capture is None
-                or attempt in unfinished
-                or capture["created_at"] > kept["created_at"]
+            # The runtime lock serialises backups, so a capture that never
+            # qualified is a finished failure, not a run that could still
+            # resume once a newer backup has qualified.
+            if attempt in unfinished or (
+                capture is not None and capture["created_at"] > kept["created_at"]
             ):
                 continue
             older.append(name)
         paths = _validated_cleanup_captures(
-            target, runner, {"delete_captures": sorted(older)}, keep_anchor_capture=False,
+            target, runner, {"delete_captures": sorted(older)},
+            keep_anchor_capture=False, require_qualified=False,
         )
         _delete_cleanup_resources(runner, [], [], [], [], paths)
     except Exception as error:  # noqa: BLE001 - the backup already succeeded and is recorded
@@ -11797,6 +11799,7 @@ def _validated_cleanup_resources(
 
 def _validated_cleanup_captures(
     target, runner, inventory: dict, *, keep_anchor_capture: bool = True,
+    require_qualified: bool = True,
 ) -> list[str]:
     """Re-check every capture directory immediately before deletion."""
     state_root = target.value["state_directory"]
@@ -11814,7 +11817,7 @@ def _validated_cleanup_captures(
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup capture became invalid: {path}")
-        if _qualified_capture(target, runner, run_id) is None:
+        if require_qualified and _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
         _assert_capture_unmounted(runner, path)
         _assert_capture_not_bound(runner, path)

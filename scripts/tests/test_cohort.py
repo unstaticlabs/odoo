@@ -4753,11 +4753,12 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(result["status"], "completed")
         self.assertEqual(
             sorted(runner.removed),
-            sorted(f"{root}/{name}" for name in (anchor, older, f"release-pre-{attempt}")),
+            sorted(f"{root}/{name}" for name in (anchor, older, failed, f"release-pre-{attempt}")),
         )
-        # Kept: the new capture, a newer one, an unqualified one that may resume,
-        # an unfinished release attempt, and everything that is not a capture.
-        for kept in (newest, newer, failed, f"release-pre-{running}", "backup-runs", "generations"):
+        # Kept: the new capture, a newer one, an unfinished release attempt, and
+        # everything that is not a capture. The older failed capture goes.
+        self.assertIn(f"{root}/{failed}", runner.removed)
+        for kept in (newest, newer, f"release-pre-{running}", "backup-runs", "generations"):
             self.assertNotIn(f"{root}/{kept}", runner.removed)
 
     def test_a_successful_staging_backup_deletes_every_older_capture(self) -> None:
@@ -4775,7 +4776,9 @@ class CohortContractTests(unittest.TestCase):
         runner = self._capture_state_root(target, entries, files)
         self._prune(target, runner, newest)
         root = target.value["state_directory"]
-        self.assertEqual(sorted(runner.removed), sorted([f"{root}/{older}", f"{root}/{oldest}"]))
+        self.assertEqual(
+            sorted(runner.removed), sorted([f"{root}/{older}", f"{root}/{oldest}", f"{root}/{unqualified}"]),
+        )
 
     def test_nothing_is_deleted_when_the_new_capture_did_not_qualify(self) -> None:
         target = load_target("staging", TARGETS)
@@ -4789,6 +4792,20 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual((result["status"], runner.removed), ("skipped", []))
         self.assertIn("not qualified", errors.getvalue())
 
+    def test_an_unfinished_release_attempts_failed_capture_is_kept(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, resumable, finished = ("intent-" + digit * 48 for digit in "abc")
+        run_state = "runs/release-" + "a" * 64 + ".json"
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", run_state: "f",
+                   newest: "d", resumable: "d", finished: "d"}
+        files = {run_state: json.dumps({"attempt": resumable, "status": "running"})}
+        files.update(self._capture_files(target, newest, created_at="2026-09-05T04:00:00Z"))
+        for run_id in (resumable, finished):
+            files.update(self._capture_files(target, run_id, created_at="2026-09-04T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        self.assertEqual(runner.removed, [f"{target.value['state_directory']}/{finished}"])
+
     def test_pruning_refuses_names_outside_the_managed_captures(self) -> None:
         from operations.stack import _validated_cleanup_captures
         target = load_target("staging", TARGETS)
@@ -4797,6 +4814,16 @@ class CohortContractTests(unittest.TestCase):
             with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
                 _validated_cleanup_captures(target, runner, {"delete_captures": [name]}, keep_anchor_capture=False)
         self.assertEqual(runner.removed, [])
+
+    def test_cleanup_apply_still_refuses_an_unqualified_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        failed = "intent-" + "a" * 48
+        runner = self._capture_state_root(
+            target, {failed: "d"}, self._capture_files(target, failed, created_at="2026-09-04T04:00:00Z", status="uploaded"),
+        )
+        with self.assertRaisesRegex(RuntimeError, "not qualified"):
+            _validated_cleanup_captures(target, runner, {"delete_captures": [failed]})
 
     def test_the_default_deletion_path_still_protects_the_anchor_capture(self) -> None:
         from operations.stack import _validated_cleanup_captures

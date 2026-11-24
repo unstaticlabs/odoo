@@ -387,8 +387,10 @@ that target, recovery-proof captures included, and keeps the one that just
 succeeded. It goes through the validation `cleanup apply` uses, except that the
 capture of the last usable recovery anchor is no longer kept: the anchor reads
 `backup-runs/<run-id>/` receipts, the proof evidence and the remote snapshot
-pair, never the capture directory. Captures that are not qualified (they may
-resume) and captures of an unfinished release attempt stay. A failed backup
+pair, never the capture directory. Older captures that never qualified (failed backups
+or proofs) are deleted too, since the runtime lock means none can resume once a
+newer backup has qualified. Captures of an unfinished release attempt and
+anything newer stay. A failed backup
 deletes nothing, and a failed deletion is reported on stderr without failing the
 backup. The proof evidence under `/var/lib/usl-odoo/recovery-proofs/` is not
 touched.
