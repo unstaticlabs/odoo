@@ -5,6 +5,7 @@
     "config:recommended"
   ],
   "dependencyDashboard": false,
+  "forkProcessing": "enabled",
   "baseBranchPatterns": [
     "19-usl-staging"
   ],
