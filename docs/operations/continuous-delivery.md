@@ -404,7 +404,7 @@ is retained. An unhealthy resume keeps maintenance enabled for recovery.
 | Input | Maintenance behavior |
 |---|---|
 | Ordinary (online) production or staging backup | No marker; Odoo, Paperless and MCP keep serving. Only Sign and Step CA stop, briefly. |
-| `--leave-quiesced` production or staging backup | Temporary owned marker; production MCP receives the existing JSON 503 and `Retry-After: 60` during capture. On the staging gateway the marker covers Odoo/WebSocket; direct loopback staging MCP remains outside it until its separate routing companion is delivered. |
+| `--leave-quiesced` production or staging backup | Owned marker during capture; production MCP receives the existing JSON 503 and `Retry-After: 60`. On success the marker stays for the release (next rows); it is removed only after a failed capture's healthy resume. On the staging gateway the marker covers Odoo/WebSocket; direct loopback staging MCP remains outside it until its separate routing companion is delivered. |
 | Release-owned or legacy maintenance | Preserve the existing marker through capture, resume and errors. |
 | Successful `--leave-quiesced` capture | Preserve maintenance and leave writers quiesced for the caller. |
 | Failed capture or partial stop | Attempt the existing healthy writer resume; remove only the capture's marker after success. |

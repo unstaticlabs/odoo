@@ -142,15 +142,35 @@ def tree_identity(root: Path) -> dict[str, Any]:
     return {"files": count, "bytes": size, "sha256": digest.hexdigest()}
 
 
-def copy_tree(source: Path, destination: Path, *, required: bool = True) -> None:
+def copy_tree(
+    source: Path,
+    destination: Path,
+    *,
+    required: bool = True,
+    live: bool = False,
+) -> None:
     if not source.is_dir() or source.is_symlink():
         if required:
             raise CohortError(f"required source directory is missing: {source}")
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
-    run(["cp", "--archive", "--reflink=auto", str(source), str(destination)])
+    if not live:
+        run(["cp", "--archive", "--reflink=auto", str(source), str(destination)])
+        return
+    # A tree the application is writing loses files while it is copied (Odoo's
+    # attachment cleanup, Paperless's trash). ``cp`` fails on the first one;
+    # rsync reports them with exit 24 and copies the rest. Whether a file that
+    # vanished mattered is decided by the completeness check, not here.
+    process = subprocess.run(
+        ["rsync", "--archive", f"{source}/", f"{destination}/"],
+        check=False, text=True, capture_output=True,
+    )
+    if process.returncode not in (0, RSYNC_VANISHED):
+        detail = (process.stderr or process.stdout or "").strip()
+        raise CohortError(f"command failed (rsync {source}): {detail}")
 
 
+RSYNC_VANISHED = 24
 SQLITE_MAGIC = b"SQLite format 3\x00"
 SQLITE_COMPANIONS = ("-wal", "-shm", "-journal")
 TANTIVY_REBUILD_MARKER = ".rebuilding"
@@ -222,7 +242,7 @@ def copy_tree_online(source: Path, destination: Path, *, required: bool = True) 
     SQLite's own backup, so the copy is one consistent point in time instead of
     a database file torn between two writes.
     """
-    copy_tree(source, destination, required=required)
+    copy_tree(source, destination, required=required, live=True)
     if not source.is_dir() or source.is_symlink():
         return
     for path in sorted(source.rglob("*")):
@@ -346,7 +366,9 @@ def verify_capture_completeness(
             counts["missing"] += 1
             problems.append(f"Paperless document {identifier} has no stored filename")
             continue
-        check(f"Paperless document {identifier} original", originals, filename, checksum, "md5")
+        # Paperless 3 stores SHA-256; only originals it never re-hashed keep MD5.
+        algorithm = "sha256" if checksum is not None and len(checksum) == 64 else "md5"
+        check(f"Paperless document {identifier} original", originals, filename, checksum, algorithm)
     if problems:
         shown = "; ".join(problems[:COMPLETENESS_EXAMPLES])
         raise CohortError(
@@ -485,7 +507,7 @@ def dump_database(
         # An online capture shares the host with the running application.
         command = [
             *(["nice", "-n", "10"] if shutil.which("nice") else []),
-            *(["ionice", "-c", "3"] if shutil.which("ionice") else []),
+            *(["ionice", "-c", "2", "-n", "7"] if shutil.which("ionice") else []),
             *command,
         ]
     run(command, environment=environment)
@@ -651,13 +673,19 @@ def _copy_durable_material(
     copy_tree(
         Path("/source/odoo-data/filestore") / odoo_database,
         durable / "odoo-filestore" / odoo_database,
+        live=online,
     )
     copy_tree(
         Path("/source/paperless-media/documents/originals"),
         durable / "paperless-media/documents/originals",
+        live=online,
     )
-    copy_tree(Path("/source/paperless-trash"), durable / "paperless-trash", required=False)
-    copy_tree(Path("/source/paperless-consume"), durable / "paperless-consume", required=False)
+    copy_tree(
+        Path("/source/paperless-trash"), durable / "paperless-trash", required=False, live=online,
+    )
+    copy_tree(
+        Path("/source/paperless-consume"), durable / "paperless-consume", required=False, live=online,
+    )
     (copy_tree_online if online else copy_tree)(
         Path("/source/mcp-oauth"), durable / "mcp-oauth",
     )
@@ -703,12 +731,14 @@ def _copy_cache_material(cache: Path, *, online: bool = False) -> None:
     copy_tree(
         Path("/source/paperless-media/documents/archive"),
         cache / "paperless-media/documents/archive",
+        live=online,
     )
     copy_tree(
         Path("/source/paperless-media/documents/thumbnails"),
         cache / "paperless-media/documents/thumbnails",
+        live=online,
     )
-    copy_tree(Path("/source/paperless-data/index"), cache / "paperless-data/index")
+    copy_tree(Path("/source/paperless-data/index"), cache / "paperless-data/index", live=online)
     if online:
         mark_unreadable_index_for_rebuild(cache / "paperless-data/index")
     (copy_tree_online if online else copy_tree)(

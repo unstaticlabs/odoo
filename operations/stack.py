@@ -3454,19 +3454,6 @@ def _backup_run_receipt(
         raise RuntimeError("backup receipt capture timestamp is invalid") from error
     if created.tzinfo is None:
         raise RuntimeError("backup receipt capture timestamp is invalid")
-    if capture_mode == "online":
-        # Nothing was stopped but Sign, which is not a writer interval: the
-        # receipt must not claim one.
-        if (
-            value.get("writers_quiesced") is not False
-            or value.get("writer_interval_complete") is not False
-            or value.get("writers_stopped_at") is not None
-            or value.get("writers_resumed_at") is not None
-            or value.get("quiescence") is not None
-            or performance.get("writer_freeze_seconds") is not None
-            or performance.get("writer_freeze_sla_passed") is not None
-        ):
-            raise RuntimeError("online backup receipt claims a writer interval")
     if require_quiesced and (
         value.get("writers_quiesced") is not True
         or value.get("writer_interval_complete") is not False

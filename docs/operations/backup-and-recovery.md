@@ -61,7 +61,7 @@ and timings. Do not use `latest` or abbreviated snapshot IDs.
 open, no gateway maintenance marker is created, and only the Sign and Step CA
 services are stopped, for the few seconds it takes to copy their recovery
 material (Step CA's Badger database cannot be copied while it runs). A signing
-request made in that window fails and is retried. The receipt records
+request made in that window fails; the user must retry it. The receipt records
 `capture_mode: "online"`, no writer interval, and the pause in
 `performance.capture_pause_seconds`.
 
@@ -90,11 +90,15 @@ An online capture proceeds in this order:
    (Odoo names a file by its content and writes it before the row commits;
    production Paperless has no `PAPERLESS_FILENAME_FORMAT`, so originals are
    never renamed), so the later copy contains everything the earlier export
-   cites.
+   cites. Files can also disappear during the copy: Odoo's attachment
+   garbage collection deletes files. A deleted file the snapshot does not
+   reference is tolerated (the copy skips it). A deleted file the snapshot
+   references fails the capture at the completeness check.
 4. Completeness check: every `ir_attachment.store_fname` in the Odoo snapshot
    must exist in the copy with the SHA-1 held in `checksum`, and every
-   Paperless document in its snapshot must have its original with the MD5 held
-   in `documents_document.checksum`. A missing or different file fails the
+   Paperless document in its snapshot must have its original with the checksum
+   held in `documents_document.checksum` (SHA-256 for Paperless 3, 64
+   characters; MD5, 32 characters, for an original it never re-hashed). A missing or different file fails the
    backup. Nothing is filled in; the next scheduled backup starts again.
 5. MCP OAuth and the Paperless vector index are SQLite databases that may be
    open for writing. They are copied with SQLite's backup, not as files. The

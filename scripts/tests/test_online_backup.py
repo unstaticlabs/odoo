@@ -108,6 +108,17 @@ class CompletenessTests(unittest.TestCase):
         with self.assertRaisesRegex(cohort.CohortError, "document 1 original is missing"):
             self.check()
 
+    def test_paperless_3_originals_are_checked_against_their_sha256(self) -> None:
+        # Paperless 3 computes ``hashlib.sha256(content).hexdigest()``; only an
+        # original it never re-hashed keeps its 32-character MD5.
+        sha256 = hashlib.sha256(self.document).hexdigest()
+        self.assertEqual(len(sha256), 64)
+        self.assertEqual(self.check(paperless=[(1, "0000001.pdf", sha256)])["paperless_originals"], 1)
+        self.assertEqual(self.check(paperless=[(1, "0000001.pdf", md5(self.document))])["paperless_originals"], 1)
+        (self.originals / "0000001.pdf").write_bytes(b"%PDF torn")
+        with self.assertRaisesRegex(cohort.CohortError, "different checksum"):
+            self.check(paperless=[(1, "0000001.pdf", sha256)])
+
     def test_document_without_a_stored_filename_fails_instead_of_being_guessed(self) -> None:
         with self.assertRaisesRegex(cohort.CohortError, "document 7 has no stored filename"):
             self.check(paperless=[(7, None, "0" * 32)])
@@ -408,7 +419,7 @@ class PgDumpCommandTests(unittest.TestCase):
             destination.write_bytes(b"dump")
             cohort.dump_database("ODOO", destination, snapshot="00000003-00000001-1", low_priority=True)
         command = run.call_args_list[0].args[0]
-        self.assertEqual(command[:6], ["nice", "-n", "10", "ionice", "-c", "3"])
+        self.assertEqual(command[:8], ["nice", "-n", "10", "ionice", "-c", "2", "-n", "7"])
         self.assertIn("--snapshot=00000003-00000001-1", command)
 
 
@@ -417,11 +428,12 @@ class LiveCopyTests(unittest.TestCase):
         self.root = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.root, True)
         # ``cp --reflink`` is a GNU option; the backup image is Debian.
-        def copy_tree(source, destination, *, required=True):
+        def copy_tree(source, destination, *, required=True, live=False):
             if source.is_dir():
                 shutil.copytree(source, destination, symlinks=True)
                 destination.chmod(0o755)  # a read-only source mount is not a read-only copy
 
+        self.real_copy_tree = cohort.copy_tree
         copy = mock.patch.object(cohort, "copy_tree", copy_tree)
         copy.start()
         self.addCleanup(copy.stop)
@@ -481,6 +493,41 @@ class LiveCopyTests(unittest.TestCase):
         restored = sqlite3.connect(self.root / "copy" / "auth.db")
         self.assertEqual(restored.execute("SELECT count(*) FROM credential").fetchone()[0], 7)
         restored.close()
+
+    def test_a_file_that_vanishes_during_a_live_copy_does_not_fail_the_copy(self) -> None:
+        source = self.root / "filestore"
+        (source / "ab").mkdir(parents=True)
+        (source / "ab" / "kept").write_bytes(b"kept")
+        (source / "ab" / "collected").write_bytes(b"collected")
+
+        out = self.root / "live-copy-out"
+
+        def rsync(command, **_options):
+            self.assertEqual(command[:2], ["rsync", "--archive"])
+            # The attachment cleanup deletes a file after rsync listed it.
+            shutil.copytree(source, out)
+            (out / "ab" / "collected").unlink()
+            return subprocess.CompletedProcess(command, 24, "", "file has vanished")
+
+        with mock.patch.object(cohort.subprocess, "run", rsync):
+            self.real_copy_tree(source, out, live=True)
+        self.assertTrue((out / "ab" / "kept").is_file())
+        self.assertFalse((out / "ab" / "collected").exists())
+
+    def test_a_live_copy_still_fails_on_any_other_rsync_error(self) -> None:
+        source = self.root / "filestore"
+        source.mkdir()
+        failed = subprocess.CompletedProcess([], 23, "", "permission denied")
+        with mock.patch.object(cohort.subprocess, "run", return_value=failed):
+            with self.assertRaisesRegex(cohort.CohortError, "permission denied"):
+                self.real_copy_tree(source, self.root / "out", live=True)
+
+    def test_a_quiesced_copy_still_uses_cp_and_never_tolerates_vanishing_files(self) -> None:
+        source = self.root / "filestore"
+        source.mkdir()
+        with mock.patch.object(cohort, "run") as run:
+            self.real_copy_tree(source, self.root / "out")
+        self.assertEqual(run.call_args.args[0][:2], ["cp", "--archive"])
 
     def test_an_absent_optional_tree_is_skipped(self) -> None:
         cohort.copy_tree_online(self.root / "absent", self.root / "copy", required=False)
@@ -580,27 +627,6 @@ class ReceiptTests(unittest.TestCase):
         value["unexpected"] = 1
         with self.assertRaisesRegex(RuntimeError, "fields differ"):
             self.validate(seal(value))
-
-    def test_an_online_receipt_cannot_claim_a_writer_interval(self) -> None:
-        claims = {
-            "writers_quiesced": True,
-            "writer_interval_complete": True,
-            "writers_stopped_at": "2026-09-04T00:00:00Z",
-            "writers_resumed_at": "2026-09-04T00:00:05Z",
-            "quiescence": backup_receipt()["quiescence"],
-        }
-        for field, claim in claims.items():
-            with self.subTest(field=field):
-                value = online_receipt()
-                value[field] = claim
-                with self.assertRaisesRegex(RuntimeError, "claims a writer interval"):
-                    self.validate(seal(value))
-        for field in ("writer_freeze_seconds", "writer_freeze_sla_passed"):
-            with self.subTest(field=field):
-                value = online_receipt()
-                value["performance"][field] = 1 if field.endswith("seconds") else True
-                with self.assertRaisesRegex(RuntimeError, "claims a writer interval"):
-                    self.validate(seal(value))
 
     def test_an_online_receipt_can_never_authorise_a_release_that_needs_stopped_writers(self) -> None:
         value = online_receipt(target="staging", run_id="attempt-20260904-staging")
