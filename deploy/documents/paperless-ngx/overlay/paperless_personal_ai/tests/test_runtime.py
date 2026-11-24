@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from asgiref.sync import async_to_sync
 from django.contrib.auth.models import Permission
 from django.test import override_settings
 from documents.models import Document
@@ -182,7 +183,8 @@ class TestPersonalAIRuntimeBoundary(PersonalAIKeyFileMixin, APITestCase):
             api_key="chat-secret",
             document_chat_enabled=True,
         )
-        stream_chat.return_value = iter(("answer",))
+        # A generator, like the real stream: the ASGI wrapper closes it.
+        stream_chat.return_value = (chunk for chunk in ("answer",))
 
         response = self.client.post(
             "/api/documents/chat/",
@@ -191,7 +193,11 @@ class TestPersonalAIRuntimeBoundary(PersonalAIKeyFileMixin, APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(b"".join(response.streaming_content), b"answer")
+        # Paperless 3.5 serves chat as an async stream (ASGI-safe).
+        async def read_parts() -> list[bytes]:
+            return [part async for part in response.streaming_content]
+
+        self.assertEqual(b"".join(async_to_sync(read_parts)()), b"answer")
         self.assertEqual(stream_chat.call_args.kwargs["user_id"], self.user.pk)
         self.assertEqual(
             stream_chat.call_args.kwargs["document_id"],
