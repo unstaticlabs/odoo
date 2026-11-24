@@ -12,6 +12,7 @@ import io
 import json
 import os
 import re
+import secrets
 import sys
 import textwrap
 import time
@@ -7604,6 +7605,187 @@ print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
     raise RuntimeError("Pocket ID runtime admission returned no evidence")
 
 
+STAGING_PAPERLESS_SERVICE_USER = "odoo-integration"
+STAGING_PAPERLESS_CONNECTION_PREFIX = "USL_STAGING_PAPERLESS_CONNECTION="
+
+
+def _staging_paperless_internal_url(target, runner, candidate_identity: dict) -> str:
+    """Return the Paperless URL that the candidate Odoo service is rendered with.
+
+    The URL must name the staging Paperless service or one of its own network
+    aliases, and that Paperless must accept it as a host. A name that another
+    project on the host also uses (``paperless-webserver``) is not enough on a
+    shared network, so the rendered Compose file decides, not a default.
+    """
+    rendered = runner.run(
+        compose_command(candidate_identity, ["config", "--format", "json"]),
+    )
+    try:
+        services = json.loads(rendered.stdout)["services"]
+        odoo = services[target.value["services"]["odoo"]]["environment"]
+        paperless_name = target.value["services"]["paperless"]
+        paperless_service = services[paperless_name]
+        paperless = paperless_service["environment"]
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("rendered staging Paperless connection is invalid") from error
+    internal_url = str(odoo.get("PAPERLESS_INTERNAL_URL", "")).rstrip("/")
+    parsed = urlsplit(internal_url)
+    networks = paperless_service.get("networks") or {}
+    aliases = {paperless_name}
+    if isinstance(networks, dict):
+        for network in networks.values():
+            aliases.update((network or {}).get("aliases") or [])
+    allowed_hosts = {
+        host.strip()
+        for host in str(paperless.get("PAPERLESS_ALLOWED_HOSTS", "")).split(",")
+        if host.strip()
+    }
+    if (
+        parsed.scheme != "http"
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or parsed.hostname not in aliases
+        or (allowed_hosts and parsed.hostname not in allowed_hosts)
+    ):
+        raise RuntimeError("staging Paperless internal URL is not the staging Paperless service")
+    return internal_url
+
+
+def _reconnect_staging_paperless(
+    target, runner, release, network, volumes, candidate_identity, paperless_container: str,
+) -> dict:
+    """Connect neutralized staging Odoo to staging Paperless with a fresh token.
+
+    Neutralization deletes every ``usl_documents.paperless_*`` parameter, so a
+    reseeded staging database holds no route to the production archive. This
+    step gives it a route to its own archive. The restored Paperless database is
+    a copy of production, so the service user's token is first replaced with a
+    new random key: the production token stops working in staging, and the new
+    key exists only in the two staging databases. The key travels on stdin,
+    never on a command line, and the evidence holds no key.
+    """
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-staging-paperless-connection/v1", "status": "not-applicable"}
+    internal_url = _staging_paperless_internal_url(target, runner, candidate_identity)
+    public_url = target.value["endpoints"]["paperless"].rstrip("/")
+    token = secrets.token_hex(20)
+    paperless_database = target.value["databases"]["paperless"]
+    rotated = runner.run(
+        [
+            "docker", "exec", "--interactive", paperless_container, "psql",
+            "--username", paperless_database["user"],
+            "--dbname", paperless_database["name"],
+            "--tuples-only", "--no-align", "--quiet",
+            "--set", "ON_ERROR_STOP=1",
+        ],
+        input_text=(
+            "WITH service AS (\n"
+            "    SELECT id FROM auth_user\n"
+            f"     WHERE username = '{STAGING_PAPERLESS_SERVICE_USER}' AND is_active\n"
+            "), rotated AS (\n"
+            "    INSERT INTO authtoken_token (key, created, user_id)\n"
+            f"    SELECT '{token}', now(), id FROM service\n"
+            "    ON CONFLICT (user_id) DO UPDATE\n"
+            "       SET key = EXCLUDED.key, created = EXCLUDED.created\n"
+            "    RETURNING user_id\n"
+            ")\n"
+            "SELECT json_build_object(\n"
+            "    'service_users', (SELECT count(*) FROM service),\n"
+            "    'rotated_user_id', (SELECT min(user_id) FROM rotated)\n"
+            ");\n"
+        ),
+    )
+    try:
+        rotation = json.loads(rotated.stdout.strip().splitlines()[-1])
+        service_user_id = int(rotation["rotated_user_id"])
+    except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        raise RuntimeError("staging Paperless service token rotation failed") from error
+    if rotation.get("service_users") != 1 or service_user_id < 1:
+        raise RuntimeError("staging Paperless service token rotation failed")
+    settings = {
+        "url": internal_url,
+        "public_url": public_url,
+        "token": token,
+        "service_user_id": service_user_id,
+    }
+    program = f"""import hashlib
+import json
+
+settings = json.loads({json.dumps(json.dumps(settings))})
+params = env["ir.config_parameter"].sudo()
+params.set_str("usl_documents.paperless_url", settings["url"])
+params.set_str("usl_documents.paperless_public_url", settings["public_url"])
+params.set_str("usl_documents.paperless_token", settings["token"])
+params.set_int("usl_documents.paperless_service_user_id", settings["service_user_id"])
+env.registry.clear_cache("stable")
+client = env["usl.document"]._paperless()
+checks = {{
+    "configured": client.configured is True,
+    "url_matches": client.base_url == settings["url"],
+    "public_url_matches": client.public_url == settings["public_url"],
+    "token_matches": client.token == settings["token"],
+    "service_user_matches": client.owner_user_id == settings["service_user_id"],
+}}
+if not all(checks.values()):
+    raise RuntimeError("staging Paperless connection failed: " + ", ".join(
+        key for key, value in checks.items() if not value
+    ))
+env.cr.commit()
+print({json.dumps(STAGING_PAPERLESS_CONNECTION_PREFIX)} + json.dumps({{
+    "schema": "usl-staging-paperless-connection/v1",
+    "status": "connected",
+    "internal_url": settings["url"],
+    "public_url": settings["public_url"],
+    "service_user_id": settings["service_user_id"],
+    "token_sha256": hashlib.sha256(settings["token"].encode()).hexdigest(),
+    **checks,
+}}, sort_keys=True))
+"""
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            [
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+            ],
+        ),
+        input_text=program,
+    )
+    expected = {
+        "schema": "usl-staging-paperless-connection/v1",
+        "status": "connected",
+        "internal_url": internal_url,
+        "public_url": public_url,
+        "service_user_id": service_user_id,
+        "token_sha256": hashlib.sha256(token.encode()).hexdigest(),
+        "configured": True,
+        "url_matches": True,
+        "public_url_matches": True,
+        "token_matches": True,
+        "service_user_matches": True,
+    }
+    for line in reversed(result.stdout.splitlines()):
+        if not line.startswith(STAGING_PAPERLESS_CONNECTION_PREFIX):
+            continue
+        try:
+            evidence = json.loads(line.removeprefix(STAGING_PAPERLESS_CONNECTION_PREFIX))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging Paperless connection returned invalid evidence") from error
+        if evidence != expected:
+            raise RuntimeError("staging Paperless connection evidence differs")
+        return evidence
+    raise RuntimeError("staging Paperless connection returned no evidence")
+
+
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
     """Converge the isolated candidate before any production worker can run."""
     cron_target = target.value["cron_policy"]
@@ -8145,6 +8327,25 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 network,
                 volumes,
                 candidate_identity,
+            )
+            paperless_connection = _reconnect_staging_paperless(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                candidate_identity,
+                database_containers[1],
+            )
+            _record_event(
+                target,
+                target_runner,
+                generation,
+                "restore",
+                "paperless-connection",
+                paperless_connection["status"],
+                service_user_id=paperless_connection["service_user_id"],
+                token_sha256=paperless_connection["token_sha256"],
             )
         cron_policy_application = _apply_generation_cron_policy(
             target,
