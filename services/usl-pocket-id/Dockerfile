@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.7
 
-# Pocket ID v2.19.2 with the USL fresh-passkey patch. The build stages mirror
+# Pocket ID v2.19.3 with the USL fresh-passkey patch. The build stages mirror
 # upstream's docker/Dockerfile for this release; only the source checkout, the
 # patch and the test stage are ours.
 # Renovate reads the version and the commit of the tag together
@@ -16,7 +16,7 @@ WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
     && git checkout --detach "${POCKET_ID_COMMIT}" \
     && test "$(git rev-parse HEAD)" = "${POCKET_ID_COMMIT}"
-COPY services/usl-pocket-id/pocket-id-v2.19.2-fresh-passkey.patch /tmp/fresh-passkey.patch
+COPY services/usl-pocket-id/pocket-id-v2.19.3-fresh-passkey.patch /tmp/fresh-passkey.patch
 RUN git apply --check /tmp/fresh-passkey.patch \
     && git apply /tmp/fresh-passkey.patch \
     && rm -rf .git
@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/app/frontend/node_modules/.vite,uid=1000,gid=1000
     --mount=type=cache,target=/app/frontend/.svelte-kit,uid=1000,gid=1000 \
     BUILD_OUTPUT_PATH=dist vp -C frontend run build
 
-FROM golang:1.27.3-alpine AS backend-builder
+FROM golang:1.27.4-alpine AS backend-builder
 ARG BUILD_TAGS=""
 WORKDIR /build
 COPY --from=source /src/backend/go.mod /src/backend/go.sum ./

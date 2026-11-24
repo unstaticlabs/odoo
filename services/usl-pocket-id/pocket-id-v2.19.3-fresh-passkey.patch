@@ -473,8 +473,8 @@ index a55daa1..91e3478 100644
 @@ -1,6 +1,6 @@
  {
  	"name": "pocket-id-frontend",
--	"version": "2.19.2",
-+	"version": "2.19.2-usl1",
+-	"version": "2.19.3",
++	"version": "2.19.3-usl1",
  	"private": true,
  	"type": "module",
  	"imports": {
