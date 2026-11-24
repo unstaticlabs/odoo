@@ -7,8 +7,8 @@
 # (renovate.json). A new release changes both in one pull request, and the
 # patch then fails `git apply --check` until someone rebases it.
 # renovate: datasource=github-tags depName=pocket-id/pocket-id
-ARG POCKET_ID_VERSION=v2.19.2
-ARG POCKET_ID_COMMIT=2b2750ed61e0016f4c15630322d15ca22143cdb6
+ARG POCKET_ID_VERSION=v2.19.3
+ARG POCKET_ID_COMMIT=c0abd9322d0a67e200434baacc662e9c7cde1389
 
 FROM alpine/git:2.49.1 AS source
 ARG POCKET_ID_COMMIT

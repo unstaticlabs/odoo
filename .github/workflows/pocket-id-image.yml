@@ -27,7 +27,7 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/unstaticlabs/usl-pocket-id
-  TAG: 2.19.2-usl1
+  TAG: 2.19.3-usl1
 
 jobs:
   test:
