@@ -1,3 +1,8 @@
+# Renovate reads the version and the source commit together (renovate.json).
+# Its pull request changes only these two values. The base image digest, the
+# archive SHA-256 and the overlay hashes stay manual (README.md).
+# renovate: datasource=github-tags depName=paperless-ngx/paperless-ngx
+ARG PAPERLESS_VERSION=v3.4.2
 ARG PAPERLESS_BASE_IMAGE=ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84
 ARG PAPERLESS_FRONTEND_BUILD_IMAGE=node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4
 ARG PAPERLESS_SOURCE_URL=https://github.com/paperless-ngx/paperless-ngx/archive/d939d873e11dd14896d1bfe23f65b1baa6513ba7.tar.gz

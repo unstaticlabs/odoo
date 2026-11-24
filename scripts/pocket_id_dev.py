@@ -361,8 +361,8 @@ def _write_new_env(path: Path) -> None:
         "POCKET_ID_HOSTNAME": pocket_hostname,
         "POCKET_ID_HTTP_PORT": pocket_port,
         "POCKET_ID_IMAGE": (
-            "ghcr.io/pocket-id/pocket-id:v2.19.2@"
-            "sha256:3ee23895d6a3adb5dd5de801a4fd31fc31b960e6dfbea9b5200e33cf477695eb"
+            "ghcr.io/pocket-id/pocket-id:v2.19.3@"
+            "sha256:189e03bb73bb86d7108fe81cbe2237c408cff2176b14cd7a39cc12a2ee8b2762"
         ),
         "POCKET_ID_PROSPER_EMAIL": "prosper@preproduction.invalid",
         "POCKET_ID_PROSPER_ODOO_EMAIL": prosper_odoo_email,
