@@ -1,19 +1,19 @@
-# USL Paperless 3.4.2 distribution overlay
+# USL Paperless 3.5.1 distribution overlay
 
 This directory contains the only Paperless source overlay in the USL
-distribution. It applies to upstream Paperless-ngx `v3.4.2`, source commit
-`d939d873e11dd14896d1bfe23f65b1baa6513ba7`, image index digest
-`sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84`.
+distribution. It applies to upstream Paperless-ngx `v3.5.1`, source commit
+`35b0439195bbdb87a6d519152e6782abe0720c3b`, image index digest
+`sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9`.
 The backend and frontend patchers verify the SHA-256 of every changed upstream
 file and reject any source drift before changing the image. The exact source
 archive is pinned at
-`sha256:9359f9f6c9e71d2736d9ac8074c0563d35367fa32dcdbf09ded58482b02fe8ec`;
+`sha256:8416949e59c86befe73b8ac761ca5056a50972ebe9ef7db1d66990745ac7a49a`;
 the frontend builder is pinned at
 `node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4`.
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -28,7 +28,9 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    permission lifecycle and native Tantivy refresh, but marks ownership/ACL-only
    edits as embedding-invariant. Those edits no longer recompute unchanged
    BGE-M3 vectors or hit the 30-minute task limit. Every other bulk metadata or
-   content edit retains the upstream vector refresh.
+   content edit retains the upstream vector refresh. Since Paperless 3.5, a bulk
+   edit runs as one queued task that refreshes the documents itself
+   (`documents/bulk_operations.py`), so the patch applies the same rule there.
 3. Controlled one-shot archive reconstruction may set
    `PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true` while OCR, metadata, and
    permission truth are materialized. Incremental embedding tasks are then
