@@ -73,6 +73,7 @@ from operations.stack import (
     _previous_generation_record,
     _previous_generation_identity,
     _reconcile_staging_pocketid,
+    _reconnect_staging_paperless,
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
@@ -2529,6 +2530,164 @@ class CohortContractTests(unittest.TestCase):
             candidate,
         )
         self.assertEqual(result, internal_evidence)
+
+    def _staging_paperless_fixture(self):
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": {
+                "PAPERLESS_INTERNAL_URL": "http://paperless-staging-app:8000",
+            }},
+            target.value["services"]["paperless"]: {
+                "environment": {
+                    "PAPERLESS_ALLOWED_HOSTS": (
+                        "localhost,127.0.0.1,paperless-webserver,paperless-staging-app"
+                    ),
+                },
+                "networks": {"default": {"aliases": ["paperless-staging-app"]}},
+            },
+        }}
+        return target, candidate, release, rendered
+
+    def _staging_paperless_runner(self, rendered, *, rotation=None, evidence=None):
+        state = {}
+
+        def run(command, **kwargs):
+            if "config" in command:
+                return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+            if "psql" in command:
+                state["sql"] = kwargs["input_text"]
+                token = state["sql"].split("SELECT '", 1)[1].split("'", 1)[0]
+                state["token"] = token
+                value = rotation or {"service_users": 1, "rotated_user_id": 2}
+                return subprocess.CompletedProcess(command, 0, json.dumps(value) + "\n", "")
+            state["program"] = kwargs["input_text"]
+            value = evidence(state) if evidence else {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": hashlib.sha256(state["token"].encode()).hexdigest(),
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+            return subprocess.CompletedProcess(
+                command, 0, "USL_STAGING_PAPERLESS_CONNECTION=" + json.dumps(value) + "\n", "",
+            )
+
+        runner = mock.Mock()
+        runner.run.side_effect = run
+        return runner, state
+
+    def test_staging_paperless_reconnect_rotates_token_and_keeps_it_off_argv(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        runner, state = self._staging_paperless_runner(rendered)
+        result = _reconnect_staging_paperless(
+            target, runner, release, "candidate-network",
+            {"odoo_filestore": "candidate-filestore"}, candidate, "candidate-paperless-db",
+        )
+        self.assertEqual(result["status"], "connected")
+        self.assertEqual(result["internal_url"], "http://paperless-staging-app:8000")
+        self.assertEqual(result["service_user_id"], 2)
+        self.assertRegex(state["token"], r"^[0-9a-f]{40}$")
+        self.assertNotIn(state["token"], json.dumps(result))
+        for call in runner.run.call_args_list:
+            self.assertNotIn(state["token"], " ".join(call.args[0]))
+        psql = runner.run.call_args_list[1].args[0]
+        self.assertIn("candidate-paperless-db", psql)
+        self.assertIn("paperless_staging", psql)
+        self.assertIn("username = 'odoo-integration'", state["sql"])
+        self.assertIn("ON CONFLICT (user_id) DO UPDATE", state["sql"])
+        program = state["program"]
+        self.assertIn(state["token"], program)
+        self.assertIn('env.registry.clear_cache("stable")', program)
+        self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
+        compile(program, "<staging-paperless-connection>", "exec")
+
+    def test_staging_paperless_reconnect_is_staging_only(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        runner = mock.Mock()
+        result = _reconnect_staging_paperless(
+            target, runner, {}, "network", {}, {}, "paperless-db",
+        )
+        self.assertEqual(result["status"], "not-applicable")
+        runner.run.assert_not_called()
+
+    def test_staging_paperless_reconnect_rejects_unsafe_url_and_bad_rotation(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        odoo_service = target.value["services"]["odoo"]
+        for url in (
+            "http://paperless-webserver.example:8000",
+            "https://paperless-staging-app:8000",
+            "http://user:pw@paperless-staging-app:8000",
+            "http://paperless-staging-app:8000/api",
+            "",
+        ):
+            broken = json.loads(json.dumps(rendered))
+            broken["services"][odoo_service]["environment"]["PAPERLESS_INTERNAL_URL"] = url
+            runner, _state = self._staging_paperless_runner(broken)
+            with self.assertRaisesRegex(RuntimeError, "internal URL"):
+                _reconnect_staging_paperless(
+                    target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+                )
+        not_allowed = json.loads(json.dumps(rendered))
+        not_allowed["services"][target.value["services"]["paperless"]]["environment"][
+            "PAPERLESS_ALLOWED_HOSTS"
+        ] = "localhost,127.0.0.1"
+        runner, _state = self._staging_paperless_runner(not_allowed)
+        with self.assertRaisesRegex(RuntimeError, "internal URL"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+        runner, _state = self._staging_paperless_runner(
+            rendered, rotation={"service_users": 0, "rotated_user_id": None},
+        )
+        with self.assertRaisesRegex(RuntimeError, "token rotation failed"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+
+    def test_staging_paperless_reconnect_rejects_mismatched_evidence(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+
+        def evidence(state):
+            return {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": "0" * 64,
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+
+        runner, _state = self._staging_paperless_runner(rendered, evidence=evidence)
+        with self.assertRaisesRegex(RuntimeError, "evidence differs"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
 
     def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
         target = load_target("staging", HOST_TARGETS)
