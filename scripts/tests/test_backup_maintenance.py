@@ -201,6 +201,25 @@ class BackupMaintenanceTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "unhealthy resume"):
                 self.execute(host)
             self.assertNotIn("push", host.events)
+    def test_older_captures_are_pruned_only_after_the_receipt_of_a_successful_backup(self):
+        outcome = {"status": "completed", "deleted_captures": []}
+        for quiesced in (False, True):
+            with self.subTest(quiesced=quiesced), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root)
+                with patch.object(stack, "_prune_superseded_captures", return_value=outcome) as prune:
+                    self.assertEqual(self.execute(host, quiesced=quiesced), 0)
+                prune.assert_called_once()
+                self.assertEqual(prune.call_args.args[2], "synthetic-backup-run")
+                self.assertEqual(host.events[-2:], ["push", "qualify"])
+
+    def test_a_failed_backup_prunes_nothing(self):
+        for failure in ({"fail_capture": True}, {"fail_upload": True}):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root)
+                with patch.object(stack, "_prune_superseded_captures") as prune:
+                    with self.assertRaisesRegex(RuntimeError, "synthetic"):
+                        self.execute(host, quiesced=True, **failure)
+                prune.assert_not_called()
 
     def test_quiesced_upload_failure_reopens_only_after_healthy_unchanged_baseline(self):
         for mismatch in (False, True):

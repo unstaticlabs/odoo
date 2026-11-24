@@ -3877,20 +3877,20 @@ class CohortContractTests(unittest.TestCase):
                 )
 
         gib = 1024**3
-        with self.assertRaisesRegex(RuntimeError, "2.0 GiB deficit"):
+        with self.assertRaisesRegex(RuntimeError, "3.0 GiB deficit"):
             _require_restore_capacity(
                 target,
-                CapacityRunner(17 * gib),
+                CapacityRunner(7 * gib),
                 "preflight",
                 candidate_bytes={"bulk": 4 * gib},
             )
         admitted = _require_restore_capacity(
             target,
-            CapacityRunner(19 * gib),
+            CapacityRunner(10 * gib),
             "preflight",
             candidate_bytes={"bulk": 4 * gib},
         )
-        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 19 * gib)
+        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 10 * gib)
 
     def test_restore_capacity_groups_tiers_on_their_actual_filesystems(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3911,7 +3911,7 @@ class CohortContractTests(unittest.TestCase):
             "preflight",
             candidate_bytes={"bulk": 3 * gib, "database": 2 * gib, "local": 1 * gib},
         )
-        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 18 * gib)
+        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 9 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["candidate_bytes"], 3 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["reserve_bytes"], 2 * gib)
 
@@ -4719,6 +4719,94 @@ class CohortContractTests(unittest.TestCase):
         )
         _delete_cleanup_resources(runner, [], [], [], [], paths)
         self.assertEqual(runner.removed, paths)
+
+    def _prune(self, target, runner, keep: str):
+        from operations.stack import _prune_superseded_captures
+        return _prune_superseded_captures(target, runner, keep)
+
+    def test_a_successful_production_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("production", TARGETS)
+        attempt, running = ("intent-" + digit * 48 for digit in "12")
+        newest, anchor, older, failed, newer = (
+            "proof-daily-" + digit * 16 for digit in "abcde"
+        )
+        entries = {"generations": "d", "backup-runs": "d", "runs": "d", "operation.lock": "d",
+                   "runs/release-" + "a" * 64 + ".json": "f"}
+        files = {"runs/release-" + "a" * 64 + ".json": json.dumps({"attempt": running, "status": "running"})}
+        captures = {
+            newest: "2026-09-05T04:00:00Z",
+            anchor: "2026-09-04T04:00:00Z",   # the last passed proof: its snapshots, not this copy, anchor it
+            older: "2026-09-03T04:00:00Z",
+            newer: "2026-09-06T04:00:00Z",    # never older than the capture that just succeeded
+            f"release-pre-{attempt}": "2026-09-02T04:00:00Z",
+            f"release-pre-{running}": "2026-09-01T04:00:00Z",
+        }
+        for run_id, created_at in captures.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[failed] = "d"
+        files.update(self._capture_files(target, failed, created_at="2026-09-02T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        root = target.value["state_directory"]
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            result = self._prune(target, runner, newest)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(
+            sorted(runner.removed),
+            sorted(f"{root}/{name}" for name in (anchor, older, f"release-pre-{attempt}")),
+        )
+        # Kept: the new capture, a newer one, an unqualified one that may resume,
+        # an unfinished release attempt, and everything that is not a capture.
+        for kept in (newest, newer, failed, f"release-pre-{running}", "backup-runs", "generations"):
+            self.assertNotIn(f"{root}/{kept}", runner.removed)
+
+    def test_a_successful_staging_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, older, oldest, unqualified = ("intent-" + digit * 48 for digit in "abcd")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d"}
+        files = {}
+        for run_id, created_at in {
+            newest: "2026-09-05T04:00:00Z", older: "2026-09-04T04:00:00Z", oldest: "2026-09-03T04:00:00Z",
+        }.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[unqualified] = "d"
+        files.update(self._capture_files(target, unqualified, created_at="2026-09-01T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        root = target.value["state_directory"]
+        self.assertEqual(sorted(runner.removed), sorted([f"{root}/{older}", f"{root}/{oldest}"]))
+
+    def test_nothing_is_deleted_when_the_new_capture_did_not_qualify(self) -> None:
+        target = load_target("staging", TARGETS)
+        failed, older = ("intent-" + digit * 48 for digit in "ab")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", failed: "d", older: "d"}
+        files = self._capture_files(target, older, created_at="2026-09-04T04:00:00Z")
+        files.update(self._capture_files(target, failed, created_at="2026-09-05T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            result = self._prune(target, runner, failed)
+        self.assertEqual((result["status"], runner.removed), ("skipped", []))
+        self.assertIn("not qualified", errors.getvalue())
+
+    def test_pruning_refuses_names_outside_the_managed_captures(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        runner = self._capture_state_root(target, {"generations": "d"}, {})
+        for name in ("../escape", "generations", "backup-runs", "/etc"):
+            with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [name]}, keep_anchor_capture=False)
+        self.assertEqual(runner.removed, [])
+
+    def test_the_default_deletion_path_still_protects_the_anchor_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("production", TARGETS)
+        anchor = "proof-daily-" + "a" * 16
+        entries = {anchor: "d"}
+        runner = self._capture_state_root(target, entries, self._capture_files(target, anchor, created_at="2026-09-04T04:00:00Z"))
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            with self.assertRaisesRegex(RuntimeError, "last full usable recovery anchor"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [anchor]})
 
     def test_capture_retention_keeps_newest_staging_captures(self) -> None:
         target = load_target("staging", TARGETS)

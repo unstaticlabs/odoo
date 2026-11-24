@@ -4469,6 +4469,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 json.dumps(result, indent=2, sort_keys=True) + "\n",
                 "0444",
             )
+            # The new capture is qualified and its receipt is written: every
+            # older local copy is now a duplicate of verified Restic snapshots.
+            pruned = _prune_superseded_captures(target, runner, run_id)
+            _record_event(
+                target, runner, run_id, "backup", "retention", pruned["status"],
+                deleted_captures=len(pruned["deleted_captures"]),
+            )
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
 
@@ -11401,6 +11408,49 @@ def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -
         return {"status": "published", "anchor": candidate}
 
 
+def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
+    """Delete every older local capture once a newer backup has qualified.
+
+    Nothing reads a finished capture directory again: restore, rollback and
+    proofs read the Restic snapshots; the anchor reads ``backup-runs/`` receipts
+    and the remote snapshot pair; ``--resume`` and ``push`` read only the run
+    they continue. A capture that is not qualified (it may still be resumed) and
+    one owned by an unfinished release attempt are kept. The backup has already
+    succeeded, so a failure here is reported and never fails it. Deletion goes
+    through the same validation as ``cleanup apply``.
+    """
+    if target.value["environment"] not in {"production", "staging"}:
+        return {"status": "skipped", "deleted_captures": []}
+    try:
+        kept = _qualified_capture(target, runner, keep_run_id)
+        if kept is None:
+            raise RuntimeError(f"the new capture is not qualified: {keep_run_id}")
+        unfinished = _unfinished_release_attempts(target, runner)
+        older = []
+        for name, kind in _state_root_entries(target, runner):
+            attempt = _capture_attempt(target, name)
+            if name == keep_run_id or (attempt is None and not _proof_capture(target, name)):
+                continue
+            if kind != "d":
+                raise RuntimeError(f"cleanup capture is not a directory: {name}")
+            capture = _qualified_capture(target, runner, name)
+            if (
+                capture is None
+                or attempt in unfinished
+                or capture["created_at"] > kept["created_at"]
+            ):
+                continue
+            older.append(name)
+        paths = _validated_cleanup_captures(
+            target, runner, {"delete_captures": sorted(older)}, keep_anchor_capture=False,
+        )
+        _delete_cleanup_resources(runner, [], [], [], [], paths)
+    except Exception as error:  # noqa: BLE001 - the backup already succeeded and is recorded
+        print(f"older capture deletion skipped: {error}", file=sys.stderr)
+        return {"status": "skipped", "deleted_captures": []}
+    return {"status": "completed", "deleted_captures": sorted(older)}
+
+
 def _retain_recovery_proof_captures(target) -> dict:
     """Delete the old qualified daily proof captures after a passed proof.
 
@@ -11745,14 +11795,16 @@ def _validated_cleanup_resources(
     return containers, volumes, networks
 
 
-def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
+def _validated_cleanup_captures(
+    target, runner, inventory: dict, *, keep_anchor_capture: bool = True,
+) -> list[str]:
     """Re-check every capture directory immediately before deletion."""
     state_root = target.value["state_directory"]
     paths = []
     for run_id in inventory["delete_captures"]:
         if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
-        if target.value["environment"] == "production" and _proof_capture(target, run_id):
+        if keep_anchor_capture and target.value["environment"] == "production" and _proof_capture(target, run_id):
             if _usable_recovery_anchor(target, runner)["run_id"] == run_id:
                 raise RuntimeError("cleanup cannot delete the last full usable recovery anchor capture")
         path = f"{state_root}/{run_id}"

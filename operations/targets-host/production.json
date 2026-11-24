@@ -37,7 +37,7 @@
     "paperless": {"service": "paperless-db", "name": "paperless", "user": "paperless", "password_key": "PAPERLESS_DB_PASSWORD"}
   },
   "storage": {"tiers": {
-    "bulk": {"path": "/srv/storage", "reserve_bytes": 16106127360},
+    "bulk": {"path": "/srv/storage", "reserve_bytes": 6442450944},
     "database": {"path": "/srv/db", "reserve_bytes": 2147483648},
     "local": {"path": "/var/lib/usl-odoo", "reserve_bytes": 2147483648}
   }},

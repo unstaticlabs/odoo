@@ -306,7 +306,7 @@ file and hash its bytes rather than its pathname.
 Before allocating the restored proof, capacity includes the capture that has
 already been written. All disposable proof volumes use Docker's filesystem:
 the proof reserves the largest configured storage-tier reserve on that same
-filesystem (15 GiB when Docker lives on the production bulk disk). Shared tiers
+filesystem (6 GiB when Docker lives on the production bulk disk). Shared tiers
 do not add their reserves together. A local or unmatched Docker filesystem
 retains the existing 2 GiB minimum. An optional rehearsal must fit this budget;
 it does not borrow the deployment reserve or change backup retention.
@@ -380,6 +380,18 @@ Each backup run writes a local capture directory to
 database dumps, the durable tree, the reusable cache, `manifest.json`, and
 `state.json`. One capture is about 900 MB. Restic holds the recovery copy. The
 local directory is only the upload workspace.
+
+Right after a production or staging `backup create` writes its qualified
+receipt, the same command deletes every older qualified capture directory of
+that target, recovery-proof captures included, and keeps the one that just
+succeeded. It goes through the validation `cleanup apply` uses, except that the
+capture of the last usable recovery anchor is no longer kept: the anchor reads
+`backup-runs/<run-id>/` receipts, the proof evidence and the remote snapshot
+pair, never the capture directory. Captures that are not qualified (they may
+resume) and captures of an unfinished release attempt stay. A failed backup
+deletes nothing, and a failed deletion is reported on stderr without failing the
+backup. The proof evidence under `/var/lib/usl-odoo/recovery-proofs/` is not
+touched.
 
 `cleanup plan` lists the captures that retention deletes in `delete_captures`.
 It lists the captures that retention keeps in `protected_captures`.

@@ -867,7 +867,7 @@ filesystems, or Docker/containerd roots outside `/srv/storage`.
 
 Capacity admission groups tiers by the filesystem device that actually backs
 their paths. `/srv/storage` must hold the measured candidate bulk delta plus
-the full 15 GiB reserve. Local NVMe must hold the transactional/local candidate
+the full 6 GiB reserve. Local NVMe must hold the transactional/local candidate
 delta plus its 2 GiB hard reserve; the existing 8 GiB warning remains. A single
 filesystem shared by multiple declared tiers receives its reserve once, and
 active/rollback bytes already represented by free space are never added again.
