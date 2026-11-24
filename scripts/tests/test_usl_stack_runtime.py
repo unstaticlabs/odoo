@@ -417,7 +417,7 @@ class RuntimeContractTests(unittest.TestCase):
             tiers = target.value["storage"]["tiers"]
             self.assertEqual(tiers["bulk"]["path"], "/srv/storage")
             self.assertEqual(tiers["database"]["path"], "/srv/db")
-            self.assertEqual(tiers["bulk"]["reserve_bytes"], 15 * 1024**3)
+            self.assertEqual(tiers["bulk"]["reserve_bytes"], 6 * 1024**3)
             self.assertEqual(tiers["database"]["reserve_bytes"], 2 * 1024**3)
             self.assertEqual(target.value["volumes"]["odoo_postgres"]["tier"], "database")
             self.assertEqual(target.value["volumes"]["mcp_oauth"]["tier"], "database")

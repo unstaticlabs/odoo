@@ -63,14 +63,14 @@ class RecoveryProofCapacityTests(unittest.TestCase):
                 patch("operations.stack._measure_candidate_bytes", return_value=candidate):
             return _recovery_proof_capacity(self.target, Runner(), "synthetic-tool", {})
 
-    def test_bulk_proof_retains_the_configured_fifteen_gib_reserve(self):
+    def test_bulk_proof_retains_the_configured_six_gib_reserve(self):
         from operations.runtime import RuntimeError as OperationsError
         sources = dict(bulk="/dev/bulk", database="/dev/nvme", local="/dev/nvme")
-        with self.assertRaisesRegex(OperationsError, "15.0 GiB reserve"):
-            self.capacity("/dev/bulk", 16 * self.gib, sources, {"bulk": 2 * self.gib})
-        result = self.capacity("/dev/bulk", 17 * self.gib, sources, {"bulk": 2 * self.gib})
-        self.assertEqual(result["reserve_bytes"], 15 * self.gib)
-        self.assertEqual(result["required_bytes"], 17 * self.gib)
+        with self.assertRaisesRegex(OperationsError, "6.0 GiB reserve"):
+            self.capacity("/dev/bulk", 7 * self.gib, sources, {"bulk": 2 * self.gib})
+        result = self.capacity("/dev/bulk", 8 * self.gib, sources, {"bulk": 2 * self.gib})
+        self.assertEqual(result["reserve_bytes"], 6 * self.gib)
+        self.assertEqual(result["required_bytes"], 8 * self.gib)
 
     def test_shared_filesystem_uses_maximum_configured_reserve_not_sum(self):
         self.target.value["storage"]["tiers"]["database"]["reserve_bytes"] = 21 * self.gib
