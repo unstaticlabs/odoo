@@ -1,0 +1,8 @@
+<templates xml:space="preserve">
+    <t t-name="usl_voice.Meter">
+        <span class="o-usl-voice-meter d-inline-flex align-items-center gap-2" role="timer">
+            <span class="o-usl-voice-dot" t-custom-ref="dot" aria-hidden="true"/>
+            <span t-att-class="{ 'fw-bold': this.ending }" t-out="this.label"/>
+        </span>
+    </t>
+</templates>

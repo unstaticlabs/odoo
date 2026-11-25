@@ -213496,6 +213496,86 @@
     },
     {
       "action_keys": [
+        "client:usl_voice:custom-addons/usl_voice/static/src/transcripts.js:retry:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Requests a retry on the same visible note.",
+      "domain": "collaboration",
+      "evidence_id": "voice-dictation-chatter-20261122",
+      "id": "voice.retry-button",
+      "overrides": {
+        "client:usl_voice:custom-addons/usl_voice/static/src/transcripts.js:retry:rpc:1": {
+          "targets": [
+            "rpc:mail.message.action_usl_retry_voice"
+          ]
+        }
+      },
+      "rationale": "The browser delegates to the exact native-authority retry action.",
+      "reviewed_digests": {
+        "client:usl_voice:custom-addons/usl_voice/static/src/transcripts.js:retry:rpc:1": "486a4aab7e9ba9b8a74f0560e67661444106f0e7167a8e940e5739113cebaaed"
+      }
+    },
+    {
+      "action_keys": [
+        "route:http:POST:/usl/voice/dictate"
+      ],
+      "classification": "operational",
+      "consequence": "Processes a temporary audio clip on the internal model gateway and returns text to the authenticated caller.",
+      "domain": "collaboration",
+      "evidence_id": "voice-dictation-chatter-20261122",
+      "id": "voice.dictation",
+      "rationale": "The endpoint accepts audio only and fixes its destination. Dictation writes no records.",
+      "reviewed_digests": {
+        "route:http:POST:/usl/voice/dictate": "680147985d6d6630b39361115eaf423e3a26b22a15746d90e7848f940cf59c92"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:mail.message.action_usl_retry_voice"
+      ],
+      "classification": "operational",
+      "consequence": "Queues transcription of a failed voice attached to this message.",
+      "domain": "collaboration",
+      "evidence_id": "voice-dictation-chatter-20261122",
+      "id": "voice.retry",
+      "rationale": "A writer can retry only a failed voice that the same account can read. Derived text and status remain on the original note.",
+      "reviewed_digests": {
+        "rpc:mail.message.action_usl_retry_voice": "191efdafdb65ff5babceee9f061df6e97c25a52b52441c629c7cf0cf58ed5004"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:2",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_enqueue_voice:orm_write:1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1",
+        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Handles metadata and calls the private speech gateway for a recorded note or temporary clip.",
+      "domain": "collaboration",
+      "evidence_id": "voice-dictation-chatter-20261122",
+      "id": "voice.jobs",
+      "rationale": "The caller constrains the voice to the original note and checks native authorization before reading audio. A lost grant leaves the job recoverable.",
+      "reachability_proof": "The sinks belong to underscored ORM hooks and helpers or the plain Python speech client. No sink is directly callable by RPC. Their public callers are separately classified.",
+      "reviewed_digests": {
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:1": "79836a64bf9014345be310d8ef3d1515498498b819a39ae06a7099be71932af1",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:2": "58feb5b2bc4f7f294bbfd7f8e720e95729e0d4b2b307133917640a464493cadc",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_enqueue_voice:orm_write:1": "95306bcf5a0ef45129dc1532e05e0f62b8cb670518a7118a46167445a983e7b0",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1": "bd25e47eb42ee66ab697c65d641edba81e9629a9313f97d1f1f10820cb87ca55",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2": "ebecb829a0c2754b679092cbfdf205213b3a88c1ad161c4f6946146f18f1f8d2",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1": "87fc7f1a45935144e971a50d7d41e038d1915f7bb3c31ea60d85f3217e8981fc",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1": "a37ddb9ea0b59b65cca2ad85c293337b9dd59a4be002f8f999e1fb3afa721873",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1": "900e7fa0fdbb9efaca2157e9fa3e86ca29579bef4fad719239b1f5dda42c8b3f",
+        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "6aecd0e16d6b6d9a045f455d7334f41a9e41d5adc47e693f93b84c34ffa11f8e"
+      }
+    },
+    {
+      "action_keys": [
         "rpc:_unknown.web_save_offline",
         "rpc:account.account.reconcile.data.web_save_offline",
         "rpc:account.account.reconcile.web_save_offline",
@@ -222103,6 +222183,13 @@
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_accountant_retains_native_settlement_audit_count",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_comparison_details_exclude_all_object_and_action_buttons",
         "custom-addons/usl_accounting/tests/test_vendor_bill_merge.py::TestVendorBillMerge.test_normal_bill_form_retains_native_lifecycle_and_recovery"
+      ]
+    },
+    "voice-dictation-chatter-20261122": {
+      "contract": "A voice note remains bound to its original message and attachment. Dictation returns text from a fixed internal speech service. The retry checks normal message write authority. Offline audio and lost access retain a recoverable status.",
+      "tests": [
+        "custom-addons/usl_voice/tests/test_voice.py",
+        "custom-addons/usl_voice/static/tests/dictation_target.test.js"
       ]
     }
   },
