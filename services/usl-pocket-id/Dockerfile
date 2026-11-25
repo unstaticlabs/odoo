@@ -10,7 +10,7 @@
 ARG POCKET_ID_VERSION=v2.19.3
 ARG POCKET_ID_COMMIT=c0abd9322d0a67e200434baacc662e9c7cde1389
 
-FROM alpine/git:2.49.1 AS source
+FROM alpine/git:v2.54.0 AS source
 ARG POCKET_ID_COMMIT
 WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
@@ -21,7 +21,7 @@ RUN git apply --check /tmp/fresh-passkey.patch \
     && git apply /tmp/fresh-passkey.patch \
     && rm -rf .git
 
-FROM --platform=$BUILDPLATFORM ghcr.io/voidzero-dev/vite-plus:1.4.0 AS frontend-builder
+FROM --platform=$BUILDPLATFORM ghcr.io/voidzero-dev/vite-plus:1.8.0 AS frontend-builder
 ENV CI=true
 WORKDIR /app
 COPY --from=source --chown=vp:vp /src/package.json /src/pnpm-workspace.yaml /src/pnpm-lock.yaml /src/.node-version ./
@@ -58,7 +58,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go test -tags=exclude_frontend,unit ./internal/common ./internal/controller ./internal/oidc ./internal/service ./internal/webauthn
 
-FROM alpine:3.24.3
+FROM alpine:3.24.4
 WORKDIR /app
 RUN apk add --no-cache curl su-exec
 COPY --from=backend-builder /build/pocket-id /app/pocket-id
