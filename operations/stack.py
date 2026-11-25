@@ -7922,6 +7922,32 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
     return evidence
 
 
+def _record_staging_review_identity(target, runner, run_id: str, receipt: dict) -> None:
+    """Write the review identity outcome to the run log, without ever raising.
+
+    The generation is already admitted: a run log that cannot be written must
+    not turn an admitted release into a failed restore.
+    """
+    if receipt["status"] == "not-applicable":
+        return
+    try:
+        _record_event(
+            target,
+            runner,
+            run_id,
+            "restore",
+            "review-identity",
+            receipt["status"],
+            **{
+                key: receipt[key]
+                for key in ("created", "user_id", "detail")
+                if key in receipt
+            },
+        )
+    except (builtins.RuntimeError, OSError):
+        return
+
+
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
     """Converge the isolated candidate before any production worker can run."""
     cron_target = target.value["cron_policy"]
@@ -8800,23 +8826,12 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         rollback_active_candidate(error)
         raise
-    review_identity = _ensure_staging_review_identity(
-        target, target_runner, generation_identity,
+    _record_staging_review_identity(
+        target,
+        target_runner,
+        generation,
+        _ensure_staging_review_identity(target, target_runner, generation_identity),
     )
-    if review_identity["status"] != "not-applicable":
-        _record_event(
-            target,
-            target_runner,
-            generation,
-            "restore",
-            "review-identity",
-            review_identity["status"],
-            **{
-                key: review_identity[key]
-                for key in ("created", "user_id", "detail")
-                if key in review_identity
-            },
-        )
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,

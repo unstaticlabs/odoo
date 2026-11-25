@@ -77,6 +77,7 @@ from operations.stack import (
     _previous_generation_identity,
     STAGING_REVIEW_IDENTITY_PROGRAM,
     _ensure_staging_review_identity,
+    _record_staging_review_identity,
     _reconcile_staging_pocketid,
     _reconnect_staging_paperless,
     _release_images,
@@ -2755,11 +2756,36 @@ class CohortContractTests(unittest.TestCase):
         # The controls count users, groups and identities against the restored
         # snapshot: a user written before they are compared refuses the release.
         source = inspect.getsource(stack_module._restore_unlocked)
-        step = source.index("_ensure_staging_review_identity(")
+        step = source.index("_record_staging_review_identity(")
+        self.assertIn("_ensure_staging_review_identity(", source[step:])
         self.assertLess(source.index("validate_restore("), step)
         self.assertLess(source.index("upgrade_preservation.verify("), step)
         self.assertLess(source.index('"usl-release-admission/v2"'), step)
         self.assertLess(step, source.index('"schema": "usl-restore-run/v1"'))
+
+    def test_staging_review_identity_event_never_fails_the_admitted_release(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = mock.Mock()
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "not-applicable"},
+        )
+        runner.run.assert_not_called()
+        with contextlib.redirect_stdout(io.StringIO()):
+            _record_staging_review_identity(
+                target, runner, "grelease-1", self._staging_review_identity_evidence(),
+            )
+        event = json.loads(runner.run.call_args.kwargs["input_text"])
+        self.assertEqual(
+            (event["phase"], event["status"], event["created"], event["user_id"]),
+            ("review-identity", "ensured", True, 42),
+        )
+        self.assertNotIn("profile", event)
+        runner.run.side_effect = OperationsError("host unreachable")
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "failed", "detail": "ValueError"},
+        )
 
     def test_staging_review_identity_is_staging_only(self) -> None:
         for name in ("production", "local"):
