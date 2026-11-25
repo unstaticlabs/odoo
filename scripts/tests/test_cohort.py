@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import inspect
 import io
 import json
 import os
@@ -15,6 +16,7 @@ from pathlib import Path
 from unittest import mock
 
 from operations import cohort
+from operations import stack as stack_module
 from operations.runtime import RuntimeError as OperationsError
 from operations.runtime import compose_command, load_target
 from operations.stack import (
@@ -73,6 +75,9 @@ from operations.stack import (
     _require_same_preparation,
     _previous_generation_record,
     _previous_generation_identity,
+    STAGING_REVIEW_IDENTITY_PROGRAM,
+    _ensure_staging_review_identity,
+    _record_staging_review_identity,
     _reconcile_staging_pocketid,
     _reconnect_staging_paperless,
     _release_images,
@@ -2441,6 +2446,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
         self.assertIn("USL_POCKET_ID_ENABLED=1", command)
+        self.assertIn("USL_POCKET_ID_REQUIRED_GROUP=odoo_staging", command)
         shell = command[command.index("-c") + 1]
         self.assertIn("${POCKET_ID_CLIENT_SECRET:?}", shell)
         self.assertIn('exec /usr/local/bin/odoo-entrypoint "$@"', shell)
@@ -2689,6 +2695,207 @@ class CohortContractTests(unittest.TestCase):
             _reconnect_staging_paperless(
                 target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
             )
+
+    def _staging_review_identity_runner(self, stdout, *, containers="odoo-container\n"):
+        state = {}
+
+        def run(command, **kwargs):
+            if "ps" in command:
+                return subprocess.CompletedProcess(command, 0, containers, "")
+            state["command"] = command
+            state["program"] = kwargs["input_text"]
+            if isinstance(stdout, Exception):
+                raise stdout
+            return subprocess.CompletedProcess(command, 0, stdout, "")
+
+        runner = mock.Mock()
+        runner.run.side_effect = run
+        return runner, state
+
+    def _staging_review_identity_evidence(self, **changes):
+        return {
+            "schema": "usl-staging-review-identity/v1",
+            "status": "ensured",
+            "profile": "accountant_reviewer",
+            "created": True,
+            "user_id": 42,
+            "active": True,
+            "pocketid_access": True,
+            "identity_linked": True,
+            "not_system_administrator": True,
+            **changes,
+        }
+
+    def test_staging_review_identity_is_ensured_in_the_admitted_generation(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        for created in (True, False):
+            evidence = self._staging_review_identity_evidence(created=created)
+            runner, state = self._staging_review_identity_runner(
+                "noise\nUSL_STAGING_REVIEW_IDENTITY=" + json.dumps(evidence) + "\n",
+            )
+            result = _ensure_staging_review_identity(target, runner, candidate)
+            self.assertEqual(result, evidence)
+        command = state["command"]
+        self.assertEqual(command[:4], ["docker", "exec", "--interactive", "odoo-container"])
+        self.assertIn("--database=odoo_staging", command)
+        program = state["program"]
+        for name in (
+            "USL_STAGING_RECETTE_LOGIN", "USL_STAGING_RECETTE_EMAIL",
+            "USL_STAGING_RECETTE_SUBJECT",
+        ):
+            self.assertIn(f'"{name}"', program)
+            self.assertNotIn(name, " ".join(command))
+        self.assertIn("_usl_pocketid_apply_user_configuration", program)
+        self.assertIn('"profile": "accountant_reviewer"', program)
+        self.assertIn("strict=False", program)
+        self.assertNotIn("administrator\"", program.replace("not_system_administrator", ""))
+        self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
+        compile(program, "<staging-review-identity>", "exec")
+
+    def test_staging_review_identity_runs_after_the_release_controls(self) -> None:
+        # The controls count users, groups and identities against the restored
+        # snapshot: a user written before they are compared refuses the release.
+        source = inspect.getsource(stack_module._restore_unlocked)
+        step = source.index("_record_staging_review_identity(")
+        self.assertIn("_ensure_staging_review_identity(", source[step:])
+        self.assertLess(source.index("validate_restore("), step)
+        self.assertLess(source.index("upgrade_preservation.verify("), step)
+        self.assertLess(source.index('"usl-release-admission/v2"'), step)
+        self.assertLess(step, source.index('"schema": "usl-restore-run/v1"'))
+
+    def test_staging_review_identity_event_never_fails_the_admitted_release(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = mock.Mock()
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "not-applicable"},
+        )
+        runner.run.assert_not_called()
+        with contextlib.redirect_stdout(io.StringIO()):
+            _record_staging_review_identity(
+                target, runner, "grelease-1", self._staging_review_identity_evidence(),
+            )
+        event = json.loads(runner.run.call_args.kwargs["input_text"])
+        self.assertEqual(
+            (event["phase"], event["status"], event["created"], event["user_id"]),
+            ("review-identity", "ensured", True, 42),
+        )
+        self.assertNotIn("profile", event)
+        runner.run.side_effect = OperationsError("host unreachable")
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "failed", "detail": "ValueError"},
+        )
+
+    def test_staging_review_identity_is_staging_only(self) -> None:
+        for name in ("production", "local"):
+            runner = mock.Mock()
+            result = _ensure_staging_review_identity(
+                load_target(name, HOST_TARGETS if name == "production" else TARGETS),
+                runner,
+                {},
+            )
+            self.assertEqual(result["status"], "not-applicable")
+            runner.run.assert_not_called()
+
+    def test_staging_review_identity_skips_without_its_variables(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        skipped = {"schema": "usl-staging-review-identity/v1", "status": "skipped"}
+        runner, _state = self._staging_review_identity_runner(
+            "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(skipped) + "\n",
+        )
+        self.assertEqual(_ensure_staging_review_identity(target, runner, candidate), skipped)
+
+    def test_staging_review_identity_program_skips_and_ensures(self) -> None:
+        def execute(environment, *, created):
+            calls = []
+            user = mock.Mock(id=42, ids=[42], active=True, usl_pocketid_access=True)
+            user.__len__ = lambda self: 1
+            user.has_group.return_value = False
+            identity = mock.Mock()
+            identity.__len__ = lambda self: 1
+            users = mock.Mock()
+            users.with_context.return_value = users
+
+            def apply(configurations, **kwargs):
+                calls.append((configurations, kwargs))
+                return {"users": [{"created": created}]}
+
+            users._usl_pocketid_apply_user_configuration.side_effect = apply
+            users.sudo.return_value.search.return_value = user
+            identities = mock.Mock()
+            identities.sudo.return_value.search.return_value = identity
+            env = mock.MagicMock()
+            env.__getitem__.side_effect = {
+                "res.users": users, "usl.oidc.identity": identities,
+            }.__getitem__
+            output = io.StringIO()
+            with mock.patch.dict(os.environ, environment, clear=True), contextlib.redirect_stdout(output):
+                exec(STAGING_REVIEW_IDENTITY_PROGRAM, {"env": env})  # noqa: S102
+            line = output.getvalue().strip().splitlines()[-1]
+            return json.loads(line.removeprefix("USL_STAGING_REVIEW_IDENTITY=")), calls, env
+
+        complete = {
+            "USL_STAGING_RECETTE_LOGIN": "review@example.test",
+            "USL_STAGING_RECETTE_EMAIL": "review@example.test",
+            "USL_STAGING_RECETTE_SUBJECT": "subject-1",
+        }
+        for missing in complete:
+            partial = {key: value for key, value in complete.items() if key != missing}
+            evidence, calls, env = execute(partial, created=True)
+            self.assertEqual(
+                evidence, {"schema": "usl-staging-review-identity/v1", "status": "skipped"},
+            )
+            self.assertEqual(calls, [])
+            env.cr.commit.assert_not_called()
+        for created in (True, False):
+            evidence, calls, env = execute(complete, created=created)
+            self.assertEqual(evidence, self._staging_review_identity_evidence(created=created))
+            (configurations, kwargs), = calls
+            self.assertEqual(configurations, [{
+                "login": "review@example.test",
+                "name": "Recette staging",
+                "email": "review@example.test",
+                "subject": "subject-1",
+                "profile": "accountant_reviewer",
+                "companies": "all",
+                "create_if_missing": True,
+            }])
+            self.assertIs(kwargs["strict"], False)
+            env.cr.commit.assert_called_once_with()
+
+    def test_staging_review_identity_failure_is_evidence_not_an_error(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        ensured = self._staging_review_identity_evidence()
+        cases = {
+            "no evidence": "odoo shell said nothing\n",
+            "invalid json": "USL_STAGING_REVIEW_IDENTITY={\n",
+            "command failed": RuntimeError("docker exec failed"),
+            "system administrator": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "not_system_administrator": False},
+            ) + "\n",
+            "other profile": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "profile": "administrator"},
+            ) + "\n",
+            "extra key": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "password": "x"},
+            ) + "\n",
+            "bad user": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "user_id": 0},
+            ) + "\n",
+        }
+        for label, stdout in cases.items():
+            with self.subTest(label):
+                runner, _state = self._staging_review_identity_runner(stdout)
+                result = _ensure_staging_review_identity(target, runner, candidate)
+                self.assertEqual(result["status"], "failed")
+                self.assertEqual(set(result), {"schema", "status", "detail"})
+                self.assertNotIn("docker exec failed", json.dumps(result))
+        for containers in ("", "one\ntwo\n"):
+            runner, state = self._staging_review_identity_runner("", containers=containers)
+            result = _ensure_staging_review_identity(target, runner, candidate)
+            self.assertEqual(result["status"], "failed")
+            self.assertNotIn("program", state)
 
     def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
         target = load_target("staging", HOST_TARGETS)
