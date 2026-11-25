@@ -1,6 +1,8 @@
 import inspect
 import json
 import logging
+import random
+import time
 import uuid
 
 from werkzeug.exceptions import NotFound
@@ -9,6 +11,7 @@ from odoo import SUPERUSER_ID, _, api, http
 from odoo.exceptions import AccessDenied, AccessError
 from odoo.http import request
 from odoo.models import get_public_method
+from odoo.sql_db import PG_CONCURRENCY_EXCEPTIONS_TO_RETRY
 
 from ..exceptions import AgentPolicyAccessError
 from ..models.agent_policy_tokens import (
@@ -23,6 +26,8 @@ from ..models.agent_secrets import (
 from odoo.addons.rpc.controllers.json2 import WebJson2Controller
 
 _logger = logging.getLogger(__name__)
+
+_AUDIT_RECORD_ATTEMPTS = 5
 
 
 class UslAgentJson2Controller(WebJson2Controller):
@@ -289,18 +294,29 @@ class UslAgentJson2Controller(WebJson2Controller):
 
         def record(outcome_override=None):
             recorded = dict(values, outcome=outcome_override or values["outcome"])
-            try:
-                with registry.cursor() as cursor:
-                    env = api.Environment(
-                        cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True},
-                    )
-                    env["usl.audit.event"]._record_event(recorded)
-                    cursor.commit()
-            except Exception:
-                _logger.exception(
-                    "Agent API audit event was not recorded: %s %s",
-                    recorded.get("action_name"), recorded.get("request_id"),
-                )
+            # Two calls with the same key can run at once. The usage touch of
+            # one updates the credential row that the other's foreign-key
+            # check reads, and PostgreSQL refuses that insert with a
+            # serialization failure. A new transaction sees the committed row
+            # and succeeds, so try again as Odoo does for HTTP requests.
+            for attempt in range(1, _AUDIT_RECORD_ATTEMPTS + 1):
+                try:
+                    with registry.cursor() as cursor:
+                        env = api.Environment(
+                            cursor, SUPERUSER_ID, {"usl_skip_distribution_audit": True},
+                        )
+                        env["usl.audit.event"]._record_event(recorded)
+                        cursor.commit()
+                    return
+                except Exception as error:
+                    retryable = isinstance(error, PG_CONCURRENCY_EXCEPTIONS_TO_RETRY)
+                    if not retryable or attempt == _AUDIT_RECORD_ATTEMPTS:
+                        _logger.exception(
+                            "Agent API audit event was not recorded: %s %s",
+                            recorded.get("action_name"), recorded.get("request_id"),
+                        )
+                        return
+                time.sleep(random.uniform(0.0, 0.05 * 2 ** attempt))
 
         cr.postcommit.add(record)
         # A request that succeeded in the controller can still roll back at

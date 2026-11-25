@@ -6689,3 +6689,51 @@ msgid ""
 msgstr ""
 "Pour modifier le titre, le correspondant, le type, la date ou les étiquettes, "
 "utilisez Ouvrir dans Documents."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Open record"
+msgstr "Ouvrir la fiche"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Checking access…"
+msgstr "Vérification de l’accès…"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "You no longer have access to this linked record."
+msgstr "Cette fiche liée n’est plus accessible."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "The connection was interrupted. Reconnect to see this record."
+msgstr "La connexion a été interrompue. Reconnectez-vous pour afficher cette fiche."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Record preview"
+msgstr "Aperçu de la fiche"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Preview record"
+msgstr "Aperçu de la fiche"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "The document could not be reloaded."
+msgstr "Le document n’a pas pu être rechargé."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "The preview could not be loaded."
+msgstr "Impossible de charger l’aperçu."

@@ -2944,11 +2944,11 @@
       ],
       "sources": [
         {
-          "line": 2524,
+          "line": 2526,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 3171,
+          "line": 3173,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1338084,7 +1338084,7 @@
         "rpc:usl.document.ensure_one",
         "rpc:usl.document.sudo"
       ],
-      "digest": "037c5e5137236855a74b2a9cca2ef91383932fb35f518fe698e5e726560f7341",
+      "digest": "63816f9aca07b3e6d01709347e8f47d7002bd357338bae79388b8145d9834b62",
       "guards": [],
       "key": "rpc:usl.document.action_open_linked_record",
       "kind": "rpc",
@@ -1338095,7 +1338095,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "59036e432c8a595159af73744a9c25dd9f1706580b78bfcf149d236fc6a3fdff",
+      "runtime_digest": "d98c8b1c943bcbe192bf19043a4d62451c6bfd7e423ad88d28f32ee99b612804",
       "sinks": [
         "sudo"
       ],
@@ -1350677,7 +1350677,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 258,
+          "line": 260,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1350870,7 +1350870,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 89,
+          "line": 91,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1350908,7 +1350908,7 @@
       ],
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1354597,7 +1354597,7 @@
           "path": "addons/rating/models/mail_thread.py"
         },
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1355014,7 +1355014,7 @@
       ],
       "sources": [
         {
-          "line": 295,
+          "line": 334,
           "path": "custom-addons/usl_documents/models/document_link.py"
         },
         {
@@ -1640744,7 +1640744,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 35,
+          "line": 40,
           "path": "custom-addons/usl_access_control/controllers/json2.py"
         }
       ]
@@ -1656929,7 +1656929,7 @@
       ]
     },
     {
-      "digest": "24905f0c3f29926387efe119d6c00992e95969a292e1e5fe250b657db08a7ea1",
+      "digest": "9cc6fd00348a0c795bddc9ae491f3dc238cba43a3dbe6db456f3a1a3f6b12d09",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_open_linked_record:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1658015,7 +1658015,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 89,
+          "line": 91,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658033,7 +1658033,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658051,7 +1658051,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658069,7 +1658069,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658087,7 +1658087,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658105,7 +1658105,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658123,7 +1658123,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658141,7 +1658141,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 121,
+          "line": 123,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658159,7 +1658159,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658177,7 +1658177,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 278,
+          "line": 317,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1658195,7 +1658195,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 295,
+          "line": 334,
           "path": "custom-addons/usl_documents/models/document_link.py"
         }
       ]
@@ -1738187,11 +1738187,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "b07488aed2fe7a120ed1f3f133eeaafc3cfff6a4efa92198c7953191f02f67b0",
+      "manifest_sha256": "8e0f95cd220088601a005bce8a152d7c2ac69a2b5f4668e03b8d999468a5171d",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "98b219a544c63c4ea9b117c7d32ca18bd203d598b7d886bef26f8dc4dd08d1ea",
-      "version": "saas~19.3.1.13.47"
+      "source_sha256": "376fa116af830d8252f79db491841fe0dbef6e8cdbac316e6351293cf02c67c8",
+      "version": "saas~19.3.1.13.52"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
@@ -1738491,15 +1738491,15 @@
       "manifest_sha256": "a09f9f9cf6b8422b32eb95f807fb60057571205ba7b83fcf1fdb7ddc684d39bc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "d401e11cd0efa23995307ce3e09286b501e3d8a3299a1d51273bc4efa305dced",
+      "source_sha256": "8fdaa8888cfa7b442f3c9a01920493639739c8152a6a2efdd93fe5f0ea8ca67d",
       "version": "saas~19.3.1.8.15"
     },
     {
-      "manifest_sha256": "e173ed1bc69c7428f499d062b854650659ef516cc15f867f368f04d8e7488622",
+      "manifest_sha256": "8d5a6e5a9a5d65b6c9fd803f041beb597d13740733f94aa7bb0f4f6083b5d719",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "1e415bcc8a04e3a4d554829a2c27e4d462085dcaa1aa28082ed328a59fdf978c",
-      "version": "saas~19.3.2.2.21"
+      "source_sha256": "daba385ee1825542ddcfbe87a4670b971a2b9a95060003910778fa6632070a71",
+      "version": "saas~19.3.2.2.22"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
@@ -1738516,11 +1738516,11 @@
       "version": "saas~19.3.1.3.2"
     },
     {
-      "manifest_sha256": "605d1d50e2e6773536c3486634c981ce128539cc3490e2424a533942e70d9a58",
+      "manifest_sha256": "e756e13b2f600132017bb524fe5676e31ce75a2475e3a439a71cda029f5544cc",
       "name": "usl_docs",
       "origin": "custom",
-      "source_sha256": "fcfc3d68c8a34cfefe48d19b3963f6127683944ea32c36923a5711705997ea7a",
-      "version": "saas~19.3.1.1.1"
+      "source_sha256": "9dc5dd5cd31a03f650f3378a03ca5045530a382f4be0a857908b3e1ce569d34d",
+      "version": "saas~19.3.1.1.2"
     },
     {
       "manifest_sha256": "a23c61442ef12832d258eda23452ad4791013b7358942c33a3066b8e91b66075",
@@ -1738530,11 +1738530,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "9d4b331038ddea72240a1aaf78765182a7470552c71e400b597b11b751bbf759",
+      "manifest_sha256": "761a304fb65ab29cffc75fad8262b4044c28d4457d4fad0e21d5ec20e6a9a1bf",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "e30993eccbb4f8e7d83e365e9a7f831579124800f3ae7920fa3bbd662ef3c476",
-      "version": "saas~19.3.1.10.6"
+      "source_sha256": "be0b0d946ca644e8981ade2aee194ea1c2f9f4012a24b33bd402e82bfb9cc9ea",
+      "version": "saas~19.3.1.10.7"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
@@ -1738558,18 +1738558,18 @@
       "version": "saas~19.3.1.0.1"
     },
     {
-      "manifest_sha256": "7fecbf508c69203c958a7476a0d37cda07e31ac811de40caedc1dbf46d9783d6",
+      "manifest_sha256": "7ff5ad5423a1e4ebe2f718eaf8d19017baca03671f9d9e411ad28d2b0c634f94",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "467a00db582d05952ed51cc6b802be4b8771935e74a35e88e60ef1087dcd2113",
-      "version": "saas~19.3.1.3.18"
+      "source_sha256": "271ecb97df920ee7f95faf1e3a0d6709facfd4a2b03655d9cd912fe5ac1f5258",
+      "version": "saas~19.3.1.3.20"
     },
     {
-      "manifest_sha256": "14e08af98b0233b330ca48e282ac00e15233e16c1ae52ce0ee702745bafc300b",
+      "manifest_sha256": "c789e84bf9d4e1eef3810f8313c1e7e605f9b67ee35e2946aa59402a4380efb7",
       "name": "usl_feedback",
       "origin": "custom",
-      "source_sha256": "508d27285f031afc767c22606f21418523e13f599f17332af2b5b05a7559501c",
-      "version": "saas~19.3.2.0.20"
+      "source_sha256": "a15c8c5714f69194c2b2db30deceddc86ef0418efb81fa5597f2334584491562",
+      "version": "saas~19.3.2.0.21"
     },
     {
       "manifest_sha256": "93b74ae9c3a56f15e5908d6642d2d04929ca18d9f162b73fce0afce893a07755",

@@ -5,7 +5,8 @@ from django.contrib.auth.models import Permission, User
 from django.db.models import Q
 from django.test import TestCase
 from documents.bulk_edit import set_permissions
-from documents.models import Document, PaperlessTask
+from documents.bulk_operations import execute_bulk_operation
+from documents.models import Document, PaperlessTask, Tag
 from documents.signals.handlers import add_or_update_document_in_llm_index
 from documents.tasks import bulk_update_documents, update_document_in_llm_index
 from guardian.shortcuts import assign_perm
@@ -99,6 +100,44 @@ class TestPermissionVectorInvariance(TestCase):
             rebuild=False,
             document_ids=[self.document.id],
         )
+
+    @patch("documents.bulk_operations.bulk_update_documents")
+    @patch("documents.bulk_edit.set_permissions_for_objects")
+    def test_queued_permission_edit_skips_vector_refresh(
+        self,
+        set_object_permissions,
+        bulk_update,
+    ):
+        # Paperless 3.5 runs bulk edits as one queued task, which refreshes
+        # the affected documents itself instead of queueing another task.
+        admin = User.objects.create_superuser(username="permission-admin")
+
+        execute_bulk_operation(
+            operation="set_permissions",
+            document_ids=[self.document.id],
+            parameters={"set_permissions": {}, "owner": None, "merge": False},
+            user_id=admin.pk,
+        )
+
+        set_object_permissions.assert_called_once()
+        bulk_update.assert_called_once_with(
+            [self.document.id],
+            skip_llm_index=True,
+        )
+
+    @patch("documents.bulk_operations.bulk_update_documents")
+    def test_queued_tag_edit_still_refreshes_vectors(self, bulk_update):
+        admin = User.objects.create_superuser(username="tag-admin")
+        tag = Tag.objects.create(name="queued tag edit")
+
+        execute_bulk_operation(
+            operation="add_tag",
+            document_ids=[self.document.id],
+            parameters={"tag": tag.pk},
+            user_id=admin.pk,
+        )
+
+        bulk_update.assert_called_once_with([self.document.id])
 
     @patch("documents.signals.handlers.AIConfig")
     @patch("documents.tasks.update_document_in_llm_index.apply_async")

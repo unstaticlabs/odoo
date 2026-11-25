@@ -49,6 +49,12 @@ class TestBackupReceipt(unittest.TestCase):
         capture = self.verify(_receipt(), _capture())
         self.assertEqual(capture["run_id"], "intent-0856")
 
+    def test_an_online_capture_is_as_good_a_rollback_point_as_a_quiesced_one(self):
+        for mode in ("online", "quiesced"):
+            with self.subTest(mode=mode):
+                capture = self.verify(_receipt(capture_mode=mode), _capture())
+                self.assertEqual(capture["run_id"], "intent-0856")
+
     def test_a_backup_that_did_not_qualify_is_refused(self):
         with self.assertRaisesRegex(BackupError, "status"):
             self.verify(_receipt(status="failed"), _capture())

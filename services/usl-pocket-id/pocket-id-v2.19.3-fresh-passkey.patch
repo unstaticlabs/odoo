@@ -467,14 +467,14 @@ index aef219d..88ebf70 100644
  	reauthToken := ReauthenticationToken{
  		Token:     utils.CreateSha256Hash(token),
 diff --git a/frontend/package.json b/frontend/package.json
-index a55daa1..91e3478 100644
+index b273ce3..05b2506 100644
 --- a/frontend/package.json
 +++ b/frontend/package.json
 @@ -1,6 +1,6 @@
  {
  	"name": "pocket-id-frontend",
--	"version": "2.19.2",
-+	"version": "2.19.2-usl1",
+-	"version": "2.19.3",
++	"version": "2.19.3-usl2",
  	"private": true,
  	"type": "module",
  	"imports": {
@@ -518,3 +518,20 @@ index 3b5d7f8..3ae061a 100644
  	async function completeInteraction(step: InteractionStep, skipRedirect = false) {
  		const result = await oidcService.completeAuthorizeInteractionStep(
  			interactionSession.id,
+diff --git a/frontend/src/routes/settings/+layout.ts b/frontend/src/routes/settings/+layout.ts
+index 5e72d1e..ca82dd3 100644
+--- a/frontend/src/routes/settings/+layout.ts
++++ b/frontend/src/routes/settings/+layout.ts
+@@ -20,8 +20,11 @@ export const load: LayoutLoad = async ({ url }) => {
+ 
+ 	// If newestVersion is empty, it means the check is disabled or failed.
+ 	// In this case, we assume the version is up to date.
++	// USL patch: the build is tagged <upstream>-usl<n>. Compare only the
++	// upstream part, so the banner shows only for a newer upstream release.
++	const upstreamVersion = currentVersion.replace(/-usl\d+$/, '');
+ 	const isUpToDate =
+-		newestVersion === null || newestVersion === '' || newestVersion === currentVersion;
++		newestVersion === null || newestVersion === '' || newestVersion === upstreamVersion;
+ 
+ 	const versionInformation: AppVersionInformation = {
+ 		currentVersion: versionService.getCurrentVersion(),

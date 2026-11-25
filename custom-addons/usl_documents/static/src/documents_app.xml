@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
+    <t t-name="usl_documents.LinkedRecordPreview">
+        <Dialog title="props.title" size="'md'" footer="false">
+            <section t-if="preview.phase === 'ready'" class="o_usl_linked_record_summary">
+                <h3 class="mb-3 text-break" t-esc="preview.record.name"/>
+                <dl class="row mb-0" t-if="preview.record.fields.length">
+                    <t t-foreach="preview.record.fields" t-as="field" t-key="field_index">
+                        <dt class="col-sm-5 fw-normal text-muted" t-esc="field.label"/>
+                        <dd class="col-sm-7 text-break" t-esc="field.value"/>
+                    </t>
+                </dl>
+            </section>
+            <div t-else="" role="status">
+                <span t-if="preview.phase === 'checking'">Checking access…</span>
+                <span t-elif="preview.phase === 'unavailable'">You no longer have access to this linked record.</span>
+                <t t-else="">
+                    <p t-if="preview.phase === 'error'">The preview could not be loaded.</p>
+                    <p t-else="">The connection was interrupted. Reconnect to see this record.</p>
+                    <button type="button" class="btn btn-secondary" t-on-click="check">Try again</button>
+                </t>
+            </div>
+        </Dialog>
+    </t>
+
     <t t-name="usl_documents.DocumentBatchDialog">
         <Dialog title="'Edit selected documents'" size="'md'">
             <p t-esc="selectionSummary"/>
@@ -1032,17 +1055,23 @@
                     <section class="border-top p-3">
                         <h6>Linked records</h6>
                         <div t-if="state.selected.links?.length" class="list-group">
-                            <button t-foreach="state.selected.links" t-as="link"
-                                    t-key="link.id" type="button"
-                                    class="list-group-item list-group-item-action"
-                                    t-on-click="() => this.openLink(link)">
-                                <strong t-esc="link.record_name"/>
-                                <small class="d-block text-muted"
-                                       t-esc="link.model_label"/>
-                                <small t-if="link.version_id" class="d-block text-muted">
-                                    Evidence file: <t t-esc="link.version_label"/>
-                                </small>
-                            </button>
+                            <div t-foreach="state.selected.links" t-as="link" t-key="link.id"
+                                 class="list-group-item d-flex align-items-center gap-2 p-0">
+                                <button type="button" title="Preview record"
+                                        class="o_usl_preview_linked_record btn btn-link flex-grow-1 text-start p-2"
+                                        t-on-click="() => this.previewLink(link)">
+                                    <strong t-esc="link.record_name"/>
+                                    <small class="d-block text-muted" t-esc="link.model_label"/>
+                                    <small t-if="link.version_id" class="d-block text-muted">
+                                        Evidence file: <t t-esc="link.version_label"/>
+                                    </small>
+                                </button>
+                                <button type="button" title="Open record" aria-label="Open record"
+                                        class="o_usl_open_linked_record btn btn-link p-3"
+                                        t-on-click="() => this.openLink(link)">
+                                    <i class="fa fa-external-link" aria-hidden="true"/>
+                                </button>
+                            </div>
                         </div>
                         <div t-else="" class="small text-muted">
                             This document is not linked to an Odoo record yet.

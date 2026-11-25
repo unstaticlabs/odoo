@@ -361,6 +361,7 @@ msgstr "Nombre de dépenses"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Expense period"
 msgstr "Période des dépenses"
 
@@ -658,8 +659,10 @@ msgstr ""
 #. module: usl_expense_batch
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__readiness_state__ready
 #: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__readiness_state__ready
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "Ready"
-msgstr "Prête"
+msgstr "Prêt"
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
@@ -877,6 +880,8 @@ msgid "Group the selected expenses without submitting, posting, or paying them."
 msgstr "Regroupe les dépenses sélectionnées sans les soumettre, les comptabiliser ni les payer."
 
 #. module: usl_expense_batch
+#. odoo-javascript
+#: code:addons/usl_expense_batch/static/src/xml/expense_batch_list.xml:0
 msgid "Add to a Batch"
 msgstr "Ajouter à un lot de dépenses"
 
@@ -885,42 +890,58 @@ msgid "Create and submit"
 msgstr "Créer et soumettre"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__context_type__travel
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__context_type__travel
 msgid "Travel"
 msgstr "Voyage"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__context_type__production_event
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__context_type__production_event
 msgid "Production or event"
 msgstr "Production ou événement"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__context_type__project
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__context_type__project
 msgid "Project"
 msgstr "Projet"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__context_type__period
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__context_type__period
 msgid "Periodic claim"
 msgstr "Note périodique"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__context_type__other
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__context_type__other
 msgid "Other"
 msgstr "Autre"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__context_date_from
 msgid "Context from"
 msgstr "Contexte du"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__context_date_to
 msgid "Context to"
 msgstr "Contexte au"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__notes
 msgid "Shared justification and notes"
 msgstr "Justification et notes communes"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__account_override_id
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__account_override_id
 msgid "Shared expense account"
 msgstr "Compte de charge commun"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__analytic_context_summary
 msgid "Analytic Context Summary"
 msgstr "Synthèse analytique"
 
@@ -929,50 +950,63 @@ msgid "Product Summary"
 msgstr "Répartition par catégorie"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__exception_count
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__exception_count
 msgid "Exception Count"
 msgstr "Nombre d’exceptions"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__stale_context_count
 msgid "Stale Context Count"
 msgstr "Contextes à actualiser"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__warning_count
 msgid "Warning Count"
 msgstr "Nombre d’avertissements"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__employee_paid_open_count
 msgid "Employee Paid Open Count"
 msgstr "Remboursements restant à traiter"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__company_paid_open_count
 msgid "Company Paid Open Count"
 msgstr "Paiements société restant à traiter"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__accounted_expense_count
 msgid "Accounted Expense Count"
 msgstr "Dépenses comptabilisées"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__accounting_reconciliation_state__pending
 msgid "Accounting pending"
 msgstr "Comptabilisation en attente"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__accounting_reconciliation_state__matched
 msgid "Accounting reconciles"
 msgstr "Comptabilité concordante"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__accounting_reconciliation_state__difference
 msgid "Accounting difference"
 msgstr "Écart comptable"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__accounting_difference
 msgid "Accounting Difference"
 msgstr "Écart comptable"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__context_revision
 msgid "Context Revision"
 msgstr "Révision du contexte"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Context period"
 msgstr "Période du contexte"
 
@@ -985,6 +1019,8 @@ msgid "Last expense"
 msgstr "Dernière dépense"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Shared context"
 msgstr "Contexte commun"
 
@@ -997,10 +1033,14 @@ msgid "Accounting traceability"
 msgstr "Traçabilité comptable"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_warning_reason
 msgid "Review warning"
 msgstr "Avertissement à contrôler"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_context_apply_wizard_form
 msgid "Apply shared Batch context"
 msgstr "Appliquer le contexte commun du lot"
 
@@ -1033,8 +1073,9 @@ msgid "New Batch"
 msgstr "Nouveau lot"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__batch_id
 msgid "Existing Batch"
-msgstr "Note existante"
+msgstr "Lot existant"
 
 #. module: usl_expense_batch
 msgid "Product or default"
@@ -1125,18 +1166,23 @@ msgid "Existing accounting preserved"
 msgstr "Comptabilité existante conservée"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__account_context_source
 msgid "Account source"
 msgstr "Origine du compte"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__analytic_context_source
 msgid "Analytic source"
 msgstr "Origine de l’analytique"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_context_status
 msgid "Context status"
 msgstr "Statut du contexte"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__context_type
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__context_type
 msgid "Context Type"
 msgstr "Type de contexte"
 
@@ -1149,42 +1195,57 @@ msgid "Needs attention"
 msgstr "Attention requise"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_attention_level
 msgid "Attention"
 msgstr "Attention"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_hr_expense__batch_attention_message
 msgid "Attention details"
 msgstr "Détails à vérifier"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "none"
 msgstr "aucun"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "Expense account %(expense)s differs from Batch account %(batch)s."
 msgstr "Le compte de la dépense %(expense)s diffère de celui du lot %(batch)s."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "Expense analytics %(expense)s differ from Batch analytics %(batch)s."
 msgstr "L’analytique de la dépense %(expense)s diffère de celle du lot %(batch)s."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "Shared context changed after it was applied to this expense."
 msgstr "Le contexte commun a changé après son application à cette dépense."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
 msgid "Accounting is preserved because this expense is no longer a draft."
 msgstr "La comptabilité est conservée car cette dépense n’est plus en brouillon."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Preview and apply this Batch's shared expense account and analytic distribution to eligible draft expenses. Line-specific choices remain unchanged unless you explicitly replace them in the preview."
 msgstr "Prévisualise puis applique le compte de charge et la répartition analytique communs du lot aux brouillons éligibles. Les choix propres à une dépense restent inchangés sauf remplacement explicite dans la prévisualisation."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Select unbatched draft, approved, or posted expenses for this employee and company. Existing accounting entries and expense states remain unchanged."
 msgstr "Sélectionne des dépenses non regroupées, en brouillon, approuvées ou comptabilisées, pour cet employé et cette société. Les écritures et les états existants restent inchangés."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "What are these expenses for?"
 msgstr "À quoi correspondent ces dépenses ?"
 
@@ -1197,6 +1258,7 @@ msgid "Expense dates"
 msgstr "Dates des dépenses"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Paid by employee / company"
 msgstr "Payé par l’employé / la société"
 
@@ -1205,70 +1267,95 @@ msgid "Some expenses need attention. Point to the warning indicator on a line fo
 msgstr "Certaines dépenses sont à vérifier. Survolez leur indicateur pour afficher le détail."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Remove from Batch"
 msgstr "Retirer du lot"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Remove this draft expense from the Batch without deleting it."
 msgstr "Retirez ce brouillon du lot sans supprimer la dépense."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Return for correction"
 msgstr "Renvoyer pour correction"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Return this expense to draft and remove it from the Batch."
 msgstr "Remettez cette dépense en brouillon et retirez-la du lot."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Accounting and history"
 msgstr "Comptabilité et historique"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Accounting treatment"
 msgstr "Traitement comptable"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "History"
 msgstr "Historique"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__active
 msgid "Active"
 msgstr "Actif"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__expense_progress__paid
 msgid "All paid"
 msgstr "Toutes payées"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__expense_progress__posted
 msgid "All posted"
 msgstr "Toutes comptabilisées"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__batch_state__archived
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
 msgid "Archived"
 msgstr "Archivé"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_list_batch
 msgid "Batch"
 msgstr "Lot"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_progress
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
 msgid "Expense progress"
 msgstr "Progression des dépenses"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__expense_progress__draft
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
 msgid "Has drafts"
 msgstr "Contient des brouillons"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__expense_progress__empty
 msgid "No expenses"
 msgstr "Aucune dépense"
 
 #. module: usl_expense_batch
+#. odoo-javascript
+#: code:addons/usl_expense_batch/static/src/js/expense_batch_workspace.js:0
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__batch_state__open
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_search
 msgid "Open"
 msgstr "Ouvert"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch__expense_progress__refused
 msgid "Returned only"
 msgstr "Toutes retournées"
 
@@ -1297,14 +1384,17 @@ msgid "%(count)s selected expense(s) fall outside this Batch's intended dates. Y
 msgstr "%(count)s dépense(s) sélectionnée(s) se trouve(nt) hors de la période prévue du lot. Vous pouvez tout de même les ajouter et les traiter."
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_progress_summary
 msgid "Progress breakdown"
 msgstr "Répartition de l’avancement"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__expense_progress_breakdown
 msgid "Progress segments"
 msgstr "Segments d’avancement"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__batch_state
 msgid "Batch state"
 msgstr "État du lot"
 
@@ -1321,6 +1411,8 @@ msgid "Apply context"
 msgstr "Appliquer le contexte"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_candidate_list
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_list_batch
 msgid "Receipt"
 msgstr "Justificatif"
 
@@ -1333,30 +1425,44 @@ msgid "Point to a line warning for details."
 msgstr "Survolez l’avertissement d’une ligne pour afficher le détail."
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "draft"
 msgstr "brouillon"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "submitted"
 msgstr "soumise"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "approved"
 msgstr "approuvée"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "posted"
 msgstr "comptabilisée"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "in payment"
 msgstr "en paiement"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "paid"
 msgstr "payée"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
 msgid "refused"
 msgstr "refusée"
 
@@ -1371,10 +1477,13 @@ msgid "Expense Progress"
 msgstr "Avancement des dépenses"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_list
 msgid "Readiness"
 msgstr "État de préparation"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__attention_count
 msgid "Expenses needing attention"
 msgstr "Dépenses à vérifier"
 
@@ -1385,6 +1494,7 @@ msgid "Needs attention · %(count)s"
 msgstr "Attention requise · %(count)s"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Review the marked expense lines for details."
 msgstr "Consultez les dépenses signalées pour plus de détails."
 
@@ -1399,6 +1509,8 @@ msgid "All"
 msgstr "Tous"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__period_summary
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_list
 msgid "Period"
 msgstr "Période"
 
@@ -1407,6 +1519,10 @@ msgid "Issues"
 msgstr "Anomalies"
 
 #. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/expense_batch.py:0
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_add_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
 msgid "Add expenses"
 msgstr "Ajouter des dépenses"
 
@@ -1840,3 +1956,85 @@ msgstr "Cette catégorie à coût fixe utilise la devise de la société. Choisi
 #: code:addons/usl_expense_batch/wizard/expense_split.py:0
 msgid "This fixed-cost category uses its native split amount. Review its unit price or choose a variable-price category for an explicit gross amount."
 msgstr "Cette catégorie à coût fixe utilise son montant de ventilation natif. Vérifiez son prix unitaire ou choisissez une catégorie à prix variable pour indiquer un montant TTC."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Add to Batch"
+msgstr "Ajouter au lot"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__mode__existing
+msgid "Add to an existing Batch"
+msgstr "Ajouter à un lot existant"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields.selection,name:usl_expense_batch.selection__usl_expense_batch_create_wizard__mode__new
+msgid "Create a new Batch"
+msgstr "Créer un lot"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__accounting_reconciliation_state
+msgid "Accounting Reconciliation State"
+msgstr "État du rapprochement comptable"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch__analytic_distribution
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_create_wizard__analytic_distribution
+msgid "Analytic Distribution"
+msgstr "Répartition analytique"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "existing Batch candidate(s)."
+msgstr "lot(s) existant(s) proposé(s)."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "Select one below before creating a duplicate."
+msgstr "Vérifiez les lots proposés avant d’en créer un."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "line(s)"
+msgstr "ligne(s)"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "will receive shared context;"
+msgstr "recevront le contexte commun ;"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "explicit exception(s)"
+msgstr "exception(s) explicite(s)"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "will be preserved; and"
+msgstr "seront conservées et"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "later-stage line(s)"
+msgstr "ligne(s) ayant dépassé le brouillon"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+msgid "will keep their existing accounting."
+msgstr "conserveront leur comptabilisation actuelle."
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_form
+msgid "issues require attention."
+msgstr "point(s) à vérifier."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/models/hr_expense.py:0
+msgid "outside the Batch dates"
+msgstr "hors période du lot"
+
+#. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_hr_expense_search_batch
+msgid "Needs batching"
+msgstr "À regrouper"

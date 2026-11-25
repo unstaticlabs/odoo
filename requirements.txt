@@ -7,6 +7,7 @@ cbor2==5.9.0 ; python_version >= '3.12'
 chardet==5.2.0 ; python_version >= '3.11'
 cryptography==50.0.2 ; python_version >= '3.12'
 docutils==0.23 ; python_version >= '3.11'
+fonttools==4.68.0 ; python_version >= '3.11'  # Odoo aligns embedded glyph widths when converting QWeb invoices to PDF/A.
 freezegun==1.2.1 ; python_version >= '3.11' and python_version < '3.13'
 freezegun==1.5.5 ; python_version >= '3.13'
 geoip2==2.9.0
@@ -15,7 +16,7 @@ gevent==24.2.1 ; sys_platform != 'win32' and python_version >= '3.12' and python
 gevent==24.11.1 ; sys_platform != 'win32' and python_version >= '3.13'  # (Trixie)
 greenlet==3.0.3 ; sys_platform != 'win32' and python_version >= '3.12' and python_version < '3.13' # (Noble)
 greenlet==3.1.1 ; sys_platform != 'win32' and python_version >= '3.13' and python_version < '3.14'  # (Trixie)
-greenlet==3.3.2 ; sys_platform != 'win32' and python_version >= '3.14'  # (Resolute)
+greenlet==3.5.6 ; sys_platform != 'win32' and python_version >= '3.14'  # (Resolute)
 idna==3.20 ; python_version >= '3.12'
 Jinja2==3.1.6 ; python_version > '3.10'
 libsass==0.23.0 ; python_version >= '3.11'  # (Noble) Mostly to have a wheel package
@@ -24,7 +25,7 @@ lxml==5.4.0; python_version >= '3.13' and python_version < '3.14'  # (Trixie)
 lxml==6.1.3; python_version >= '3.14'  # (Resolute)
 lxml-html-clean; python_version >= '3.12' # (Noble - removed from lxml, unpinned for futur security patches)
 MarkupSafe==2.1.5 ; python_version >= '3.12'  # (Noble) Mostly to have a wheel package
-markdown-it-py==4.2.0 ; python_version >= '3.12'  # Render the built-in USL user guide
+markdown-it-py==4.3.0 ; python_version >= '3.12'  # Render the built-in USL user guide
 num2words==0.5.14 ; python_version >= '3.12'
 ofxparse==0.21
 openupgradelib==3.13.7  # OCA queue_job migration helpers; exact release pin
@@ -45,7 +46,7 @@ pyserial==3.5
 python-jose==3.5.0 ; python_version >= '3.12' # OCA auth_oidc; includes the asymmetric-key confusion fix
 python-dateutil==2.9.0.post0 ; python_version >= '3.11'
 python-magic==0.4.27; sys_platform != 'win32' and python_version >= '3.12'  # (noble)
-python-ldap==3.4.5 ; sys_platform != 'win32' and python_version >= '3.12'  # (Noble) Mostly to have a wheel package
+python-ldap==3.4.8 ; sys_platform != 'win32' and python_version >= '3.12'  # (Noble) Mostly to have a wheel package
 python-stdnum==1.19 ; python_version >= '3.11' and python_version < '3.14'
 python-stdnum==2.2 ; python_version >= '3.14'  # (Resolute)
 pyusb==1.3.1
@@ -64,7 +65,7 @@ vobject==0.9.6.1 ; python_version < '3.14'
 vobject==0.9.9 ; python_version >= '3.14'  # (Resolute)
 Werkzeug==3.1.9 ; python_version >= '3.12'  # (Noble) Avoid deprecation warnings
 xlrd==2.0.2 ; python_version >= '3.12'
-XlsxWriter==3.3.1 ; python_version >= '3.12'
+XlsxWriter==3.3.3 ; python_version >= '3.12'
 xlwt==1.3.0
 zeep==4.2.1 ; python_version >= '3.11' and python_version < '3.13'
 zeep==4.3.3 ; python_version >= '3.13'

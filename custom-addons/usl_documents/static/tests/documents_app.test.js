@@ -2638,3 +2638,14 @@ for (const canEditMetadata of [true, false]) {
         });
     }
 }
+
+test("linked record offers a preview and keeps the ordinary open action", async () => {
+    const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+    const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    expect(".o_usl_preview_linked_record").toHaveCount(1);
+    expect(".o_usl_open_linked_record").toHaveCount(1);
+});

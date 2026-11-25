@@ -1,4 +1,9 @@
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
+
+function localized(english, french) {
+    return user.lang.startsWith("fr") ? french : english;
+}
 
 registry.category("web_tour.tours").add("usl_expense_batch_create_or_select", {
     steps: () => [
@@ -6,26 +11,26 @@ registry.category("web_tour.tours").add("usl_expense_batch_create_or_select", {
             id: "work_list",
             content: "The two related expenses are available for grouping",
             trigger:
-                ".o_list_table tbody:has(tr:contains('Browser Canada hotel')):has(tr:contains('Browser Canada taxi'))",
+                `.o_list_table tbody:has(tr:contains('${localized("Browser Canada hotel", "Hôtel du déplacement")}')):has(tr:contains('${localized("Browser Canada taxi", "Taxi du déplacement")}'))`,
         },
         {
             id: "select_first",
             content: "Select the hotel",
             trigger:
-                ".o_list_table tbody tr:has(td:contains('Browser Canada hotel')) .o_list_record_selector input",
+                `.o_list_table tbody tr:has(td:contains('${localized("Browser Canada hotel", "Hôtel du déplacement")}')) .o_list_record_selector input`,
             run: "click",
         },
         {
             id: "select_second",
             content: "Select the taxi",
             trigger:
-                ".o_list_table tbody tr:has(td:contains('Browser Canada taxi')) .o_list_record_selector input",
+                `.o_list_table tbody tr:has(td:contains('${localized("Browser Canada taxi", "Taxi du déplacement")}')) .o_list_record_selector input`,
             run: "click",
         },
         {
             id: "add_to_batch",
             content: "Grouping is the primary multi-expense action",
-            trigger: ".o_control_panel button.btn-primary:contains('Add to a Batch')",
+            trigger: `.o_control_panel button.btn-primary:contains('${localized("Add to a Batch", "Ajouter à un lot de dépenses")}')`,
             run: "click",
         },
         {
@@ -42,14 +47,14 @@ registry.category("web_tour.tours").add("usl_expense_batch_create_or_select", {
         {
             id: "confirm",
             content: "Add both expenses to the proposed Batch",
-            trigger: ".o_dialog footer button:contains('Add to Batch')",
+            trigger: ".o_dialog footer button[name='action_create_batch']",
             run: "click",
         },
         {
             id: "grouped",
             content: "The refreshed work list no longer contains grouped lines",
             trigger:
-                ".o_list_view:not(:has(tbody tr:contains('Browser Canada hotel'))):not(:has(tbody tr:contains('Browser Canada taxi')))",
+                `.o_list_view:not(:has(tbody tr:contains('${localized("Browser Canada hotel", "Hôtel du déplacement")}'))):not(:has(tbody tr:contains('${localized("Browser Canada taxi", "Taxi du déplacement")}')))`,
         },
     ],
 });
@@ -99,20 +104,20 @@ registry.category("web_tour.tours").add("usl_expense_batch_receipt_capture", {
             id: "open_expense",
             content: "Open the captured expense evidence",
             trigger:
-                ".o_list_table tbody tr.o_data_row td[name='name']:contains('Browser receipt evidence')",
+                `.o_list_table tbody tr.o_data_row td[name='name']:contains('${localized("Browser receipt evidence", "Repas avec justificatif")}')`,
             run: "click",
         },
         {
             id: "attachments",
             content: "The captured receipt count is available on its expense",
             trigger:
-                ".o_form_view:has(.o_field_widget[name='product_id']) button[aria-label='Attach files']:contains('1')",
+                ".o_form_view:has(.o_field_widget[name='product_id']) .o-mail-Chatter-attachFiles:contains('1')",
             run: "click",
         },
         {
             id: "receipt",
             content: "The receipt evidence is inspectable from the expense",
-            trigger: ".o-mail-AttachmentBox:contains('browser-receipt.pdf')",
+            trigger: `.o-mail-AttachmentBox:contains('${localized("browser-receipt.pdf", "justificatif-repas.pdf")}')`,
         },
         {
             id: "payer",
@@ -128,7 +133,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
             id: "batch",
             content: "The Batch opens on the focused review surface",
             trigger:
-                ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link:contains('Expenses'))",
+                ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])",
         },
         {
             id: "analytics",
@@ -140,13 +145,13 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
             id: "context_action",
             content: "The context action explains its safe preview behavior",
             trigger:
-                "button[name='action_open_context_wizard'][data-tooltip*='Line-specific choices remain unchanged']",
+                `button[name='action_open_context_wizard'][data-tooltip*='${localized("Line-specific choices remain unchanged", "Les choix propres à une dépense restent inchangés")}']`,
         },
         {
             id: "exception",
             content: "A real line exception has a compact, specific helper",
             trigger:
-                ".o_usl_batch_attention[title*='differ from Batch analytics']",
+                `.o_usl_batch_attention[title*='${localized("differ from Batch analytics", "diffère de celle du lot")}']`,
         },
         {
             id: "no_trash",
@@ -158,7 +163,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
             id: "remove",
             content: "Removal is the single explicit line action",
             trigger:
-                ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']:contains('Remove from Batch')",
+                ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']",
         },
     ],
 });
@@ -199,19 +204,19 @@ registry.category("web_tour.tours").add("usl_expense_batch_accountant_handoff", 
         {
             id: "approved",
             content: "Accounting receives the approved mixed-payer Batch",
-            trigger: "button[name='action_post']:contains('Post batch')",
+            trigger: "button[name='action_post']",
         },
         {
             id: "post",
             content: "Post the company-paid side and open native reimbursement",
-            trigger: "button[name='action_post']:contains('Post batch')",
+            trigger: "button[name='action_post']",
             run: "click",
         },
         {
             id: "post_entries",
             content: "Complete the native employee-paid posting wizard",
             trigger:
-                ".o_dialog footer button[name='action_post_entry']:contains('Post Expenses')",
+                ".o_dialog footer button[name='action_post_entry']",
             run: "click",
         },
         {
@@ -239,7 +244,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_readonly_audit", {
         {
             id: "history",
             content: "Accounting history remains available for audit",
-            trigger: ".o_notebook_headers .nav-link:contains('Accounting and history')",
+            trigger: ".o_notebook_headers .nav-link[name='accounting_history']",
             run: "click",
         },
         {
@@ -361,5 +366,158 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_readonly_audit", {
             text: "The reconciliation state of the Batch and its history are visible and locked. Use them to answer an audit question or to prepare a remark for the accountant who can act.",
             screenshot: true,
         },
+    },
+});
+
+const french = registry.category("usl_docs.journey_translations");
+
+french.add("usl_expense_batch_create_or_select.fr", {
+    id: "regrouper-des-depenses-en-lot",
+    title: "Regrouper les dépenses d’un déplacement",
+    description: "Réunissez les dépenses d’un même déplacement dans un lot, même si certaines ont été réglées par la société et d’autres par le salarié.",
+    app: "Dépenses",
+    steps: {
+        work_list: "Dans **Dépenses > Mes dépenses**, retrouvez les frais du déplacement. Dans cet exemple, il s’agit de l’hôtel et du taxi.",
+        select_first: "Cochez la première dépense.",
+        select_second: "Cochez les autres dépenses du déplacement.",
+        add_to_batch: "Cliquez sur **Ajouter à un lot de dépenses**.",
+        proposed_batch: "Vérifiez le lot proposé. Odoo tient compte du salarié, de la société, des dates et de la répartition analytique. Vous pouvez aussi créer un lot.",
+        preview: "Contrôlez les deux montants de l’aperçu. L’un correspond aux frais avancés par le salarié, l’autre aux frais réglés par la société.",
+        confirm: "Confirmez l’ajout au lot.",
+        grouped: "Les dépenses quittent la liste des frais à regrouper. Ouvrez le lot pour les vérifier et les soumettre ensemble.",
+    },
+});
+
+french.add("usl_expense_batch_receipt_capture.fr", {
+    id: "verifier-le-justificatif-dune-depense",
+    title: "Vérifier le justificatif d’une dépense",
+    description: "Retrouvez le reçu joint à une dépense et vérifiez qui a payé avant d’ajouter la dépense à un lot.",
+    app: "Dépenses",
+    steps: {
+        upload: "Ouvrez **Dépenses > Mes dépenses**. Si vous partez d’un nouveau reçu, **Charger** permet de créer la dépense à partir du fichier.",
+        open_expense: "Ouvrez la dépense à contrôler.",
+        attachments: "Cliquez sur le trombone dans le fil de discussion. Le chiffre indique le nombre de fichiers joints.",
+        receipt: "Sous **Fichiers**, ouvrez le justificatif et vérifiez qu’il est lisible et correspond à cette dépense.",
+        payer: "Vérifiez qui a payé. Une avance personnelle doit être remboursée au salarié. Si la carte de la société a servi, choisissez la société.",
+    },
+});
+
+french.add("usl_expense_batch_focused_review.fr", {
+    id: "verifier-un-lot-avant-envoi",
+    title: "Vérifier un lot de dépenses avant de le soumettre",
+    description: "Contrôlez les montants par payeur et repérez les lignes dont la répartition analytique diffère de celle du lot.",
+    app: "Dépenses",
+    steps: {
+        batch: "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
+        analytics: "Vérifiez la répartition analytique du lot. Une modification s’applique aux lignes qui reprennent cette répartition.",
+        context_action: "Avec **Appliquer le contexte**, consultez l’aperçu avant de confirmer. Une ligne avec une affectation particulière conserve votre choix, sauf si vous demandez son remplacement.",
+        exception: "Un repère signale une ligne dont l’affectation diffère. Survolez-le pour lire la différence. Ouvrez la ligne pour la corriger si nécessaire.",
+        no_trash: "Vous pouvez corriger la composition du lot en conservant les dépenses.",
+        remove: "Cliquez sur **Retirer du lot** pour remettre la dépense dans votre liste. Elle pourra rejoindre un autre lot.",
+    },
+});
+
+french.add("usl_expense_batch_accountant_handoff.fr", {
+    id: "comptabiliser-un-lot-approuve",
+    title: "Comptabiliser un lot de dépenses approuvé",
+    description: "Enregistrez les frais réglés par la société et le remboursement dû au salarié, puis retrouvez les deux écritures.",
+    app: "Dépenses",
+    steps: {
+        approved: "Dans **Dépenses > Lots de dépenses**, ouvrez le lot approuvé. Vérifiez les montants payés par la société et par le salarié.",
+        post: "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais réglés par la société et ouvre la fenêtre de comptabilisation des avances du salarié.",
+        post_entries: "Vérifiez le journal et la date proposés, puis cliquez sur **Comptabiliser les dépenses**.",
+        entries: "Vérifiez les deux écritures. L’une correspond aux frais réglés par la société, l’autre au remboursement dû au salarié. Chacune renvoie au lot.",
+    },
+});
+
+french.add("usl_expense_batch_readonly_audit.fr", {
+    id: "controler-un-lot-en-lecture-seule",
+    title: "Contrôler un lot de dépenses en lecture seule",
+    description: "Consultez les dépenses, leurs justificatifs et leur état de rapprochement avec les droits de lecture comptable.",
+    app: "Dépenses",
+    steps: {
+        evidence: "Dans **Dépenses > Lots de dépenses**, ouvrez le lot à contrôler. Consultez son récapitulatif, ses lignes et les justificatifs associés.",
+        no_actions: "Avec les droits de lecture comptable, vous pouvez examiner le lot à toutes les étapes. Les actions de soumission, d’approbation, de comptabilisation et de retrait restent réservées aux personnes habilitées.",
+        history: "Ouvrez l’onglet **Comptabilité et historique**.",
+        reconciliation: "Lisez l’état du rapprochement et l’historique. Si une correction est nécessaire, indiquez le lot et la ligne concernés à la personne chargée de la comptabilisation.",
+    },
+});
+
+registry.category("web_tour.tours").add("usl_expense_first_posted_batch", {
+    steps: () => [
+        {
+            id: "home",
+            content: "Start on the signed-in Odoo home page",
+            trigger: ".o_usl_home .o_usl_home_header",
+        },
+        {
+            id: "launcher",
+            content: "Open the application menu",
+            trigger: ".o_navbar_apps_menu button",
+            run: "click",
+        },
+        {
+            id: "expenses",
+            content: "Open Expenses",
+            trigger: ".o_app[data-menu-xmlid='hr_expense.menu_hr_expense_root']",
+            run: "click",
+        },
+        {
+            id: "batches",
+            content: "Open the list of expense batches",
+            trigger: "[data-menu-xmlid='usl_expense_batch.menu_expense_batches']",
+            run: "click",
+        },
+        {
+            id: "example",
+            content: "Open the approved training trip",
+            trigger: `.o_list_view td[name='name']:contains('${user.lang.startsWith("fr") ? "Séminaire de démonstration" : "Training seminar"}')`,
+            run: "click",
+        },
+        {
+            content: "Both receipts have been reviewed and the batch is ready",
+            trigger: `.o_field_widget[name='readiness_summary']:contains('${user.lang.startsWith("fr") ? "Prêt" : "Ready"}')`,
+        },
+        ...registry.category("web_tour.tours").get("usl_expense_batch_accountant_handoff").steps(),
+    ],
+});
+
+registry.category("usl_docs.journeys").add("usl_expense_first_posted_batch", {
+    id: "post-your-first-expense-batch",
+    type: "tutorial",
+    namedTutorial: true,
+    title: "From your first sign-in to your first posted expense batch",
+    description: "Learn on an approved training trip. Post the part paid by the company and the part paid by the employee, then find both journal entries.",
+    lang: "en",
+    persona: "accountant",
+    app: "Expenses",
+    models: ["usl.expense.batch", "hr.expense", "account.move"],
+    steps: {
+        home: { text: "Use a training workspace with an approved expense batch and permission to post expenses. Sign in with your usual company account. You arrive on **Home**.", screenshot: true },
+        launcher: { text: "Choose the application menu in the upper-left corner." },
+        expenses: { text: "Open **Expenses**. You will work with an example that combines a hotel paid by the employee and a meal paid by the company." },
+        batches: { text: "Open **Expense Batches**. Find the approved training trip prepared for you." },
+        example: { text: "Open **Training seminar**, or the equivalent example in your training workspace." },
+        approved: { text: "Read the summary before posting. Identify who paid for each expense and follow the amounts through the next screens.", screenshot: true },
+        post: { text: "Choose **Post Batch**. Odoo posts the company-paid expense and opens a separate confirmation for the amount the employee advanced.", screenshot: true },
+        post_entries: { text: "Check the journal and accounting date, then choose **Post Expenses** to record the employee-paid expense." },
+        entries: { text: "You have posted your first batch. Compare the two amounts shown with the summary. The company charge and the employee reimbursement each have their own entry.", screenshot: true },
+    },
+});
+
+french.add("usl_expense_first_posted_batch.fr", {
+    id: "comptabiliser-votre-premier-lot-de-depenses",
+    title: "De la première connexion au premier lot de dépenses comptabilisé",
+    description: "Entraînez-vous sur un déplacement approuvé. Comptabilisez les frais payés par la société et l’avance du salarié, puis retrouvez les deux écritures.",
+    steps: {
+        home: "Utilisez une base de formation avec un lot approuvé et un compte autorisé à comptabiliser les dépenses. Connectez-vous avec votre compte habituel. Vous arrivez sur **Accueil**.",
+        launcher: "Ouvrez le menu des applications en haut à gauche.",
+        expenses: "Ouvrez **Dépenses**. Dans cet exemple, le salarié a avancé les frais d’hôtel et la société a réglé le repas.",
+        batches: "Ouvrez **Lots de dépenses**. Repérez le déplacement approuvé qui vous sert d’exercice.",
+        example: "Ouvrez **Séminaire de démonstration**, ou le lot équivalent dans votre base de formation.",
+        approved: "Lisez le récapitulatif avant de comptabiliser. Repérez qui a payé chaque dépense et gardez les deux montants en tête pour la suite.",
+        post: "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais payés par la société et ouvre une confirmation distincte pour la somme avancée par le salarié.",
+        post_entries: "Vérifiez le journal et la date comptable, puis cliquez sur **Comptabiliser les dépenses** pour enregistrer la part du salarié.",
+        entries: "Vous venez de comptabiliser votre premier lot. Comparez les montants des deux écritures avec le récapitulatif. Vous retrouvez séparément la dépense payée par la société et la somme à rembourser au salarié.",
     },
 });

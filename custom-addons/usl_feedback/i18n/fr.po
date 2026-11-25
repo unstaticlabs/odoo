@@ -145,6 +145,8 @@ msgstr "État de l’assistant"
 #. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Attach at most 10 files to one feedback item."
 msgstr "Joignez au maximum 10 fichiers à un retour."
 
@@ -218,6 +220,8 @@ msgstr "Société"
 
 #. module: usl_feedback
 #: model:ir.model.fields.selection,name:usl_feedback.selection__usl_feedback_agent_run__state__completed
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Completed"
 msgstr "Terminé"
 
@@ -493,6 +497,8 @@ msgstr "Le retour doit contenir le SHA exact de la version sur 40 caractères."
 #. module: usl_feedback
 #: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_collaborator
 #: model_terms:ir.actions.act_window,help:usl_feedback.action_feedback_maintainer
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "No feedback yet"
 msgstr "Aucun retour pour le moment"
 
@@ -663,6 +669,8 @@ msgstr "Modèle"
 
 #. module: usl_feedback
 #: model_terms:ir.ui.view,arch_db:usl_feedback.view_feedback_task_search
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "My feedback"
 msgstr "Mes retours"
 
@@ -837,6 +845,7 @@ msgstr ""
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Open feedback"
 msgstr "Ouvrir le retour"
 
@@ -1075,6 +1084,8 @@ msgstr ""
 
 #. module: usl_feedback
 #: model:project.task.type,name:usl_feedback.stage_feedback_ready_to_verify
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Review"
 msgstr "Vérifier"
 
@@ -1149,6 +1160,8 @@ msgstr "Envoyé à l’équipe produit"
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+#. odoo-python
+#: code:addons/usl_feedback/models/project_task.py:0
 msgid "Sent to the product team."
 msgstr "Envoyé à l’équipe produit."
 
@@ -1549,11 +1562,13 @@ msgstr "project_id"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Add files"
 msgstr "Ajouter des fichiers"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Agent working"
 msgstr "Traitement en cours"
 
@@ -1564,36 +1579,44 @@ msgstr "Discussion"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Checking the details…"
 msgstr "Vérification des détails…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Describe your feedback"
 msgstr "Décrivez votre retour"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Draft ready"
 msgstr "Proposition prête"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback #"
 msgstr "Retour nº "
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback agent"
 msgstr "Assistant de retours"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback agent conversation"
 msgstr "Conversation avec l’assistant de retours"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback navigation"
 msgstr "Navigation des retours"
 
@@ -1604,6 +1627,7 @@ msgstr "Gemini reçoit votre message et l’aperçu. Les fichiers restent dans O
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "I couldn’t finish this reply. Your feedback is saved."
 msgstr "Je n’ai pas pu terminer cette réponse. Votre retour est enregistré."
 
@@ -1619,26 +1643,31 @@ msgstr "J’ai préparé une proposition. Vérifiez-la avant de l’envoyer."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Include page preview"
 msgstr "Inclure l’aperçu de la page"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Looking at the page preview…"
 msgstr "Analyse de l’aperçu de la page…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Needs attention"
 msgstr "À reprendre"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Needs your reply"
 msgstr "Votre réponse est attendue"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "New"
 msgstr "Nouveau"
 
@@ -1649,6 +1678,7 @@ msgstr "Odoo uniquement"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Open board"
 msgstr "Ouvrir le tableau"
 
@@ -1659,56 +1689,67 @@ msgstr "Ouvrir la proposition"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Open to retry"
 msgstr "Ouvrez pour réessayer"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Page details"
 msgstr "Détails de la page"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Preparing a draft"
 msgstr "Préparation d’une proposition"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Preparing a draft…"
 msgstr "Préparation d’une proposition…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Reading your report…"
 msgstr "Lecture de votre retour…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Reply in the chat"
 msgstr "Répondez dans la discussion"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Review and send"
 msgstr "Vérifiez puis envoyez"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Start a chat when something could work better."
 msgstr "Ouvrez une discussion dès qu’un élément pourrait être amélioré."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Start feedback"
 msgstr "Envoyer un retour"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Status and next step"
 msgstr "État et prochaine étape"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Still working…"
 msgstr "Traitement toujours en cours…"
 
@@ -1719,76 +1760,91 @@ msgstr "Que s’est-il passé et qu’attendiez-vous à la place ?"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "With product team"
 msgstr "Transmis à l’équipe produit"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "With the product team"
 msgstr "Transmis à l’équipe produit"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Feedback #%(id)s, %(stage)s, %(status)s"
 msgstr "Retour nº %(id)s, %(stage)s, %(status)s"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback actions"
 msgstr "Actions du retour"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "No further action"
 msgstr "Aucune action requise"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "This stops the feedback process. The conversation and files will stay available."
 msgstr "Cette action arrête le traitement du retour. La conversation et les fichiers resteront disponibles."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Withdraw"
 msgstr "Retirer"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Withdraw feedback"
 msgstr "Retirer le retour"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Withdraw feedback?"
 msgstr "Retirer ce retour ?"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Withdrawn"
 msgstr "Retiré"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Feedback withdrawn"
 msgstr "Retour retiré"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Message the product team…"
 msgstr "Écrivez à l’équipe produit…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Reply to the feedback agent…"
 msgstr "Répondez à l’assistant de retours…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "The feedback agent is replying…"
 msgstr "L’assistant de retours vous répond…"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "This feedback is withdrawn."
 msgstr "Ce retour est retiré."
 
@@ -1829,10 +1885,14 @@ msgid "What were you trying to do, and what happened instead?"
 msgstr "Que cherchiez-vous à faire et que s’est-il passé à la place ?"
 
 #. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
 msgid "Reported: %(detail)s"
 msgstr "Signalé : %(detail)s"
 
 #. module: usl_feedback
+#. odoo-python
+#: code:addons/usl_feedback/models/feedback_agent_run.py:0
 msgid "I prepared a draft from your report. Review it before sending."
 msgstr "J’ai préparé un brouillon à partir de votre retour. Relisez-le avant de l’envoyer."
 
@@ -1850,20 +1910,25 @@ msgstr "Sélectionnez d’abord un modèle Gemini."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Odoo uses fixed local replies. Nothing is sent to Gemini."
 msgstr "Odoo utilise des réponses locales prédéfinies. Rien n’est envoyé à Gemini."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "The assistant is off. Odoo will still save your feedback."
 msgstr "L’assistant est désactivé. Odoo enregistrera tout de même votre retour."
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Files stay in Odoo. Your workspace can view the feedback."
 msgstr "Les fichiers restent dans Odoo. Votre espace de travail peut consulter le retour."
 
 #. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "Gemini sees your message and preview."
 msgstr "Gemini voit votre message et l’aperçu."
 
@@ -2478,76 +2543,91 @@ msgstr "Navigation récente"
 
 #. module: usl_feedback
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+#. odoo-javascript
 msgid "Page details include up to five recent navigation steps."
 msgstr "Les détails de la page incluent jusqu’à cinq étapes de navigation récentes."
 
 #. module: usl_feedback
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+#. odoo-javascript
 msgid "Expand preview"
 msgstr "Agrandir l’aperçu"
 
 #. module: usl_feedback
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+#. odoo-javascript
 msgid "Collapse preview"
 msgstr "Réduire l’aperçu"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Waiting to be planned"
 msgstr "En attente de planification"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Being shaped"
 msgstr "En cadrage"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "The team is scoping it"
 msgstr "L’équipe en définit le périmètre"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "In progress"
 msgstr "En cours"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "The team is building it"
 msgstr "L’équipe la réalise"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "In review"
 msgstr "En revue"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Being checked before release"
 msgstr "Vérification avant livraison"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Released"
 msgstr "Livré"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Rolling out"
 msgstr "Déploiement en cours"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Done"
 msgstr "Terminé"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Not planned"
 msgstr "Non planifié"
 
 #. module: usl_feedback
 #. odoo-javascript
+#: code:addons/usl_feedback/static/src/js/feedback_messaging_menu.js:0
 msgid "Kept for reference"
 msgstr "Conservé pour mémoire"
 
