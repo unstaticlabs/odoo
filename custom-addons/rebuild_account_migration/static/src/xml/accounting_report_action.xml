@@ -301,7 +301,7 @@
             </div>
 
             <div class="o_usl_report_table_wrap">
-                <table class="table o_usl_report_table">
+                <table class="table o_usl_report_table" t-att-class="{'o_usl_cash_flow_table': reportType === 'cash_flow'}">
                     <thead>
                         <tr>
                             <th class="o_usl_report_label" t-esc="state.data.label_column"/>

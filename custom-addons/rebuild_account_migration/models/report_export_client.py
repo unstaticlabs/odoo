@@ -886,7 +886,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ],
             "cash_flow": [
                 ("amount", "Montant", currency),
-                ("statement_balance", "Solde de trésorerie", currency),
             ],
             "executive_summary": [
                 ("metric_value", "Valeur", number),

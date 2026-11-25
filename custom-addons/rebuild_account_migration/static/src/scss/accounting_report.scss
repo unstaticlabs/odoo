@@ -702,6 +702,22 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
             padding-inline: 0.35rem;
         }
 
+        .o_usl_cash_flow_table {
+            .o_usl_report_label {
+                min-width: 0;
+            }
+
+            .o_usl_report_action {
+                padding-inline: 0;
+
+                .btn {
+                    min-width: 44px;
+                    min-height: 44px;
+                    opacity: 1;
+                }
+            }
+        }
+
         > .alert {
             margin-inline: 0.65rem !important;
         }
