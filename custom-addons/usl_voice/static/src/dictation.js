@@ -1,10 +1,10 @@
 import { Component, markRaw, onWillUnmount } from "@odoo/owl";
-import { useExternalListener, useState } from "@web/owl2/utils";
+import { useExternalListener, useRef, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
-import { captureTarget, dictationTarget } from "./dictation_target";
+import { captureTarget, caretRect, dictationTarget } from "./dictation_target";
 import { VoiceMeter } from "./meter";
 
 /**
@@ -25,6 +25,10 @@ for (const type of ["pointerdown", "mousedown", "touchstart", "pointerup", "mous
             ev.preventDefault(); // the field keeps the focus and its selection
         }
         const action = type === "click" && ev.target.closest("[data-usl-action]")?.dataset.uslAction;
+        if (type === "click" && mounted.target?.isConnected &&
+                document.activeElement?.closest(".o-usl-dictation-controls")) {
+            mounted.target.focus(); // a touch moves the focus to the button: give it back
+        }
         if (ACTIONS.includes(action)) {
             mounted[action]();
         }
@@ -38,7 +42,8 @@ export class FieldDictation extends Component {
     setup() {
         this.notify = useService("notification");
         mounted = this;
-        this.state = useState({ mode: "idle", visible: false, x: 0, y: 0, recovered: "" });
+        this.root = useRef("controls");
+        this.state = useState({ mode: "idle", visible: false, typing: false, x: 0, y: 0, recovered: "" });
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
                 return;
@@ -50,10 +55,25 @@ export class FieldDictation extends Component {
             this.setTarget(next);
         });
         useExternalListener(document, "input", (ev) => {
-            if (this.state.mode !== "idle" && this.target?.contains(ev.target)) {
-                this.destination = null;
+            if (this.state.mode === "idle" && !this.target?.isConnected) {
+                this.target = dictationTarget(ev.target);
             }
+            if (!this.target?.contains(ev.target)) {
+                return;
+            }
+            if (this.state.mode !== "idle") {
+                this.destination = null;
+                return;
+            }
+            // Step aside while the writer types, and come back at the insertion point after a pause.
+            this.state.typing = true;
+            clearTimeout(this.typingTimer);
+            this.typingTimer = setTimeout(() => {
+                this.state.typing = false;
+                this.position();
+            }, 900);
         });
+        useExternalListener(document, "selectionchange", () => this.position());
         useExternalListener(document, "focusout", (event) => {
             if (!event.relatedTarget && this.state.mode === "idle") {
                 this.setTarget(null);
@@ -65,6 +85,15 @@ export class FieldDictation extends Component {
                 ev.preventDefault();
                 ev.stopPropagation();
                 this.cancel();
+            } else if (ev.altKey && ev.shiftKey && ev.code === "KeyD" && !ev.repeat) {
+                // Hands stay on the keyboard: the same keys start a dictation and end it.
+                if (this.state.mode === "recording") {
+                    ev.preventDefault();
+                    this.stop();
+                } else if (this.state.mode === "idle" && this.target) {
+                    ev.preventDefault();
+                    this.record();
+                }
             }
         }, true);
         useExternalListener(window, "resize", () => this.position());
@@ -72,42 +101,45 @@ export class FieldDictation extends Component {
         useExternalListener(window, "pagehide", () => this.cancel());
         onWillUnmount(() => {
             mounted = mounted === this ? null : mounted;
+            clearTimeout(this.typingTimer);
             this.cancel();
-            this.target?.classList.remove("o-usl-dictation-target", "o-usl-dictation-busy");
         });
     }
     setTarget(element) {
-        this.target?.classList.remove("o-usl-dictation-target", "o-usl-dictation-busy");
         this.target = element;
-        this.target?.classList.add("o-usl-dictation-target");
+        this.state.typing = false;
         this.position();
     }
+    /**
+     * Sit just above the insertion point, where the eyes already are, without taking any
+     * room from the field: nothing in the form moves when the controls appear or grow.
+     */
     position() {
-        const box = this.target?.isConnected && this.target.getBoundingClientRect();
-        if (box && box.width && box.height) {
-            this.state.x = Math.max(2, Math.min(innerWidth - 4, box.right - 3));
-            this.state.y = Math.max(2, Math.min(innerHeight - 36, box.top + (Math.min(box.height, 40) - 32) / 2));
+        if (this.state.mode === "idle" && !this.target?.isConnected) {
+            // Odoo may redraw a field while it keeps the focus: follow the element that has it now.
+            const active = document.activeElement;
+            this.target = active?.closest?.(".o-usl-dictation") ? null : dictationTarget(active);
         }
-        this.state.visible = Boolean(box && box.width && box.height &&
-            box.top >= 0 && box.top < innerHeight && box.right > 0 && box.left < innerWidth &&
-            navigator.mediaDevices?.getUserMedia);
+        const target = this.target?.isConnected ? this.target : null;
+        const caret = target ? caretRect(target) : this.anchor;
+        const box = target?.getBoundingClientRect();
+        const shown = Boolean(caret && box && box.width && box.height && caret.top < innerHeight &&
+            caret.top + caret.height > 0 && navigator.mediaDevices?.getUserMedia);
+        if (shown) {
+            this.anchor = caret;
+            const size = this.root.el?.offsetHeight || 28;
+            const width = this.root.el?.offsetWidth || size;
+            const above = caret.top - size - 4;
+            this.state.x = Math.max(4, Math.min(innerWidth - width - 4, caret.left + 6));
+            this.state.y = above >= 4 ? above : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
+        }
+        this.state.visible = shown;
     }
-    /** Keep the field's text clear of the wider controls while a dictation runs. */
     setMode(mode) {
         this.state.mode = mode;
-        this.target?.classList.toggle("o-usl-dictation-busy", mode !== "idle");
         this.position();
-        // Reserve exactly the room the controls take once they are drawn, whatever the language.
-        const target = this.target;
-        // Two frames: the controls are redrawn on the first one.
-        requestAnimationFrame(() => requestAnimationFrame(() => {
-            const width = document.querySelector(".o-usl-dictation-pill")?.offsetWidth;
-            if (width && this.state.mode !== "idle") {
-                target?.style.setProperty("--usl-dictation-room", `${width + 12}px`);
-            } else {
-                target?.style.removeProperty("--usl-dictation-room");
-            }
-        }));
+        // The controls change width with the mode: once redrawn, keep them inside the window.
+        requestAnimationFrame(() => requestAnimationFrame(() => this.position()));
     }
     cancel() {
         this.capture?.discard();

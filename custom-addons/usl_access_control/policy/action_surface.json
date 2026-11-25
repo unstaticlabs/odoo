@@ -10664,7 +10664,7 @@
       ]
     },
     {
-      "digest": "d47a10c8bc4bbd9948518fa6c1cfe78b416da73446d593e4f0e345352557a053",
+      "digest": "680147985d6d6630b39361115eaf423e3a26b22a15746d90e7848f940cf59c92",
       "guards": [],
       "key": "route:http:POST:/usl/voice/dictate",
       "kind": "route",
@@ -10674,7 +10674,7 @@
       "parents": [],
       "risk_flags": [],
       "route": "/usl/voice/dictate",
-      "runtime_digest": "ee8c6a7eb920b65afe1ca142de9124070571e925d2966838241b537270277be3",
+      "runtime_digest": "5b19cbd0e32bf832245e67d50cedf41a851c53810af8551ed3c0a10bb7e7c9fb",
       "sinks": [],
       "sources": [
         {
@@ -1676186,7 +1676186,7 @@
       ]
     },
     {
-      "digest": "eeacf2a4a9115c381bf484f2df8d16c0d41b2dadbaba9e51eb4a1da32cda79bd",
+      "digest": "bd25e47eb42ee66ab697c65d641edba81e9629a9313f97d1f1f10820cb87ca55",
       "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1676201,7 +1676201,7 @@
       ]
     },
     {
-      "digest": "4cead7db0c8e77a50ec9013eb055a607a5c6f3b4fed7f4f58a17aa9ff93d2bf2",
+      "digest": "ebecb829a0c2754b679092cbfdf205213b3a88c1ad161c4f6946146f18f1f8d2",
       "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1676216,7 +1676216,7 @@
       ]
     },
     {
-      "digest": "e61fadd4d87a9126e064d65b21ce68f9f0c86fe94946b58aebf17a23d60a0902",
+      "digest": "87fc7f1a45935144e971a50d7d41e038d1915f7bb3c31ea60d85f3217e8981fc",
       "key": "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1676261,7 +1676261,7 @@
       ]
     },
     {
-      "digest": "05dffcead8f1d8810292d43601e1945864f7879d6512cf0797e8b40171dcc8b0",
+      "digest": "6aecd0e16d6b6d9a045f455d7334f41a9e41d5adc47e693f93b84c34ffa11f8e",
       "key": "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1",
       "kind": "sink",
       "modules": [
@@ -1676270,7 +1676270,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 17,
+          "line": 22,
           "path": "custom-addons/usl_voice/speech.py"
         }
       ]
@@ -1738645,7 +1738645,7 @@
       "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
       "name": "usl_voice",
       "origin": "custom",
-      "source_sha256": "6816a305e775bd5b706151a9dfabee49bc446fcca98d05dc047153bf292809fd",
+      "source_sha256": "13f17f627551d68090f0bac4e3cac7e8b6e7b8e63046d44a001e106cfc331e13",
       "version": "saas~19.3.1.0.0"
     },
     {

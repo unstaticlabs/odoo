@@ -50,6 +50,12 @@ msgstr "Dicter du texte"
 
 #. module: usl_voice
 #. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Dictate (Alt+Shift+D)"
+msgstr "Dicter (Alt+Maj+D)"
+
+#. module: usl_voice
+#. odoo-javascript
 #: code:addons/usl_voice/static/src/composer.xml:0
 msgid "Discard recording"
 msgstr "Abandonner l’enregistrement"

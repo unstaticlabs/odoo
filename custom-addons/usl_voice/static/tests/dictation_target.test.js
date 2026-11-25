@@ -1,5 +1,5 @@
 import { expect, test } from "@odoo/hoot";
-import { dictationTarget, captureTarget } from "@usl_voice/dictation_target";
+import { caretRect, dictationTarget, captureTarget } from "@usl_voice/dictation_target";
 
 test("dictation preserves suffix and rejects a stale field", () => {
     const input = document.createElement("textarea");
@@ -65,5 +65,34 @@ test("rich dictation preserves formatting and rejected silence leaves selection 
         expect(editor.querySelector("strong").textContent).toBe("Bonjour");
     } finally {
         editor.remove();
+    }
+});
+
+test("the insertion point is found inside the field, on the right line", () => {
+    const input = document.createElement("input");
+    const area = document.createElement("textarea");
+    for (const field of [input, area]) {
+        Object.assign(field.style, { position: "fixed", left: "40px", top: "60px", width: "300px", font: "16px/20px monospace", padding: "4px" });
+    }
+    area.style.height = "120px";
+    document.body.append(input, area);
+    try {
+        input.value = "Bonjour tout le monde";
+        input.setSelectionRange(0, 0);
+        const start = caretRect(input);
+        input.setSelectionRange(7, 7);
+        const middle = caretRect(input);
+        expect(middle.left).toBeGreaterThan(start.left + 40);
+        expect(middle.left).toBeLessThan(input.getBoundingClientRect().right);
+        expect(middle.top).toBeGreaterThan(59);
+        area.value = "un\ndeux\ntrois";
+        area.setSelectionRange(2, 2);
+        const first = caretRect(area);
+        area.setSelectionRange(area.value.length, area.value.length);
+        const third = caretRect(area);
+        expect(Math.round(third.top - first.top)).toBe(40);
+    } finally {
+        input.remove();
+        area.remove();
     }
 });

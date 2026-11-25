@@ -1,7 +1,25 @@
 .o-usl-dictation {
     position: fixed;
     z-index: $zindex-modal + 1;
-    button { min-width: 32px; min-height: 32px; }
+    button { min-width: 28px; min-height: 28px; }
+}
+// At rest the microphone is a quiet hint beside the insertion point, not a field decoration.
+.o-usl-dictation-mic {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    font-size: 0.8rem;
+    line-height: 1;
+    opacity: 0.75;
+    transition: opacity 120ms ease-in-out;
+    &:hover, &:focus-visible {
+        opacity: 1;
+    }
+    // Fingers need a larger target than a pointer.
+    @media (pointer: coarse) {
+        width: 36px;
+        height: 36px;
+    }
 }
 .o-usl-recovered {
     inset-inline-end: 1rem;
@@ -15,16 +33,6 @@
     white-space: pre-wrap;
 }
 
-.o-usl-dictation-target {
-    padding-inline-end: 2.5rem !important;
-}
-// The recording pill is wider than the idle microphone.
-.o-usl-dictation-busy {
-    padding-inline-end: var(--usl-dictation-room, 11rem) !important;
-}
-.o-usl-dictation-controls {
-    transform: translateX(-100%);
-}
 .o-usl-dictation-pill {
     padding: 2px;
     gap: 2px;

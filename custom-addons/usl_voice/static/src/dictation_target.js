@@ -43,3 +43,67 @@ export function captureTarget(element) {
         },
     };
 }
+
+const MIRRORED = [
+    "boxSizing", "width", "height", "borderTopWidth", "borderRightWidth", "borderBottomWidth",
+    "borderLeftWidth", "paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "fontStyle",
+    "fontVariant", "fontWeight", "fontStretch", "fontSize", "lineHeight", "fontFamily", "textAlign",
+    "textTransform", "textIndent", "letterSpacing", "wordSpacing", "tabSize", "direction",
+];
+
+/**
+ * Where the insertion point is on screen, as { left, top, height } in viewport pixels.
+ * Inputs and textareas do not expose it, so their text is laid out again in a hidden copy.
+ */
+export function caretRect(element) {
+    const box = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    const line = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2 || 16;
+    let left = box.left + parseFloat(style.paddingLeft || 0);
+    let top = box.top + parseFloat(style.paddingTop || 0);
+    let height = line;
+    if (element.isContentEditable) {
+        const selection = element.ownerDocument.getSelection();
+        const range = selection?.rangeCount && element.contains(selection.focusNode)
+            ? selection.getRangeAt(0).cloneRange() : null;
+        if (range) {
+            range.collapse(false);
+            const node = range.startContainer;
+            const rect = range.getClientRects()[0] ||
+                (node.nodeType === Node.ELEMENT_NODE ? node : node.parentElement)?.getBoundingClientRect();
+            if (rect && (rect.width || rect.height)) {
+                ({ left, top } = rect);
+                height = rect.height && rect.height < line * 2 ? rect.height : line;
+            }
+        }
+    } else {
+        const multiline = element.tagName === "TEXTAREA";
+        const at = element.selectionEnd ?? element.value.length;
+        const mirror = element.ownerDocument.createElement("div");
+        for (const property of MIRRORED) {
+            mirror.style[property] = style[property];
+        }
+        Object.assign(mirror.style, {
+            position: "fixed", left: `${box.left}px`, top: `${box.top}px`, visibility: "hidden",
+            overflow: "hidden", pointerEvents: "none", borderStyle: "solid",
+            whiteSpace: multiline ? "pre-wrap" : "pre", overflowWrap: multiline ? "break-word" : "normal",
+        });
+        mirror.textContent = element.value.slice(0, at);
+        const marker = element.ownerDocument.createElement("span");
+        marker.textContent = "\u200b";
+        mirror.append(marker, element.value.slice(at));
+        element.ownerDocument.body.append(mirror);
+        mirror.scrollTop = element.scrollTop;
+        mirror.scrollLeft = element.scrollLeft;
+        const rect = marker.getBoundingClientRect();
+        mirror.remove();
+        left = rect.left;
+        // A one-line input centres its text; the copy lays it out from the top.
+        top = multiline ? rect.top : box.top + (box.height - line) / 2;
+    }
+    return {
+        left: Math.min(Math.max(left, box.left), box.right),
+        top: Math.min(Math.max(top, box.top), Math.max(box.top, box.bottom - height)),
+        height,
+    };
+}

@@ -18,7 +18,6 @@ test("a click on the microphone reaches no other listener and keeps the field fo
     const input = document.createElement("input");
     document.body.append(input);
     const seen = (ev) => expect.step(`outside ${ev.type}`);
-    window.addEventListener("mousedown", seen, true);
     window.addEventListener("click", seen, true);
     try {
         await mountWithCleanup(FieldDictation);
@@ -28,9 +27,8 @@ test("a click on the microphone reaches no other listener and keeps the field fo
         expect.verifySteps(["record"]);
         expect(input).toBeFocused();
         await click(document.body);
-        expect.verifySteps(["outside mousedown", "outside click"]);
+        expect.verifySteps(["outside click"]);
     } finally {
-        window.removeEventListener("mousedown", seen, true);
         window.removeEventListener("click", seen, true);
         input.remove();
     }

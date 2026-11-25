@@ -9,10 +9,10 @@
             <button class="btn btn-primary btn-sm" data-usl-action="copyText"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Copy transcript</button>
             <button class="btn btn-secondary btn-sm ms-2" data-usl-action="cancel">Dismiss</button>
         </div>
-        <div t-elif="this.state.visible or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-center"
+        <div t-elif="(this.state.visible and !this.state.typing) or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-center" t-custom-ref="controls"
              t-att-class="{ 'o-usl-dictation-pill border rounded-pill bg-view shadow-sm': this.state.mode !== 'idle' }"
              t-att-style="'left:' + this.state.x + 'px;top:' + this.state.y + 'px'">
-            <button t-if="this.state.mode === 'idle'" class="btn btn-light btn-sm border rounded-circle" title="Dictate text" aria-label="Dictate text" data-usl-action="record">
+            <button t-if="this.state.mode === 'idle'" class="o-usl-dictation-mic btn btn-light border rounded-circle shadow-sm" title="Dictate (Alt+Shift+D)" aria-label="Dictate text" aria-keyshortcuts="Alt+Shift+D" data-usl-action="record">
                 <i class="fa fa-microphone" aria-hidden="true"/>
             </button>
             <t t-elif="this.state.mode === 'recording'">
