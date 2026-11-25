@@ -1640659,7 +1640659,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 35,
+          "line": 40,
           "path": "custom-addons/usl_access_control/controllers/json2.py"
         }
       ]
@@ -1738271,7 +1738271,7 @@
       "manifest_sha256": "a09f9f9cf6b8422b32eb95f807fb60057571205ba7b83fcf1fdb7ddc684d39bc",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "d401e11cd0efa23995307ce3e09286b501e3d8a3299a1d51273bc4efa305dced",
+      "source_sha256": "8fdaa8888cfa7b442f3c9a01920493639739c8152a6a2efdd93fe5f0ea8ca67d",
       "version": "saas~19.3.1.8.15"
     },
     {
