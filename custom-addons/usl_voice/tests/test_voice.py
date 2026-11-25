@@ -36,7 +36,7 @@ class TestVoice(TransactionCase):
         with patch("odoo.addons.usl_voice.models.transcribe", return_value=text) as server:
             message._usl_transcribe_voice(voice.id)
             message._usl_transcribe_voice(voice.id)
-        server.assert_called_once_with(b"ID3synthetic-audio", "audio/mpeg")
+        server.assert_called_once_with(b"ID3synthetic-audio", "audio/mpeg", self.env.user.lang)
         self.assertIsInstance(server.call_args.args[0], bytes)
         message.invalidate_recordset(["usl_voice_notes"])
         self.assertEqual(message.usl_voice_notes, [{
@@ -105,3 +105,33 @@ class TestVoice(TransactionCase):
                 transcribe(b"audio", "audio/mpeg")
             with self.assertRaises(ValueError):
                 transcribe(b"", "audio/mpeg")
+
+    def test_speech_heard_as_a_third_language_is_heard_again_in_french_or_english(self):
+        with patch("odoo.addons.usl_voice.speech.requests.post") as post:
+            post.return_value.status_code = 200
+            answers = iter([{"text": "Obrigado", "language": "portuguese"}, {"text": "Merci beaucoup", "language": "fr"}])
+            post.return_value.json.side_effect = lambda: next(answers)
+            self.assertEqual(transcribe(b"audio", "audio/mpeg", "fr_FR"), "Merci beaucoup")
+            self.assertNotIn("language", post.call_args_list[0].kwargs["data"])
+            self.assertEqual(post.call_args_list[1].kwargs["data"]["language"], "fr")
+            post.reset_mock()
+            # English speech in a French interface is kept as heard, in one request.
+            post.return_value.json.side_effect = None
+            post.return_value.json.return_value = {"text": "Thank you", "language": "english"}
+            self.assertEqual(transcribe(b"audio", "audio/mpeg", "fr_FR"), "Thank you")
+            self.assertEqual(post.call_count, 1)
+            post.reset_mock()
+            # An English speaker is heard again in English; anyone else in French.
+            answers = iter([{"text": "Danke", "language": "de"}, {"text": "Thanks", "language": "en"},
+                            {"text": "Danke", "language": "de"}, {"text": "Merci", "language": "fr"}])
+            post.return_value.json.side_effect = lambda: next(answers)
+            self.assertEqual(transcribe(b"audio", "audio/mpeg", "en_US"), "Thanks")
+            self.assertEqual(post.call_args.kwargs["data"]["language"], "en")
+            self.assertEqual(transcribe(b"audio", "audio/mpeg", "de_DE"), "Merci")
+            self.assertEqual(post.call_args.kwargs["data"]["language"], "fr")
+            post.reset_mock()
+            # A gateway that does not say what it heard is trusted as before.
+            post.return_value.json.side_effect = None
+            post.return_value.json.return_value = {"text": "Bonjour"}
+            self.assertEqual(transcribe(b"audio", "audio/mpeg"), "Bonjour")
+            self.assertEqual(post.call_count, 1)

@@ -18,7 +18,7 @@ class VoiceController(http.Controller):
         if len(data) > MAX_AUDIO_BYTES:
             raise RequestEntityTooLarge()
         try:
-            text = transcribe(data, file.mimetype)
+            text = transcribe(data, file.mimetype, request.env.user.lang)
         except ValueError as exc:
             raise BadRequest() from exc
         except SpeechUnavailable as exc:
