@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import Command
-from odoo.tests import tagged
+from odoo.tests import Form, new_test_user, tagged
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
@@ -456,3 +456,56 @@ class TestAccountMovePaymentsWidget(AccountTestInvoicingCommon):
 
         invoice.js_remove_outstanding_partial(partials.filtered(lambda p: p.debit_move_id == receivable_line).id)
         self.assertFalse(partials.exists())
+
+    def test_payments_widget_open_entries(self):
+        """ The invoicing users can't open the entries that aren't invoices or payments. """
+        invoice = self.init_invoice('out_invoice', amounts=[3000.0], post=True)
+        receivable_line = invoice.line_ids.filtered(lambda line: line.account_id == self.receivable_account)
+        payment = self.env['account.payment.register'].with_context(active_model='account.move', active_ids=invoice.ids).create({
+            'amount': 1000.0,
+        })._create_payments()
+        bank_journal = self.company_data['default_journal_bank']
+        bank_entry = self.env['account.move'].create({
+            'journal_id': bank_journal.id,
+            'line_ids': [
+                Command.create({'credit': 1000.0, 'account_id': self.receivable_account.id, 'partner_id': self.partner_a.id}),
+                Command.create({'debit': 1000.0, 'account_id': bank_journal.default_account_id.id}),
+            ],
+        })
+        misc_entry = self.payment_2016_curr_1.copy({'date': '2017-01-01'})
+        (bank_entry + misc_entry).action_post()
+        (receivable_line + (bank_entry + misc_entry).line_ids.filtered(lambda line: line.account_id == self.receivable_account)).reconcile()
+
+        invoicing_user = new_test_user(self.env, login='invoicing_user', groups='base.group_user,account.group_account_invoice')
+        readonly_user = new_test_user(self.env, login='readonly_user', groups='base.group_user,account.group_account_readonly')
+        for user, expected in (
+            (invoicing_user, {payment.move_id.id: True, bank_entry.id: False, misc_entry.id: False}),
+            (readonly_user, {payment.move_id.id: True, bank_entry.id: True, misc_entry.id: True}),
+        ):
+            with self.subTest(user=user.login):
+                widget_vals = invoice.with_user(user).invoice_payments_widget
+                self.assertEqual({vals['move_id']: vals['can_open_move'] for vals in widget_vals['content']}, expected)
+
+    def test_outstanding_payments_draft_partner_change(self):
+        ''' Test the outstanding widget follows the partner of a draft invoice. '''
+        refund = self._create_invoice_one_line(move_type='out_refund', partner_id=self.partner_b, price_unit=1000.0, post=True)
+
+        # Unsaved invoice: no widget yet.
+        with Form(self.env['account.move'].with_context(default_move_type='out_invoice')) as invoice_form:
+            with invoice_form.invoice_line_ids.new() as line_form:
+                line_form.price_unit = 1000.0
+            invoice_form.partner_id = self.partner_b
+            self.assertFalse(invoice_form.invoice_outstanding_credits_debits_widget)
+        invoice = invoice_form.record
+
+        # Saved draft invoice: the widget follows the partner and refers to the real invoice id.
+        with Form(invoice) as invoice_form:
+            invoice_form.partner_id = self.partner_a
+            # partner_a already has outstanding payments in the setup, so the widget exists.
+            widget = invoice_form.invoice_outstanding_credits_debits_widget
+            self.assertNotIn(refund.id, {vals['move_id'] for vals in widget['content']})
+            invoice_form.partner_id = self.partner_b
+            widget = invoice_form.invoice_outstanding_credits_debits_widget
+            self.assertTrue(widget)
+            self.assertEqual(widget['move_id'], invoice.id)
+            self.assertEqual({vals['move_id'] for vals in widget['content']}, {refund.id})
