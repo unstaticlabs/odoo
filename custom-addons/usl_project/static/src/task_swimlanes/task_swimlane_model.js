@@ -76,6 +76,11 @@ export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
                 this.matrixMode = false;
             }
         }
+        // The sample server can render the groups from the real load. Keep
+        // their help and let the simulated load use only its native requests.
+        if (this.orm.isSample) {
+            return super._loadData(config, cache);
+        }
         const board = config.fields.usl_project_return_badge && taskBoard(config.groupBy, config.context);
         const rows = board ? this.orm.searchRead("project.task.type", [
             board.personal ? ["user_id", "=", user.userId] : ["project_ids", "in", [board.projectId]],
