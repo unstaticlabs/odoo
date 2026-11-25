@@ -1739000,6 +1739000,7 @@
     }
   ],
   "country_codes": [
+    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1739695,7 +1739696,7 @@
       "manifest_sha256": "aec8544c95c591f95ca361528a9a7aaaf144d6db3300480a07db79887458a08e",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "7743d4c15fc2f531d9dca53df7a98f5b6b5db8c4d9ae2ad4894d800befd16938",
+      "source_sha256": "738bd42a0b92ba3db71a2e4b5dfa1b1438a1786e0c0ea248db5bb0633b49d7e2",
       "version": "saas~19.3.1.13.53"
     },
     {
