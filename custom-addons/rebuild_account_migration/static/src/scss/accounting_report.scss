@@ -730,3 +730,13 @@ html .o_web_client > .o_action_manager > .o_action.o_usl_accounting_report {
         }
     }
 }
+
+
+.o_usl_asset_scope {
+    max-width: 44rem;
+
+    .o_usl_asset_bridge {
+        max-width: 34rem;
+        font-variant-numeric: tabular-nums;
+    }
+}
