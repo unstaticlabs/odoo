@@ -13976,3 +13976,23 @@ msgstr "Avoir ·"
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_declaration_candidate_review
 msgid "DES and DAS2 documents to review"
 msgstr "Pièces DES et DAS2 à examiner"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__draft_only_expense_count
+msgid "Draft Expenses Only"
+msgstr "Dépenses en brouillon uniquement"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__submitted_expense_count
+msgid "Submitted Expenses"
+msgstr "Dépenses soumises"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_overview__approved_expense_count
+msgid "Approved Expenses"
+msgstr "Dépenses approuvées"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_overview__draft_expense_count
+msgid "Draft, submitted and approved expenses awaiting further processing. This legacy count does not mean editable drafts."
+msgstr "Dépenses en brouillon, soumises ou approuvées restant à traiter. Ce compteur historique ne désigne pas uniquement les brouillons modifiables."
