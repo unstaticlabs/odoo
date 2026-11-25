@@ -184,7 +184,7 @@ unchanged. About half an hour later the idle sweep puts staging back to sleep.
 
 **From the web.** While staging sleeps, `https://odoo-staging.unstaticlabs.com`
 answers `503` with a sleeping page. A person signs in with Pocket ID (the same
-provider and the same `c_suite` group as staging Odoo) and presses **Wake
+provider and the same `odoo_staging` group as staging Odoo) and presses **Wake
 staging**; the page then opens staging by itself. The lifecycle daemon speaks
 OpenID Connect itself (authorization code + PKCE, confidential client, userinfo
 for the groups), so nothing depends on Odoo being up. The wake is recorded as
@@ -207,7 +207,7 @@ the existing staging Odoo client, beside its Odoo one:
 https://odoo-staging.unstaticlabs.com/__usl/callback
 ```
 
-That client is already restricted to the `c_suite` group. Rotating its secret
+That client is already restricted to the `odoo_staging` group. Rotating its secret
 signs every wake session out; redeploy the lifecycle stack so the daemon picks up
 the new value.
 
@@ -224,6 +224,37 @@ open `https://odoo-staging.unstaticlabs.com` in a browser:
 
 **From the command line.** `scripts/usl-stack --target staging runtime wake`.
 SSH access to the host is the authentication.
+
+## Review identity
+
+Staging is rebuilt from a production backup, so an Odoo user that exists only
+on staging disappears at every reset. One such user is kept on purpose: a
+review account that replays journeys on staging and cannot sign in to
+production, because its Pocket ID user belongs to `odoo_staging` only.
+
+After a staging upgrade or reset is admitted, the release links that Pocket ID
+subject to a human Odoo user with the existing `accountant_reviewer` profile,
+through `res.users._usl_pocketid_apply_user_configuration`. That profile is not
+read-only: it does accounting review work in unlocked periods (draft
+adjustments, posting, reset, reconciliation) and reads the accounting
+documents, without locks, permanent deletion or administration. A replay
+clicks through wizards and posts entries, and staging is a neutralized copy
+that the next reset replaces. It reads three
+values from the environment of the staging Odoo service, which the GitOps
+staging Compose file declares; none is a secret:
+
+| Variable | Value |
+|---|---|
+| `USL_STAGING_RECETTE_LOGIN` | Odoo login of the review user |
+| `USL_STAGING_RECETTE_EMAIL` | its email |
+| `USL_STAGING_RECETTE_SUBJECT` | its Pocket ID subject (the Pocket ID user id) |
+
+The step runs after the release controls are compared, because those controls
+count users, groups and identities against the restored snapshot. It is
+evidence, never a gate: the run log `runs/<generation>.jsonl` records
+`review-identity` as `ensured`, `skipped` (a variable is missing) or `failed`,
+and a failure leaves the release admitted. Production and every other target
+never run it.
 
 ## Moving parts
 

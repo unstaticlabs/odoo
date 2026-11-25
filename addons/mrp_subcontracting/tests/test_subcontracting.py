@@ -3,7 +3,7 @@
 
 from freezegun import freeze_time
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import Form
 from odoo.tests.common import TransactionCase
@@ -1213,6 +1213,39 @@ class TestSubcontractingFlows(TestMrpSubcontractingCommon):
         self.assertEqual(avail_qty_comp2, -1)
         self.assertEqual(avail_qty_finished, 1)
 
+    def test_flow_tracked_picked_receipt_edit_lot(self):
+        """ The receipt of a lot-tracked subcontracted product, whose component is resupplied on
+        order, is picked before its lot is set on the existing move line in the detailed operations.
+        Validating the receipt produces the subcontracted product and consumes the components.
+        """
+        self.finished.tracking = 'lot'
+        self.comp1.route_ids = [Command.link(self.ref('mrp_subcontracting.route_resupply_subcontractor_mto'))]
+        self.env['stock.quant']._update_available_quantity(self.comp1, self.warehouse.lot_stock_id, 1)
+        picking_receipt = self.env['stock.picking'].create({
+            'picking_type_id': self.warehouse.in_type_id.id,
+            'partner_id': self.subcontractor_partner1.id,
+            'move_ids': [Command.create({
+                'product_id': self.finished.id,
+                'product_uom_qty': 1.0,
+            })],
+        })
+        picking_receipt.action_confirm()
+        self.env['mrp.production'].search([('bom_id', '=', self.bom.id)]).picking_ids.button_validate()
+
+        picking_receipt.move_ids.picked = True
+        lot = self.env['stock.lot'].create({'name': 'lot1', 'product_id': self.finished.id})
+        with Form.from_action(self.env, picking_receipt.move_ids.action_show_details()) as move_form:
+            with move_form.move_line_ids.edit(0) as move_line:
+                move_line.lot_id = lot
+        picking_receipt.button_validate()
+
+        mo = self.env['mrp.production'].search([('bom_id', '=', self.bom.id)])
+        self.assertRecordValues(mo, [{'state': 'done', 'lot_producing_ids': lot.ids}])
+        self.assertRecordValues(mo.move_raw_ids, [
+            {'product_id': self.comp1.id, 'quantity': 1.0, 'state': 'done'},
+            {'product_id': self.comp2.id, 'quantity': 1.0, 'state': 'done'},
+        ])
+
     def test_flow_tracked_only_finished(self):
         """ Test when only the finished product is tracked """
         self.finished.tracking = "serial"
@@ -1414,6 +1447,41 @@ class TestSubcontractingFlows(TestMrpSubcontractingCommon):
         # Validate the picking
         picking_receipt.button_validate()
         self.assertEqual(picking_receipt.state, 'done')
+
+    def test_validate_receipt_with_expired_component_lot(self):
+        """
+        Check that validating a receipt marks its recorded productions as done even if
+        they consume an expired lot: the confirmation of expired lots can't be shown there.
+        """
+        if self.env.ref('base.module_mrp_product_expiry').state != 'installed':
+            self.skipTest("mrp_product_expiry module is not installed")
+        self.comp2.write({'tracking': 'lot', 'use_expiration_date': True})
+        expired_lot = self.env['stock.lot'].create({
+            'name': 'expired_lot',
+            'product_id': self.comp2.id,
+            'expiration_date': fields.Datetime.now() - relativedelta(days=1),
+        })
+        receipt = self.env['stock.picking'].create({
+            'picking_type_id': self.ref('stock.picking_type_in'),
+            'partner_id': self.subcontractor_partner1.id,
+            'move_ids': [Command.create({
+                'product_id': self.finished.id,
+                'product_uom_qty': 5,
+            })],
+        })
+        receipt.action_confirm()
+        action = receipt.action_show_subcontract_details()
+        production = self.env['mrp.production'].browse(action['res_id'])
+        portal_view = self.env.ref('mrp_subcontracting.mrp_production_subcontracting_portal_form_view')
+        with Form(production.with_context(action['context']), view=portal_view.id) as mo_form:
+            with mo_form.move_line_raw_ids.new() as ml:
+                ml.product_id = self.comp2
+                ml.lot_id = expired_lot
+                ml.quantity = 5
+
+        receipt.button_validate()
+        self.assertEqual(receipt.state, 'done')
+        self.assertEqual(production.state, 'done')
 
     def test_flow_subcontracting_portal(self):
         # Create a receipt picking from the subcontractor

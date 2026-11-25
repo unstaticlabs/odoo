@@ -8153,3 +8153,15 @@ msgstr "Identifiant du message source"
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_reopen__statement_id
 msgid "Statement"
 msgstr "Relevé bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
+msgid "This expense is outside the current review. Reopen the review to continue."
+msgstr "Cette dépense ne fait pas partie de la revue en cours. Rouvrez la revue pour continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+msgid "The batch changed. Open it and choose Submit batch again."
+msgstr "Le lot a changé. Ouvrez-le et choisissez de nouveau Soumettre le lot."

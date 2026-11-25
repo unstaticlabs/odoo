@@ -407,7 +407,9 @@ class UslExpenseBatchCreateWizard(models.TransientModel):
         if not self.draft_count:
             raise UserError(_("This selection has no draft expenses to submit."))
         batch = self._create_batch()
-        batch.action_submit()
+        action = batch.action_submit()
+        if action.get("res_model"):
+            return action
         return self._success_action(batch, submitted=True)
 
 

@@ -22,3 +22,5 @@ from . import test_report_provisional_surfaces
 
 from . import test_annual_close_scope
 from . import test_closing_control_review
+from . import test_declaration_candidates
+from . import test_overview_expense_states

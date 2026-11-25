@@ -18,6 +18,45 @@ class L10nFrFecExportWizard(models.TransientModel):
         compute="_compute_rebuild_can_generate_official_fec",
     )
 
+    rebuild_period_entry_count = fields.Integer(
+        "Entries in the selected period", compute="_compute_rebuild_entry_counts",
+    )
+    rebuild_included_entry_count = fields.Integer(
+        "Entries to export", compute="_compute_rebuild_entry_counts",
+    )
+    rebuild_empty_entry_count = fields.Integer(
+        "Entries omitted", compute="_compute_rebuild_entry_counts",
+    )
+
+    @api.depends("date_from", "date_to", "excluded_journal_ids", "export_type", "test_file", "rebuild_closing_company_id")
+    @api.depends_context("company", "uid")
+    def _compute_rebuild_entry_counts(self):
+        for record in self:
+            total = included = 0
+            if record.date_from and record.date_to:
+                wizard = record
+                if record.rebuild_closing_company_id:
+                    wizard = record.with_context(allowed_company_ids=record.rebuild_closing_company_id.ids)
+                if not wizard.test_file or not wizard._rebuild_can_generate_official_fec():
+                    # Saving clears these options, so the file ignores them too.
+                    wizard = wizard.new({
+                        **{name: wizard[name] for name in ("date_from", "date_to", "test_file")},
+                        "export_type": "official", "excluded_journal_ids": [Command.clear()],
+                    })
+                dates = [("date", ">=", wizard.date_from), ("date", "<=", wizard.date_to)]
+                moves = [("company_id", "in", wizard.env.company._accessible_branches().ids), *dates]
+                if wizard.export_type == "official":
+                    moves.append(("state", "=", "posted"))
+                if wizard.excluded_journal_ids:
+                    moves.append(("journal_id", "not in", wizard.excluded_journal_ids.ids))
+                total = wizard.env["account.move"].search_count(moves)
+                [(included,)] = wizard.env["account.move.line"]._read_group(
+                    wizard._get_base_domain() + dates, aggregates=["move_id:count_distinct"],
+                )
+            record.rebuild_period_entry_count = total
+            record.rebuild_included_entry_count = included
+            record.rebuild_empty_entry_count = total - included
+
     def _rebuild_can_generate_official_fec(self):
         return self.env.user.has_group("account.group_account_manager")
 

@@ -52,9 +52,10 @@ msgid "No automatic reactivation role"
 msgstr "Aucun rôle de réactivation automatique"
 
 #. module: usl_project
-#: model:ir.model.constraint,message:usl_project.constraint_project_task_type_usl_reactivation_role_owner
-msgid "Only a personal task stage can have a reactivation role."
-msgstr "Seule une étape personnelle peut avoir un rôle de réactivation."
+#: code:addons/usl_project/models/project_task_type.py:0
+#, python-format
+msgid "Create or reuse a project stage to share it. Personal stages belong to their owners."
+msgstr "Pour partager une étape, créez ou réutilisez une étape de projet. Chaque étape personnelle appartient à son propriétaire."
 
 #. module: usl_project
 #: model:ir.model.fields,field_description:usl_project.field_project_task__planned_date_begin
@@ -79,8 +80,15 @@ msgstr "Tâches : renvoyer les tâches reportées et exploitables vers la Boîte
 
 #. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task_type__usl_reactivation_role
-msgid "For a personal stage, identifies where deferred tasks wait and where they return when work becomes actionable."
-msgstr "Pour une étape personnelle, indique où les tâches reportées attendent et où elles reviennent lorsque le travail devient possible."
+msgid ""
+"Deferred tasks return from Later to Inbox when work becomes actionable. "
+"For a project board, set these roles on stages linked to the project "
+"and use one active Inbox. Use the Projects field to share a project stage."
+msgstr ""
+"Les tâches reportées reviennent de « Plus tard » à la boîte de réception "
+"lorsqu’elles redeviennent d’actualité. Dans un projet, attribuez ces rôles "
+"à des étapes du projet et utilisez une seule boîte de réception active. "
+"Utilisez le champ Projets pour partager une étape de projet."
 
 #. module: usl_project
 #: model:ir.model.fields,help:usl_project.field_project_task__planned_date_begin

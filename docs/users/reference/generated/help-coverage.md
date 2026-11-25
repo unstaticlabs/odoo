@@ -38,9 +38,9 @@ documentation work done in the code.
 
 | Module | Fields with help | Fields | Coverage |
 | --- | --- | --- | --- |
-| `rebuild_account_migration` | 68 | 890 | 8 % |
+| `rebuild_account_migration` | 73 | 897 | 8 % |
 | `usl_access_control` | 2 | 47 | 4 % |
-| `usl_accounting` | 26 | 344 | 8 % |
+| `usl_accounting` | 26 | 345 | 8 % |
 | `usl_b2c` | 22 | 343 | 6 % |
 | `usl_b2c_ingest` | 37 | 133 | 28 % |
 | `usl_documents` | 43 | 259 | 17 % |
@@ -53,6 +53,6 @@ documentation work done in the code.
 | `usl_locale` | 1 | 1 | 100 % |
 | `usl_platform_billing` | 9 | 98 | 9 % |
 | `usl_pocketid` | 9 | 40 | 22 % |
-| `usl_project` | 3 | 3 | 100 % |
+| `usl_project` | 3 | 4 | 75 % |
 | `usl_sign` | 6 | 384 | 2 % |
 | `usl_tese_payroll` | 3 | 172 | 2 % |

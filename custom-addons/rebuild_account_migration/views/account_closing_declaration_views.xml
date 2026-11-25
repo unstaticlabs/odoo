@@ -166,6 +166,9 @@
         <field name="model">rebuild.account.declaration</field>
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="filing_status == 'rejected' or acceptance_status == 'rejected' or (status not in ['filed', 'paid', 'archived', 'not_applicable'] and (validation_status == 'blocked' or is_overdue))" decoration-warning="status not in ['filed', 'paid', 'archived', 'not_applicable'] and (validation_status == 'warning' or status == 'accountant_review')" decoration-success="status in ['filed', 'paid', 'archived'] and filing_status != 'rejected' and acceptance_status != 'rejected'">
+                <header>
+                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review DES and DAS2 documents" display="always"/>
+                </header>
                 <field name="deadline_date"/>
                 <field name="name"/>
                 <field name="company_id" groups="base.group_multi_company"/>
@@ -218,6 +221,10 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
+                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review documents"
+                        invisible="form_code not in ('DES', 'DAS2')"
+                        context="{'default_company_id': company_id, 'default_kind': 'des' if form_code == 'DES' else 'das2', 'default_date_from': period_start, 'default_date_to': period_end}"/>
+
                     <button name="action_refresh_preparation" type="object" string="Refresh from Ledger" icon="fa-refresh" groups="account.group_account_manager"/>
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
                     <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review'" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>

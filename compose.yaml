@@ -63,7 +63,7 @@ services:
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
       PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
-      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592}
+      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
       USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
       PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
@@ -229,7 +229,7 @@ services:
 
   paperless-ollama:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: unless-stopped
     environment:
       OLLAMA_HOST: 0.0.0.0:11434
@@ -245,7 +245,7 @@ services:
 
   paperless-model-preflight:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: "no"
     depends_on:
       paperless-model-init:
@@ -260,7 +260,7 @@ services:
 
   paperless-model-init:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: "no"
     depends_on:
       paperless-ollama:

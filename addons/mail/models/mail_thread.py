@@ -3952,7 +3952,7 @@ class MailThread(models.AbstractModel):
         if not mail_body:
             _logger.warning('QWeb template %s not found or is empty when sending notification emails. Sending without layouting.', template_xmlid)
             mail_body = message.body
-        return mail_body
+        return self.env['mail.render.mixin']._replace_local_links(mail_body, self.get_base_url())
 
     def _notify_by_email_get_base_mail_values(self, message, recipients_data, additional_values=None):
         """ Return model-specific and message-related values to be used when
@@ -3980,14 +3980,16 @@ class MailThread(models.AbstractModel):
         # have a fallback in case replies mess with Messsage-Id in the In-Reply-To (e.g. amazon
         # SES SMTP may replace Message-Id and In-Reply-To refers an internal ID not stored in Odoo)
         message_sudo = message.sudo()
-        ancestors = self.env['mail.message'].sudo().search(
-            [
-                ('model', '=', message_sudo.model), ('res_id', '=', message_sudo.res_id),
-                ('id', '!=', message_sudo.id),
-                ('subtype_id', '!=', False),  # filters out logs
-                ('message_id', '!=', False),  # ignore records that somehow don't have a message_id (non ORM created)
-            ], limit=32, order='id DESC',  # take 32 last, hoping to find public discussions in it
-        )
+        ancestors = self.env['mail.message'].sudo()
+        if message_sudo.model and message_sudo.res_id:
+            ancestors = ancestors.search(
+                [
+                    ('model', '=', message_sudo.model), ('res_id', '=', message_sudo.res_id),
+                    ('id', '!=', message_sudo.id),
+                    ('subtype_id', '!=', False),  # filters out logs
+                    ('message_id', '!=', False),  # ignore records that somehow don't have a message_id (non ORM created)
+                ], limit=32, order='id DESC',  # take 32 last, hoping to find public discussions in it
+            )
 
         # filter out internal messages, to fetch 'public discussion' first
         outgoing_types = ('comment', 'auto_comment', 'email', 'email_outgoing')
@@ -5122,6 +5124,8 @@ class MailThread(models.AbstractModel):
         if body is not None:
             if body or not message._filter_empty():
                 tree = html.fragment_fromstring(escape(body), create_parent="div")
+                for edited_span in tree.xpath('.//span[@class="o-mail-Message-edited"]'):
+                    edited_span.drop_tree()
                 children = tree.getchildren()
                 if len(children) > 0:  # body is a valid html
                     # If the last element is a div or p, add the edited span inside it to avoid the edit markup
@@ -5141,8 +5145,9 @@ class MailThread(models.AbstractModel):
                         (tree.text or "") + Markup("".join(etree.tostring(child, encoding="unicode") for child in tree))
                     )
                 else:  # body is plain text
-                    # keep html if already Markup, otherwise escape
-                    msg_values["body"] = escape(body) + Markup("<span class='o-mail-Message-edited' data-o-datetime='%s'/>") % fields.Datetime.to_string(fields.Datetime.now())
+                    msg_values["body"] = escape(tree.text or "") + Markup(
+                        "<span class='o-mail-Message-edited' data-o-datetime='%s'/>"
+                    ) % fields.Datetime.to_string(fields.Datetime.now())
             else:
                 msg_values["body"] = ""
         if attachment_ids:

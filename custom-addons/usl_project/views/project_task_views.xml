@@ -39,9 +39,7 @@
         <field name="inherit_id" ref="project.task_type_edit"/>
         <field name="arch" type="xml">
             <field name="fold" position="after">
-                <field name="usl_reactivation_role"
-                       invisible="not user_id"
-                       placeholder="No automatic reactivation role"/>
+                <field name="usl_reactivation_role" placeholder="No automatic reactivation role"/>
             </field>
         </field>
     </record>

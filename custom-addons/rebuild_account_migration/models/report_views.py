@@ -1060,7 +1060,14 @@ class RebuildAccountManagementSummaryLine(models.Model):
                 ("account_id.account_type", "in", ["asset_cash", "liability_credit_card"]),
                 ("credit", ">", 0),
             ])
-        elif self.drilldown_kind == "cash":
+        elif self.drilldown_kind in ("cash", "opening_cash", "closing_cash"):
+            if self.drilldown_kind in ("opening_cash", "closing_cash"):
+                domain = [term for term in domain if term[:2] != ("move_id.date", ">=")]
+                if self.drilldown_kind == "opening_cash":
+                    if self.period_date_from:
+                        domain.append(("move_id.date", "<", self.period_date_from))
+                    else:
+                        domain.append(("id", "=", False))
             domain.append(("account_id.account_type", "in", ["asset_cash", "liability_credit_card"]))
         elif self.drilldown_kind == "revenue":
             domain.append(("account_id.account_type", "in", ["income", "income_other"]))
@@ -1123,7 +1130,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                       JOIN account_account account ON account.id = line.account_id
                  WHERE move.state = 'posted'
                 ),
-                aggregates AS (
+                period_totals AS (
                     SELECT company_id,
                            source_company_id,
                            company_currency_id,
@@ -1143,7 +1150,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            ), 0)::numeric, 2) AS cash_spent,
                            round(COALESCE(sum(balance) FILTER (
                                WHERE account_type IN ('asset_cash', 'liability_credit_card')
-                           ), 0)::numeric, 2) AS closing_cash,
+                           ), 0)::numeric, 2) AS cash_movement,
                            count(move_line_id) FILTER (
                                WHERE account_type IN ('income', 'income_other')
                            )::integer AS revenue_line_count,
@@ -1206,6 +1213,16 @@ class RebuildAccountManagementSummaryLine(models.Model):
                               period_date_from,
                               period_date_to
                 ),
+                aggregates AS (
+                    SELECT period_totals.*,
+                           COALESCE(sum(cash_movement) OVER prior, 0) AS opening_cash,
+                           COALESCE(sum(cash_line_count) OVER prior, 0)::integer AS opening_cash_count
+                      FROM period_totals
+                    WINDOW prior AS (
+                        PARTITION BY company_id ORDER BY period_date_to
+                        ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING
+                    )
+                ),
                 line_sources AS (
                     SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow' AS report_key, 'Cash Flow Statement' AS report_name, 10 AS line_sequence,
@@ -1213,6 +1230,14 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            'currency' AS metric_type, 'Debit movements on cash and credit-card accounts' AS source_formula,
                            'cash_received' AS drilldown_kind, cash_line_count AS move_line_count,
                            cash_received AS amount, cash_received::double precision AS metric_value
+                      FROM aggregates
+                    UNION ALL
+                    SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
+                           'cash_flow', 'Cash Flow Statement', 5,
+                           'OPENING_CASH', 'Opening cash balance',
+                           'currency', 'Net cash and credit-card balance before the period',
+                           'opening_cash', opening_cash_count,
+                           opening_cash, opening_cash::double precision
                       FROM aggregates
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
@@ -1225,7 +1250,7 @@ class RebuildAccountManagementSummaryLine(models.Model):
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,
                            'cash_flow', 'Cash Flow Statement', 30,
-                           'CASH_SURPLUS', 'Cash surplus',
+                           'CASH_SURPLUS', 'Net cash movement',
                            'currency', 'Cash received minus cash spent',
                            'cash', cash_line_count,
                            cash_received - cash_spent, (cash_received - cash_spent)::double precision
@@ -1235,8 +1260,8 @@ class RebuildAccountManagementSummaryLine(models.Model):
                            'cash_flow', 'Cash Flow Statement', 40,
                            'CLOSING_CASH', 'Closing bank balance',
                            'currency', 'Closing balance of cash and credit-card accounts',
-                           'cash', cash_line_count,
-                           closing_cash, closing_cash::double precision
+                           'closing_cash', opening_cash_count + cash_line_count,
+                           opening_cash + cash_movement, (opening_cash + cash_movement)::double precision
                       FROM aggregates
                     UNION ALL
                     SELECT company_id, source_company_id, company_currency_id, period_key, period_date_from, period_date_to,

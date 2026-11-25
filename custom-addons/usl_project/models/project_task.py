@@ -6,6 +6,9 @@ from odoo import _, api, fields, models, tools
 from odoo.addons.project.models.project_task import CLOSED_STATES
 
 
+_SKIP_REACTIVATION = object()
+
+
 class ProjectTask(models.Model):
     _inherit = "project.task"
 
@@ -48,13 +51,16 @@ class ProjectTask(models.Model):
         )
 
     def _usl_is_due_for_user(self, user, now=None):
+        return self._usl_is_due_in_timezone(user.tz, now)
+
+    def _usl_is_due_in_timezone(self, tz, now=None):
         self.ensure_one()
         now = now or fields.Datetime.now()
         if self.planned_date_begin and self.planned_date_begin <= now:
             return True
         if not self.date_deadline:
             return False
-        timezone = ZoneInfo(user.tz or "UTC")
+        timezone = ZoneInfo(tz or "UTC")
         utc_now = fields.Datetime.to_datetime(now).replace(tzinfo=UTC)
         utc_deadline = fields.Datetime.to_datetime(self.date_deadline).replace(
             tzinfo=UTC,
@@ -79,6 +85,7 @@ class ProjectTask(models.Model):
                 ("task_id.state", "not in", list(CLOSED_STATES)),
                 ("user_id.active", "=", True),
                 ("user_id.share", "=", False),
+                ("stage_id.active", "=", True),
                 ("stage_id.usl_reactivation_role", "=", "later"),
             ],
         )
@@ -95,6 +102,7 @@ class ProjectTask(models.Model):
             inbox = inbox_by_user.get(link.user_id.id)
             if (
                 not inbox
+                or link.stage_id.user_id != link.user_id
                 or link.user_id not in link.task_id.user_ids
                 or (due_only and not link.task_id._usl_is_due_for_user(link.user_id, now))
             ):
@@ -105,20 +113,69 @@ class ProjectTask(models.Model):
             links.write({"stage_id": inbox.id})
         return sum(len(links) for links in links_by_inbox.values())
 
+    def _usl_reactivate_later_project_stages(self, *, due_only=False, now=None):
+        # Candidates come from the scheduler or a completed task operation.
+        # Elevate only the derived move within each candidate's own project.
+        tasks = self.sudo().filtered(
+            lambda task: (
+                task.active
+                and not task.is_template
+                and task.state not in CLOSED_STATES
+                and task.project_id.active
+                and task.stage_id.active
+                and not task.stage_id.user_id
+                and task.stage_id.usl_reactivation_role == "later"
+            ),
+        )
+        moved = 0
+        for project, project_tasks in tasks.grouped("project_id").items():
+            stages = project.type_ids.filtered(lambda stage: stage.active and not stage.user_id)
+            inbox = stages.filtered(lambda stage: stage.usl_reactivation_role == "inbox")
+            if len(inbox) != 1:
+                continue
+            eligible = project_tasks.filtered(
+                lambda task: task.stage_id in stages
+                and (not due_only or task._usl_is_due_in_timezone(project.company_id.tz, now)),
+            )
+            # An explicit state prevents the native stage write from resetting
+            # Approved or Changes Requested to In Progress.
+            for state, batch in eligible.grouped("state").items():
+                batch.with_context(usl_skip_task_reactivation=_SKIP_REACTIVATION).write(
+                    {"stage_id": inbox.id, "state": state},
+                )
+                moved += len(batch)
+        return moved
+
     @api.model
     def _cron_usl_reactivate_later_tasks(self):
+        now = fields.Datetime.now()
         later_links = self.env["project.task.stage.personal"].sudo().search(
             [
                 ("task_id.active", "=", True),
                 ("task_id.state", "not in", list(CLOSED_STATES)),
                 ("user_id.active", "=", True),
                 ("user_id.share", "=", False),
+                ("stage_id.active", "=", True),
                 ("stage_id.usl_reactivation_role", "=", "later"),
             ],
         )
-        return later_links.task_id._usl_reactivate_later_personal_stages(
-            due_only=True,
-            now=fields.Datetime.now(),
+        project_tasks = self.sudo().search(
+            [
+                ("active", "=", True),
+                ("is_template", "=", False),
+                ("state", "not in", list(CLOSED_STATES)),
+                ("project_id.active", "=", True),
+                ("stage_id.active", "=", True),
+                ("stage_id.user_id", "=", False),
+                ("stage_id.usl_reactivation_role", "=", "later"),
+                "|",
+                ("planned_date_begin", "<=", now),
+                ("date_deadline", "<=", now + timedelta(days=5)),
+            ],
+        )
+        return (
+            later_links.task_id._usl_reactivate_later_personal_stages(due_only=True, now=now)
+            + project_tasks._usl_reactivate_later_project_stages(due_only=True, now=now)
         )
 
     def _usl_reactivation_snapshot(self):
@@ -134,7 +191,7 @@ class ProjectTask(models.Model):
         }
 
     def write(self, vals):
-        if self.env.context.get("usl_skip_task_reactivation"):
+        if self.env.context.get("usl_skip_task_reactivation") is _SKIP_REACTIVATION:
             return super().write(vals)
 
         event_fields = {
@@ -171,15 +228,15 @@ class ProjectTask(models.Model):
             for parent in parents
         }
 
-        result = super().write(vals)
+        result = super(
+            ProjectTask,
+            self.with_context(usl_skip_task_reactivation=_SKIP_REACTIVATION),
+        ).write(vals)
 
         candidates = self.browse()
-        if "stage_id" in vals or "state" in vals:
+        if "state" in vals:
             candidates |= tracked_tasks.filtered(
-                lambda task: (
-                    ("stage_id" in vals and task.stage_id.id != task_before[task.id]["stage_id"])
-                    or ("state" in vals and task.state != task_before[task.id]["state"])
-                ),
+                lambda task: task.state != task_before[task.id]["state"],
             )
         if "depend_on_ids" in vals:
             candidates |= tracked_tasks.filtered(
@@ -199,21 +256,20 @@ class ProjectTask(models.Model):
                     and parent._usl_has_completed_direct_subtasks()
                 ),
             )
-        if {"planned_date_begin", "date_deadline"}.intersection(vals):
-            changed_date_tasks = tracked_tasks.filtered(
-                lambda task: any(
-                    field_name in vals
-                    and task[field_name] != task_before.get(task.id, {}).get(field_name)
-                    for field_name in ("planned_date_begin", "date_deadline")
-                ),
+        moved_tasks = tracked_tasks.filtered(
+            lambda task: task.stage_id.id != task_before[task.id]["stage_id"],
+        )
+        changed_date_tasks = tracked_tasks.filtered(
+            lambda task: any(
+                field_name in vals and task[field_name] != task_before[task.id][field_name]
+                for field_name in ("planned_date_begin", "date_deadline")
             )
-            if changed_date_tasks:
-                changed_date_tasks._usl_reactivate_later_personal_stages(
-                    due_only=True,
-                )
-        candidates.with_context(
-            usl_skip_task_reactivation=True,
-        )._usl_reactivate_later_personal_stages()
+        )
+        personal_candidates = candidates | moved_tasks
+        (changed_date_tasks - personal_candidates)._usl_reactivate_later_personal_stages(due_only=True)
+        personal_candidates._usl_reactivate_later_personal_stages()
+        (changed_date_tasks - candidates - moved_tasks)._usl_reactivate_later_project_stages(due_only=True)
+        (candidates - moved_tasks)._usl_reactivate_later_project_stages()
         return result
 
     def unlink(self):
@@ -223,12 +279,14 @@ class ProjectTask(models.Model):
             for parent in parents
         }
         result = super().unlink()
-        parents.filtered(
+        candidates = parents.filtered(
             lambda parent: (
                 not parent_complete_before.get(parent.id, False)
                 and parent._usl_has_completed_direct_subtasks()
             ),
-        )._usl_reactivate_later_personal_stages()
+        )
+        candidates._usl_reactivate_later_personal_stages()
+        candidates._usl_reactivate_later_project_stages()
         return result
 
     @api.model

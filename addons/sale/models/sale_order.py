@@ -248,7 +248,7 @@ class SaleOrder(models.Model):
         precompute=True,
         readonly=False,
         check_company=True,
-        domain="[('payment_type', '=', 'inbound'), ('company_id', '=', company_id)]",
+        domain=[('payment_type', '=', 'inbound')],
     )
     pricelist_id = fields.Many2one(
         comodel_name="product.pricelist",
@@ -765,7 +765,7 @@ class SaleOrder(models.Model):
         # directly linked to the SO.
         for order in self:
             invoices = order.order_line.invoice_lines.move_id.filtered(
-                lambda r: r.move_type in ("out_invoice", "out_refund")
+                lambda r: r.move_type in ("out_invoice", "out_refund", "out_receipt")
             )
             order.invoice_ids = invoices
             order.invoice_count = len(invoices)
@@ -789,7 +789,7 @@ class SaleOrder(models.Model):
                     (
                         "order_line",
                         "not any",
-                        [("invoice_lines.move_id.move_type", "in", ("out_invoice", "out_refund"))],
+                        [("invoice_lines.move_id.move_type", "in", ("out_invoice", "out_refund", "out_receipt"))],
                     )
                 ]
                 if len(value) == 1:
@@ -803,7 +803,7 @@ class SaleOrder(models.Model):
                     JOIN account_move_line aml ON aml.id = soli_rel.invoice_line_id
                     JOIN account_move am ON am.id = aml.move_id
                 WHERE
-                    am.move_type in ('out_invoice', 'out_refund') AND
+                    am.move_type in ('out_invoice', 'out_refund', 'out_receipt') AND
                     am.id = ANY(%s)
             """,
                 (list(value),),
@@ -815,7 +815,7 @@ class SaleOrder(models.Model):
                 "order_line.invoice_lines",
                 "any",
                 [
-                    ("move_id.move_type", "in", ("out_invoice", "out_refund")),
+                    ("move_id.move_type", "in", ("out_invoice", "out_refund", "out_receipt")),
                     ("move_id", operator, value),
                 ],
             )
@@ -988,6 +988,8 @@ class SaleOrder(models.Model):
             "state",
         ])
 
+        accessible_orders = self.env['sale.order']._search([])
+
         result = self.env.execute_query(
             SQL(
                 """
@@ -1003,10 +1005,12 @@ class SaleOrder(models.Model):
                         sale_order.origin = duplicate_order.name
                         OR sale_order.client_order_ref = duplicate_order.client_order_ref
                        )
+                   AND duplicate_order.id IN %(accessible_orders)s
                  WHERE sale_order.id IN %(orders)s
               GROUP BY sale_order.id
             """,
                 orders=tuple(orders.ids),
+                accessible_orders=accessible_orders.subselect(),
             )
         )
         return {order_id: set(duplicate_ids) for order_id, duplicate_ids in result}

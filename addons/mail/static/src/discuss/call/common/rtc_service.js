@@ -316,6 +316,8 @@ export class Rtc extends Record {
     isFullscreen = false;
     /** Whether fullscreen was active before opening PIP. */
     hadFullscreen = false;
+    /** Mirrors `screenTrack.enabled`, which a template cannot observe. */
+    isScreenTrackPaused = false;
     /** @type {RtcLog} */
     logs = {};
     notifications = reactive(new Map());
@@ -405,6 +407,10 @@ export class Rtc extends Record {
     sfuTimeout;
     /** @type {AudioContext} AudioContext used to mix screen and mic audio */
     audioContext;
+    /** id of the latest camera request, older ones are discarded */
+    cameraRequestId = 0;
+    /** id of the latest microphone request, older ones are discarded */
+    micRequestId = 0;
     // cross tab sync
     _broadcastChannel = new browser.BroadcastChannel("call_sync_state");
     _remotelyHostedSessionId;
@@ -614,6 +620,12 @@ export class Rtc extends Record {
         this.setPttReleaseTimeout();
     }
 
+    /** @param {boolean} paused */
+    setScreenTrackPaused(paused) {
+        this.screenTrack.enabled = !paused;
+        this.isScreenTrackPaused = paused;
+    }
+
     setPttReleaseTimeout(duration = PTT_RELEASE_DURATION) {
         this.pttReleaseTimeout = browser.setTimeout(() => {
             this.setTalking(false);
@@ -695,21 +707,24 @@ export class Rtc extends Record {
     async leaveCall(channel = this.localChannel) {
         this.store.fullscreenChannel = null;
         this.hasPendingRequest = true;
-        await rpc("/mail/rtc/channel/leave_call", { channel_id: channel.id }, { silent: true });
-        this.endCall(channel);
-        this.hasPendingRequest = false;
+        try {
+            await rpc("/mail/rtc/channel/leave_call", { channel_id: channel.id }, { silent: true });
+        } finally {
+            this.endCall(channel);
+            this.hasPendingRequest = false;
+        }
     }
 
     /**
      * @param {import("models").DiscussChannel} [channel]
      */
     endCall(channel = this.localChannel) {
-        this._endHost();
         if (channel.self_member_id) {
             channel.self_member_id.rtc_inviting_session_id = undefined;
         }
         channel.activeRtcSession = undefined;
         if (channel.eq(this.localChannel)) {
+            this._endHost();
             this.logs.end = new Date().toISOString();
             this.dumpLogs();
             this.pttExtService.unsubscribe();
@@ -1132,7 +1147,7 @@ export class Rtc extends Record {
                 this.crossTabInitDeferred.resolve();
                 return;
             case CROSS_TAB_HOST_MESSAGE.CLOSE: {
-                if (this._remotelyHostedSessionId !== hostedSessionId) {
+                if (this.isHost || this._remotelyHostedSessionId !== hostedSessionId) {
                     return;
                 }
                 this.clear();
@@ -1538,18 +1553,22 @@ export class Rtc extends Record {
             this.notification.add(_t("Your browser does not support webRTC."), { type: "warning" });
             return;
         }
-        this.pttExtService.subscribe();
         this.hasPendingRequest = true;
-        const data = await rpc(
-            "/mail/rtc/channel/join_call",
-            {
-                camera,
-                channel_id: channel.id,
-                check_rtc_session_ids: channel.rtc_session_ids.map((session) => session.id),
-            },
-            { silent: true }
-        );
-        this.hasPendingRequest = false;
+        let data;
+        try {
+            data = await rpc(
+                "/mail/rtc/channel/join_call",
+                {
+                    camera,
+                    channel_id: channel.id,
+                    check_rtc_session_ids: channel.rtc_session_ids.map((session) => session.id),
+                },
+                { silent: true }
+            );
+        } finally {
+            this.hasPendingRequest = false;
+        }
+        this.pttExtService.subscribe();
         // Initializing a new session implies closing the current session.
         this.clear();
         this.localChannel = channel;
@@ -1903,11 +1922,15 @@ export class Rtc extends Record {
                 const track = this.cameraTrack;
                 const isSendingCamera = force ?? !this.isSendingCamera;
                 this.isSendingCamera = false;
-                await this.setVideo(track, type, {
-                    activateVideo: isSendingCamera,
-                    env,
-                    refreshStream,
-                });
+                if (
+                    (await this.setVideo(track, type, {
+                        activateVideo: isSendingCamera,
+                        env,
+                        refreshStream,
+                    })) === false
+                ) {
+                    return;
+                }
                 break;
             }
             case "screen": {
@@ -1983,6 +2006,8 @@ export class Rtc extends Record {
     }
 
     /**
+     * Resolves to false when a newer camera request replaced this one.
+     *
      * @param {MediaStreamTrack} track
      * @param {String} type 'camera' or 'screen'
      * @param {Object} [options] options
@@ -1999,6 +2024,7 @@ export class Rtc extends Record {
             activateVideo = options?.activateVideo ?? false;
             env = options?.env;
         }
+        const cameraRequestId = type === "camera" ? ++this.cameraRequestId : undefined;
         const stopVideo = () => {
             if (track) {
                 track.stop();
@@ -2014,6 +2040,10 @@ export class Rtc extends Record {
                     this.screenTrack = undefined;
                     closeStream(this.sourceScreenStream);
                     this.sourceScreenStream = null;
+                    if (this.screenAudioTrack) {
+                        this.screenAudioTrack = undefined;
+                        this.updateAudioTrack();
+                    }
                     break;
                 }
             }
@@ -2038,6 +2068,7 @@ export class Rtc extends Record {
                     sourceStream = this.sourceCameraStream;
                 } else {
                     closeStream(this.sourceCameraStream);
+                    this.sourceCameraStream = null;
                     sourceStream = await sourceWindow.navigator.mediaDevices.getUserMedia({
                         video: this.store.settings.cameraConstraints,
                     });
@@ -2063,12 +2094,19 @@ export class Rtc extends Record {
                 this.soundEffectsService.play("screen-sharing");
             }
         } catch {
+            if (type === "camera" && cameraRequestId !== this.cameraRequestId) {
+                return false;
+            }
             this.showMediaUnavailableWarning({
                 camera: type === "camera",
                 screen: type === "screen",
             });
             stopVideo();
             return;
+        }
+        if (type === "camera" && cameraRequestId !== this.cameraRequestId) {
+            closeStream(sourceStream);
+            return false;
         }
         if (!this.selfSession) {
             closeStream(sourceStream);
@@ -2092,14 +2130,29 @@ export class Rtc extends Record {
         if (this.store.settings.useBlur && type === "camera") {
             this.blurManager?.close();
             this.blurManager = undefined;
+            let blurManager;
             try {
-                this.blurManager = await this.applyBlurEffect(sourceStream);
-                const blurredStream = await this.blurManager.stream;
+                blurManager = await this.applyBlurEffect(sourceStream);
+                this.blurManager = blurManager;
+                const blurredStream = await blurManager.stream;
                 outputTrack = blurredStream.getVideoTracks()[0];
             } catch (_e) {
-                this.notification.add(_e.message, { type: "warning" });
-                this.store.settings.useBlur = false;
+                if (cameraRequestId === this.cameraRequestId) {
+                    this.notification.add(_e.message, { type: "warning" });
+                    this.store.settings.useBlur = false;
+                }
                 outputTrack = sourceStream.getVideoTracks()[0];
+            }
+            if (cameraRequestId !== this.cameraRequestId) {
+                blurManager?.close();
+                if (toRaw(this.blurManager) === blurManager) {
+                    this.blurManager = undefined;
+                }
+                // a reused source stream is still owned by the current camera
+                if (sourceStream !== this.sourceCameraStream) {
+                    closeStream(sourceStream);
+                }
+                return false;
             }
         } else if (!this.store.settings.useBlur && type === "camera") {
             this.blurManager?.close();
@@ -2116,6 +2169,7 @@ export class Rtc extends Record {
             }
             case "screen": {
                 Object.assign(this, {
+                    isScreenTrackPaused: false,
                     isSendingScreen: Boolean(outputTrack),
                     screenAudioTrack: screenAudioTrack,
                     screenTrack: outputTrack,
@@ -2150,14 +2204,19 @@ export class Rtc extends Record {
             this.audioTrack = destination.stream.getAudioTracks()[0];
         } else {
             this.audioTrack = micAudioTrack ?? screenAudioTrack;
+            this.audioContext?.close();
+            this.audioContext = undefined;
         }
         await this.network?.updateUpload("audio", this.audioTrack);
     }
 
     async resetMicAudioTrack({ force = false }) {
+        const micRequestId = ++this.micRequestId;
         this.micAudioTrack?.stop();
         this.micAudioTrack = undefined;
-        this.audioTrack?.stop();
+        if (this.audioTrack !== this.screenAudioTrack) {
+            this.audioTrack?.stop();
+        }
         this.audioTrack = undefined;
         if (!this.localChannel) {
             return;
@@ -2172,11 +2231,19 @@ export class Rtc extends Record {
                     audio: this.store.settings.audioConstraints,
                 });
                 micAudioTrack = audioStream.getAudioTracks()[0];
+                if (micRequestId !== this.micRequestId) {
+                    micAudioTrack.stop();
+                    return;
+                }
                 if (this.localSession) {
                     this.setMute(false);
                 }
             } catch {
+                if (micRequestId !== this.micRequestId) {
+                    return;
+                }
                 this.showMediaUnavailableWarning({ microphone: true });
+                this.updateAudioTrack();
                 return;
             }
             if (!this.localSession) {
@@ -2193,6 +2260,8 @@ export class Rtc extends Record {
             micAudioTrack.enabled = !this.localSession.isMute && this.localSession.isTalking;
             this.micAudioTrack = micAudioTrack;
             this.linkVoiceActivationDebounce();
+            this.updateAudioTrack();
+        } else {
             this.updateAudioTrack();
         }
     }
@@ -2446,10 +2515,10 @@ export const rtcService = {
                 rtc.displaySurface !== "browser" &&
                 rtc.fullscreen.id === CALL_FULLSCREEN_ID
             ) {
-                rtc.screenTrack.enabled = false;
+                rtc.setScreenTrackPaused(true);
             } else if (!rtc.isFullscreen) {
                 if (wasFullscreen && rtc.screenTrack) {
-                    rtc.screenTrack.enabled = true;
+                    rtc.setScreenTrackPaused(false);
                 }
             }
         });
