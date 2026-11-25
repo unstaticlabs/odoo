@@ -9,7 +9,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/meter.js:0
 msgid "%s left"
-msgstr "Encore %s"
+msgstr "Plus que %s"
 
 #. module: usl_voice
 #. odoo-javascript

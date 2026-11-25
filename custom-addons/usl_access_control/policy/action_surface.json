@@ -1738645,7 +1738645,7 @@
       "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
       "name": "usl_voice",
       "origin": "custom",
-      "source_sha256": "20a1111c002c5bfe70a9e27c585a53a475327d26e03213f5400f9f9f2980bd77",
+      "source_sha256": "5b18ab14d714cbcdf921c2a34ea0cd3018dc29940b1704db5d0a95c64a37103a",
       "version": "saas~19.3.1.0.0"
     },
     {

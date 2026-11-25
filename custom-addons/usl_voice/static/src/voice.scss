@@ -20,7 +20,7 @@
 }
 // The recording pill is wider than the idle microphone.
 .o-usl-dictation-busy {
-    padding-inline-end: 11rem !important;
+    padding-inline-end: var(--usl-dictation-room, 11rem) !important;
 }
 .o-usl-dictation-controls {
     transform: translateX(-100%);

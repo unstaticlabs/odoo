@@ -36,7 +36,7 @@ export class FieldDictation extends Component {
         });
         // Escape leaves the dictation, not the form or dialog behind it.
         useExternalListener(document, "keydown", (ev) => {
-            if (ev.key === "Escape" && this.state.mode !== "idle") {
+            if (ev.key === "Escape" && (this.state.mode !== "idle" || this.state.recovered)) {
                 ev.preventDefault();
                 ev.stopPropagation();
                 this.cancel();
@@ -71,6 +71,17 @@ export class FieldDictation extends Component {
         this.state.mode = mode;
         this.target?.classList.toggle("o-usl-dictation-busy", mode !== "idle");
         this.position();
+        // Reserve exactly the room the controls take once they are drawn, whatever the language.
+        const target = this.target;
+        // Two frames: the controls are redrawn on the first one.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+            const width = document.querySelector(".o-usl-dictation-pill")?.offsetWidth;
+            if (width && this.state.mode !== "idle") {
+                target?.style.setProperty("--usl-dictation-room", `${width + 12}px`);
+            } else {
+                target?.style.removeProperty("--usl-dictation-room");
+            }
+        }));
     }
     cancel() {
         this.capture?.discard();

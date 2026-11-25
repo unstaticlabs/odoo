@@ -41,6 +41,9 @@ export class VoiceTranscripts extends Component {
     }
     /** One request per click: the button stays disabled until the note is queued again. */
     async onRetry() {
+        if (this.state.retrying) {
+            return;
+        }
         this.state.retrying = true;
         await this.retry().finally(() => (this.state.retrying = false));
     }

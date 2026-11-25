@@ -1,5 +1,5 @@
 import { markRaw, onWillUnmount } from "@odoo/owl";
-import { useState } from "@web/owl2/utils";
+import { useRef, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { patch } from "@web/core/utils/patch";
@@ -13,7 +13,20 @@ patch(Composer.prototype, {
         super.setup();
         this.uslVoice = useState({ mode: "idle" });
         this.uslVoiceNotify = useService("notification");
+        this.uslVoiceBar = useRef("usl-voice-bar");
         onWillUnmount(() => this.cancelUslVoice());
+    },
+    /** The record button disappears on click, so Escape is handled where focus goes next. */
+    onUslVoiceBarKeydown(ev) {
+        if (ev.key === "Escape" && ["starting", "recording"].includes(this.uslVoice.mode)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.cancelUslVoice();
+        }
+    },
+    focusUslVoiceBar() {
+        // Two frames: the bar is drawn on the first one.
+        requestAnimationFrame(() => requestAnimationFrame(() => this.uslVoiceBar.el?.querySelector("button")?.focus()));
     },
     get isSendButtonDisabled() {
         return (this.uslVoice && this.uslVoice.mode !== "idle") || super.isSendButtonDisabled;
@@ -41,6 +54,7 @@ patch(Composer.prototype, {
             return;
         }
         this.uslVoice.mode = "starting";
+        this.focusUslVoiceBar();
         const capture = markRaw(new VoiceCapture());
         this.uslCapture = capture;
         this.uslVoiceDestination = { model: this.thread.model, id: this.thread.id };
@@ -48,6 +62,7 @@ patch(Composer.prototype, {
             await capture.start(() => this.stopUslVoice());
             if (this.uslCapture === capture) {
                 this.uslVoice.mode = "recording";
+                this.focusUslVoiceBar();
             }
         } catch {
             if (this.uslCapture === capture) {
