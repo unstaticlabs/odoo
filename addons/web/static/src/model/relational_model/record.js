@@ -1133,6 +1133,7 @@ export class Record extends DataPoint {
     }
 
     async _preprocessX2manyChanges(changes) {
+        const lists = [];
         for (const [fieldName, commands] of Object.entries(changes)) {
             if (
                 this.fields[fieldName].type !== "one2many" &&
@@ -1140,8 +1141,13 @@ export class Record extends DataPoint {
             ) {
                 continue;
             }
-            await this.data[fieldName]._applyCommands(commands);
+            // An urgent save does not wait for this function, so the commands must be replaced
+            // by the list before the first await, or they end up as the value of the field.
             changes[fieldName] = this.data[fieldName];
+            lists.push([this.data[fieldName], commands]);
+        }
+        for (const [list, commands] of lists) {
+            await list._applyCommands(commands);
         }
     }
 

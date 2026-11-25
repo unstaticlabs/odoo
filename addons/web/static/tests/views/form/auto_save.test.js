@@ -1342,3 +1342,55 @@ test(`doesn't autosave while a x2many list row is being edited (visibility chang
     await hideTab();
     expect.verifySteps(["web_save"]);
 });
+
+test("save on closing tab/browser (pending change in a x2many list row)", async () => {
+    Partner._fields.child_ids = fields.One2many({ string: "one2many field", relation: "partner" });
+    const sendBeaconDeferred = new Deferred();
+    mockSendBeacon((_, blob) => {
+        expect.step("sendBeacon");
+        blob.text().then((r) => {
+            const { params } = JSON.parse(r);
+            if (params.method === "web_save") {
+                expect(params.args[0]).toEqual([1]);
+                expect(params.args[1].child_ids).toHaveLength(1);
+                expect(params.args[1].child_ids[0][2]).toEqual({
+                    name: "typed and not blurred",
+                    expertise: "Marketing",
+                });
+            }
+            sendBeaconDeferred.resolve();
+        });
+        return true;
+    });
+
+    await mountView({
+        resModel: "partner",
+        type: "form",
+        arch: `
+            <form>
+                <field name="child_ids">
+                    <list editable="bottom">
+                        <field name="name"/>
+                        <field name="expertise"/>
+                    </list>
+                </field>
+            </form>
+        `,
+        resId: 1,
+    });
+    await contains(`.o_field_x2many_list_row_add button`).click();
+    expect(`.o_selected_row`).toHaveCount(1);
+
+    // edit the new row but do not focusout -> the model isn't aware of the change
+    // until the 'beforeunload' event is triggered
+    await contains(`.o_selected_row .o_field_widget[name=name] input`).edit(
+        "typed and not blurred",
+        { confirm: false }
+    );
+    await unload();
+    await animationFrame();
+    await sendBeaconDeferred;
+    expect.verifySteps(["sendBeacon"]);
+    // the relational field is still a list the form can render
+    expect(`.o_selected_row`).toHaveCount(1);
+});
