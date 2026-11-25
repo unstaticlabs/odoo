@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_users_list_agent_identity" model="ir.ui.view">
+        <field name="name">res.users.list.agent.identity</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_tree"/>
+        <field name="arch" type="xml">
+            <field name="login" position="before">
+                <field name="usl_identity_classification" column_invisible="1"/>
+            </field>
+            <field name="login" position="attributes">
+                <attribute name="invisible">usl_identity_classification == 'agent'</attribute>
+            </field>
+        </field>
+    </record>
+    <record id="view_users_mobile_agent_identity" model="ir.ui.view">
+        <field name="name">res.users.kanban.agent.identity</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_res_users_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/templates" position="before">
+                <field name="usl_identity_classification"/>
+            </xpath>
+            <xpath expr="//span[field[@name='login']]" position="attributes">
+                <attribute name="t-if">record.usl_identity_classification.raw_value !== 'agent'</attribute>
+            </xpath>
+        </field>
+    </record>
     <record id="view_users_form_distribution_access" model="ir.ui.view">
         <field name="name">res.users.form.distribution.access</field>
         <field name="model">res.users</field>

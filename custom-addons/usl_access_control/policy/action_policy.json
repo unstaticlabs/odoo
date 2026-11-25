@@ -44581,7 +44581,7 @@
         "route:http:GET,POST:/web/login/totp": "e34fb103445cc36be19b9271e6e246f7b2df869d78cb50da98b5b861d569d198",
         "route:http:GET:/.well-known/change-password": "5a8d8728d0b77ac556590b3f10d6c471c0d2983ab85a62ec8e519f857f8aa4d5",
         "route:jsonrpc:ANY:/auth/passkey/start-auth": "48ed0f940c17b8c56a9d4fea62f52cfeb638b0fc6f93b529af15f9d31b91d376",
-        "route:jsonrpc:ANY:/base_setup/data": "728dd014dd9116fe35817c715847af715344bf00c2c2b90accfe8228aa7d6602",
+        "route:jsonrpc:ANY:/base_setup/data": "1972dbd49a6f47da1adda80faac2b01b973fc48e29f727cd86b813f6fc38871e",
         "rpc:auth.passkey.key.action_rename_passkey": "0c9abdfd13378a73f613a5d920ff6485d82c3871bc2d22436ee6f0abc31192c7",
         "rpc:auth_totp.device.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:auth_totp.device.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
