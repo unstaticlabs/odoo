@@ -973327,7 +973327,7 @@
       ],
       "sources": [
         {
-          "line": 752,
+          "line": 799,
           "path": "addons/web/models/models.py"
         },
         {
@@ -973364,7 +973364,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 652,
+          "line": 699,
           "path": "addons/web/models/models.py"
         },
         {
@@ -973768,7 +973768,7 @@
       "delegates": [
         "rpc:rebuild.account.declaration.candidate.review.search"
       ],
-      "digest": "83fef81c498dd55c34e8ebe2dcf63e3d7df549d4eaefc8dc89d424ab4d1ef0dd",
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.candidate.review.hierarchy_read",
       "kind": "rpc",
@@ -973779,7 +973779,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e2aa251578d309d82ce2e4591076f9e17bd1687af9431cb2f477aea366bdc069",
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
       "sinks": [],
       "sources": [
         {
@@ -973958,7 +973958,7 @@
       ],
       "sources": [
         {
-          "line": 1908,
+          "line": 1955,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974000,7 +974000,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1896,
+          "line": 1943,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974057,7 +974057,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1315,
+          "line": 1362,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974143,7 +974143,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1728,
+          "line": 1775,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974177,7 +974177,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1587,
+          "line": 1634,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974383,7 +974383,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 2127,
+          "line": 2174,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974418,7 +974418,7 @@
       ],
       "sources": [
         {
-          "line": 98,
+          "line": 145,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974453,7 +974453,7 @@
       ],
       "sources": [
         {
-          "line": 299,
+          "line": 346,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974489,7 +974489,7 @@
       ],
       "sources": [
         {
-          "line": 272,
+          "line": 319,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974561,7 +974561,7 @@
       ],
       "sources": [
         {
-          "line": 88,
+          "line": 135,
           "path": "addons/web/models/models.py"
         },
         {
@@ -974572,6 +974572,37 @@
       "unresolved_delegates": [
         "rpc:rebuild.account.declaration.candidate.review.with_context"
       ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.onchange",
+        "rpc:rebuild.account.declaration.candidate.review.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
     },
     {
       "abstract": false,
@@ -1765011,7 +1765042,6 @@
     }
   ],
   "country_codes": [
-    "fr",
     "us"
   ],
   "diagnostics": [],
