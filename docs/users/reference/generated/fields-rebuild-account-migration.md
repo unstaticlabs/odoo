@@ -150,6 +150,9 @@ false
 | --- | --- | --- | --- |
 | **Rebuild Can Generate Official Fec** (`rebuild_can_generate_official_fec`) | boolean |  |  |
 | **Closing Company** (`rebuild_closing_company_id`) | many2one → `res.company` |  |  |
+| **Entries omitted** (`rebuild_empty_entry_count`) | integer |  |  |
+| **Entries to export** (`rebuild_included_entry_count`) | integer |  |  |
+| **Entries in the selected period** (`rebuild_period_entry_count`) | integer |  |  |
 
 ## Product Variant
 

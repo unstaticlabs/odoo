@@ -34,6 +34,14 @@ the page in place, and PDF or XLSX downloads the same report scope.
 | Designed analytical statement | Compte de résultat analytique |
 | Free-form analytic exploration | Reporting > Pilotage > Analyse analytique |
 
+In **Registre des immobilisations**, open **Rapprochement avec le bilan** to
+compare the asset cards with the French balance sheet at the report end date.
+The table shows gross value, depreciation and net value for each source. The
+account list explains gross differences, including investments posted to a
+participation account without a corresponding asset card. Select one French
+company, posted entries and all accounts and analytic dimensions for this
+comparison. Text search narrows the displayed asset cards.
+
 The Reporting menu is organized by purpose:
 
 - **Comptes et journaux** for the trial balance, ledgers, journal report,

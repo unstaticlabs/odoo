@@ -3955,6 +3955,14 @@
             <xpath expr="//field[@name='test_file']" position="before">
                 <field name="rebuild_can_generate_official_fec" invisible="1"/>
             </xpath>
+            <xpath expr="//page[@name='options']/group" position="after">
+                <group string="Entries in this FEC" invisible="not date_from or not date_to">
+                    <field name="rebuild_period_entry_count"/>
+                    <field name="rebuild_included_entry_count"/>
+                    <field name="rebuild_empty_entry_count"/>
+                </group>
+                <p class="text-muted" invisible="not date_from or not date_to">Entries with only zero-balance lines are omitted. Offsetting amounts are included. The file can also contain a separate opening entry.</p>
+            </xpath>
             <xpath expr="//field[@name='test_file']" position="attributes">
                 <attribute name="readonly">not rebuild_can_generate_official_fec</attribute>
             </xpath>
