@@ -2773,6 +2773,7 @@ msgstr "Sociétés"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_definition_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__company_id
 msgid "Company"
 msgstr "Société"
 
@@ -3770,6 +3771,7 @@ msgstr "synthèse de la décision"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_assurance_decision__declaration_id
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_field__declaration_id
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__kind
 msgid "Declaration"
 msgstr "Déclaration"
 
@@ -13802,36 +13804,45 @@ msgstr "Écartées du FEC"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
-msgid "Entries in this FEC"
-msgstr "Écritures prévues dans le FEC"
+msgid "of"
+msgstr "sur"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
-msgid "Entries with only zero-balance lines are omitted. Offsetting amounts are included. The file can also contain a separate opening entry."
-msgstr "Les écritures dont toutes les lignes sont à zéro sont écartées. Les montants qui se compensent restent inclus. Le FEC peut aussi contenir une écriture d’ouverture."
+msgid "entries in this period go into the FEC."
+msgstr "écritures de la période entrent dans le FEC."
 
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_list
-msgid "Review DES / DAS2 sources"
-msgstr "Examiner les sources DES / DAS2"
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
+msgid "Left out because all their lines are at zero:"
+msgstr "Écartées car toutes leurs lignes sont à zéro :"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_l10n_fr_fec_export_rebuild_role_safety
+msgid "Entries whose amounts offset each other stay in. The file can also contain a separate opening entry."
+msgstr "Les écritures dont les montants se compensent restent incluses. Le FEC peut aussi contenir une écriture d’ouverture."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
-msgid "Review sources"
-msgstr "Examiner les pièces"
+msgid "Review documents"
+msgstr "Voir les pièces"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
 #: model:ir.actions.act_window,name:rebuild_account_migration.action_declaration_candidate_review
-msgid "Review DES and DAS2 source documents"
-msgstr "Pièces à examiner pour la DES et la DAS2"
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_list
+msgid "Review DES and DAS2 documents"
+msgstr "Pièces DES et DAS2"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__date_from
 msgid "From"
 msgstr "Du"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__date_to
 msgid "To"
 msgstr "Au"
 
@@ -13857,13 +13868,13 @@ msgstr "Aucune pièce correspondant à ces critères sur la période."
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Invoice date"
-msgstr "Date de facture"
+msgid "Date, amount excl. tax"
+msgstr "Date, montant HT"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Payment date"
-msgstr "Date de paiement"
+msgid "Date, amount settled"
+msgstr "Date, montant réglé"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
@@ -13953,5 +13964,15 @@ msgstr "Part des honoraires (622) :"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "622 calendar date:"
-msgstr "Date retenue pour le 622 :"
+msgid "Date used by the calendar (622):"
+msgstr "Date retenue par le calendrier (622) :"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
+msgid "Credit note ·"
+msgstr "Avoir ·"
+
+#. module: rebuild_account_migration
+#: model:ir.model,name:rebuild_account_migration.model_rebuild_account_declaration_candidate_review
+msgid "DES and DAS2 documents to review"
+msgstr "Pièces DES et DAS2 à examiner"

@@ -15,7 +15,7 @@ DES_LABEL = re.compile(r"\bdes\s+(?:requis(?:e)?|required)\b", re.I)
 
 class DeclarationCandidateReview(models.TransientModel):
     _name = "rebuild.account.declaration.candidate.review"
-    _description = "DES and DAS2 source review"
+    _description = "DES and DAS2 documents to review"
     _explanation = "Use the source dates and linked accounting documents to decide which items need a declaration review."
 
     company_id = fields.Many2one(
@@ -63,6 +63,8 @@ class DeclarationCandidateReview(models.TransientModel):
                 if review.kind == "des":
                     group = row["period"], 0
                     label = format_date(self.env, row["date"], date_format="MMMM y")
+                    label = label[:1].upper() + label[1:]
+                    row["amount_label"] = format_amount(self.env, row["amount_untaxed"], review.company_id.currency_id)
                 else:
                     group = row["period"], row["partner_id"]
                     label = f"{row['period']} · {row['partner']}" if row["partner"] else row["period"]
@@ -98,7 +100,9 @@ class DeclarationCandidateReview(models.TransientModel):
             ("commercial_partner_id.vat", "!=", False),
         ])
         native = self.env["account.chart.template"].ref("tva_sale_service_intra_0", raise_if_not_found=False)
-        identified = set()
+        # Whatever opens a DES in the calendar must also appear here, or the
+        # declaration would point at an empty review.
+        identified = set(self.env["rebuild.account.declaration"]._des_signal_taxes(moves.invoice_line_ids.tax_ids).ids)
         for tax in moves.invoice_line_ids.tax_ids:
             if tax == native or any(
                 DES_LABEL.search(" ".join(filter(None, (translated.name, translated.description))))
@@ -109,9 +113,13 @@ class DeclarationCandidateReview(models.TransientModel):
         for move in moves:
             taxes = move.invoice_line_ids.tax_ids.filtered(lambda tax: tax.id in identified)
             if taxes:
-                rows.append(self._source_row(move, move.invoice_date, self.env._(
-                    "EU customer with a VAT number. Service tax on the invoice: %s", ", ".join(taxes.mapped("name")),
-                )))
+                rows.append({
+                    **self._source_row(move, move.invoice_date, self.env._(
+                        "EU customer with a VAT number. Service tax on the invoice: %s", ", ".join(taxes.mapped("name")),
+                    )),
+                    # Signed, so a credit note reduces the month it belongs to.
+                    "amount_untaxed": move.amount_untaxed_signed, "credit_note": move.move_type == "out_refund",
+                })
         return rows
 
     def _das2_rows(self):

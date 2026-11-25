@@ -516,7 +516,7 @@ false
 | **Validation Status** (`validation_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warning**, **Blocked**. |
 | **Validation Summary** (`validation_summary`) | text |  |  |
 
-## DES and DAS2 source review
+## DES and DAS2 documents to review
 
 `rebuild.account.declaration.candidate.review`, defined by this module. Transient: the record lives only while its dialog is open.
 

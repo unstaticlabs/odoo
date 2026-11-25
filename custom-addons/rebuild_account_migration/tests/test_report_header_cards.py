@@ -212,3 +212,10 @@ class TestReportHeaderCards(TransactionCase):
         wizard.excluded_journal_ids = self.journal
         self.assertEqual(wizard.rebuild_period_entry_count, 0)
         self.assertEqual(wizard.rebuild_included_entry_count, 0)
+        # A final file is always official and covers every journal: saving
+        # clears both options, so the preview must not keep counting with them.
+        wizard.date_from = "2026-01-01"
+        wizard.test_file = False
+        self.assertEqual(wizard.rebuild_period_entry_count, 3)
+        self.assertEqual(wizard.rebuild_included_entry_count, 2)
+        self.assertEqual(wizard.rebuild_empty_entry_count, 1)

@@ -123,18 +123,6 @@ class TestAutonomousAgents(TransactionCase):
         self.assertEqual(agent.user_id._get_auth_methods(), [])
         self.assertEqual(agent.user_id.company_ids, self.company | self.other_company)
 
-    def test_mentions_identify_agent_and_preserve_native_recipient(self):
-        agent = self._create_agent().user_id
-        for recipient, is_agent in [(agent, True), (self.other_user, False)]:
-            result = self.env["res.partner"].with_user(self.owner).get_mention_suggestions(
-                recipient.name
-            )._build_result()
-            partner = next(p for p in result["res.partner"] if p["id"] == recipient.partner_id.id)
-            user = next(u for u in result["res.users"] if u["id"] == partner["main_user_id"])
-            self.assertEqual(partner["name"], recipient.name)
-            self.assertEqual(partner["email"], recipient.partner_id.email)
-            self.assertEqual(user["usl_agent_display"], is_agent)
-
     def test_agent_creation_does_not_create_human_onboarding_task(self):
         agent = self._create_agent()
         onboarding_tasks = self.env["project.task"].with_user(SUPERUSER_ID).search(

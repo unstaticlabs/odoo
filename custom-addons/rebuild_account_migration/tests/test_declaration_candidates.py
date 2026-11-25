@@ -43,6 +43,32 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertIn(f"/odoo/account.move/{original.id}", review.evidence_html)
         self.assertEqual(self.env["rebuild.account.declaration"].search(domain).ids, before)
 
+    def test_des_shows_what_opens_the_calendar_declaration_with_signed_amounts(self):
+        Partner = self.env["res.partner"].with_context(no_vat_validation=True)
+        spain = self.env.ref("base.es")
+        studio = Partner.create({"name": "Example studio", "country_id": spain.id, "vat": "ES00000000X"})
+        no_vat = Partner.create({"name": "Example individual", "country_id": spain.id})
+        outside = Partner.create({"name": "Example importer", "country_id": self.env.ref("base.us").id, "vat": "US000"})
+        # The wording the calendar reads to open a DES.
+        tax = self.tax_sale_a.copy({"name": "TVA 0 % autoliquidation services UE", "amount": 0})
+        def invoice(partner, date, kind="out_invoice"):
+            return self._create_invoice_one_line(
+                price_unit=120, tax_ids=tax, partner_id=partner, move_type=kind, invoice_date=date, post=True,
+            )
+
+        original = invoice(studio, "2026-03-10")
+        refund = invoice(studio, "2026-03-20", "out_refund")
+        invoice(no_vat, "2026-03-11")
+        invoice(outside, "2026-03-12")
+        review = self._review("des", "2026-03-01", "2026-03-31")
+        self.assertTrue(self.env["rebuild.account.declaration"]._has_eu_b2b_service_signal(
+            self.env.company, review.date_from, review.date_to,
+        ))
+        rows = review.source_rows
+        self.assertEqual([row["source_id"] for row in rows], [refund.id, original.id])
+        self.assertEqual([row["amount_untaxed"] for row in rows], [-120, 120])
+        self.assertEqual([row["credit_note"] for row in rows], [True, False])
+
     def _bank_debit(self, when, debit_account, amount):
         journal = self.company_data["default_journal_bank"]
         entry = self.env["account.move"].create({

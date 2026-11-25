@@ -28,7 +28,7 @@ class L10nFrFecExportWizard(models.TransientModel):
         "Entries omitted", compute="_compute_rebuild_entry_counts",
     )
 
-    @api.depends("date_from", "date_to", "excluded_journal_ids", "export_type", "rebuild_closing_company_id")
+    @api.depends("date_from", "date_to", "excluded_journal_ids", "export_type", "test_file", "rebuild_closing_company_id")
     @api.depends_context("company", "uid")
     def _compute_rebuild_entry_counts(self):
         for record in self:
@@ -37,6 +37,12 @@ class L10nFrFecExportWizard(models.TransientModel):
                 wizard = record
                 if record.rebuild_closing_company_id:
                     wizard = record.with_context(allowed_company_ids=record.rebuild_closing_company_id.ids)
+                if not wizard.test_file or not wizard._rebuild_can_generate_official_fec():
+                    # Saving clears these options, so the file ignores them too.
+                    wizard = wizard.new({
+                        **{name: wizard[name] for name in ("date_from", "date_to", "test_file")},
+                        "export_type": "official", "excluded_journal_ids": [Command.clear()],
+                    })
                 dates = [("date", ">=", wizard.date_from), ("date", "<=", wizard.date_to)]
                 moves = [("company_id", "in", wizard.env.company._accessible_branches().ids), *dates]
                 if wizard.export_type == "official":

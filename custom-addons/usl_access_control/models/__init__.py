@@ -2,7 +2,6 @@ from . import (
     agent,
     agent_credential,
     agent_collaboration,
-    agent_display,
     agent_expense_decisions,
     agent_feedback,
     audit_event,

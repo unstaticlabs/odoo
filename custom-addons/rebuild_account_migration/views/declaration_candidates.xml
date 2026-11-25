@@ -9,17 +9,17 @@
             <p t-if="not groups" class="text-muted">No matching source documents in this period.</p>
             <div t-else="" class="o_declaration_candidate_evidence table-responsive">
                 <table class="table table-sm align-middle"><thead><tr>
-                    <th scope="col"><t t-if="kind == 'des'">Invoice date</t><t t-else="">Payment date</t></th>
+                    <th scope="col"><t t-if="kind == 'des'">Date, amount excl. tax</t><t t-else="">Date, amount settled</t></th>
                     <th scope="col">Source documents</th><th scope="col">Reason for review</th>
                 </tr></thead><tbody t-foreach="groups" t-as="section">
                     <tr class="table-light"><th colspan="3" scope="rowgroup" t-out="section['label']"/></tr>
                     <tr t-foreach="section['rows']" t-as="row">
-                        <td class="text-nowrap"><t t-out="row['date_label']"/><div t-if="kind == 'das2'" t-out="row['amount_label']"/></td>
+                        <td class="text-nowrap"><t t-out="row['date_label']"/><div t-out="row['amount_label']"/></td>
                         <td><a target="_blank" rel="noopener" t-att-href="'/odoo/account.move/%s' % row['source_id']"><t t-out="row['source']"/></a>
                             <div t-if="row['payment_id']"><a target="_blank" rel="noopener" t-att-href="'/odoo/account.move/%s' % row['payment_id']"><t t-out="row['payment']"/></a></div>
-                            <div t-if="kind == 'des'" class="text-muted"><t t-out="row['partner']"/></div></td>
+                            <div t-if="kind == 'des'" class="text-muted"><t t-if="row.get('credit_note')">Credit note · </t><t t-out="row['partner']"/></div></td>
                         <td><t t-out="row['reason']"/><div t-if="row.get('native_622_label')" class="text-muted">622 share: <t t-out="row['native_622_label']"/></div>
-                            <div t-if="row.get('calendar_date_label')" class="text-muted">622 calendar date: <t t-out="row['calendar_date_label']"/></div></td>
+                            <div t-if="row.get('calendar_date_label')" class="text-muted">Date used by the calendar (622): <t t-out="row['calendar_date_label']"/></div></td>
                     </tr>
                 </tbody></table>
             </div>
@@ -29,7 +29,7 @@
         <field name="name">rebuild.account.declaration.candidate.review.form</field>
         <field name="model">rebuild.account.declaration.candidate.review</field>
         <field name="arch" type="xml">
-            <form string="Review DES and DAS2 source documents">
+            <form string="Review DES and DAS2 documents">
                 <group>
                     <group><field name="kind" string="Declaration" widget="radio" options="{'horizontal': true}"/>
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': true}" domain="[('id', 'in', allowed_company_ids)]"/></group>
@@ -41,7 +41,7 @@
         </field>
     </record>
     <record id="action_declaration_candidate_review" model="ir.actions.act_window">
-        <field name="name">Review DES and DAS2 source documents</field>
+        <field name="name">Review DES and DAS2 documents</field>
         <field name="res_model">rebuild.account.declaration.candidate.review</field>
         <field name="view_mode">form</field><field name="target">new</field>
     </record>

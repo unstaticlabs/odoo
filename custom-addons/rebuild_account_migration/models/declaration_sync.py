@@ -305,15 +305,15 @@ class RebuildAccountDeclaration(models.Model):
             ("commercial_partner_id.country_id.code", "in", sorted(EU_COUNTRY_CODES - {"FR"})),
             ("commercial_partner_id.vat", "!=", False),
         ])
+        return bool(self._des_signal_taxes(moves.invoice_line_ids.tax_ids))
+
+    @api.model
+    def _des_signal_taxes(self, taxes):
+        """Taxes whose wording opens a DES in the calendar, shared with its source review."""
         markers = ("autoliquid", "intracom", "reverse charge")
-        return any(
-            any(
-                any(marker in ((tax.name or "") + " " + (tax.description or "")).lower() for marker in markers)
-                for tax in line.tax_ids
-            )
-            for move in moves
-            for line in move.invoice_line_ids
-        )
+        return taxes.filtered(lambda tax: any(
+            marker in ((tax.name or "") + " " + (tax.description or "")).lower() for marker in markers
+        ))
 
     @api.model
     def _has_das2_signal(self, company, period_start, period_end, threshold=2400.0):

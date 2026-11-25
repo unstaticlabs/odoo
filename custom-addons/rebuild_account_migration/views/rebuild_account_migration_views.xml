@@ -3956,12 +3956,18 @@
                 <field name="rebuild_can_generate_official_fec" invisible="1"/>
             </xpath>
             <xpath expr="//page[@name='options']/group" position="after">
-                <group string="Entries in this FEC" invisible="not date_from or not date_to">
-                    <field name="rebuild_period_entry_count"/>
-                    <field name="rebuild_included_entry_count"/>
-                    <field name="rebuild_empty_entry_count"/>
-                </group>
-                <p class="text-muted" invisible="not date_from or not date_to">Entries with only zero-balance lines are omitted. Offsetting amounts are included. The file can also contain a separate opening entry.</p>
+                <div class="o_usl_fec_entry_counts" invisible="not date_from or not date_to">
+                    <p class="mb-1">
+                        <strong><field name="rebuild_included_entry_count" class="oe_inline"/></strong>
+                        <span invisible="rebuild_empty_entry_count == 0"> of <field name="rebuild_period_entry_count" class="oe_inline"/></span>
+                        entries in this period go into the FEC.
+                    </p>
+                    <p class="mb-1" invisible="rebuild_empty_entry_count == 0">
+                        Left out because all their lines are at zero:
+                        <field name="rebuild_empty_entry_count" class="oe_inline"/>
+                    </p>
+                    <p class="text-muted mb-0">Entries whose amounts offset each other stay in. The file can also contain a separate opening entry.</p>
+                </div>
             </xpath>
             <xpath expr="//field[@name='test_file']" position="attributes">
                 <attribute name="readonly">not rebuild_can_generate_official_fec</attribute>

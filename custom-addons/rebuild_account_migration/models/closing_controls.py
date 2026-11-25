@@ -1,5 +1,6 @@
 """Configurable closing control definitions and their evaluated control lines."""
 
+import re
 from ast import literal_eval
 
 from odoo import api, fields, models
@@ -607,8 +608,6 @@ class RebuildAccountClosingControl(models.Model):
 
     def _localized_saved_finding(self):
         """Render counts from older snapshots without refreshing the closing period."""
-        import re
-
         summary = self.summary or ""
         if self.code == "document_completeness":
             counts = re.fullmatch(

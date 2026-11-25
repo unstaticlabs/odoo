@@ -22,6 +22,7 @@ class TestClosingControlReview(AccountTestInvoicingCommon):
         return self.env["rebuild.account.closing.control"]._upsert(self.period, code, values)
 
     def test_saved_findings_keep_original_counts_when_read_in_french(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
         cases = [
             ("document_completeness",
              "2 draft business document(s); 14 posted document(s) without a main attachment.",

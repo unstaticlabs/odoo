@@ -210476,9 +210476,9 @@
         "rpc:rebuild.account.declaration.candidate.review.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
         "rpc:rebuild.account.declaration.candidate.review.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:rebuild.account.declaration.candidate.review.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
-        "ui:rebuild_account_migration.action_declaration_candidate_review": "d4df65a0c7af65c27585fafb7e242194b1eeb7e1549833c46748141a661c859e",
-        "ui:rebuild_account_migration.view_rebuild_account_declaration_form:button:action:rebuild_account_migration.action_declaration_candidate_review:1": "431a33980d956c7131767d59c300521cb52731a4dc22510fdfa78429fd780a95",
-        "ui:rebuild_account_migration.view_rebuild_account_declaration_list:button:action:rebuild_account_migration.action_declaration_candidate_review:1": "563797bcb3dabdc3280823fa2458ecfdc0b1c57e4fa870ad13ed2973eddec367"
+        "ui:rebuild_account_migration.action_declaration_candidate_review": "1320f0426a6f1a619bd8c3180001ee107c535c2ee2fa308f6ff544ada45b5174",
+        "ui:rebuild_account_migration.view_rebuild_account_declaration_form:button:action:rebuild_account_migration.action_declaration_candidate_review:1": "fd3c9b0c3278f3fb7927dbb33a58d959229b60e7d5c34771ff8b0af472e3b2ee",
+        "ui:rebuild_account_migration.view_rebuild_account_declaration_list:button:action:rebuild_account_migration.action_declaration_candidate_review:1": "97701ac28e0d569723c3b44e37f9a4b93d726d9309f1a658e53a56fe2f56c61e"
       }
     },
     {

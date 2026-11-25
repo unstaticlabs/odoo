@@ -167,7 +167,7 @@
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="filing_status == 'rejected' or acceptance_status == 'rejected' or (status not in ['filed', 'paid', 'archived', 'not_applicable'] and (validation_status == 'blocked' or is_overdue))" decoration-warning="status not in ['filed', 'paid', 'archived', 'not_applicable'] and (validation_status == 'warning' or status == 'accountant_review')" decoration-success="status in ['filed', 'paid', 'archived'] and filing_status != 'rejected' and acceptance_status != 'rejected'">
                 <header>
-                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review DES / DAS2 sources" display="always"/>
+                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review DES and DAS2 documents" display="always"/>
                 </header>
                 <field name="deadline_date"/>
                 <field name="name"/>
@@ -221,7 +221,7 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
-                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review sources"
+                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review documents"
                         invisible="form_code not in ('DES', 'DAS2')"
                         context="{'default_company_id': company_id, 'default_kind': 'des' if form_code == 'DES' else 'das2', 'default_date_from': period_start, 'default_date_to': period_end}"/>
 
