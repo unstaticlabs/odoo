@@ -7858,8 +7858,10 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
 
     Staging is rebuilt from a production backup, so an Odoo user that exists
     only on staging disappears at every reset. This step links one staging-only
-    Pocket ID subject to a human user with the read-only accounting reviewer
-    profile, through the governed identity API. Its three inputs are not
+    Pocket ID subject to a human user with the accountant reviewer profile,
+    through the governed identity API. That profile works in accounting
+    (unlocked periods, no lock, no permanent deletion, no administration),
+    which a replay of a journey needs; it is not read-only. Its three inputs are not
     secrets; the staging Compose file declares them on the Odoo service, and a
     staging without them skips the step.
 

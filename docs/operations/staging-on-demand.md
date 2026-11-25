@@ -233,8 +233,13 @@ review account that replays journeys on staging and cannot sign in to
 production, because its Pocket ID user belongs to `odoo_staging` only.
 
 After a staging upgrade or reset is admitted, the release links that Pocket ID
-subject to a human Odoo user with the read-only `accountant_reviewer` profile,
-through `res.users._usl_pocketid_apply_user_configuration`. It reads three
+subject to a human Odoo user with the existing `accountant_reviewer` profile,
+through `res.users._usl_pocketid_apply_user_configuration`. That profile is not
+read-only: it does accounting review work in unlocked periods (draft
+adjustments, posting, reset, reconciliation) and reads the accounting
+documents, without locks, permanent deletion or administration. A replay
+clicks through wizards and posts entries, and staging is a neutralized copy
+that the next reset replaces. It reads three
 values from the environment of the staging Odoo service, which the GitOps
 staging Compose file declares; none is a secret:
 
