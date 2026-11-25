@@ -33,9 +33,9 @@ Open the month, enter the payout each platform reported, run the checks, generat
 
 2. Choose **New**.
 
-3. Pick the **billing period**: the first day of the month you are closing. Odoo names the session after the month, in French as the history always has, and proposes the month-end as invoice date.
+3. Choose the first day of the month you are closing. Odoo names the session after that month. Check the invoice date and set it to month-end if it still shows the previous period.
 
-   ![Pick the billing period: the first day of the month you are closing](create-a-monthly-platform-billing-session/02-period.png)
+   ![Choose the first day of the month you are closing](create-a-monthly-platform-billing-session/02-period.png)
 
 4. Under **Payouts**, choose **Add a line** for each platform that reported a payout this month.
 

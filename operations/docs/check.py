@@ -206,11 +206,22 @@ def check(root=USERS, decisions_root=DECISIONS):
     findings = []
     pages = load_pages(root, fm)
     journeys = {}
+    translations = {}
+    page_paths = {page.path for page in pages}
     for page in pages:
         for problem in page.problems:
             findings.append((f"docs/users/{page.path}", problem))
         for problem in check_links(page, root):
             findings.append((f"docs/users/{page.path}", problem))
+        original = page.data.get("translation_of")
+        language = page.data.get("lang")
+        if isinstance(original, str) and isinstance(language, str):
+            if original not in page_paths:
+                findings.append((f"docs/users/{page.path}", f"translated guide {original!r} does not exist"))
+            previous = translations.get((original, language))
+            if previous:
+                findings.append((f"docs/users/{page.path}", f"{previous} already translates {original!r} into {language}"))
+            translations[(original, language)] = page.path
         journey = page.data.get("journey")
         if journey:
             if journey in journeys:

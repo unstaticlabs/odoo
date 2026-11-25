@@ -47,6 +47,10 @@ class TestImmediateSettlementJourney(TestImmediateSettlementBrowser, JourneyCase
         self.assertEqual(settlement.mechanism, "payment_rate")
         self.assertEqual(self.bill.payment_state, "not_paid")
 
+    def test_settle_a_foreign_bill_at_the_payment_rate_in_french(self):
+        self.journey_language = "fr"
+        self.test_settle_a_foreign_bill_at_the_payment_rate()
+
 
 @tagged("post_install", "-at_install", "usl_docs_journey")
 class TestBankPeriodJourney(JourneyCase):
@@ -61,16 +65,17 @@ class TestBankPeriodJourney(JourneyCase):
             company_id=self.env.company.id,
             company_ids=[Command.set(self.env.company.ids)],
         )
-        journal = self.env["account.journal"].create({"name": "Period journey", "code": "PJR", "type": "bank"})
+        name = "Relevé de formation" if self.journey_language == "fr" else "Period journey"
+        journal = self.env["account.journal"].create({"name": name, "code": "PJR", "type": "bank"})
         config = self.env["account.bank.ingestion.config"].create({
-            "name": "Period journey",
+            "name": name,
             "journal_id": journal.id,
             "source_account_identifier": "FR7630001007941234567890185",
             "automatic_start_date": "2026-07-01",
         })
         ingestion = self.env["account.bank.ingestion"].create({
-            "name": "Period journey",
-            "subject": "Scheduled bank export",
+            "name": name,
+            "subject": "Relevé bancaire de formation" if self.journey_language == "fr" else "Scheduled bank export",
             "config_id": config.id,
             "state": "attention",
             "period_start": "2026-07-01",
@@ -85,3 +90,7 @@ class TestBankPeriodJourney(JourneyCase):
         ingestion.invalidate_recordset()
         self.assertEqual(str(ingestion.period_start), "2026-08-01")
         self.assertEqual(str(ingestion.period_end), "2026-08-31")
+
+    def test_correct_a_bank_statement_period_in_french(self):
+        self.journey_language = "fr"
+        self.test_correct_a_bank_statement_period()

@@ -10,10 +10,13 @@ from operations.docs import evidence as docs_evidence
 from operations.docs import generate as docs_generate
 
 PNG_A = bytes.fromhex(
-    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
-    "0000000d49444154789c6360f8cfc00000030101c3ba0e9b0000000049454e44ae426082",
+    "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c"
+    "49444154789c63606060000000040001f61738550000000049454e44ae426082",
 )
-PNG_B = PNG_A.replace(b"\x63\x60\xf8\xcf", b"\x63\x60\xf8\x0f")
+PNG_B = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010802000000907753de0000000c"
+    "49444154789c63f8ffff3f0005fe02fe0def46b80000000049454e44ae426082",
+)
 COMMIT = "0801ff5b7cf6a1b2c3d4e5f60718293a4b5c6d7e"
 
 
@@ -101,12 +104,50 @@ class DocsGenerateTests(unittest.TestCase):
         page = (self.docs / "how-to" / "match-a-line.md").read_text(encoding="utf-8")
         self.assertIn("persona: accountant\nscreen: /odoo/accounting\njourney: match-a-line\n", page, "empty keys are omitted")
 
+    def test_named_tutorials_coexist_with_the_accounting_landing_page(self):
+        landing = self.docs / "TUTORIAL.md"
+        self.docs.mkdir(exist_ok=True)
+        landing.write_text("Accounting tour", encoding="utf-8")
+        for on_disk, slug, lang in (
+            ("first", "your-first-batch", "en"),
+            ("premier", "votre-premier-lot", "fr"),
+        ):
+            records = self.records / on_disk
+            data = write_record(records, journey=slug, page_type="tutorial")
+            data.update(named_tutorial=True, lang=lang)
+            if lang == "fr":
+                data["translation_of"] = "tutorial/your-first-batch.md"
+            (records / "tour_match/desktop/journey.json").write_text(json.dumps(data), encoding="utf-8")
+            docs_generate.render_all(records, self.docs)
+            self.assertIn(f"]({slug}/01-open.png)", (self.docs / "tutorial" / f"{slug}.md").read_text())
+        self.assertEqual(landing.read_text(), "Accounting tour")
+        self.assertIn("translation_of: tutorial/your-first-batch.md", (self.docs / "tutorial/votre-premier-lot.md").read_text())
+
     def test_a_tutorial_renders_at_the_root(self):
         write_record(self.records, journey="tour", page_type="tutorial")
         docs_generate.render_all(self.records, self.docs)
         page = (self.docs / "TUTORIAL.md").read_text(encoding="utf-8")
         self.assertIn("![Open Journals](tutorial/tour/01-open.png)", page)
         self.assertTrue((self.docs / "tutorial" / "tour" / "01-open.png").exists())
+
+    def test_translation_keeps_the_original_page_and_its_evidence(self):
+        for page_type, original_path, translated_path in (
+            ("how-to", "how-to/match-a-line.md", "how-to/rapprocher-une-ligne.md"),
+            ("tutorial", "TUTORIAL.md", "tutorial/rapprocher-une-ligne.md"),
+        ):
+            with self.subTest(page_type=page_type):
+                records = self.records / page_type
+                write_record(records, page_type=page_type)
+                variant = write_record(records / "fr", journey="rapprocher-une-ligne", page_type=page_type)
+                variant.update(lang="fr", translation_of=original_path, title="Rapprocher une ligne")
+                (records / "fr/tour_match/desktop/journey.json").write_text(json.dumps(variant), encoding="utf-8")
+                docs_generate.render_all(records, self.docs)
+                self.assertIn("lang: en", (self.docs / original_path).read_text())
+                translated = (self.docs / translated_path).read_text()
+                self.assertIn(f"translation_of: {original_path}", translated)
+                self.assertIn("lang: fr", translated)
+                self.assertIn("](rapprocher-une-ligne/01-open.png)", translated)
+                self.assertEqual(docs_generate.check_all(records, self.docs), [])
 
     def test_the_check_reports_a_stale_page_and_a_changed_screen(self):
         write_record(self.records)

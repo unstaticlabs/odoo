@@ -12,8 +12,8 @@ journey: run-the-electronic-invoice-reception-self-check
 tour: usl_einvoice_manager_reception
 source:
   - custom-addons/rebuild_account_migration/tests/test_einvoice_journeys.py
-screenshot_01-setup_png: c92e41a3aef6a277a2fc9bd1d4e3d78d9c1c92cf61e6acc493534609746271a2
-screenshot_02-passed_png: fdc7e60740a4fbf1178570221b314b193c6499884f4b26bb25b4413f31d4e4db
+screenshot_01-setup_png: 5c3e7f32ae40b8ac8efb1d43211e0be9d55ea21ae2d89cefa9ab1dc1d911ed02
+screenshot_02-passed_png: 43cc1865f5e56731f33be3bb73d0b9962cce0c054c2f2e905f6eb1bfb180a60b
 generated: true
 ---
 

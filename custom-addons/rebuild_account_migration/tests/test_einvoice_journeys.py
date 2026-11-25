@@ -26,3 +26,7 @@ class TestEinvoiceJourneys(EinvoiceTestDataMixin, JourneyCase):
         self.assertEqual(self.company.rebuild_einvoice_test_status, "passed")
         self.assertTrue(self.company.rebuild_einvoice_test_current)
         self.assertFalse(self.company.rebuild_einvoice_test_reception_id)
+
+    def test_run_the_electronic_invoice_reception_self_check_in_french(self):
+        self.journey_language = "fr"
+        self.test_run_the_electronic_invoice_reception_self_check()

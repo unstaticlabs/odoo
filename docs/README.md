@@ -39,9 +39,12 @@ generated: true              # true: regenerate with make docs, never edit by ha
 ---
 ```
 
-The directory is the type: `TUTORIAL.md`, `how-to/`, `reference/`,
+The directory is the type: `TUTORIAL.md` or `tutorial/`, `how-to/`, `reference/`,
 `explanation/`. A page whose `type` disagrees with its directory fails the
-check. `users/README.md` is the only page without front matter. Pages without a
+check. A tutorial can set `namedTutorial: true` to publish at `tutorial/<slug>.md`
+and keep the main Accounting tour at `TUTORIAL.md`.
+
+`users/README.md` is the only page without front matter. Pages without a
 `journey` show "Not test-backed" in the product until a journey lands; that is
 the conversion backlog, measured by `scripts/docs check --coverage`.
 
