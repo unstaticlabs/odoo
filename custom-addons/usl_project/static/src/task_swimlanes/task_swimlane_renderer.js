@@ -6,6 +6,7 @@ import { useService } from '@web/core/utils/hooks';
 import { FormViewDialog } from '@web/views/view_dialogs/form_view_dialog';
 import { evaluateExpr } from '@web/core/py_js/py';
 import { _t } from '@web/core/l10n/translation';
+import { ReactivationKanbanHeader } from '../task_reactivation/indicators';
 import { buildMatrix, groupValue } from './task_swimlane_matrix';
 
 class MoveTaskDialog extends Component {
@@ -30,6 +31,7 @@ class MoveTaskDialog extends Component {
 
 export class TaskSwimlaneRenderer extends ProjectTaskKanbanRenderer {
     static template = 'usl_project.TaskSwimlaneRenderer';
+    static components = { ...ProjectTaskKanbanRenderer.components, KanbanHeader: ReactivationKanbanHeader };
     setup() {
         super.setup();
         this.notification = useService('notification');
@@ -51,6 +53,13 @@ export class TaskSwimlaneRenderer extends ProjectTaskKanbanRenderer {
             this.state.moveDestination = null;
         });
     }
+    async sortGroupDrop(...args) {
+        await super.sortGroupDrop(...args);
+        if (this.props.list.model.reactivationColumns?.size) {
+            await this.props.list.model.load();
+        }
+    }
+
     afterMove(resId, target) {
         this.state.moveDestination = { resId, values: JSON.stringify([groupValue(target.column), groupValue(target.row)]) };
     }
