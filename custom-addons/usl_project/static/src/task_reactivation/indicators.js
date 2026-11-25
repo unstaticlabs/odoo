@@ -100,6 +100,9 @@ class ReturnBadge extends Component {
 
     get reasons() {
         const { model, data, context } = this.props.record;
+        if (model.useSampleModel) {
+            return [];
+        }
         const board = taskBoard(model.root?.groupBy || [], context);
         const reasons = board?.personal ? data.usl_personal_return_badge
             : (board?.projectId ? data.usl_project_return_badge : false);

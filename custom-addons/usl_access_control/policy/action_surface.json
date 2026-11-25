@@ -3246,7 +3246,7 @@
       ],
       "sources": [
         {
-          "line": 171,
+          "line": 176,
           "path": "custom-addons/usl_project/static/src/task_swimlanes/task_swimlane_model.js"
         }
       ]
@@ -1766747,7 +1766747,7 @@
       "manifest_sha256": "e5c811ed75de17d013308817dc66a3f8fe4e04fd438ca77ce76638118ac1709a",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "b833a2b8db457e8f799ee6801199b2051d78e6552d1cd72b39ff242060e2b438",
+      "source_sha256": "00f16206138bdaa8baf9a16d65e22b9c5c7b68f6c95cdd42a270dcac5dd777e2",
       "version": "saas~19.3.1.0.21"
     },
     {
