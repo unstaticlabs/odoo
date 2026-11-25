@@ -43,6 +43,7 @@
         "data/accounting_framework.xml",
         "data/einvoice_readiness.xml",
         "views/rebuild_account_migration_views.xml",
+        "views/declaration_candidates.xml",
         "views/account_closing_declaration_views.xml",
         "views/accounting_framework_views.xml",
         "views/analytic_reporting_views.xml",

@@ -38,7 +38,7 @@ documentation work done in the code.
 
 | Module | Fields with help | Fields | Coverage |
 | --- | --- | --- | --- |
-| `rebuild_account_migration` | 68 | 890 | 8 % |
+| `rebuild_account_migration` | 72 | 894 | 8 % |
 | `usl_access_control` | 2 | 47 | 4 % |
 | `usl_accounting` | 26 | 344 | 8 % |
 | `usl_b2c` | 22 | 343 | 6 % |
