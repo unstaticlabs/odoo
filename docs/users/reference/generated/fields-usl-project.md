@@ -40,4 +40,5 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| **Reactivation Role** (`usl_reactivation_role`) | selection |  | For a personal stage, identifies where deferred tasks wait and where they return when work becomes actionable. Values: **Inbox destination**, **Later source**. |
+| **Stage Owner** (`user_id`) | many2one → `res.users` |  |  |
+| **Reactivation Role** (`usl_reactivation_role`) | selection |  | Deferred tasks return from Later to Inbox when work becomes actionable. For a project board, set these roles on stages linked to the project and use one active Inbox. Use the Projects field to share a project stage. Values: **Inbox destination**, **Later source**. |
