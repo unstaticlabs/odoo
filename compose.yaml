@@ -61,8 +61,8 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
-      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.16@sha256:910d0d8107b538fb0894e63163eb195de0cc7aefcbc666dc62d3b18f71124592}
       USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
@@ -169,7 +169,7 @@ services:
               *) echo "Image must include an exact tag or digest: $${image}"; exit 1;;
             esac
           done
-          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84" ] || {
+          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9" ] || {
             echo "Paperless distribution base digest is not qualified"; exit 1;
           }
           [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
@@ -302,12 +302,12 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
       args:
-        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84}
+        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
     restart: unless-stopped
     depends_on:
       paperless-preflight:
@@ -395,7 +395,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -416,7 +416,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:

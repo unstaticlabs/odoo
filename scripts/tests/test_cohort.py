@@ -18,6 +18,7 @@ from operations import cohort
 from operations.runtime import RuntimeError as OperationsError
 from operations.runtime import compose_command, load_target
 from operations.stack import (
+    BACKUP_ONLINE_PAUSE_SERVICE_ROLES,
     BACKUP_WRITER_SERVICE_ROLES,
     _compose_services,
     VOLUME_LOGICAL_NAMES,
@@ -73,6 +74,7 @@ from operations.stack import (
     _previous_generation_record,
     _previous_generation_identity,
     _reconcile_staging_pocketid,
+    _reconnect_staging_paperless,
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
@@ -2530,6 +2532,164 @@ class CohortContractTests(unittest.TestCase):
         )
         self.assertEqual(result, internal_evidence)
 
+    def _staging_paperless_fixture(self):
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": {
+                "PAPERLESS_INTERNAL_URL": "http://paperless-staging-app:8000",
+            }},
+            target.value["services"]["paperless"]: {
+                "environment": {
+                    "PAPERLESS_ALLOWED_HOSTS": (
+                        "localhost,127.0.0.1,paperless-webserver,paperless-staging-app"
+                    ),
+                },
+                "networks": {"default": {"aliases": ["paperless-staging-app"]}},
+            },
+        }}
+        return target, candidate, release, rendered
+
+    def _staging_paperless_runner(self, rendered, *, rotation=None, evidence=None):
+        state = {}
+
+        def run(command, **kwargs):
+            if "config" in command:
+                return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+            if "psql" in command:
+                state["sql"] = kwargs["input_text"]
+                token = state["sql"].split("SELECT '", 1)[1].split("'", 1)[0]
+                state["token"] = token
+                value = rotation or {"service_users": 1, "rotated_user_id": 2}
+                return subprocess.CompletedProcess(command, 0, json.dumps(value) + "\n", "")
+            state["program"] = kwargs["input_text"]
+            value = evidence(state) if evidence else {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": hashlib.sha256(state["token"].encode()).hexdigest(),
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+            return subprocess.CompletedProcess(
+                command, 0, "USL_STAGING_PAPERLESS_CONNECTION=" + json.dumps(value) + "\n", "",
+            )
+
+        runner = mock.Mock()
+        runner.run.side_effect = run
+        return runner, state
+
+    def test_staging_paperless_reconnect_rotates_token_and_keeps_it_off_argv(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        runner, state = self._staging_paperless_runner(rendered)
+        result = _reconnect_staging_paperless(
+            target, runner, release, "candidate-network",
+            {"odoo_filestore": "candidate-filestore"}, candidate, "candidate-paperless-db",
+        )
+        self.assertEqual(result["status"], "connected")
+        self.assertEqual(result["internal_url"], "http://paperless-staging-app:8000")
+        self.assertEqual(result["service_user_id"], 2)
+        self.assertRegex(state["token"], r"^[0-9a-f]{40}$")
+        self.assertNotIn(state["token"], json.dumps(result))
+        for call in runner.run.call_args_list:
+            self.assertNotIn(state["token"], " ".join(call.args[0]))
+        psql = runner.run.call_args_list[1].args[0]
+        self.assertIn("candidate-paperless-db", psql)
+        self.assertIn("paperless_staging", psql)
+        self.assertIn("username = 'odoo-integration'", state["sql"])
+        self.assertIn("ON CONFLICT (user_id) DO UPDATE", state["sql"])
+        program = state["program"]
+        self.assertIn(state["token"], program)
+        self.assertIn('env.registry.clear_cache("stable")', program)
+        self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
+        compile(program, "<staging-paperless-connection>", "exec")
+
+    def test_staging_paperless_reconnect_is_staging_only(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        runner = mock.Mock()
+        result = _reconnect_staging_paperless(
+            target, runner, {}, "network", {}, {}, "paperless-db",
+        )
+        self.assertEqual(result["status"], "not-applicable")
+        runner.run.assert_not_called()
+
+    def test_staging_paperless_reconnect_rejects_unsafe_url_and_bad_rotation(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        odoo_service = target.value["services"]["odoo"]
+        for url in (
+            "http://paperless-webserver.example:8000",
+            "https://paperless-staging-app:8000",
+            "http://user:pw@paperless-staging-app:8000",
+            "http://paperless-staging-app:8000/api",
+            "",
+        ):
+            broken = json.loads(json.dumps(rendered))
+            broken["services"][odoo_service]["environment"]["PAPERLESS_INTERNAL_URL"] = url
+            runner, _state = self._staging_paperless_runner(broken)
+            with self.assertRaisesRegex(RuntimeError, "internal URL"):
+                _reconnect_staging_paperless(
+                    target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+                )
+        not_allowed = json.loads(json.dumps(rendered))
+        not_allowed["services"][target.value["services"]["paperless"]]["environment"][
+            "PAPERLESS_ALLOWED_HOSTS"
+        ] = "localhost,127.0.0.1"
+        runner, _state = self._staging_paperless_runner(not_allowed)
+        with self.assertRaisesRegex(RuntimeError, "internal URL"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+        runner, _state = self._staging_paperless_runner(
+            rendered, rotation={"service_users": 0, "rotated_user_id": None},
+        )
+        with self.assertRaisesRegex(RuntimeError, "token rotation failed"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+
+    def test_staging_paperless_reconnect_rejects_mismatched_evidence(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+
+        def evidence(state):
+            return {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": "0" * 64,
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+
+        runner, _state = self._staging_paperless_runner(rendered, evidence=evidence)
+        with self.assertRaisesRegex(RuntimeError, "evidence differs"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+
     def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
         target = load_target("staging", HOST_TARGETS)
         release = {
@@ -3386,12 +3546,13 @@ class CohortContractTests(unittest.TestCase):
         target.project = configured.project
         return runner, target
 
-    def test_production_backup_writer_restart_skips_stale_one_shot_dependencies(self) -> None:
+    def test_production_online_backup_restart_skips_stale_one_shot_dependencies(self) -> None:
         # The captured Compose identity may point at a stale checkout whose
         # one-shot services (odoo-upgrade, odoo-mcp-oauth-init) already exited.
-        # The writer restart must start only the writers it stopped.
+        # The restart must start only the services it stopped: with an online
+        # capture, only Sign and its certificate authority.
         runner, target = self._backup_runner_and_target("production")
-        writer_services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        writer_services = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
         identity = {
             "project": "usl-odoo-production-main",
             "working_directory": "/etc/komodo/stacks/usl-odoo-production-main",
@@ -3406,14 +3567,19 @@ class CohortContractTests(unittest.TestCase):
         }
         release_raw = json.dumps(release) + " " * (2 * 1024 * 1024)
         cohort_results = {
-            "capture": {"status": "captured"},
+            "capture": {"status": "captured", "completeness": {"odoo_files": 1, "paperless_originals": 1}},
             "push": {"durable_snapshot_id": "d" * 64},
             "qualify": {"status": "verified"},
         }
 
+        phases = []
+
         def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
             if action == "capture":
-                self.assertEqual(_kwargs["input_text"], release_raw)
+                phase = _args[0][_args[0].index("--phase") + 1]
+                phases.append(phase)
+                # Only the first phase reads the release manifest, from stdin.
+                self.assertEqual(_kwargs["input_text"], release_raw if phase == "begin" else None)
                 environment = _args[1]
                 self.assertIn("USL_RELEASE_MANIFEST_STDIN=1", environment)
                 self.assertFalse(any(value.startswith("USL_RELEASE_MANIFEST_JSON=") for value in environment))
@@ -3441,6 +3607,7 @@ class CohortContractTests(unittest.TestCase):
             mock.patch("builtins.print"),
         ):
             self.assertEqual(backup_command(arguments), 0)
+        self.assertEqual(phases, ["begin", "sign", "finish"])
         commands = [call.args[0] for call in runner.run.call_args_list]
         stops = [command for command in commands if "stop" in command]
         ups = [command for command in commands if "up" in command]
@@ -3869,20 +4036,20 @@ class CohortContractTests(unittest.TestCase):
                 )
 
         gib = 1024**3
-        with self.assertRaisesRegex(RuntimeError, "2.0 GiB deficit"):
+        with self.assertRaisesRegex(RuntimeError, "3.0 GiB deficit"):
             _require_restore_capacity(
                 target,
-                CapacityRunner(17 * gib),
+                CapacityRunner(7 * gib),
                 "preflight",
                 candidate_bytes={"bulk": 4 * gib},
             )
         admitted = _require_restore_capacity(
             target,
-            CapacityRunner(19 * gib),
+            CapacityRunner(10 * gib),
             "preflight",
             candidate_bytes={"bulk": 4 * gib},
         )
-        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 19 * gib)
+        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 10 * gib)
 
     def test_restore_capacity_groups_tiers_on_their_actual_filesystems(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3903,7 +4070,7 @@ class CohortContractTests(unittest.TestCase):
             "preflight",
             candidate_bytes={"bulk": 3 * gib, "database": 2 * gib, "local": 1 * gib},
         )
-        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 18 * gib)
+        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 9 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["candidate_bytes"], 3 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["reserve_bytes"], 2 * gib)
 
@@ -4711,6 +4878,121 @@ class CohortContractTests(unittest.TestCase):
         )
         _delete_cleanup_resources(runner, [], [], [], [], paths)
         self.assertEqual(runner.removed, paths)
+
+    def _prune(self, target, runner, keep: str):
+        from operations.stack import _prune_superseded_captures
+        return _prune_superseded_captures(target, runner, keep)
+
+    def test_a_successful_production_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("production", TARGETS)
+        attempt, running = ("intent-" + digit * 48 for digit in "12")
+        newest, anchor, older, failed, newer = (
+            "proof-daily-" + digit * 16 for digit in "abcde"
+        )
+        entries = {"generations": "d", "backup-runs": "d", "runs": "d", "operation.lock": "d",
+                   "runs/release-" + "a" * 64 + ".json": "f"}
+        files = {"runs/release-" + "a" * 64 + ".json": json.dumps({"attempt": running, "status": "running"})}
+        captures = {
+            newest: "2026-09-05T04:00:00Z",
+            anchor: "2026-09-04T04:00:00Z",   # the last passed proof: its snapshots, not this copy, anchor it
+            older: "2026-09-03T04:00:00Z",
+            newer: "2026-09-06T04:00:00Z",    # never older than the capture that just succeeded
+            f"release-pre-{attempt}": "2026-09-02T04:00:00Z",
+            f"release-pre-{running}": "2026-09-01T04:00:00Z",
+        }
+        for run_id, created_at in captures.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[failed] = "d"
+        files.update(self._capture_files(target, failed, created_at="2026-09-02T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        root = target.value["state_directory"]
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            result = self._prune(target, runner, newest)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(
+            sorted(runner.removed),
+            sorted(f"{root}/{name}" for name in (anchor, older, failed, f"release-pre-{attempt}")),
+        )
+        # Kept: the new capture, a newer one, an unfinished release attempt, and
+        # everything that is not a capture. The older failed capture goes.
+        self.assertIn(f"{root}/{failed}", runner.removed)
+        for kept in (newest, newer, f"release-pre-{running}", "backup-runs", "generations"):
+            self.assertNotIn(f"{root}/{kept}", runner.removed)
+
+    def test_a_successful_staging_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, older, oldest, unqualified = ("intent-" + digit * 48 for digit in "abcd")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d"}
+        files = {}
+        for run_id, created_at in {
+            newest: "2026-09-05T04:00:00Z", older: "2026-09-04T04:00:00Z", oldest: "2026-09-03T04:00:00Z",
+        }.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[unqualified] = "d"
+        files.update(self._capture_files(target, unqualified, created_at="2026-09-01T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        root = target.value["state_directory"]
+        self.assertEqual(
+            sorted(runner.removed), sorted([f"{root}/{older}", f"{root}/{oldest}", f"{root}/{unqualified}"]),
+        )
+
+    def test_nothing_is_deleted_when_the_new_capture_did_not_qualify(self) -> None:
+        target = load_target("staging", TARGETS)
+        failed, older = ("intent-" + digit * 48 for digit in "ab")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", failed: "d", older: "d"}
+        files = self._capture_files(target, older, created_at="2026-09-04T04:00:00Z")
+        files.update(self._capture_files(target, failed, created_at="2026-09-05T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            result = self._prune(target, runner, failed)
+        self.assertEqual((result["status"], runner.removed), ("skipped", []))
+        self.assertIn("not qualified", errors.getvalue())
+
+    def test_an_unfinished_release_attempts_failed_capture_is_kept(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, resumable, finished = ("intent-" + digit * 48 for digit in "abc")
+        run_state = "runs/release-" + "a" * 64 + ".json"
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", run_state: "f",
+                   newest: "d", resumable: "d", finished: "d"}
+        files = {run_state: json.dumps({"attempt": resumable, "status": "running"})}
+        files.update(self._capture_files(target, newest, created_at="2026-09-05T04:00:00Z"))
+        for run_id in (resumable, finished):
+            files.update(self._capture_files(target, run_id, created_at="2026-09-04T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        self.assertEqual(runner.removed, [f"{target.value['state_directory']}/{finished}"])
+
+    def test_pruning_refuses_names_outside_the_managed_captures(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        runner = self._capture_state_root(target, {"generations": "d"}, {})
+        for name in ("../escape", "generations", "backup-runs", "/etc"):
+            with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [name]}, keep_anchor_capture=False)
+        self.assertEqual(runner.removed, [])
+
+    def test_cleanup_apply_still_refuses_an_unqualified_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        failed = "intent-" + "a" * 48
+        runner = self._capture_state_root(
+            target, {failed: "d"}, self._capture_files(target, failed, created_at="2026-09-04T04:00:00Z", status="uploaded"),
+        )
+        with self.assertRaisesRegex(RuntimeError, "not qualified"):
+            _validated_cleanup_captures(target, runner, {"delete_captures": [failed]})
+
+    def test_the_default_deletion_path_still_protects_the_anchor_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("production", TARGETS)
+        anchor = "proof-daily-" + "a" * 16
+        entries = {anchor: "d"}
+        runner = self._capture_state_root(target, entries, self._capture_files(target, anchor, created_at="2026-09-04T04:00:00Z"))
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            with self.assertRaisesRegex(RuntimeError, "last full usable recovery anchor"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [anchor]})
 
     def test_capture_retention_keeps_newest_staging_captures(self) -> None:
         target = load_target("staging", TARGETS)

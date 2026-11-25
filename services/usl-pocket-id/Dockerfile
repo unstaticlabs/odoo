@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1.7
 
-# Pocket ID v2.19.2 with the USL fresh-passkey patch. The build stages mirror
+# Pocket ID v2.19.3 with the USL fresh-passkey patch. The build stages mirror
 # upstream's docker/Dockerfile for this release; only the source checkout, the
 # patch and the test stage are ours.
 # Renovate reads the version and the commit of the tag together
 # (renovate.json). A new release changes both in one pull request, and the
 # patch then fails `git apply --check` until someone rebases it.
 # renovate: datasource=github-tags depName=pocket-id/pocket-id
-ARG POCKET_ID_VERSION=v2.19.2
-ARG POCKET_ID_COMMIT=2b2750ed61e0016f4c15630322d15ca22143cdb6
+ARG POCKET_ID_VERSION=v2.19.3
+ARG POCKET_ID_COMMIT=c0abd9322d0a67e200434baacc662e9c7cde1389
 
 FROM alpine/git:2.49.1 AS source
 ARG POCKET_ID_COMMIT
@@ -16,7 +16,7 @@ WORKDIR /src
 RUN git clone --filter=blob:none https://github.com/pocket-id/pocket-id.git . \
     && git checkout --detach "${POCKET_ID_COMMIT}" \
     && test "$(git rev-parse HEAD)" = "${POCKET_ID_COMMIT}"
-COPY services/usl-pocket-id/pocket-id-v2.19.2-fresh-passkey.patch /tmp/fresh-passkey.patch
+COPY services/usl-pocket-id/pocket-id-v2.19.3-fresh-passkey.patch /tmp/fresh-passkey.patch
 RUN git apply --check /tmp/fresh-passkey.patch \
     && git apply /tmp/fresh-passkey.patch \
     && rm -rf .git
@@ -35,7 +35,7 @@ RUN --mount=type=cache,target=/app/frontend/node_modules/.vite,uid=1000,gid=1000
     --mount=type=cache,target=/app/frontend/.svelte-kit,uid=1000,gid=1000 \
     BUILD_OUTPUT_PATH=dist vp -C frontend run build
 
-FROM golang:1.27.3-alpine AS backend-builder
+FROM golang:1.27.4-alpine AS backend-builder
 ARG BUILD_TAGS=""
 WORKDIR /build
 COPY --from=source /src/backend/go.mod /src/backend/go.sum ./
@@ -46,7 +46,7 @@ COPY --from=source /src/.version .version
 WORKDIR /build/cmd
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    VERSION="$(cat /build/.version)-usl1" \
+    VERSION="$(cat /build/.version)-usl2" \
     && CGO_ENABLED=0 GOOS=linux go build \
     -tags "${BUILD_TAGS}" \
     -ldflags="-X github.com/pocket-id/pocket-id/backend/internal/common.Version=${VERSION} -buildid=${VERSION}" \

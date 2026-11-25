@@ -12,10 +12,11 @@ import io
 import json
 import os
 import re
+import secrets
 import sys
 import textwrap
 import time
-from contextlib import ExitStack, contextmanager, redirect_stdout
+from contextlib import ExitStack, contextmanager, redirect_stdout, suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -170,6 +171,10 @@ RESOURCE_FIELDS = {
     "pids_limit",
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
+# An online capture pauses only what cannot be copied while it runs: the Step CA
+# Badger database, and Sign, which writes to the material that goes with it.
+BACKUP_ONLINE_PAUSE_SERVICE_ROLES = ("sign", "sign_ca")
+BACKUP_CAPTURE_MODES = ("online", "quiesced")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 # Odoo runs as this fixed unprivileged identity inside the distribution image.
 ODOO_RUNTIME_UID = "1000"
@@ -203,10 +208,12 @@ RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
 # proof restores from Restic, never from this directory, so a qualified
 # capture is a local duplicate of its remote snapshots. Each one is about
 # 2.3 GB on the root filesystem of the Odoo host, which filled it on
-# 2026-11-19. Production keeps the newest qualified capture and the capture
-# of the usable recovery anchor; every other qualified capture goes. The
-# newest one stays because a proof qualifies its capture before it restores,
-# and because it is the local copy if the remote repositories are lost.
+# 2026-11-19. ``cleanup apply`` keeps the newest qualified capture and the
+# capture of the usable recovery anchor; every other qualified capture goes.
+# The newest one stays because a proof qualifies its capture before it
+# restores. Every successful backup then deletes all older captures, the
+# anchor's included, so no local copy survives the loss of the remote
+# repositories.
 PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
 PROOF_CAPTURE_KEEP = 1
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
@@ -3382,8 +3389,13 @@ def _backup_run_receipt(
         "runtime_images", "writers_quiesced", "writer_interval_complete",
         "writers_stopped_at", "writers_resumed_at", "quiescence", "status", "sha256",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    # Receipts written before the online capture have no ``capture_mode``; every
+    # one of them was taken with the writers stopped.
+    if not isinstance(value, dict) or set(value) not in (required, required | {"capture_mode"}):
         raise RuntimeError("backup receipt fields differ")
+    capture_mode = value.get("capture_mode", "quiesced")
+    if capture_mode not in BACKUP_CAPTURE_MODES:
+        raise RuntimeError("backup receipt capture mode is invalid")
     if value.get("schema") != "usl-backup-run/v2":
         raise RuntimeError("backup receipt schema differs")
     if value.get("status") != "qualified":
@@ -3494,6 +3506,26 @@ def _backup_run_receipt(
     ).hexdigest():
         raise RuntimeError("backup receipt digest differs")
     return value
+
+
+def _resumed_capture_mode(target, runner, run_id: str) -> str:
+    """The mode a backup run was captured in, from what it left on the host.
+
+    An online capture pauses only the Sign services, which its quiescence
+    artifact names. A run that left none was captured before online captures
+    existed, with every writer stopped.
+    """
+    root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+    online = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
+    for filename in ("quiesced.json", "prepared.json"):
+        result = runner.run(["cat", f"{root}/{filename}"], check=False)
+        if not result.returncode:
+            try:
+                services = json.loads(result.stdout).get("writer_services")
+            except (json.JSONDecodeError, AttributeError) as error:
+                raise RuntimeError("resumed backup quiescence receipt is invalid") from error
+            return "online" if services == online else "quiesced"
+    return "quiesced"
 
 
 def _backup_quiescence_receipt(
@@ -4064,6 +4096,9 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
 def backup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     leave_quiesced = bool(getattr(arguments, "leave_quiesced", False))
+    # The release path stops every writer because its upgrade needs them stopped
+    # anyway. Every other capture is taken online.
+    capture_mode = "quiesced" if leave_quiesced else "online"
     if leave_quiesced and arguments.action != "create":
         raise RuntimeError("--leave-quiesced is valid only for backup create")
     if leave_quiesced and arguments.resume:
@@ -4148,10 +4183,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 )
                 writer_services = [
                     target.value["services"][name]
-                    for name in BACKUP_WRITER_SERVICE_ROLES
+                    for name in (
+                        BACKUP_WRITER_SERVICE_ROLES if capture_mode == "quiesced"
+                        else BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+                    )
                 ]
 
-                def capture_phase():
+                def capture_phase(phase_arguments=(), *, with_release=True):
                     environment = [
                         *_database_environment(target),
                         "--env",
@@ -4178,10 +4216,10 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         runner,
                         image,
                         "capture",
-                        ["--run-id", run_id],
+                        ["--run-id", run_id, *phase_arguments],
                         environment,
                         volumes=runtime["volumes"],
-                        input_text=release_raw,
+                        input_text=release_raw if with_release else None,
                     )
 
                 freeze_started = time.monotonic()
@@ -4202,55 +4240,121 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
                 )
                 _record_event(target, runner, run_id, "backup", "capture", "started")
-                capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
-                capture_succeeded = False
-                try:
-                    runner.run(compose_command(
-                        identity, ["stop", "--timeout", "30", *writer_services],
-                    ))
-                    writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                    stopped_quiescence = _backup_quiescence_receipt(
-                        target=target.name,
-                        run_id=run_id,
-                        baseline=baseline_runtime_sha256,
-                        services=writer_services,
-                        status="quiesced",
-                        prepared_at=prepared_at,
-                        stopped_at=writers_stopped_at,
-                    )
-                    _write_remote(
-                        target, runner, f"{quiescence_root}/quiesced.json",
-                        json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
-                    )
-                    captured = capture_phase()
-                    _write_remote(
+                if capture_mode == "online":
+                    pause_seconds = 0.0
+                    try:
+                        begun = capture_phase(
+                            ["--mode", "online", "--phase", "begin"],
+                        )
+                        _record_event(
+                            target, runner, run_id, "backup", "completeness", "completed",
+                            **begun["completeness"],
+                        )
+                        pause_started = time.monotonic()
+                        try:
+                            runner.run(compose_command(
+                                identity, ["stop", "--timeout", "30", *writer_services],
+                            ))
+                            stopped_quiescence = _backup_quiescence_receipt(
+                                target=target.name,
+                                run_id=run_id,
+                                baseline=baseline_runtime_sha256,
+                                services=writer_services,
+                                status="quiesced",
+                                prepared_at=prepared_at,
+                                stopped_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                            )
+                            _write_remote(
+                                target, runner, f"{quiescence_root}/quiesced.json",
+                                json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n",
+                                "0444",
+                            )
+                            capture_phase(
+                                ["--mode", "online", "--phase", "sign"], with_release=False,
+                            )
+                        finally:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            pause_seconds = round(time.monotonic() - pause_started, 3)
+                        captured = capture_phase(
+                            ["--mode", "online", "--phase", "finish"], with_release=False,
+                        )
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                    except Exception:
+                        with suppress(Exception):
+                            capture_phase(
+                                ["--mode", "online", "--phase", "abort"], with_release=False,
+                            )
+                        raise
+                    freeze_seconds = pause_seconds
+                    _record_event(
                         target,
                         runner,
-                        f"{quiescence_root}/capture.json",
-                        json.dumps(captured, indent=2, sort_keys=True) + "\n",
-                        "0444",
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=round(time.monotonic() - freeze_started, 3),
+                        sign_pause_seconds=pause_seconds,
                     )
-                    capture_succeeded = True
-                finally:
-                    if not leave_quiesced or not capture_succeeded:
+                else:
+                    capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
+                    capture_succeeded = False
+                    try:
                         runner.run(compose_command(
-                            identity,
-                            ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            identity, ["stop", "--timeout", "30", *writer_services],
                         ))
-                        writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                        backup_maintenance.release(runner, capture_maintenance)
-                if leave_quiesced:
-                    quiescence = stopped_quiescence
-                freeze_seconds = round(time.monotonic() - freeze_started, 3)
-                _record_event(
-                    target,
-                    runner,
-                    run_id,
-                    "backup",
-                    "capture",
-                    "completed",
-                    duration_seconds=freeze_seconds,
-                )
+                        writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                        stopped_quiescence = _backup_quiescence_receipt(
+                            target=target.name,
+                            run_id=run_id,
+                            baseline=baseline_runtime_sha256,
+                            services=writer_services,
+                            status="quiesced",
+                            prepared_at=prepared_at,
+                            stopped_at=writers_stopped_at,
+                        )
+                        _write_remote(
+                            target, runner, f"{quiescence_root}/quiesced.json",
+                            json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                        )
+                        captured = capture_phase()
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                        capture_succeeded = True
+                    finally:
+                        if not leave_quiesced or not capture_succeeded:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                            backup_maintenance.release(runner, capture_maintenance)
+                    if leave_quiesced:
+                        quiescence = stopped_quiescence
+                    freeze_seconds = round(time.monotonic() - freeze_started, 3)
+                    _record_event(
+                        target,
+                        runner,
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=freeze_seconds,
+                    )
             else:
                 capture_path = (
                     f"{target.value['state_directory']}/backup-runs/{run_id}/capture.json"
@@ -4269,6 +4373,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     or captured.get("release", {}).get("manifest_sha256") != release_sha
                 ):
                     raise RuntimeError("resumed backup capture identity differs")
+                capture_mode = _resumed_capture_mode(target, runner, run_id)
 
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
@@ -4339,22 +4444,17 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "qualification": qualified,
                 "performance": {
                     "capture_pause_seconds": freeze_seconds,
-                    "writer_freeze_seconds": (
-                        freeze_seconds if not leave_quiesced and not arguments.resume else None
-                    ),
+                    "writer_freeze_seconds": None,
                     "writer_freeze_sla_seconds": 120,
-                    "writer_freeze_sla_passed": (
-                        freeze_seconds <= 120
-                        if not leave_quiesced and not arguments.resume
-                        else None
-                    ),
+                    "writer_freeze_sla_passed": None,
                     "upload_seconds": upload_seconds,
                     "verification_seconds": verify_seconds,
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
+                "capture_mode": capture_mode,
                 "writers_quiesced": leave_quiesced,
-                "writer_interval_complete": not leave_quiesced and not arguments.resume,
+                "writer_interval_complete": False,
                 "writers_stopped_at": writers_stopped_at,
                 "writers_resumed_at": writers_resumed_at,
                 "quiescence": quiescence,
@@ -4371,6 +4471,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 f"{receipt_root}/receipt.json",
                 json.dumps(result, indent=2, sort_keys=True) + "\n",
                 "0444",
+            )
+            # The new capture is qualified and its receipt is written: every
+            # older local copy is now a duplicate of verified Restic snapshots.
+            pruned = _prune_superseded_captures(target, runner, run_id)
+            _record_event(
+                target, runner, run_id, "backup", "retention", pruned["status"],
+                deleted_captures=len(pruned["deleted_captures"]),
             )
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
@@ -7498,6 +7605,187 @@ print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
     raise RuntimeError("Pocket ID runtime admission returned no evidence")
 
 
+STAGING_PAPERLESS_SERVICE_USER = "odoo-integration"
+STAGING_PAPERLESS_CONNECTION_PREFIX = "USL_STAGING_PAPERLESS_CONNECTION="
+
+
+def _staging_paperless_internal_url(target, runner, candidate_identity: dict) -> str:
+    """Return the Paperless URL that the candidate Odoo service is rendered with.
+
+    The URL must name the staging Paperless service or one of its own network
+    aliases, and that Paperless must accept it as a host. A name that another
+    project on the host also uses (``paperless-webserver``) is not enough on a
+    shared network, so the rendered Compose file decides, not a default.
+    """
+    rendered = runner.run(
+        compose_command(candidate_identity, ["config", "--format", "json"]),
+    )
+    try:
+        services = json.loads(rendered.stdout)["services"]
+        odoo = services[target.value["services"]["odoo"]]["environment"]
+        paperless_name = target.value["services"]["paperless"]
+        paperless_service = services[paperless_name]
+        paperless = paperless_service["environment"]
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("rendered staging Paperless connection is invalid") from error
+    internal_url = str(odoo.get("PAPERLESS_INTERNAL_URL", "")).rstrip("/")
+    parsed = urlsplit(internal_url)
+    networks = paperless_service.get("networks") or {}
+    aliases = {paperless_name}
+    if isinstance(networks, dict):
+        for network in networks.values():
+            aliases.update((network or {}).get("aliases") or [])
+    allowed_hosts = {
+        host.strip()
+        for host in str(paperless.get("PAPERLESS_ALLOWED_HOSTS", "")).split(",")
+        if host.strip()
+    }
+    if (
+        parsed.scheme != "http"
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or parsed.hostname not in aliases
+        or (allowed_hosts and parsed.hostname not in allowed_hosts)
+    ):
+        raise RuntimeError("staging Paperless internal URL is not the staging Paperless service")
+    return internal_url
+
+
+def _reconnect_staging_paperless(
+    target, runner, release, network, volumes, candidate_identity, paperless_container: str,
+) -> dict:
+    """Connect neutralized staging Odoo to staging Paperless with a fresh token.
+
+    Neutralization deletes every ``usl_documents.paperless_*`` parameter, so a
+    reseeded staging database holds no route to the production archive. This
+    step gives it a route to its own archive. The restored Paperless database is
+    a copy of production, so the service user's token is first replaced with a
+    new random key: the production token stops working in staging, and the new
+    key exists only in the two staging databases. The key travels on stdin,
+    never on a command line, and the evidence holds no key.
+    """
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-staging-paperless-connection/v1", "status": "not-applicable"}
+    internal_url = _staging_paperless_internal_url(target, runner, candidate_identity)
+    public_url = target.value["endpoints"]["paperless"].rstrip("/")
+    token = secrets.token_hex(20)
+    paperless_database = target.value["databases"]["paperless"]
+    rotated = runner.run(
+        [
+            "docker", "exec", "--interactive", paperless_container, "psql",
+            "--username", paperless_database["user"],
+            "--dbname", paperless_database["name"],
+            "--tuples-only", "--no-align", "--quiet",
+            "--set", "ON_ERROR_STOP=1",
+        ],
+        input_text=(
+            "WITH service AS (\n"
+            "    SELECT id FROM auth_user\n"
+            f"     WHERE username = '{STAGING_PAPERLESS_SERVICE_USER}' AND is_active\n"
+            "), rotated AS (\n"
+            "    INSERT INTO authtoken_token (key, created, user_id)\n"
+            f"    SELECT '{token}', now(), id FROM service\n"
+            "    ON CONFLICT (user_id) DO UPDATE\n"
+            "       SET key = EXCLUDED.key, created = EXCLUDED.created\n"
+            "    RETURNING user_id\n"
+            ")\n"
+            "SELECT json_build_object(\n"
+            "    'service_users', (SELECT count(*) FROM service),\n"
+            "    'rotated_user_id', (SELECT min(user_id) FROM rotated)\n"
+            ");\n"
+        ),
+    )
+    try:
+        rotation = json.loads(rotated.stdout.strip().splitlines()[-1])
+        service_user_id = int(rotation["rotated_user_id"])
+    except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        raise RuntimeError("staging Paperless service token rotation failed") from error
+    if rotation.get("service_users") != 1 or service_user_id < 1:
+        raise RuntimeError("staging Paperless service token rotation failed")
+    settings = {
+        "url": internal_url,
+        "public_url": public_url,
+        "token": token,
+        "service_user_id": service_user_id,
+    }
+    program = f"""import hashlib
+import json
+
+settings = json.loads({json.dumps(json.dumps(settings))})
+params = env["ir.config_parameter"].sudo()
+params.set_str("usl_documents.paperless_url", settings["url"])
+params.set_str("usl_documents.paperless_public_url", settings["public_url"])
+params.set_str("usl_documents.paperless_token", settings["token"])
+params.set_int("usl_documents.paperless_service_user_id", settings["service_user_id"])
+env.registry.clear_cache("stable")
+client = env["usl.document"]._paperless()
+checks = {{
+    "configured": client.configured is True,
+    "url_matches": client.base_url == settings["url"],
+    "public_url_matches": client.public_url == settings["public_url"],
+    "token_matches": client.token == settings["token"],
+    "service_user_matches": client.owner_user_id == settings["service_user_id"],
+}}
+if not all(checks.values()):
+    raise RuntimeError("staging Paperless connection failed: " + ", ".join(
+        key for key, value in checks.items() if not value
+    ))
+env.cr.commit()
+print({json.dumps(STAGING_PAPERLESS_CONNECTION_PREFIX)} + json.dumps({{
+    "schema": "usl-staging-paperless-connection/v1",
+    "status": "connected",
+    "internal_url": settings["url"],
+    "public_url": settings["public_url"],
+    "service_user_id": settings["service_user_id"],
+    "token_sha256": hashlib.sha256(settings["token"].encode()).hexdigest(),
+    **checks,
+}}, sort_keys=True))
+"""
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            [
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+            ],
+        ),
+        input_text=program,
+    )
+    expected = {
+        "schema": "usl-staging-paperless-connection/v1",
+        "status": "connected",
+        "internal_url": internal_url,
+        "public_url": public_url,
+        "service_user_id": service_user_id,
+        "token_sha256": hashlib.sha256(token.encode()).hexdigest(),
+        "configured": True,
+        "url_matches": True,
+        "public_url_matches": True,
+        "token_matches": True,
+        "service_user_matches": True,
+    }
+    for line in reversed(result.stdout.splitlines()):
+        if not line.startswith(STAGING_PAPERLESS_CONNECTION_PREFIX):
+            continue
+        try:
+            evidence = json.loads(line.removeprefix(STAGING_PAPERLESS_CONNECTION_PREFIX))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging Paperless connection returned invalid evidence") from error
+        if evidence != expected:
+            raise RuntimeError("staging Paperless connection evidence differs")
+        return evidence
+    raise RuntimeError("staging Paperless connection returned no evidence")
+
+
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
     """Converge the isolated candidate before any production worker can run."""
     cron_target = target.value["cron_policy"]
@@ -8039,6 +8327,25 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 network,
                 volumes,
                 candidate_identity,
+            )
+            paperless_connection = _reconnect_staging_paperless(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                candidate_identity,
+                database_containers[1],
+            )
+            _record_event(
+                target,
+                target_runner,
+                generation,
+                "restore",
+                "paperless-connection",
+                paperless_connection["status"],
+                service_user_id=paperless_connection["service_user_id"],
+                token_sha256=paperless_connection["token_sha256"],
             )
         cron_policy_application = _apply_generation_cron_policy(
             target,
@@ -9944,7 +10251,14 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
         raise RuntimeError(
             "interrupted recovery proof backup has no quiescence receipt",
         )
+    # An interrupted online capture can have stopped only the Sign services; an
+    # older, fully quiesced one stopped every writer.
     services = [target.value["services"][name] for name in BACKUP_WRITER_SERVICE_ROLES]
+    online_services = [
+        target.value["services"][name] for name in BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+    ]
+    if isinstance(quiescence, dict) and quiescence.get("writer_services") == online_services:
+        services = online_services
     quiescence = _validate_backup_quiescence_receipt(
         quiescence,
         target="production",
@@ -11071,7 +11385,8 @@ def _cleanup_captures(target, runner) -> dict:
     ``STAGING_CAPTURE_KEEP`` captures.  Both keep captures that are not
     ``qualified`` and captures of attempts whose launcher run is still
     running or resumable.  Entries that are not managed capture runs are
-    ignored.
+    ignored.  ``cleanup apply`` keeps the anchor capture, but every
+    successful backup deletes it (see ``_prune_superseded_captures``).
     """
     captures: dict[str, str] = {}
     proofs: list[str] = []
@@ -11139,6 +11454,8 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
     the newest data-qualified capture, even after later service proofs fail.
     If no anchor exists yet, every qualified capture stays and nothing is
     deleted, so a release cleanup does not stop on a missing anchor.
+    ``cleanup apply`` keeps the anchor capture; every successful backup deletes
+    it, and older unqualified captures, through ``_prune_superseded_captures``.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11222,8 +11539,9 @@ def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
             raise RuntimeError("full usable recovery anchor capture interval differs")
         captured_at = quiesced["prepared_at"]
     else:
-        # Older complete receipts retain their sealed writer-stop boundary.
-        captured_at = bound["writers_stopped_at"]
+        # Older complete receipts retain their sealed writer-stop boundary; an
+        # online capture stops no writer and is dated by its manifest.
+        captured_at = bound["writers_stopped_at"] or bound["capture"]["created_at"]
     _recovery_proof_timestamp(captured_at, "anchor captured_at")
     return {
         "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,
@@ -11294,6 +11612,50 @@ def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -
         if _read_usable_anchor_document(runner, path) != receipt:
             raise RuntimeError("recovery proof anchor read-back differs")
         return {"status": "published", "anchor": candidate}
+
+
+def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
+    """Delete every older local capture once a newer backup has qualified.
+
+    Nothing reads a finished capture directory again: restore, rollback and
+    proofs read the Restic snapshots; the anchor reads ``backup-runs/`` receipts
+    and the remote snapshot pair; ``--resume`` and ``push`` read only the run
+    they continue. A capture owned by an unfinished release attempt and any
+    newer capture are kept; older failed (unqualified) captures are deleted. The backup has already
+    succeeded, so a failure here is reported and never fails it. Deletion goes
+    through the same validation as ``cleanup apply``.
+    """
+    if target.value["environment"] not in {"production", "staging"}:
+        return {"status": "skipped", "deleted_captures": []}
+    try:
+        kept = _qualified_capture(target, runner, keep_run_id)
+        if kept is None:
+            raise RuntimeError(f"the new capture is not qualified: {keep_run_id}")
+        unfinished = _unfinished_release_attempts(target, runner)
+        older = []
+        for name, kind in _state_root_entries(target, runner):
+            attempt = _capture_attempt(target, name)
+            if name == keep_run_id or (attempt is None and not _proof_capture(target, name)):
+                continue
+            if kind != "d":
+                raise RuntimeError(f"cleanup capture is not a directory: {name}")
+            capture = _qualified_capture(target, runner, name)
+            # Once a newer backup has qualified, an older failed run can no
+            # longer be resumed; it must be re-run with a new run id.
+            if attempt in unfinished or (
+                capture is not None and capture["created_at"] > kept["created_at"]
+            ):
+                continue
+            older.append(name)
+        paths = _validated_cleanup_captures(
+            target, runner, {"delete_captures": sorted(older)},
+            keep_anchor_capture=False, require_qualified=False,
+        )
+        _delete_cleanup_resources(runner, [], [], [], [], paths)
+    except Exception as error:  # noqa: BLE001 - the backup already succeeded and is recorded
+        print(f"older capture deletion skipped: {error}", file=sys.stderr)
+        return {"status": "skipped", "deleted_captures": []}
+    return {"status": "completed", "deleted_captures": sorted(older)}
 
 
 def _retain_recovery_proof_captures(target) -> dict:
@@ -11640,14 +12002,17 @@ def _validated_cleanup_resources(
     return containers, volumes, networks
 
 
-def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
+def _validated_cleanup_captures(
+    target, runner, inventory: dict, *, keep_anchor_capture: bool = True,
+    require_qualified: bool = True,
+) -> list[str]:
     """Re-check every capture directory immediately before deletion."""
     state_root = target.value["state_directory"]
     paths = []
     for run_id in inventory["delete_captures"]:
         if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
-        if target.value["environment"] == "production" and _proof_capture(target, run_id):
+        if keep_anchor_capture and target.value["environment"] == "production" and _proof_capture(target, run_id):
             if _usable_recovery_anchor(target, runner)["run_id"] == run_id:
                 raise RuntimeError("cleanup cannot delete the last full usable recovery anchor capture")
         path = f"{state_root}/{run_id}"
@@ -11657,7 +12022,7 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup capture became invalid: {path}")
-        if _qualified_capture(target, runner, run_id) is None:
+        if require_qualified and _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
         _assert_capture_unmounted(runner, path)
         _assert_capture_not_bound(runner, path)
