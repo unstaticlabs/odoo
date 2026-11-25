@@ -1232,7 +1232,7 @@ class UslDocument(models.Model):
             )
         return self.document_detail(self.id)
 
-    def action_open_linked_record(self, link_id):
+    def action_open_linked_record(self, link_id, *, preview=False):
         self.ensure_one()
         self.check_access("read")
         link = self.sudo().link_ids.filtered(
@@ -1240,7 +1240,7 @@ class UslDocument(models.Model):
         )
         if not link:
             raise ValidationError(_("That Odoo relationship no longer exists."))
-        return link._record_action(user_env=self.env)
+        return link._record_action(user_env=self.env, preview=preview)
 
     def action_open_in_documents(self):
         """Open this document in the Documents app, where its metadata is edited.

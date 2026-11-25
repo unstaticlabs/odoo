@@ -22,7 +22,7 @@ import { _t } from "@web/core/l10n/translation";
 import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
-import { useBus, useService } from "@web/core/utils/hooks";
+import { useBus, useOwnedDialogs, useService } from "@web/core/utils/hooks";
 import { SearchBar } from "@web/search/search_bar/search_bar";
 import { WithSearch } from "@web/search/with_search/with_search";
 import { useSetupAction } from "@web/search/action_hook";
@@ -36,6 +36,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
 import {DocumentPreview} from "@usl_documents/document_preview";
 
 import { DocumentBatchDialog } from "./document_batch";
+import { LinkedRecordPreview } from "./linked_record_preview";
 
 const FILTER_DEFAULTS = {
     companyId: "",
@@ -244,6 +245,7 @@ export class DocumentsWorkspaceView extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.dialog = useService("dialog");
+        this.addPreviewDialog = useOwnedDialogs();
         this.notification = useService("notification");
         this.searchModel = this.env.searchModel;
         this.selectContact = useSelectCreate({
@@ -3294,6 +3296,49 @@ export class DocumentsWorkspaceView extends Component {
                 { type: "danger", sticky: true }
             );
         }
+    }
+
+    previewLink(link) {
+        const documentId = this.state.selected.id;
+        this.addPreviewDialog(LinkedRecordPreview, {
+            title: _t("Record preview"),
+            resModel: link.model,
+            resId: link.res_id,
+            checkLink: () => this.rpc(
+                "usl.document", "action_open_linked_record", [[documentId], link.id], { preview: true },
+            ),
+            onUnavailable: () => this.refreshAfterLinkedAccessChange(documentId),
+        });
+    }
+
+    async refreshAfterLinkedAccessChange(documentId) {
+        // The list, facets and open drawer may all contain the old link title.
+        // Rebuild them with the user's current grants, including document access.
+        const restoreDrawer = this.state.selected?.id === documentId;
+        if (restoreDrawer) {
+            this.state.selected = null;
+        }
+        this.resultWindow = [];
+        this.state.documents = [];
+        this.state.linkFacets = [];
+        this.workspaceMetadataLoaded = false;
+        const reloading = this.load();
+        const generation = this.workspaceLoadToken;
+        if (restoreDrawer) {
+            try {
+                // Directly opened documents can remain readable outside the active list filter.
+                const detail = await this.rpc("usl.document", "document_detail", [documentId], { check_archive: true });
+                if (!this.state.selected && this.workspaceLoadToken === generation) {
+                    this.state.selected = { ...detail, preview_url: this.documentPreviewUrl(detail) };
+                    this.persistState();
+                }
+            } catch (error) {
+                if (!["odoo.exceptions.AccessError", "odoo.exceptions.ValidationError", "odoo.exceptions.MissingError"].includes(error.data?.name)) {
+                    this.notification.add(_t("The document could not be reloaded."), { type: "warning" });
+                }
+            }
+        }
+        await reloading;
     }
 
     async openLink(link) {
