@@ -8,7 +8,7 @@ import warnings
 from datetime import datetime
 from hashlib import md5
 from logging import getLogger
-from zlib import compress, decompress, decompressobj
+from zlib import compress, decompressobj
 
 from PIL import Image, PdfImagePlugin
 
@@ -535,31 +535,39 @@ class OdooPdfFileWriter(PdfFileWriter):
             _logger.warning('The fonttools package is not installed. Generated PDF may not be PDF/A compliant.')
         else:
             fonts = {}
-            # First browse through all the pages of the pdf file, to get a reference to all the fonts used in the PDF.
             for page in pages:
-                for font in page.get_object()['/Resources']['/Font'].values():
-                    for descendant in font.get_object()['/DescendantFonts']:
-                        fonts[descendant.idnum] = descendant.get_object()
+                resources = page.get_object().get('/Resources')
+                page_fonts = resources.get_object().get('/Font') if resources else None
+                if not page_fonts:
+                    continue
+                for font_ref in page_fonts.get_object().values():
+                    descendants = font_ref.get_object().get('/DescendantFonts')
+                    if descendants:
+                        for descendant in descendants.get_object():
+                            font = descendant.get_object()
+                            fonts[id(font)] = font
 
-            # Then for each font, rewrite the width array with the information taken directly from the font file.
-            # The new width are calculated such as width = round(1000 * font_glyph_width / font_units_per_em)
-            # See: http://martin.hoppenheit.info/blog/2018/pdfa-validation-and-inconsistent-glyph-width-information/
+            # Qt uses character IDs as glyph indices into an embedded TrueType
+            # font. Simple fonts, CFF fonts and custom CID maps encode widths
+            # differently and must keep their original metrics.
             for font in fonts.values():
-                font_file = font['/FontDescriptor']['/FontFile2']
-                stream = io.BytesIO(decompress(font_file._data))
-                ttfont = fontTools.ttLib.TTFont(stream)
-                font_upm = ttfont['head'].unitsPerEm
-                if parse_version(fontTools.__version__) < parse_version('4.37.2'):
-                    glyphs = ttfont.getGlyphSet()._hmtx.metrics
-                else:
-                    glyphs = ttfont.getGlyphSet().hMetrics
-                glyph_widths = []
-                for key, values in glyphs.items():
-                    if key[:5] == 'glyph':
-                        glyph_widths.append(NumberObject(round(1000.0 * values[0] / font_upm)))
-
-                font[NameObject('/W')] = ArrayObject([NumberObject(1), ArrayObject(glyph_widths)])
-                stream.close()
+                if font.get('/Subtype') != '/CIDFontType2':
+                    continue
+                cid_map = font.get('/CIDToGIDMap')
+                if cid_map is not None and cid_map.get_object() != '/Identity':
+                    continue
+                descriptor = font.get('/FontDescriptor')
+                font_file = descriptor.get_object().get('/FontFile2') if descriptor else None
+                if not font_file:
+                    continue
+                with fontTools.ttLib.TTFont(io.BytesIO(font_file.get_object().get_data())) as ttfont:
+                    units_per_em = ttfont['head'].unitsPerEm
+                    metrics = ttfont['hmtx'].metrics
+                    widths = ArrayObject([
+                        NumberObject(round(1000 * metrics[glyph][0] / units_per_em))
+                        for glyph in ttfont.getGlyphOrder()
+                    ])
+                font[NameObject('/W')] = ArrayObject([NumberObject(0), widths])
 
         # Every annotation dictionary, except those whose subtype is Popup,
         # must contain the /F key (annotation flags), as required by PDF/A (clause 6.3.2).
