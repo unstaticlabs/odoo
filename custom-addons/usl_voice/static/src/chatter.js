@@ -6,6 +6,7 @@ import { patch } from "@web/core/utils/patch";
 import { Composer } from "@mail/core/common/composer";
 import { registerComposerAction } from "@mail/core/common/composer_actions";
 import { VoiceCapture } from "./capture";
+import { VoiceMeter } from "./meter";
 
 patch(Composer.prototype, {
     setup() {
@@ -20,6 +21,12 @@ patch(Composer.prototype, {
     onKeydown(ev) {
         if (ev.key === "Enter" && this.uslVoice.mode !== "idle") {
             ev.preventDefault();
+            return;
+        }
+        if (ev.key === "Escape" && ["starting", "recording"].includes(this.uslVoice.mode)) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            this.cancelUslVoice();
             return;
         }
         return super.onKeydown(ev);
@@ -76,13 +83,4 @@ registerComposerAction("usl-voice-record", {
     icon: "fa fa-microphone", name: _t("Record a voice note"),
     onSelected: ({ owner }) => owner.startUslVoice(), sequenceQuick: 15,
 });
-registerComposerAction("usl-voice-stop", {
-    condition: (p) => chatter(p) && p.owner.uslVoice.mode === "recording",
-    icon: "fa fa-stop text-danger", name: _t("Stop and preview"),
-    onSelected: ({ owner }) => owner.stopUslVoice(), sequenceQuick: 15,
-});
-registerComposerAction("usl-voice-cancel", {
-    condition: (p) => chatter(p) && ["recording", "starting"].includes(p.owner.uslVoice.mode),
-    icon: "fa fa-times", name: _t("Discard recording"),
-    onSelected: ({ owner }) => owner.cancelUslVoice(), sequenceQuick: 16,
-});
+patch(Composer, { components: { ...Composer.components, VoiceMeter } });

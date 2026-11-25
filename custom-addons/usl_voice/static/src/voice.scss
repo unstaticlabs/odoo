@@ -10,14 +10,43 @@
     max-width: calc(100vw - 2rem);
     max-height: 45vh;
     overflow: auto;
+}
+.o-usl-recovered-text {
     white-space: pre-wrap;
 }
 
 .o-usl-dictation-target {
     padding-inline-end: 2.5rem !important;
 }
+// The recording pill is wider than the idle microphone.
+.o-usl-dictation-busy {
+    padding-inline-end: 11rem !important;
+}
 .o-usl-dictation-controls {
     transform: translateX(-100%);
+}
+.o-usl-dictation-pill {
+    padding: 2px;
+    gap: 2px;
+}
+
+// A dot that swells with the voice: proof that the microphone is live.
+.o-usl-voice-meter {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.o-usl-voice-dot {
+    --usl-voice-level: 0;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background-color: $danger;
+    box-shadow: 0 0 0 calc(var(--usl-voice-level) * 0.45rem) rgba($danger, 0.3);
+    transition: box-shadow 80ms linear;
+}
+
+.o-usl-voice-bar {
+    min-height: 2.5rem;
 }
 
 .o-mail-Chatter .o-mail-AttachmentContainer:has(.o-mail-VoicePlayer) {
@@ -32,7 +61,8 @@
     .o-mail-AttachmentCard {
         justify-content: center;
     }
+    // The player itself shows the note is ready; d-flex needs the override.
     .o-Attachment-uploaded {
-        display: none;
+        display: none !important;
     }
 }

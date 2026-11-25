@@ -1,14 +1,16 @@
-import { Component, onWillUnmount } from "@odoo/owl";
+import { Component, markRaw, onWillUnmount } from "@odoo/owl";
 import { useExternalListener, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
 import { captureTarget, dictationTarget } from "./dictation_target";
+import { VoiceMeter } from "./meter";
 
 export class FieldDictation extends Component {
     static template = "usl_voice.FieldDictation";
     static props = {};
+    static components = { VoiceMeter };
     setup() {
         this.notify = useService("notification");
         this.state = useState({ mode: "idle", visible: false, x: 0, y: 0, recovered: "" });
@@ -32,16 +34,24 @@ export class FieldDictation extends Component {
                 this.setTarget(null);
             }
         });
+        // Escape leaves the dictation, not the form or dialog behind it.
+        useExternalListener(document, "keydown", (ev) => {
+            if (ev.key === "Escape" && this.state.mode !== "idle") {
+                ev.preventDefault();
+                ev.stopPropagation();
+                this.cancel();
+            }
+        }, true);
         useExternalListener(window, "resize", () => this.position());
         useExternalListener(document, "scroll", () => this.position(), true);
         useExternalListener(window, "pagehide", () => this.cancel());
         onWillUnmount(() => {
             this.cancel();
-            this.target?.classList.remove("o-usl-dictation-target");
+            this.target?.classList.remove("o-usl-dictation-target", "o-usl-dictation-busy");
         });
     }
     setTarget(element) {
-        this.target?.classList.remove("o-usl-dictation-target");
+        this.target?.classList.remove("o-usl-dictation-target", "o-usl-dictation-busy");
         this.target = element;
         this.target?.classList.add("o-usl-dictation-target");
         this.position();
@@ -56,13 +66,19 @@ export class FieldDictation extends Component {
             box.top >= 0 && box.top < innerHeight && box.right > 0 && box.left < innerWidth &&
             navigator.mediaDevices?.getUserMedia);
     }
+    /** Keep the field's text clear of the wider controls while a dictation runs. */
+    setMode(mode) {
+        this.state.mode = mode;
+        this.target?.classList.toggle("o-usl-dictation-busy", mode !== "idle");
+        this.position();
+    }
     cancel() {
         this.capture?.discard();
         this.capture = null;
         this.request?.abort();
         this.request = null;
         this.destination = null;
-        this.state.mode = "idle";
+        this.setMode("idle");
         this.state.recovered = "";
     }
     async record() {
@@ -70,13 +86,13 @@ export class FieldDictation extends Component {
             return;
         }
         this.destination = captureTarget(this.target);
-        const capture = new VoiceCapture();
+        const capture = markRaw(new VoiceCapture());
         this.capture = capture;
-        this.state.mode = "starting";
+        this.setMode("starting");
         try {
             await capture.start(() => this.stop());
             if (this.capture === capture) {
-                this.state.mode = "recording";
+                this.setMode("recording");
             }
         } catch {
             if (this.capture === capture) {
@@ -95,7 +111,7 @@ export class FieldDictation extends Component {
             this.cancel();
             return;
         }
-        this.state.mode = "processing";
+        this.setMode("processing");
         const request = new AbortController();
         this.request = request;
         try {
@@ -122,7 +138,7 @@ export class FieldDictation extends Component {
         } finally {
             if (this.request === request) {
                 this.request = null;
-                this.state.mode = "idle";
+                this.setMode("idle");
             }
         }
     }
@@ -130,6 +146,7 @@ export class FieldDictation extends Component {
         try {
             await navigator.clipboard.writeText(this.state.recovered);
             this.cancel();
+            this.notify.add(_t("Transcript copied."), { type: "success" });
         } catch {
             this.notify.add(_t("Select the transcript and copy it."), { type: "info" });
         }

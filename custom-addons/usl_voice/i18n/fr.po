@@ -7,9 +7,27 @@ msgstr ""
 
 #. module: usl_voice
 #. odoo-javascript
+#: code:addons/usl_voice/static/src/meter.js:0
+msgid "%s left"
+msgstr "Encore %s"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_voice
+#. odoo-javascript
 #: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Cancel dictation"
 msgstr "Annuler la dictée"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Cancel dictation (Esc)"
+msgstr "Annuler la dictée (Échap)"
 
 #. module: usl_voice
 #. odoo-javascript
@@ -32,9 +50,9 @@ msgstr "Dicter du texte"
 
 #. module: usl_voice
 #. odoo-javascript
-#: code:addons/usl_voice/static/src/chatter.js:0
-msgid "Discard recording"
-msgstr "Annuler l’enregistrement"
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Discard"
+msgstr "Abandonner"
 
 #. module: usl_voice
 #. odoo-javascript
@@ -44,8 +62,13 @@ msgstr "Fermer"
 
 #. module: usl_voice
 #. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Done"
+msgstr "Terminer"
+
+#. module: usl_voice
+#. odoo-javascript
 #: code:addons/usl_voice/static/src/chatter.xml:0
-#: code:addons/usl_voice/static/src/dictation.js:0
 msgid "No speech detected."
 msgstr "Aucune parole détectée."
 
@@ -57,15 +80,21 @@ msgstr "Aucune parole détectée. Réessayez."
 
 #. module: usl_voice
 #. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.xml:0
-msgid "Processing audio"
-msgstr "Traitement de l’audio"
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Preparing the preview…"
+msgstr "Préparation de l’écoute…"
 
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/chatter.js:0
 msgid "Record a voice note"
 msgstr "Enregistrer une note vocale"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Recording a voice note"
+msgstr "Enregistrement d’une note vocale"
 
 #. module: usl_voice
 #. odoo-javascript
@@ -81,21 +110,46 @@ msgstr "Sélectionnez la transcription et copiez-la."
 
 #. module: usl_voice
 #. odoo-javascript
-#: code:addons/usl_voice/static/src/chatter.js:0
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Starting…"
+msgstr "Démarrage…"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Stop and insert the text"
+msgstr "Terminer et insérer le texte"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
 msgid "Stop and preview"
 msgstr "Terminer et réécouter"
 
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/dictation.xml:0
-msgid "Stop dictation"
-msgstr "Terminer la dictée"
+msgid "The field changed while Odoo was transcribing, so nothing was inserted. Copy the text and paste it where you need it."
+msgstr "Le champ a changé pendant la transcription : rien n’a été inséré. Copiez le texte et collez-le où vous en avez besoin."
 
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/chatter.xml:0
+#: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Transcribing…"
 msgstr "Transcription en cours…"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.xml:0
+msgid "Transcript"
+msgstr "Transcription"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Transcript copied."
+msgstr "Transcription copiée."
 
 #. module: usl_voice
 #. odoo-javascript
@@ -114,3 +168,15 @@ msgstr "Transcription indisponible."
 #: code:addons/usl_voice/static/src/chatter.xml:0
 msgid "Try again"
 msgstr "Réessayer"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Waiting for the microphone…"
+msgstr "En attente du micro…"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Your dictation is ready"
+msgstr "Votre dictée est prête"

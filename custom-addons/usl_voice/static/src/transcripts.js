@@ -9,7 +9,7 @@ export class VoiceTranscripts extends Component {
     static props = ["message"];
     setup() {
         this.orm = useService("orm");
-        this.state = useState({ notes: [], error: false });
+        this.state = useState({ notes: [], error: false, retrying: false });
         onMounted(() => this.refresh());
         onWillUnmount(() => {
             this.closed = true;
@@ -38,6 +38,11 @@ export class VoiceTranscripts extends Component {
     async retry() {
         await this.orm.call("mail.message", "action_usl_retry_voice", [[this.props.message.id]]);
         await this.refresh();
+    }
+    /** One request per click: the button stays disabled until the note is queued again. */
+    async onRetry() {
+        this.state.retrying = true;
+        await this.retry().finally(() => (this.state.retrying = false));
     }
 }
 patch(Message, { components: { ...Message.components, VoiceTranscripts } });
