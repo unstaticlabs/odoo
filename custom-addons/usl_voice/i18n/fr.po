@@ -51,20 +51,14 @@ msgstr "Dicter du texte"
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/composer.xml:0
-msgid "Discard"
-msgstr "Abandonner"
+msgid "Discard recording"
+msgstr "Abandonner l’enregistrement"
 
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Dismiss"
 msgstr "Fermer"
-
-#. module: usl_voice
-#. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.xml:0
-msgid "Done"
-msgstr "Terminer"
 
 #. module: usl_voice
 #. odoo-javascript

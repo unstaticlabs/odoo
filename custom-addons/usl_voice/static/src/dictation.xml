@@ -1,13 +1,15 @@
 <templates xml:space="preserve">
+    <!-- o-overlay-item: kanban quick create and editable list rows close on a click outside
+         their own overlay, so the controls must count as another overlay to keep the field open. -->
     <t t-name="usl_voice.FieldDictation">
-        <div t-if="this.state.recovered" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow p-3" role="status">
+        <div t-if="this.state.recovered" class="o-usl-dictation o-overlay-item o-usl-recovered border rounded bg-view shadow p-3" role="status">
             <div class="fw-bold mb-1">Your dictation is ready</div>
             <div class="text-muted small mb-2">The field changed while Odoo was transcribing, so nothing was inserted. Copy the text and paste it where you need it.</div>
             <p class="o-usl-recovered-text border-start border-2 ps-2 mb-3" t-esc="this.state.recovered"/>
             <button class="btn btn-primary btn-sm" t-on-click="this.copyText"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Copy transcript</button>
             <button class="btn btn-secondary btn-sm ms-2" t-on-click="this.cancel">Dismiss</button>
         </div>
-        <div t-elif="this.state.visible or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-center"
+        <div t-elif="this.state.visible or this.state.mode !== 'idle'" class="o-usl-dictation o-overlay-item o-usl-dictation-controls d-flex align-items-center" data-list-ignore-click="1"
              t-att-class="{ 'o-usl-dictation-pill border rounded-pill bg-view shadow-sm': this.state.mode !== 'idle' }"
              t-att-style="'left:' + this.state.x + 'px;top:' + this.state.y + 'px'" t-on-mousedown.prevent="() => {}">
             <button t-if="this.state.mode === 'idle'" class="btn btn-light btn-sm border rounded-circle" title="Dictate text" aria-label="Dictate text" t-on-click="this.record">
@@ -15,8 +17,8 @@
             </button>
             <t t-elif="this.state.mode === 'recording'">
                 <span class="ps-2 pe-1 small"><VoiceMeter capture="this.capture"/></span>
-                <button class="btn btn-danger btn-sm rounded-pill px-3 d-inline-flex flex-row align-items-center text-nowrap" title="Stop and insert the text" t-on-click="this.stop">
-                    <i class="fa fa-stop me-1" aria-hidden="true"/>Done
+                <button class="btn btn-danger btn-sm rounded-circle" title="Stop and insert the text" aria-label="Stop and insert the text" t-on-click="this.stop">
+                    <i class="fa fa-stop" aria-hidden="true"/>
                 </button>
             </t>
             <span t-else="" class="ps-2 pe-1 small text-muted text-nowrap" role="status">
