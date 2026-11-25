@@ -17,6 +17,17 @@ const reasonLabels = {
     project_stage_changed: _t("Project stage changed"),
 };
 
+function activatePopoverButton(event) {
+    if (event.key === "Enter" || event.key === " ") {
+        // The Kanban handles Space globally for card selection.
+        event.preventDefault();
+        event.stopPropagation();
+        if (!event.repeat) {
+            event.currentTarget.click();
+        }
+    }
+}
+
 const personalAxes = new Set(["personal_stage_type_id", "personal_stage_type_ids"]);
 
 export function taskBoard(groupBy, context) {
@@ -67,6 +78,8 @@ export class ReactivationKanbanHeader extends ProjectTaskKanbanHeader {
         return _t("About %s", this.props.group.displayName);
     }
 
+    activateFromKeyboard = activatePopoverButton;
+
     openReactivationHelp(event) {
         this.reactivationPopover.open(event.currentTarget, { help: this.reactivationHelp });
     }
@@ -96,6 +109,8 @@ class ReturnBadge extends Component {
     get reasonsLabel() {
         return _t("Reasons for return");
     }
+
+    activateFromKeyboard = activatePopoverButton;
 
     openReasons(event) {
         this.reasonsPopover.open(event.currentTarget, { reasons: this.reasons });

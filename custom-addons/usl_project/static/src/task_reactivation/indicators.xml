@@ -4,7 +4,7 @@
         <xpath expr="//div[hasclass('o_column_title')]/span[hasclass('text-truncate')]" position="after">
             <button t-if="this.reactivationHelp" type="button" class="btn btn-link text-muted p-0 lh-1 flex-shrink-0 o_usl_reactivation_help"
                     t-att-aria-label="this.reactivationHelpLabel" aria-haspopup="dialog"
-                    t-on-click.stop="this.openReactivationHelp">
+                    t-on-click.stop="this.openReactivationHelp" t-on-keydown="this.activateFromKeyboard">
                 <i class="fa fa-info-circle" aria-hidden="true"/>
             </button>
         </xpath>
@@ -32,7 +32,7 @@
             <t t-set="icon" t-value="'fa fa-reply me-1'"/>
             <button t-if="badgeReasons.length > 1" type="button" class="o_usl_return_badge badge rounded-pill text-wrap text-start"
                     aria-haspopup="dialog" t-att-aria-label="this.reasonsLabel + ' · ' + badgeReasons[0]"
-                    t-on-click.stop="this.openReasons">
+                    t-on-click.stop="this.openReasons" t-on-keydown="this.activateFromKeyboard">
                 <i t-att-class="icon" aria-hidden="true"/>
                 <t t-out="badgeReasons[0]"/> <span class="ms-1" t-out="'+' + (badgeReasons.length - 1)"/>
             </button>
