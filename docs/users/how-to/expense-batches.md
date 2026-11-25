@@ -8,7 +8,6 @@ app: Expenses
 models:
   - usl.expense.batch
   - hr.expense
-translation_of: how-to/group-expenses-into-a-batch.md
 source:
   - custom-addons/usl_expense_batch/models/expense_batch.py
   - custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js
@@ -16,6 +15,8 @@ generated: false
 ---
 
 # Lots de dépenses
+
+[Créer un lot de dépenses pas à pas](regrouper-des-depenses-en-lot.md).
 
 Un **lot de dépenses** regroupe des dépenses liées et leur applique un contexte
 commun. Utilisez-le pour un voyage, une production, un événement, un projet ou

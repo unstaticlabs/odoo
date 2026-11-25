@@ -59,7 +59,7 @@ class TestImmediateSettlementBrowser(
             {
                 "journal_id": bank_journal.id,
                 "date": cls.statement_date,
-                "payment_ref": "CLOUDFLARE EUR CARD",
+                "payment_ref": "DEMO SHOP EUR CARD",
                 "amount": -4.40,
                 "partner_id": cls.bill.commercial_partner_id.id,
             },

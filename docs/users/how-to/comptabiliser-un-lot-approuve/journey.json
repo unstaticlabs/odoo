@@ -1,0 +1,75 @@
+{
+  "journey": "comptabiliser-un-lot-approuve",
+  "lang": "fr",
+  "login": "expense_batch_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_post_an_approved_batch_in_french",
+  "source_test_file": {
+    "line": 116,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 202,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "approved": 205,
+      "check-the-receipt-on-an-expense": 260,
+      "entries": 223,
+      "evidence": 233,
+      "history": 245,
+      "no_actions": 239,
+      "post": 210,
+      "post_entries": 216,
+      "reconciliation": 251,
+      "review-a-batch-before-submitting": 289
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Accounting receives the approved mixed-payer Batch",
+      "id": "approved",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-approved.png",
+      "sha256": "4b453d2e73c3517854f797c86109c4bc195b61fdfac513edab982046c65b8b84",
+      "text": "Dans **Dépenses > Lots de dépenses**, ouvrez le lot approuvé. Vérifiez les montants payés par la société et par le salarié.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Post the company-paid side and open native reimbursement",
+      "id": "post",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais réglés par la société et ouvre la fenêtre de comptabilisation des avances du salarié.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Complete the native employee-paid posting wizard",
+      "id": "post_entries",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez le journal et la date proposés, puis cliquez sur **Comptabiliser les dépenses**.",
+      "trigger": ".o_dialog footer button[name='action_post_entry']"
+    },
+    {
+      "assertion": "Both mixed-payer journal entries are available for review",
+      "id": "entries",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-entries.png",
+      "sha256": "fc34957fd7419364dd23619135f8340f429264a6626bcc91c34a02da6fac8455",
+      "text": "Vérifiez les deux écritures. L’une correspond aux frais réglés par la société, l’autre au remboursement dû au salarié. Chacune renvoie au lot.",
+      "trigger": ".o_list_view .o_list_table tbody:has(tr:nth-child(2))"
+    }
+  ],
+  "title": "Comptabiliser un lot de dépenses approuvé",
+  "tour": "usl_expense_batch_accountant_handoff",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

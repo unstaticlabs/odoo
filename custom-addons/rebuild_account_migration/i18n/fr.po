@@ -10401,7 +10401,7 @@ msgstr "SIG et CAF"
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_company_rebuild_einvoice_readiness_form
 msgid "SIREN or SIRET"
-msgstr "SIRENE ou SORCIÈRE"
+msgstr "SIREN ou SIRET"
 
 #. module: rebuild_account_migration
 #. odoo-javascript

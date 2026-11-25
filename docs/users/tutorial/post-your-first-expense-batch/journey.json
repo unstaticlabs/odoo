@@ -1,0 +1,120 @@
+{
+  "journey": "post-your-first-expense-batch",
+  "lang": "en",
+  "login": "expense_batch_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_post_your_first_batch",
+  "source_test_file": {
+    "line": 124,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 446,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "batches": 466,
+      "example": 472,
+      "expenses": 460,
+      "home": 449,
+      "launcher": 454
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Start on the signed-in Odoo home page",
+      "id": "home",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-home.png",
+      "sha256": "1f11de5e9de4d9e92445a6ab3250f044339135c1d8b247a2815f74b37330ee25",
+      "text": "Use a training workspace with an approved expense batch and permission to post expenses. Sign in with your usual company account. You arrive on **Home**.",
+      "trigger": ".o_usl_home .o_usl_home_header"
+    },
+    {
+      "assertion": "Open the application menu",
+      "id": "launcher",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose the application menu in the upper-left corner.",
+      "trigger": ".o_navbar_apps_menu button"
+    },
+    {
+      "assertion": "Open Expenses",
+      "id": "expenses",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Open **Expenses**. You will work with an example that combines a hotel paid by the employee and a meal paid by the company.",
+      "trigger": ".o_app[data-menu-xmlid='hr_expense.menu_hr_expense_root']"
+    },
+    {
+      "assertion": "Open the list of expense batches",
+      "id": "batches",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Open **Expense Batches**. Find the approved training trip prepared for you.",
+      "trigger": "[data-menu-xmlid='usl_expense_batch.menu_expense_batches']"
+    },
+    {
+      "assertion": "Open the approved training trip",
+      "id": "example",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Open **Training seminar**, or the equivalent example in your training workspace.",
+      "trigger": ".o_list_view td[name='name']:contains('Training seminar')"
+    },
+    {
+      "assertion": "Accounting receives the approved mixed-payer Batch",
+      "id": "approved",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-approved.png",
+      "sha256": "720e698241bc9bb9c45ef8fac373ffcbb6b8d1f022e5ae4115b34fbbbeb5cb36",
+      "text": "Read the summary before posting. Identify who paid for each expense and follow the amounts through the next screens.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Post the company-paid side and open native reimbursement",
+      "id": "post",
+      "index": 7,
+      "run": "click",
+      "screenshot": "03-post.png",
+      "sha256": "b7385726b2d498bc9a8eb72604c2e8db3dc084d3dd841b2b32e84c8ea06f529b",
+      "text": "Choose **Post Batch**. Odoo posts the company-paid expense and opens a separate confirmation for the amount the employee advanced.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Complete the native employee-paid posting wizard",
+      "id": "post_entries",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Check the journal and accounting date, then choose **Post Expenses** to record the employee-paid expense.",
+      "trigger": ".o_dialog footer button[name='action_post_entry']"
+    },
+    {
+      "assertion": "Both mixed-payer journal entries are available for review",
+      "id": "entries",
+      "index": 9,
+      "run": "",
+      "screenshot": "04-entries.png",
+      "sha256": "8eb6cc97f4794f2d5d47b39ed247c98b01b90c49f7f8a6ac3a718e4e7e4f4e72",
+      "text": "You have posted your first batch. Compare the two amounts shown with the summary. The company charge and the employee reimbursement each have their own entry.",
+      "trigger": ".o_list_view .o_list_table tbody:has(tr:nth-child(2))"
+    }
+  ],
+  "title": "From your first sign-in to your first posted expense batch",
+  "tour": "usl_expense_first_posted_batch",
+  "type": "tutorial",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}
