@@ -189,7 +189,8 @@ staging**; the page then opens staging by itself. The lifecycle daemon speaks
 OpenID Connect itself (authorization code + PKCE, confidential client, userinfo
 for the groups), so nothing depends on Odoo being up. The wake is recorded as
 `web:<email>` in `lifecycle.json`, so the history says who woke staging.
-Bots and probes cannot start a sign-in or a wake; a cross-site request is
+Bots and probes cannot start a sign-in or a wake, with one exception (the
+review identity, below); a cross-site request is
 refused; the session is a signed `HttpOnly; Secure; SameSite=Strict` cookie
 that lasts eight hours and dies when the client secret is rotated. Health
 probes (`/web/health`) receive `200 {"status":"sleeping"}` so a sleeping staging
@@ -255,6 +256,16 @@ evidence, never a gate: the run log `runs/<generation>.jsonl` records
 `review-identity` as `ensured`, `skipped` (a variable is missing) or `failed`,
 and a failure leaves the release admitted. Production and every other target
 never run it.
+
+**Waking staging.** The review identity replays from an automated browser,
+which the wake page refuses for everyone else. The lifecycle daemon reads
+`USL_STAGING_RECETTE_SUBJECT` from its own environment (the GitOps Compose file
+of the lifecycle stack declares it) and admits that one signed-in subject
+whatever its user agent: it signs in, presses **Wake staging**, and the wake is
+recorded as `web:<its email>`. The same `POST /__usl/wake` while staging is
+awake records activity, like any wake of a running staging. Where the variable
+is absent nothing automated passes. Its traffic in Odoo still does not count as a person
+(see *What counts as a person*).
 
 ## Moving parts
 
