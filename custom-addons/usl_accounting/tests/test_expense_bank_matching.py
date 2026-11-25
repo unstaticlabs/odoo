@@ -1,3 +1,4 @@
+import json
 from datetime import date, timedelta
 
 from odoo import Command, fields
@@ -732,6 +733,102 @@ class TestExpenseBankMatching(TestExpenseCommon):
         self.assertFalse(bank.is_reconciled)
         with self.assertRaisesRegex(UserError, "already complete"):
             wizard.action_continue_employee_payment()
+
+    def _batch_for_bank_review(self, expenses):
+        return self.env["usl.expense.batch"].create({
+            "name": "Expense batch for bank review",
+            "purpose": "Synthetic work trip",
+            "employee_id": expenses.employee_id.id,
+            "company_id": expenses.company_id.id,
+            "expense_ids": [Command.set(expenses.ids)],
+        })
+
+    def test_batch_submit_resumes_after_native_bank_review(self):
+        first = self._expense("Synthetic hotel")
+        second = self._expense("Synthetic rail fare", amount=300)
+        bank = self._bank_line()
+        batch = self._batch_for_bank_review(first | second)
+
+        action = batch.action_submit()
+        self.assertEqual(action.get("res_model"), "hr.expense.post.wizard")
+        json.dumps(action, allow_nan=False)
+        self.assertFalse(batch.submitted_date)
+        self.assertEqual(set(batch.expense_ids.mapped("state")), {"draft"})
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(review.usl_review_candidate_ids.bank_statement_line_id, bank)
+
+        review.action_continue_employee_payment()
+        self.assertEqual(set(batch.expense_ids.mapped("state")), {"submitted"})
+        self.assertEqual(batch.submitted_by_id, self.env.user)
+        self.assertTrue(batch.submitted_date)
+        self.assertFalse(batch.expense_ids.account_move_id)
+        self.assertFalse(bank.is_reconciled)
+        with self.assertRaisesRegex(UserError, "already complete"):
+            review.action_continue_employee_payment()
+
+    def test_batch_submit_applies_company_match_and_continues_remaining_drafts(self):
+        first = self._expense("Synthetic hotel")
+        second = self._expense("Synthetic rail fare", amount=300)
+        bank = self._bank_line()
+        batch = self._batch_for_bank_review(first | second)
+        action = batch.action_submit()
+        self.assertEqual(action.get("res_model"), "hr.expense.post.wizard")
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        candidate = review.usl_review_candidate_ids
+        wizard = self.env["usl.expense.bank.match.wizard"].with_context(
+            usl_employee_payment_review_id=review.id,
+        ).create({"candidate_id": candidate.id})
+
+        wizard.action_confirm()
+        self.assertEqual(first.payment_mode, "company_account")
+        self.assertTrue(bank.is_reconciled)
+        self.assertTrue(first.account_move_id.origin_payment_id)
+        self.assertEqual(second.state, "submitted")
+        self.assertFalse(second.account_move_id)
+        self.assertTrue(batch.submitted_date)
+
+    def test_batch_review_refuses_unreviewed_new_draft(self):
+        first = self._expense("Synthetic hotel")
+        self._bank_line()
+        batch = self._batch_for_bank_review(first)
+        action = batch.action_submit()
+        self.assertEqual(action.get("res_model"), "hr.expense.post.wizard")
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        another = self._expense("Synthetic rail fare", amount=300)
+        batch.expense_ids += another
+
+        with self.assertRaisesRegex(UserError, "batch changed"):
+            review.action_continue_employee_payment()
+        self.assertFalse(batch.submitted_date)
+        self.assertEqual(set(batch.expense_ids.mapped("state")), {"draft"})
+
+    def test_batch_create_and_submit_with_one_match_finishes_once(self):
+        expense = self._expense("Synthetic hotel")
+        bank = self._bank_line()
+        create_wizard = self.env["usl.expense.batch.create.wizard"].create({
+            "expense_ids": [Command.set(expense.ids)],
+        })
+
+        action = create_wizard.action_create_and_submit()
+        batch = expense.expense_batch_id
+        self.assertEqual(action.get("res_model"), "hr.expense.post.wizard")
+        self.assertFalse(batch.submitted_date)
+        with self.assertRaisesRegex(UserError, "Submit batch"):
+            expense.action_submit()
+
+        review = self.env[action["res_model"]].browse(action["res_id"])
+        wizard = self.env["usl.expense.bank.match.wizard"].with_context(
+            usl_employee_payment_review_id=review.id,
+        ).create({"candidate_id": review.usl_review_candidate_ids.id})
+        result = wizard.action_confirm()
+        self.assertEqual(result["res_model"], batch._name)
+        self.assertEqual(result["res_id"], batch.id)
+        self.assertTrue(review.usl_review_completed)
+        self.assertTrue(batch.submitted_date)
+        self.assertTrue(bank.is_reconciled)
+        self.assertEqual(expense.payment_mode, "company_account")
+        with self.assertRaisesRegex(UserError, "already complete"):
+            review.action_continue_employee_payment()
 
     def test_approve_continues_only_original_transition(self):
         expense = self._expense()
