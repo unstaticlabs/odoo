@@ -723,6 +723,9 @@ class DaemonHttpTests(unittest.TestCase):
         self.addCleanup(environment.stop)
         import time as _time
         self.provider = FakeProvider(_time.time, config["oidc_issuer"])
+        self.provider.userinfo = {
+            **self.provider.userinfo, "groups": [config["oidc_required_group"]],
+        }
         self.woken: list[str] = []
         real_init = ThreadingHTTPServer.__init__
 
@@ -754,7 +757,7 @@ class DaemonHttpTests(unittest.TestCase):
                 return value.split(";", 1)[0]
         raise AssertionError(f"no {name} cookie in {headers}")
 
-    def sign_in(self, groups=("c_suite",)) -> str:
+    def sign_in(self, groups=("odoo_staging",)) -> str:
         """Run the whole browser flow; returns the session cookie."""
         self.provider.userinfo = {**self.provider.userinfo, "groups": list(groups)}
         status, _, headers = self.request("GET", "/__usl/login")
@@ -848,7 +851,7 @@ class DaemonHttpTests(unittest.TestCase):
 
     def test_the_session_cookie_is_locked_down_and_the_login_state_is_cleared(self) -> None:
         self.set_state("sleeping")
-        self.provider.userinfo = {**self.provider.userinfo, "groups": ["c_suite"]}
+        self.provider.userinfo = {**self.provider.userinfo, "groups": ["odoo_staging"]}
         _, _, headers = self.request("GET", "/__usl/login")
         login_cookie = dict((k, v) for k, v in headers if k == "Set-Cookie")["Set-Cookie"]
         for flag in ("HttpOnly", "Secure", "SameSite=Lax", "Path=/__usl/"):

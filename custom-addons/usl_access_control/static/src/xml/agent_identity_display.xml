@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="res_config_invite_users" t-inherit-mode="extension">
+        <xpath expr="//t[@t-out='pending[1]']" position="attributes">
+            <attribute name="t-out">this.state.invite.usl_pending_agent_names?.[pending[0]] || pending[1]</attribute>
+        </xpath>
+    </t>
+</templates>

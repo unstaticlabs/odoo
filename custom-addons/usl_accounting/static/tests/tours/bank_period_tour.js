@@ -1,9 +1,11 @@
 import { registry } from "@web/core/registry";
+import { formatDate } from "@web/core/l10n/dates";
+import { user } from "@web/core/user";
 
 registry.category("web_tour.tours").add("usl_bank_period_correction", {
     steps: () => [
         ...(window.innerWidth < 768
-            ? [{ trigger: ".o_statusbar_buttons button[title='More']", run: "click" }]
+            ? [{ trigger: ".o_statusbar_buttons button:has(.oi-ellipsis-v)", run: "click" }]
             : []),
         {
             id: "correct",
@@ -12,14 +14,14 @@ registry.category("web_tour.tours").add("usl_bank_period_correction", {
             run: "click",
         },
         { id: "dialog", content: "The correction dialog opens", trigger: ".o_dialog [data-field='period_start']", run: "click" },
-        { trigger: ".o_dialog .o_field_widget[name='period_start'] input", run: "edit 2026-08-01" },
+        { trigger: ".o_dialog .o_field_widget[name='period_start'] input", run: `edit ${formatDate(luxon.DateTime.fromISO("2026-08-01"))}` },
         { trigger: ".o_dialog [data-field='period_end']", run: "click" },
-        { trigger: ".o_dialog .o_field_widget[name='period_end'] input", run: "edit 2026-08-31" },
+        { trigger: ".o_dialog .o_field_widget[name='period_end'] input", run: `edit ${formatDate(luxon.DateTime.fromISO("2026-08-31"))}` },
         {
             id: "reason",
             content: "A reason is required and kept in the history",
             trigger: ".o_dialog .o_field_widget[name='reason'] textarea",
-            run: "edit Verified official bank statement",
+            run: user.lang.startsWith("fr") ? "edit Dates vérifiées sur le relevé bancaire" : "edit Verified official bank statement",
         },
         { id: "apply", content: "Apply the corrected period", trigger: ".o_dialog button[name='action_apply']", run: "click" },
         {
@@ -54,5 +56,19 @@ registry.category("usl_docs.journeys").add("usl_bank_period_correction", {
             text: "The import shows the corrected period and continues from there.",
             screenshot: true,
         },
+    },
+});
+
+registry.category("usl_docs.journey_translations").add("usl_bank_period_correction.fr", {
+    id: "corriger-la-periode-dun-releve-bancaire",
+    title: "Corriger la période d’un relevé bancaire importé",
+    description: "Renseignez les dates figurant sur le relevé et consignez la raison de la correction pour que l’import puisse reprendre.",
+    app: "Comptabilité",
+    steps: {
+        correct: "Ouvrez l’import depuis l’activité du journal bancaire. Si vous gérez la configuration, vous le retrouvez aussi dans **Comptabilité > Configuration > Configuration des e-mails de relevés bancaires**. Ouvrez l’import à vérifier, puis cliquez sur **Corriger la période**.",
+        dialog: "Recopiez les dates de début et de fin qui figurent sur le relevé.",
+        reason: "Indiquez sur quelle pièce vous avez vérifié les dates. Le motif de correction figurera dans l’historique de l’import avec votre nom.",
+        apply: "Vérifiez les deux dates, puis cliquez sur **Appliquer la correction**.",
+        corrected: "Relisez la période sur la fiche d’import. Odoo peut poursuivre le traitement avec les dates corrigées.",
     },
 });

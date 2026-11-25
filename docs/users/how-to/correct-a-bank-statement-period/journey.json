@@ -6,18 +6,18 @@
   "schema": "usl-docs-journey-sidecar/v1",
   "source_test": "odoo.addons.usl_accounting.tests.test_accounting_journeys.TestBankPeriodJourney.test_correct_a_bank_statement_period",
   "source_test_file": {
-    "line": 55,
+    "line": 59,
     "path": "custom-addons/usl_accounting/tests/test_accounting_journeys.py"
   },
   "source_tour_file": {
-    "line": 3,
+    "line": 5,
     "path": "custom-addons/usl_accounting/static/tests/tours/bank_period_tour.js",
     "steps": {
-      "apply": 24,
-      "correct": 9,
-      "corrected": 26,
-      "dialog": 14,
-      "reason": 19
+      "apply": 26,
+      "correct": 11,
+      "corrected": 28,
+      "dialog": 16,
+      "reason": 21
     }
   },
   "steps": [

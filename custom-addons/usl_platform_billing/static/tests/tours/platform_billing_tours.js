@@ -1,4 +1,9 @@
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
+
+function august() {
+    return luxon.DateTime.fromISO("2026-08-01").setLocale(user.lang).toFormat("LLL");
+}
 
 registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_journey", {
     steps: () => [
@@ -30,7 +35,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
         },
         {
             content: "The billing period picker shows August",
-            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+            trigger: `.o_datetime_picker_header button:contains('${august()} 2026')`,
         },
         {
             content: "Select the first day of August",
@@ -43,7 +48,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
             trigger: ".o_field_widget[name='period_month'] button",
             run() {
                 const value = this.anchor.textContent.trim();
-                if (!value.includes("Aug") || !value.includes("1")) {
+                if (!value.toLocaleLowerCase().includes(august().toLocaleLowerCase()) || !value.includes("1")) {
                     throw new Error(`Expected the August period, got "${value}"`);
                 }
             },
@@ -65,7 +70,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
         },
         {
             content: "The invoice date picker shows August",
-            trigger: ".o_datetime_picker_header button:contains('Aug 2026')",
+            trigger: `.o_datetime_picker_header button:contains('${august()} 2026')`,
         },
         {
             content: "Use the August month-end invoice date",
@@ -124,7 +129,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_operator_creation_
         {
             content: "Select the payout month",
             trigger:
-                '.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^Aug$/")',
+                `.o_datetime_picker .o_date_item_cell:not(.o_out_of_range):contains("/^${august()}$/")`,
             run: "click",
         },
         {
@@ -243,7 +248,7 @@ registry.category("web_tour.tours").add("usl_platform_billing_manager_journey", 
             id: "no_payment",
             content: "Miscellaneous entries clearly require no payment",
             trigger:
-                ".o_list_view td[name='platform_billing_payment_state']:contains('No Payment Required')",
+                `.o_list_view td[name='platform_billing_payment_state']:contains('${user.lang.startsWith("fr") ? "Aucun paiement requis" : "No Payment Required"}')`,
         },
     ],
 });
@@ -523,7 +528,7 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_operator_creati
         },
         create: { text: "Choose **New**." },
         period: {
-            text: "Pick the **billing period**: the first day of the month you are closing. Odoo names the session after the month, in French as the history always has, and proposes the month-end as invoice date.",
+            text: "Choose the first day of the month you are closing. Odoo names the session after that month. Check the invoice date and set it to month-end if it still shows the previous period.",
             screenshot: true,
         },
         add_payout: { text: "Under **Payouts**, choose **Add a line** for each platform that reported a payout this month." },
@@ -579,5 +584,46 @@ registry.category("usl_docs.journeys").add("usl_platform_billing_manager_journey
             screenshot: true,
         },
         no_payment: { text: "The compensation entries read **No Payment Required**: they move the commission, they do not expect money." },
+    },
+});
+
+const french = registry.category("usl_docs.journey_translations");
+
+french.add("usl_platform_billing_operator_creation_journey.fr", {
+    id: "comptabiliser-les-versements-mensuels-des-plateformes",
+    title: "Comptabiliser les versements mensuels des plateformes",
+    description: "Saisissez les montants déclarés par les plateformes et comptabilisez les pièces du mois, y compris lorsque le versement bancaire reste à recevoir.",
+    app: "Facturation des plateformes",
+    steps: {
+        sessions: "Ouvrez **Facturation des plateformes > Sessions de facturation**. Consultez les sessions existantes pour vérifier que le mois reste à traiter.",
+        create: "Cliquez sur **Nouveau**.",
+        period: "Choisissez le premier jour du mois à traiter. Odoo donne à la session le nom du mois. Vérifiez la date de facturation et choisissez le dernier jour du mois si la date précédente est encore affichée.",
+        add_payout: "Ajoutez une ligne pour chaque versement déclaré par une plateforme au cours du mois.",
+        net_amount: "Choisissez la plateforme et indiquez la date, la référence et le montant net figurant sur son relevé. Odoo calcule le montant brut et la commission à partir du taux de la plateforme.",
+        check: "Cliquez sur **Contrôle**. Odoo enregistre la session et vérifie les plateformes, les journaux, les produits et les montants nécessaires à la facturation.",
+        generate: "Cliquez sur **Générer les brouillons**. Chaque versement donne lieu à une facture de vente pour la recette et à une facture fournisseur pour la commission.",
+        post: "Vérifiez les pièces puis cliquez sur **Comptabiliser les pièces**.",
+        coverage: "Si une plateforme active n’a aucun versement ce mois-ci, Odoo indique son nom. Revenez à la saisie si une ligne manque.",
+        confirm_coverage: "Confirmez si l’absence est attendue, par exemple pour une plateforme qui paie chaque trimestre.",
+        posted: "La session et les pièces sont comptabilisées. Un versement encore absent de la banque reste ouvert.",
+        reconcile_later: "Lorsque l’encaissement apparaît sur le relevé, revenez dans la session pour **Rapprocher les transactions bancaires**.",
+    },
+});
+
+french.add("usl_platform_billing_manager_journey.fr", {
+    id: "rapprocher-une-session-de-facturation-des-plateformes",
+    title: "Comptabiliser et rapprocher une session de facturation",
+    description: "À partir des versements saisis et de l’encaissement bancaire identifié, retrouvez les factures, la compensation des commissions et le règlement final.",
+    app: "Facturation des plateformes",
+    steps: {
+        draft: "Dans **Facturation des plateformes > Sessions de facturation**, ouvrez la session en brouillon. Vérifiez que les versements sont saisis et que l’encaissement bancaire est associé.",
+        preflight: "Cliquez sur **Contrôle** pour lancer les vérifications comptables.",
+        documents: "Cliquez sur **Générer les brouillons**, puis vérifiez les factures de vente et les factures de commission créées.",
+        post_documents: "Cliquez sur **Comptabiliser les pièces**. La commission est compensée avec la recette. Le montant à rapprocher correspond alors au versement net.",
+        reconcile: "Cliquez sur **Rapprocher les transactions bancaires**. L’encaissement associé au versement solde le net.",
+        paid: "Vérifiez que la session est payée. La facture de vente, la facture de commission et l’encaissement sont rapprochés.",
+        open_moves: "Ouvrez **Pièces comptables** pour consulter les documents comptabilisés.",
+        moves: "Ouvrez une pièce dans la liste pour retrouver ses lignes et ses références dans les rapports comptables.",
+        no_payment: "La mention **Aucun paiement requis** identifie la compensation de commission. Elle ne crée pas de paiement à effectuer.",
     },
 });

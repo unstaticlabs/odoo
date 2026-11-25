@@ -78,10 +78,12 @@ def desktop_records(records):
 
 
 def page_path_for(record):
-    if record["type"] == "tutorial":
-        return Path("TUTORIAL.md")
     if not SLUG_RE.match(record["journey"]):
         raise DocsGenerateError(f"journey id {record['journey']!r} is not a kebab-case slug")
+    if record["type"] == "tutorial":
+        if record.get("translation_of") or record.get("named_tutorial"):
+            return Path("tutorial") / f"{record['journey']}.md"
+        return Path("TUTORIAL.md")
     return Path("how-to") / f"{record['journey']}.md"
 
 
@@ -131,6 +133,8 @@ def render(record, existing_images=None):
     # Which application the journey belongs to, which models it touches and
     # the screen it starts on, when the record says; the viewer groups the
     # navigation by them and opens the right screen. Omitted when empty.
+    if record.get("translation_of"):
+        front["translation_of"] = record["translation_of"]
     if record.get("app"):
         front["app"] = record["app"]
     if record.get("models"):

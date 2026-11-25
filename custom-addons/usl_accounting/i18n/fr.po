@@ -318,7 +318,7 @@ msgstr "Différence de montant %(difference)s"
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "%(distance)s-day gap from %(reference)s"
-msgstr "Écart de %(distance)s jours par rapport à %(reference)s"
+msgstr "Écart avec %(reference)s : %(distance)s j"
 
 #. module: usl_accounting
 #. odoo-python
@@ -331,7 +331,7 @@ msgstr "%(foreign)s du document = %(company)s reporté sur le relevé bancaire"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "%(foreign)s · %(company)s · no FX"
-msgstr "%(foreign)s · %(company)s · pas de change"
+msgstr "%(foreign)s · %(company)s · sans écart de change"
 
 #. module: usl_accounting
 #. odoo-python
@@ -343,7 +343,7 @@ msgstr "%(foreign)s · %(difference)s"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 msgid "%(foreign)s · %(document)s %(company)s · no FX"
-msgstr "%(foreign)s · %(document)s %(company)s · pas de change"
+msgstr "%(foreign)s · %(document)s %(company)s · sans écart de change"
 
 #. module: usl_accounting
 #. odoo-python
@@ -430,7 +430,8 @@ msgid "Active"
 msgstr "Actif"
 
 #. module: usl_accounting
-#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__attempt_count
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__attempt_count
 msgid "Attempt Count"
 msgstr "Nombre de tentatives"
 
@@ -625,7 +626,8 @@ msgid "Label Tokens"
 msgstr "Termes du libellé"
 
 #. module: usl_accounting
-#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__last_attempt_at
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__last_attempt_at
 msgid "Last Attempt At"
 msgstr "Dernière tentative le"
 
@@ -1737,6 +1739,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_usl_mail_pdf_candidate_wizard_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -3602,7 +3605,7 @@ msgstr "Taux d’origine du document :"
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Original document value:"
-msgstr "Valeur du document original :"
+msgstr "Valeur d’origine du document :"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_bank_ingestion_file__classification__zip
@@ -3758,7 +3761,7 @@ msgstr "Politique de taux de paiement"
 #. odoo-javascript
 #: code:addons/usl_accounting/static/src/xml/account_payment_suggestions.xml:0
 msgid "Payment-rate document value:"
-msgstr "Valeur du document de taux de paiement :"
+msgstr "Valeur du document au taux du paiement :"
 
 #. module: usl_accounting
 #: model:ir.model.fields.selection,name:usl_accounting.selection__account_move_line__immediate_settlement_role__payment_rate_economic
@@ -6200,7 +6203,7 @@ msgstr "company_id"
 #. odoo-python
 #: code:addons/usl_accounting/models/payment_suggestion.py:0
 msgid "due date"
-msgstr "deux rendez-vous"
+msgstr "la date d’échéance"
 
 #. module: usl_accounting
 #. odoo-python
@@ -8003,3 +8006,162 @@ msgstr "Ouvrez la vérification, définissez use sur supporting ou main pour cha
 #: code:addons/usl_accounting/models/purchase_mail_grouping.py:0
 msgid "Open review and mark selected lines as separate. Call this method with ids containing the opened review's res_id to create one draft from copies. Complete its invoice details. Originals remain here; retrying opens the previously created bill."
 msgstr "Ouvrez la vérification et indiquez separate pour les fichiers d’une autre facture. Appelez cette méthode avec le res_id de la vérification dans ids pour créer un brouillon avec leurs copies. Complétez ses informations. Les originaux restent ici ; une nouvelle tentative ouvre la facture déjà créée."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_ingestion_form
+msgid "Correct period"
+msgstr "Corriger la période"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bank_statement_ingestion.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+msgid "Correct statement period"
+msgstr "Corriger la période du relevé"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+msgid "Apply correction"
+msgstr "Appliquer la correction"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+msgid ""
+"Check the dates on the bank statement. This correction uses retained files "
+"only; it does not download files or reimport transactions."
+msgstr "Vérifiez les dates sur le relevé bancaire. La correction utilise les pièces déjà conservées, sans télécharger de fichier ni réimporter de transaction."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+msgid "Explain where you verified these dates."
+msgstr "Indiquez sur quelle pièce vous avez vérifié les dates."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+msgid ""
+"Save the verified dates and audit reason, then associate retained PDFs "
+"without reimporting transactions."
+msgstr "Enregistrer les dates vérifiées et le motif, puis associer les PDF conservés sans réimporter les transactions."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__classification
+msgid "Classification"
+msgstr "Catégorie"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__config_id
+msgid "Config"
+msgstr "Configuration"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__duplicate_delivery_count
+msgid "Duplicate Delivery Count"
+msgstr "Envois en double"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__evidence_status
+msgid "Evidence Status"
+msgstr "État du justificatif"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__file_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_exception__file_id
+msgid "File"
+msgstr "Fichier"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__filename
+msgid "Filename"
+msgstr "Nom du fichier"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_ingestion_form
+msgid "Files"
+msgstr "Fichiers"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_config__ingestion_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__ingestion_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__ingestion_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_upload__ingestion_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_exception__ingestion_id
+msgid "Ingestion"
+msgstr "Import"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__period_end
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__period_end
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__period_end
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement__period_end
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_certification__period_end
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_confirm__period_end
+msgid "Period End"
+msgstr "Fin de période"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__period_start
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__period_start
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__period_start
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement__period_start
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_certification__period_start
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_confirm__period_start
+msgid "Period Start"
+msgstr "Début de période"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__processing_detail
+msgid "Processing Detail"
+msgstr "Détail du traitement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__processing_state
+msgid "Processing State"
+msgstr "État du traitement"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__reason
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_certification__reason
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_reopen__reason
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_exception_resolution_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bank_statement_form_review
+msgid "Reason"
+msgstr "Motif"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__received_at
+msgid "Received At"
+msgstr "Reçu le"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__sender
+msgid "Sender"
+msgstr "Expéditeur"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__message_id_header
+msgid "Source Message-ID"
+msgstr "Identifiant du message source"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion__statement_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_config__statement_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_file__statement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_upload__statement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_certification__statement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_confirm__statement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_exception__statement_id
+#: model:ir.model.fields,field_description:usl_accounting.field_account_bank_statement_reopen__statement_id
+msgid "Statement"
+msgstr "Relevé bancaire"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_bank_match_wizard.py:0
+msgid "This expense is outside the current review. Reopen the review to continue."
+msgstr "Cette dépense ne fait pas partie de la revue en cours. Rouvrez la revue pour continuer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
+msgid "The batch changed. Open it and choose Submit batch again."
+msgstr "Le lot a changé. Ouvrez-le et choisissez de nouveau Soumettre le lot."

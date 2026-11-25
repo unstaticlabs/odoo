@@ -598,7 +598,8 @@ class HrLeave(models.Model):
                 leave.date_from,
                 leave.date_to,
                 leave.work_entry_type_id.include_public_holidays_in_duration,
-                resource_calendar or leave.resource_calendar_id
+                resource_calendar or leave.resource_calendar_id,
+                leave.work_entry_type_id.allow_request_on_top,
             ] += leave.employee_id
         # We force the company in the domain as we are more than likely in a compute_sudo
         domain = [('count_as', '=', 'absence'),
@@ -608,15 +609,20 @@ class HrLeave(models.Model):
                   '|', ('holiday_id', '=', False), ('holiday_id', 'not in', employee_leaves.ids)]
         if additional_domain:
             domain = Domain.AND([domain, additional_domain])
+        # Requests allowed on top keep their duration over employee absences.
+        # Public holidays still follow include_public_holidays_in_duration.
         # Precompute values in batch for performance purposes
         work_time_per_day_mapped = {
-            (date_from, date_to, include_public_holidays_in_duration, calendar): employees.with_context(
-                    compute_leaves=not include_public_holidays_in_duration)._list_work_time_per_day(date_from, date_to, domain=domain, calendar=calendar)
-            for (date_from, date_to, include_public_holidays_in_duration, calendar), employees in employees_by_dates_calendar.items()
+            (date_from, date_to, include_public_holidays_in_duration, calendar, allow_request_on_top): employees.with_context(
+                    compute_leaves=not include_public_holidays_in_duration)._list_work_time_per_day(
+                        date_from, date_to, domain=Domain.AND([domain, [('holiday_id', '=', False)]]) if allow_request_on_top else domain, calendar=calendar)
+            for (date_from, date_to, include_public_holidays_in_duration, calendar, allow_request_on_top), employees in employees_by_dates_calendar.items()
         }
         work_days_data_mapped = {
-            (date_from, date_to, include_public_holidays_in_duration, calendar): employees._get_work_days_data_batch(date_from, date_to, compute_leaves=not include_public_holidays_in_duration, domain=domain, calendar=calendar)
-            for (date_from, date_to, include_public_holidays_in_duration, calendar), employees in employees_by_dates_calendar.items()
+            (date_from, date_to, include_public_holidays_in_duration, calendar, allow_request_on_top): employees._get_work_days_data_batch(
+                date_from, date_to, compute_leaves=not include_public_holidays_in_duration,
+                domain=Domain.AND([domain, [('holiday_id', '=', False)]]) if allow_request_on_top else domain, calendar=calendar)
+            for (date_from, date_to, include_public_holidays_in_duration, calendar, allow_request_on_top), employees in employees_by_dates_calendar.items()
         }
         for leave in self:
             calendar = resource_calendar or leave.resource_calendar_id
@@ -625,7 +631,7 @@ class HrLeave(models.Model):
                 continue
             hours, days = (0, 0)
             if leave.employee_id:
-                if leave.work_entry_type_id.count_as != 'absence' and leave.work_entry_type_id.request_unit == 'hour':
+                if leave.work_entry_type_id.count_as != 'absence' and leave.work_entry_type_id.request_unit == 'hour' and leave.request_date_from == leave.request_date_to:
                     hours = (leave.date_to - leave.date_from).total_seconds() / 3600
                     days = 1
                 # For flexible employees, if it's a single day leave, we force it to the real duration since the virtual intervals might not match reality on that day, especially for custom hours
@@ -671,11 +677,17 @@ class HrLeave(models.Model):
                         days = hours / 24
                 elif leave.work_entry_type_request_unit == 'day' and check_work_entry_type:
                     # list of tuples (day, hours)
-                    work_time_per_day_list = work_time_per_day_mapped[leave.date_from, leave.date_to, leave.work_entry_type_id.include_public_holidays_in_duration, calendar][leave.employee_id.id]
+                    work_time_per_day_list = work_time_per_day_mapped[leave.date_from, leave.date_to, leave.work_entry_type_id.include_public_holidays_in_duration, calendar, leave.work_entry_type_id.allow_request_on_top][leave.employee_id.id]
                     days = len(work_time_per_day_list)
                     hours = sum(map(lambda t: t[1], work_time_per_day_list))
+                elif (
+                    leave.work_entry_type_request_unit == 'half_day'
+                    and leave.request_date_from != leave.request_date_to
+                    and any(calendar.attendance_ids.mapped('duration_based'))
+                ):
+                    days, hours = leave._get_duration_based_half_day_duration(calendar)
                 else:
-                    work_days_data = work_days_data_mapped[leave.date_from, leave.date_to, leave.work_entry_type_id.include_public_holidays_in_duration, calendar][leave.employee_id.id]
+                    work_days_data = work_days_data_mapped[leave.date_from, leave.date_to, leave.work_entry_type_id.include_public_holidays_in_duration, calendar, leave.work_entry_type_id.allow_request_on_top][leave.employee_id.id]
                     hours, days = work_days_data['hours'], work_days_data['days']
             else:
                 today_hours = calendar.get_work_hours_count(
@@ -690,6 +702,59 @@ class HrLeave(models.Model):
                 days = float_round(days, precision_rounding=0.5)
             result[leave.id] = (days, hours)
         return result
+
+    def _get_duration_based_half_day_duration(self, calendar):
+        """Compute the (days, hours) duration of a multi-day half-day request on a calendar
+        that has at least one duration-based attendance.
+        """
+        self.ensure_one()
+        public_holiday_dates = set()
+        if not self.work_entry_type_id.include_public_holidays_in_duration:
+            tz = ZoneInfo(self.tz) if self.tz else UTC
+            public_holidays = self.env['resource.calendar.leaves'].search([
+                ('resource_id', '=', False),
+                ('date_from', '<', self.date_to),
+                ('date_to', '>', self.date_from),
+                ('calendar_id', 'in', [False, calendar.id]),
+                ('company_id', '=', self.company_id.id),
+                ('count_as', '=', 'absence'),
+            ])
+            for ph in public_holidays:
+                day = ph.date_from.replace(tzinfo=UTC).astimezone(tz).date()
+                last_day = (ph.date_to.replace(tzinfo=UTC).astimezone(tz) - timedelta(microseconds=1)).date()
+                while day <= last_day:
+                    public_holiday_dates.add(day)
+                    day += timedelta(days=1)
+
+        total_days = 0.0
+        total_hours = 0.0
+        current = self.request_date_from
+        while current <= self.request_date_to:
+            if current not in public_holiday_dates:
+                is_half, day_contribution = self._get_half_day_leave_hours_on_date(current, calendar=calendar)
+                if day_contribution:
+                    total_days += 0.5 if is_half else 1.0
+                    total_hours += day_contribution
+            current += timedelta(days=1)
+        return total_days, total_hours
+
+    def _get_half_day_leave_hours_on_date(self, date, calendar=None):
+        self.ensure_one()
+        calendar = calendar or self.resource_calendar_id
+        is_half = (
+            date == self.request_date_from and self.request_date_from_period == 'pm'
+        ) or (
+            date == self.request_date_to and self.request_date_to_period == 'am'
+        )
+        if calendar._is_duration_based_on_date(date):
+            day_hours = calendar._get_duration_based_work_hours_on_date(date)
+            hours = day_hours * 0.5 if is_half else day_hours
+        else:
+            day_period = None
+            if is_half:
+                day_period = 'afternoon' if date == self.request_date_from else 'morning'
+            hours = calendar._get_fixed_hours_on_date(date, day_period=day_period)
+        return is_half, hours
 
     @api.depends('date_from', 'date_to', 'resource_calendar_id')
     def _compute_duration(self):
@@ -822,7 +887,15 @@ class HrLeave(models.Model):
             return
         for holiday in self:
             if holiday.state in ['validate1', 'validate']:
-                raise ValidationError(_("This modification is not allowed in the current state."))
+                message = _(
+                    "Approved time off cannot be modified (%(employee)s: %(date_from)s to %(date_to)s).",
+                    employee=holiday.employee_id.name,
+                    date_from=format_date(self.env, holiday.date_from),
+                    date_to=format_date(self.env, holiday.date_to),
+                )
+                if self.env.context.get('import_file'):
+                    message += "\n" + _("To import it as a new time off request instead, leave the External ID column empty.")
+                raise ValidationError(message)
 
     def _check_validity(self):
         sorted_leaves = defaultdict(lambda: self.env['hr.leave'])
@@ -977,7 +1050,7 @@ class HrLeave(models.Model):
                 work_entry_type_id = values.get('work_entry_type_id')
 
                 # Handle double validation
-                if mapped_validation_type[work_entry_type_id] == 'both':
+                if work_entry_type_id and mapped_validation_type.get(work_entry_type_id) == 'both':
                     self._check_double_validation_rules(employee_id, values.get('state', False))
 
         if any(not vals.get('employee_id') for vals in vals_list):
@@ -1032,15 +1105,15 @@ class HrLeave(models.Model):
             validated_leaves._remove_resource_leave()
 
         employee_id = values.get('employee_id', False)
+        if values.get('state'):
+            self._check_approval_update(values['state'])
+            if any(holiday.validation_type == 'both' for holiday in self):
+                if values.get('employee_id'):
+                    employees = self.env['hr.employee'].browse(values.get('employee_id'))
+                else:
+                    employees = self.mapped('employee_id')
+                self._check_double_validation_rules(employees, values['state'])
         if not self.env.context.get('leave_fast_create'):
-            if values.get('state'):
-                self._check_approval_update(values['state'])
-                if any(holiday.validation_type == 'both' for holiday in self):
-                    if values.get('employee_id'):
-                        employees = self.env['hr.employee'].browse(values.get('employee_id'))
-                    else:
-                        employees = self.mapped('employee_id')
-                    self._check_double_validation_rules(employees, values['state'])
             if 'date_from' in values:
                 values['request_date_from'] = values['date_from']
             if 'date_to' in values:
@@ -1328,15 +1401,17 @@ class HrLeave(models.Model):
                 if target_leave_vals:
                     new_leaves_vals.extend(target_leave_vals)
 
-        if not new_leaves_vals:
-            return self.env['hr.leave']
-        # wanted tracking_disable, as it is about splitting an existing leave
-        return self.env['hr.leave'].with_context(
-            tracking_disable=True,
-            mail_activity_automation_skip=True,
-            leave_fast_create=True,
-            leave_skip_state_check=True
-        ).create(new_leaves_vals)
+        new_leaves = self.env['hr.leave']
+        if new_leaves_vals:
+            # wanted tracking_disable, as it is about splitting an existing leave
+            new_leaves = self.env['hr.leave'].with_context(
+                tracking_disable=True,
+                mail_activity_automation_skip=True,
+                leave_fast_create=True,
+                leave_skip_state_check=True
+            ).create(new_leaves_vals)
+        new_leaves.filtered(lambda leave: leave.state == 'validate')._create_resource_leave()
+        return new_leaves
 
     def _action_validate(self, check_state=True):
         current_employee = self.env.user.employee_id

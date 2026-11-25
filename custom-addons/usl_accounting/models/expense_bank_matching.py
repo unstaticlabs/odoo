@@ -6,6 +6,7 @@ from datetime import timedelta
 from markupsafe import Markup
 
 from odoo import _, api, fields, models
+from odoo.addons.usl_expense_batch.models.hr_expense import _BATCH_SUBMISSION_TOKEN
 from odoo.exceptions import AccessError, UserError
 
 from .bank_partner_suggestion import _normalize_text
@@ -256,7 +257,7 @@ class UslExpenseBankMatchCandidate(models.Model):
         bank_line.invalidate_recordset(["reconcile_data_info", "can_reconcile"])
         return prepared
 
-    def _apply_match(self):
+    def _apply_match(self, *, review_batch=None):
         self.ensure_one()
         self._check_manager()
         expense, bank_line, _values = self._validate_available(
@@ -273,6 +274,11 @@ class UslExpenseBankMatchCandidate(models.Model):
         })
 
         if expense.state == "draft":
+            if review_batch:
+                expense = expense.with_context(
+                    usl_batch_submission_token=_BATCH_SUBMISSION_TOKEN,
+                    usl_batch_submission_id=review_batch.id,
+                )
             expense.action_submit()
             expense.invalidate_recordset(["state", "approval_state"])
         if expense.state == "submitted":
@@ -448,7 +454,7 @@ class HrExpense(models.Model):
                 else expense._usl_bank_match_ineligible_reason()
             )
 
-    def _usl_employee_payment_review(self, stage, *, wizard=None):
+    def _usl_employee_payment_review(self, stage, *, wizard=None, batch=None):
         """Refresh the incumbent suggestions within the operator's bank authority."""
         if not (self.env.su or self.env.user.has_group("account.group_account_manager")):
             return False
@@ -465,12 +471,15 @@ class HrExpense(models.Model):
             return False
         if wizard and wizard.usl_review_fingerprint == fingerprint:
             return False
-        wizard = wizard or self.env["hr.expense.post.wizard"].with_context(active_ids=self.ids).create({})
+        wizard = wizard or self.env["hr.expense.post.wizard"].with_context(active_ids=self.ids).create({
+            "usl_review_batch_id": batch.id if batch else False,
+        })
         return wizard._usl_open_employee_payment_review(self, candidates, stage, fingerprint)
 
     def action_submit(self):
         if self.env.context.get("usl_bank_match_transition") is not _POSTING_REVIEW_CONFIRMED:
-            action = self._usl_employee_payment_review("submit")
+            batch = self._check_batch_submission_scope()
+            action = self._usl_employee_payment_review("submit", batch=batch)
             if action:
                 return action
         return super().action_submit()

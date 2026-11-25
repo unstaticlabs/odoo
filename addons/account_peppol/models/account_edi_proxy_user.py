@@ -55,12 +55,18 @@ class Account_Edi_Proxy_ClientUser(models.Model):
 
     @handle_demo
     def _call_peppol_proxy(self, endpoint, params=None):
+        def raise_with_id_client(msg):
+            raise UserError(self.env._('%(msg)s (EDI Proxy User Id client "%(id_client)s")',
+                msg=msg,
+                id_client=self.id_client,
+            ))
+
         self.ensure_one()
         peppol_proxy_types = self._get_peppol_proxy_types()
         if self.proxy_type not in peppol_proxy_types:
             proxy_type_map = dict(self._fields['proxy_type']._description_selection(self.env))
             proxy_types = [proxy_type_map[proxy_type] for proxy_type in peppol_proxy_types]
-            raise UserError(self.env._('EDI user should be of one of the following types: %s', format_list(self.env, proxy_types, 'or')))
+            raise_with_id_client(self.env._('EDI user should be of one of the following types: %s', format_list(self.env, proxy_types, 'or')))
 
         token_out_of_sync_error_message = self.env._(
             "Failed to connect to Peppol Access Point. This might happen if you restored a database from a backup or copied it without neutralization. "
@@ -68,7 +74,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
         )
 
         if self.is_token_out_of_sync:
-            raise UserError(token_out_of_sync_error_message)
+            raise_with_id_client(token_out_of_sync_error_message)
 
         params = params or {}
         try:
@@ -89,18 +95,18 @@ class Account_Edi_Proxy_ClientUser(models.Model):
                 # commit the above changes before raising below
                 if not modules.module.current_test:
                     self.env.cr.commit()
-                raise UserError(_('We could not find a user with this information on our server. Please check your information.'))
+                raise_with_id_client(self.env._('We could not find a user with this information on our server. Please check your information.'))
 
             elif e.code == 'invalid_signature':
                 self._mark_connection_out_of_sync()
                 if not tools.config['test_enable'] and not modules.module.current_test:
                     self.env.cr.commit()
-                raise UserError(token_out_of_sync_error_message)
-            raise UserError(e.message)
+                raise_with_id_client(token_out_of_sync_error_message)
+            raise_with_id_client(e.message)
 
         if error_vals := response.get('error'):
             error_message = get_peppol_error_message(self.env, error_vals)
-            raise UserError(error_message)
+            raise_with_id_client(error_message)
 
         return response
 
@@ -257,6 +263,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             move_type = 'out_invoice'
             if not journal:
                 return {}
+        partner_endpoint = self.env.context.get('peppol_sender_identifier')
 
         move = self.env['account.move'].create({
             'journal_id': journal.id,
@@ -268,12 +275,16 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             move.is_in_extractable_state = False
 
         try:
-            move._extend_with_attachments(files_data, new=True)
-            move._autopost_bill()
+            if not move._extend_with_attachments(files_data, new=True):
+                move.message_post(
+                    body=self.env._("There was an error while importing the bill, you can find attached the incoming XML"),
+                )
+            else:
+                move._autopost_bill()
         except Exception as err:
             _logger.exception(
-                "Unexpected error occurred during the import of bill with id %s (%s uuid: %s, attachment: %s)",
-                move.id, self.proxy_type, uuid, attachment.id,
+                "Unexpected error occurred during the import of bill with id %s (%s uuid: %s, attachment: %s, partner_endpoint: %s)",
+                move.id, self.proxy_type, uuid, attachment.id, partner_endpoint,
             )
             move._message_log(
                 body=Markup("%s<br/>%s") % (
@@ -367,6 +378,10 @@ class Account_Edi_Proxy_ClientUser(models.Model):
                 endpoint=edi_user._get_peppol_proxy_endpoint('1/get_document'),
                 params={'message_uuids': message_uuids},
             )
+            # The sender identifier is only returned by `get_all_documents`.
+            uuid_to_sender = {message['uuid']: message.get('sender') for message in received_messages}
+            for uuid, content in all_messages.items():
+                content.setdefault('sender', uuid_to_sender.get(uuid))
 
             processed_uuids, moves = edi_user._peppol_process_new_messages(all_messages)
 
@@ -405,7 +420,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
                 "mimetype": mimetype,
             })
             try:
-                if uuid_move := self._peppol_import_invoice(attachment, content['state'], uuid):
+                if uuid_move := self.with_context(peppol_sender_identifier=content.get('sender'))._peppol_import_invoice(attachment, content['state'], uuid):
                     # Only acknowledge when we saved the document somewhere
                     processed_uuids.append(uuid)
                     moves += uuid_move.get('move', self.env['account.move'])

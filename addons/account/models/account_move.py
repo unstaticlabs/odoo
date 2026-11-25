@@ -1481,6 +1481,7 @@ class AccountMove(models.Model):
                 or move.journal_id and move.journal_id not in move.suitable_journal_ids._origin
             )
 
+    @api.depends('commercial_partner_id')
     def _compute_payments_widget_to_reconcile_info(self):
 
         for move in self:
@@ -1488,7 +1489,8 @@ class AccountMove(models.Model):
 
             if move.state not in {'draft', 'posted'} \
                     or move.payment_state not in ('not_paid', 'partial') \
-                    or not move.is_invoice(include_receipts=True):
+                    or not move.is_invoice(include_receipts=True) \
+                    or not move._origin:  # unsaved record: no move id to reconcile with
                 continue
 
             pay_term_lines = move.line_ids\
@@ -1507,7 +1509,7 @@ class AccountMove(models.Model):
             payments_widget_vals = {
                 'outstanding': True,
                 'content': [],
-                'move_id': move.id,
+                'move_id': move._origin.id,
                 'title': _('Outstanding credits') if move.is_inbound() else _('Outstanding debits')
             }
 
@@ -1588,6 +1590,10 @@ class AccountMove(models.Model):
             'ref': reconciliation_ref,
             # these are necessary for the views to change depending on the values
             'is_exchange': partial_info['is_exchange'],
+            # the invoicing users only manage the invoices and the payments, the other entries are part of the accounting
+            'can_open_move': self.env.user.has_group('account.group_account_readonly')
+                or bool(counterpart_line.move_id.origin_payment_id)
+                or counterpart_line.move_id.is_invoice(include_receipts=True),
             'amount_company_currency': formatLang(
                 self.env,
                 abs(counterpart_line.balance),
@@ -1601,6 +1607,7 @@ class AccountMove(models.Model):
         }
 
     @api.depends('move_type', 'line_ids.amount_residual')
+    @api.depends_context('uid')
     def _compute_payments_widget_reconciled_info(self):
         for move in self:
             payments_widget_vals = {
@@ -1883,6 +1890,9 @@ class AccountMove(models.Model):
             base_lines += self._prepare_non_deductible_base_lines_for_taxes_computation_from_base_lines(base_amls)
             AccountTax._add_tax_details_in_base_lines(base_lines, self.company_id)
             AccountTax._round_base_lines_tax_details(base_lines, self.company_id)
+
+        # todo: modify the _order in master
+        base_lines[:len(base_amls)] = sorted(base_lines[:len(base_amls)], key=lambda base_line: (base_line['record'].sequence, base_line['record']._origin.id))
         return base_lines, tax_lines
 
     @api.depends_context('lang')
@@ -1972,7 +1982,7 @@ class AccountMove(models.Model):
         for move in self:
             move.show_invoice_vendor_bill = move.state == 'draft' and move.move_type in ('in_invoice', 'in_refund')
 
-    @api.depends('partner_id', 'invoice_source_email', 'partner_id.display_name')
+    @api.depends('partner_id', 'invoice_source_email', 'partner_id.complete_name')
     def _compute_invoice_partner_display_info(self):
         for move in self:
             vendor_display_name = move.partner_id.with_context({'lang': self.env.lang}).display_name
@@ -2042,7 +2052,7 @@ class AccountMove(models.Model):
         for move in self.filtered(lambda move: move.is_invoice()):
             move.access_url = '/my/invoices/%s' % (move.id)
 
-    @api.depends('move_type', 'partner_id', 'partner_id.lang', 'company_id')
+    @api.depends('move_type', 'partner_id', 'company_id')
     def _compute_narration(self):
         use_invoice_terms = self.env['ir.config_parameter'].sudo().get_bool('account.use_invoice_terms')
         invoice_to_update_terms = self.filtered(lambda m: use_invoice_terms and m.is_sale_document(include_receipts=True))
@@ -2550,17 +2560,27 @@ class AccountMove(models.Model):
             if self.auto_post == 'at_date':
                 alerts['account_auto_post_at_date'] = {
                     'level': 'info',
-                    'message': _("This move is configured to be posted automatically at the accounting date: %s.", self.date),
+                    'message': self.env._(
+                        "This move is configured to be posted automatically at the accounting date: %(date)s.",
+                        date=format_date(self.env, self.date),
+                    ),
                 }
             if self.auto_post in ('yearly', 'quarterly', 'monthly'):
-                message = _(
-                    "%(auto_post_name)s auto-posting enabled. Next accounting date: %(move_date)s.",
-                    auto_post_name=self.auto_post,
-                    move_date=self.date,
+                auto_post_choices = dict(self._fields['auto_post']._description_selection(self.env))
+                translated_frequency = auto_post_choices.get(self.auto_post, self.auto_post)
+
+                message = self.env._(
+                    "Auto-posting enabled: %(auto_post_name)s. Next accounting date: %(move_date)s.",
+                    auto_post_name=translated_frequency,
+                    move_date=format_date(self.env, self.date),
                 )
+
                 if self.auto_post_until:
                     message += " "
-                    message += _("The recurrence will end on %s (included).", self.auto_post_until)
+                    message += self.env._(
+                        "The recurrence will end on %(date)s (included).",
+                        date=format_date(self.env, self.auto_post_until),
+                    )
                 alerts['account_auto_post_on_period'] = {
                     'level': 'info',
                     'message': message,
@@ -5772,11 +5792,17 @@ class AccountMove(models.Model):
                 skip_invoice_sync=move.move_type == 'entry',
             ).copy(default_values)
 
+        reversed_storno = {
+            reverse_line: not line.is_storno
+            for move, reverse_move in zip(self, reverse_moves)
+            if move.move_type == 'entry' and move.company_id.account_storno
+            for line, reverse_line in zip(move.line_ids, reverse_move.line_ids, strict=True)
+        }
         reverse_moves.with_context(skip_invoice_sync=cancel).write({'line_ids': [
             Command.update(line.id, {
                 'balance': -line.balance,
                 'amount_currency': -line.amount_currency,
-                **({'is_storno': not line.is_storno} if line.company_id.account_storno else {}),
+                **({'is_storno': reversed_storno[line]} if line in reversed_storno else {}),
             })
             for line in reverse_moves.line_ids
             if line.move_id.move_type == 'entry' or line.display_type == 'cogs'

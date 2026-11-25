@@ -1082,10 +1082,19 @@ class UslExpenseBatch(models.Model):
         }
 
     def action_submit(self):
+        return self._submit_draft_expenses()
+
+    def _draft_expenses_for_submission(self, reviewed=None):
         self.ensure_one()
         self._check_readonly_accountant_mutation()
+        self.check_access("write")
         self._ensure_active()
-        expenses = self._get_actionable_expenses("draft")
+        if reviewed is None:
+            expenses = self._get_actionable_expenses("draft")
+        else:
+            expenses = self.expense_ids.filtered(lambda expense: expense.state == "draft")
+            if not expenses or expenses != reviewed:
+                raise UserError(_("The batch changed. Open it and choose Submit batch again."))
         incomplete = expenses.filtered(
             lambda expense: bool(expense.batch_incomplete_reason),
         )
@@ -1097,21 +1106,30 @@ class UslExpenseBatch(models.Model):
             raise UserError(
                 _("Complete the following expenses before submission:\n%s", details),
             )
-        expenses.with_context(
+        return expenses
+
+    def _submit_draft_expenses(self, reviewed=None):
+        expenses = self._draft_expenses_for_submission(reviewed)
+        action = expenses.with_context(
             usl_batch_submission_token=_BATCH_SUBMISSION_TOKEN,
             usl_batch_submission_id=self.id,
         ).action_submit()
+        if action:
+            return action
+        self._record_submission(len(expenses))
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def _record_submission(self, count=None):
         self.write({
             "submitted_by_id": self.env.user.id,
             "submitted_date": fields.Datetime.now(),
         })
         self.message_post(
-            body=_(
+            body=_("Batch submission completed.") if count is None else _(
                 "Batch submitted with %(count)s expenses for manager review.",
-                count=len(expenses),
+                count=count,
             ),
         )
-        return {"type": "ir.actions.client", "tag": "reload"}
 
     def action_approve(self):
         self.ensure_one()

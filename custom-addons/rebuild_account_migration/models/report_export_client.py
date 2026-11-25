@@ -680,7 +680,10 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         except (TypeError, ValueError):
             metadata = {}
         summary = metadata.get("financial_summary") if isinstance(metadata, dict) else None
-        if isinstance(summary, dict) and isinstance(summary.get("cards"), list):
+        if (
+            isinstance(summary, dict) and isinstance(summary.get("cards"), list)
+            and (self.report_type != "fixed_assets" or "asset_reconciliation" in summary)
+        ):
             return summary
         # Old transient previews hold only visible rows. Recalculate under the
         # same native rights rather than treating a partial page as a report.
@@ -711,6 +714,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         def total_for(key):
             return float(sum(_amount(row.get(key)) for row in detail_rows))
 
+        if self.report_type == "fixed_assets":
+            return {"cards": [], "asset_reconciliation": self._compare_asset_cards_with_ledger(detail_rows)}
         if self.report_type == "trial_balance":
             debit = total_for("debit")
             credit = total_for("credit")
@@ -886,7 +891,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ],
             "cash_flow": [
                 ("amount", "Montant", currency),
-                ("statement_balance", "Solde de trésorerie", currency),
             ],
             "executive_summary": [
                 ("metric_value", "Valeur", number),

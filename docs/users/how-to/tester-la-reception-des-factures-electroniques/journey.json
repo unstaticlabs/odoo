@@ -1,0 +1,69 @@
+{
+  "journey": "tester-la-reception-des-factures-electroniques",
+  "lang": "fr",
+  "login": "einvoice.manager@example.invalid",
+  "persona": "administrator",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.rebuild_account_migration.tests.test_einvoice_journeys.TestEinvoiceJourneys.test_run_the_electronic_invoice_reception_self_check_in_french",
+  "source_test_file": {
+    "line": 30,
+    "path": "custom-addons/rebuild_account_migration/tests/test_einvoice_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 4,
+    "path": "custom-addons/rebuild_account_migration/static/tests/tours/einvoice_reception_tours.js",
+    "steps": {
+      "companies": 7,
+      "passed": 24,
+      "run_check": 18,
+      "setup": 13
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Open the company's electronic-invoice setup",
+      "id": "companies",
+      "index": 1,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Dans **Comptabilité > Configuration > Facturation électronique**, ouvrez la société dont vous voulez tester la réception.",
+      "trigger": ".o_list_view .o_data_row td[name='name']"
+    },
+    {
+      "assertion": "The focused setup identifies the company by its SIREN or SIRET",
+      "id": "setup",
+      "index": 2,
+      "run": "",
+      "screenshot": "01-setup.png",
+      "sha256": "f6d0f40efe9cc4d7c4ff8c163fbaa7ae2388f7713f7ffa0c668cd092847c7667",
+      "text": "Vérifiez les journaux, les comptes utilisés et la plateforme agréée. Le résultat du dernier essai figure sur la même fiche.",
+      "trigger": ".o_form_view label[for^='company_registry']:contains('SIREN ou SIRET')"
+    },
+    {
+      "assertion": "Run the safe reception self-check",
+      "id": "run_check",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Exécuter une auto-vérification**. Odoo fait passer une facture d’essai par les étapes de réception, puis supprime les pièces créées pour ce contrôle.",
+      "trigger": "button[name='action_rebuild_run_einvoice_acceptance_test']"
+    },
+    {
+      "assertion": "The self-check passed without retaining test accounting",
+      "id": "passed",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-passed.png",
+      "sha256": "9a6529a3625631e85d30cb0adecdca92f0f8a78ca7e87a87db205694508222e8",
+      "text": "Vérifiez la mention **Test réussi**, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée. Relancez le contrôle après une modification des journaux, des comptes ou de la plateforme.",
+      "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test réussi')"
+    }
+  ],
+  "title": "Tester la réception des factures électroniques",
+  "tour": "usl_einvoice_manager_reception",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

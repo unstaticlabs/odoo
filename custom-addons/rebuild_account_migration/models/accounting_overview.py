@@ -44,7 +44,11 @@ class RebuildAccountOverview(models.Model):
     draft_expense_count = fields.Integer(
         string="Expenses to Process",
         readonly=True,
+        help="Draft, submitted and approved expenses awaiting further processing. This legacy count does not mean editable drafts.",
     )
+    draft_only_expense_count = fields.Integer(string="Draft Expenses Only", readonly=True)
+    submitted_expense_count = fields.Integer(string="Submitted Expenses", readonly=True)
+    approved_expense_count = fields.Integer(string="Approved Expenses", readonly=True)
     incomplete_document_count = fields.Integer(readonly=True)
     missing_vendor_attachment_count = fields.Integer(
         string="Vendor Documents Missing Evidence",
@@ -263,6 +267,9 @@ class RebuildAccountOverview(models.Model):
                        COALESCE(documents.draft_customer_document_count, 0) AS draft_customer_document_count,
                        COALESCE(documents.draft_vendor_document_count, 0) AS draft_vendor_document_count,
                        COALESCE(expenses.draft_expense_count, 0) AS draft_expense_count,
+                       COALESCE(expenses.draft_only_expense_count, 0) AS draft_only_expense_count,
+                       COALESCE(expenses.submitted_expense_count, 0) AS submitted_expense_count,
+                       COALESCE(expenses.approved_expense_count, 0) AS approved_expense_count,
                        COALESCE(documents.incomplete_document_count, 0) AS incomplete_document_count,
                        COALESCE(documents.missing_vendor_attachment_count, 0) AS missing_vendor_attachment_count,
                        COALESCE(expenses.missing_expense_attachment_count, 0) AS missing_expense_attachment_count,
@@ -481,6 +488,9 @@ class RebuildAccountOverview(models.Model):
                                      'approved'
                                  )
                              )::integer AS draft_expense_count,
+                             count(*) FILTER (WHERE expense.state = 'draft')::integer AS draft_only_expense_count,
+                             count(*) FILTER (WHERE expense.state = 'submitted')::integer AS submitted_expense_count,
+                             count(*) FILTER (WHERE expense.state = 'approved')::integer AS approved_expense_count,
                              count(*) FILTER (
                                  WHERE expense.state != 'refused'
                                    AND expense.message_main_attachment_id IS NULL

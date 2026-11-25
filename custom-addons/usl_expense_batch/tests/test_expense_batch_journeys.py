@@ -79,3 +79,110 @@ class TestExpenseBatchJourneys(TestExpenseBatchBrowser, JourneyCase):
             login=self.readonly_reviewer.login,
             screen=BATCHES,
         )
+
+    def _use_french_fixtures(self):
+        self.journey_language = "fr"
+        self.batch.with_context(tracking_disable=True).write({
+            "name": "Déplacement de juillet", "purpose": "Atelier de formation",
+        })
+        self.lifecycle_batch.with_context(tracking_disable=True).write({
+            "name": "Déplacement d’août", "purpose": "Frais de formation",
+        })
+        expenses = self.expenses | self.lifecycle_expenses
+        names = {
+            "Browser Canada hotel": "Hôtel du déplacement",
+            "Browser Canada taxi": "Taxi du déplacement",
+            "Browser lifecycle hotel": "Hôtel avancé par le salarié",
+            "Browser lifecycle company card": "Repas payé par la société",
+        }
+        for expense in expenses.with_context(tracking_disable=True):
+            expense.name = names[expense.name]
+        self.exception_expense.with_context(tracking_disable=True).name = "Dépense avec affectation particulière"
+        self.receipt_expense.with_context(tracking_disable=True).name = "Repas avec justificatif"
+        self.receipt_attachment.name = "justificatif-repas.pdf"
+
+    def test_group_expenses_into_a_batch_in_french(self):
+        self._use_french_fixtures()
+        self.test_group_expenses_into_a_batch()
+
+    def test_check_the_receipt_on_an_expense_in_french(self):
+        self._use_french_fixtures()
+        self.test_check_the_receipt_on_an_expense()
+
+    def test_review_a_batch_before_submitting_in_french(self):
+        self._use_french_fixtures()
+        self.test_review_a_batch_before_submitting()
+
+    def test_post_an_approved_batch_in_french(self):
+        self._use_french_fixtures()
+        self.test_post_an_approved_batch()
+
+    def test_audit_a_batch_read_only_in_french(self):
+        self._use_french_fixtures()
+        self.test_audit_a_batch_read_only()
+
+    def test_post_your_first_batch(self):
+        import secrets
+        from io import BytesIO
+
+        from lxml import html
+        from reportlab.pdfgen.canvas import Canvas
+
+        batch = self.lifecycle_batch
+        french = self.journey_language == "fr"
+        if french:
+            self._use_french_fixtures()
+        batch.name = "Séminaire de démonstration" if french else "Training seminar"
+        batch.purpose = "Frais du séminaire" if french else "Seminar travel expenses"
+        for expense in self.lifecycle_expenses:
+            company_paid = expense.payment_mode == "company_account"
+            expense.name = (
+                ("Repas payé par la société" if french else "Company-paid meal")
+                if company_paid else ("Hôtel avancé par le salarié" if french else "Employee-paid hotel")
+            )
+            document = BytesIO()
+            receipt = Canvas(document)
+            receipt.drawString(54, 750, expense.name)
+            receipt.save()
+            expense.message_main_attachment_id.sudo().write({"name": expense.name + ".pdf", "raw": document.getvalue()})
+        self.assertFalse(batch.attention_count)
+        batch.with_user(self.expense_user_employee).action_submit()
+        batch.with_user(self.expense_user_manager).action_approve()
+        self.assertEqual(batch.expense_progress, "approved")
+        self.assertFalse(self.lifecycle_expenses.sudo().mapped("account_move_id"))
+
+        # Start the journey in the same session that signs in through Odoo's
+        # public login form, as a new accountant with no previous login.
+        accountant = self.accountant
+        self.assertFalse(accountant.log_ids)
+        password = secrets.token_urlsafe(24)
+        accountant.write({"lang": "fr_FR" if french else "en_US", "password": password})
+        login_page = self.url_open("/web/login")
+        login_page.raise_for_status()
+        token, = html.fromstring(login_page.content).xpath("//input[@name='csrf_token']/@value")
+        signed_in = self.url_open("/web/login", data={
+            "csrf_token": token,
+            "login": accountant.login,
+            "password": password,
+            "redirect": "/odoo",
+        }, allow_redirects=False)
+        self.assertIn(signed_in.status_code, (302, 303))
+        self.assertEqual(signed_in.headers["Location"], "/odoo")
+        self.assertTrue(accountant.log_ids)
+        self.run_journey(
+            "usl_expense_first_posted_batch", "/odoo", login=accountant.login,
+            session_id=self.opener.cookies["session_id"],
+        )
+        entries = self.lifecycle_expenses.sudo().mapped("account_move_id")
+        self.assertEqual(batch.expense_progress, "posted")
+        self.assertEqual(len(entries), 2)
+        self.assertEqual(set(entries.mapped("state")), {"posted"})
+        self.assertEqual(entries.expense_batch_id, batch)
+        self.assertEqual(
+            sorted(abs(entry.amount_total_signed) for entry in entries),
+            sorted(self.lifecycle_expenses.mapped("total_amount")),
+        )
+
+    def test_post_your_first_batch_in_french(self):
+        self.journey_language = "fr"
+        self.test_post_your_first_batch()

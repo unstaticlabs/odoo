@@ -28,6 +28,7 @@ _ITEM_RE = re.compile(r"^\s+-\s+(.*)$")
 #: Diátaxis type per directory. ``decision`` lives under ``docs/product``.
 TYPES = ("tutorial", "how-to", "reference", "explanation", "decision")
 DIRECTORY_TYPES = {
+    "tutorial": "tutorial",
     "how-to": "how-to",
     "reference": "reference",
     "explanation": "explanation",

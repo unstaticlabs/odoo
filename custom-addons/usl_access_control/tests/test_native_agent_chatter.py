@@ -341,15 +341,23 @@ class TestNativeAgentChatter(TransactionCase):
         self.assertFalse(self.env["mail.message"].search_count([("subject", "=", subject)]))
         self.assertEqual(bytes(foreign.raw), ORIGINAL)
 
-    def test_native_received_parent_reply_can_use_native_fallback(self):
+    def test_native_received_parent_keeps_reply_on_authorized_task(self):
         agent = self.agents["rw"]
         agent.with_user(self.owner).write({"company_ids": [Command.set(self.company.ids)]})
-        parent = self.env["mail.message"].create({
-            "message_type": "comment", "body": "<p>[QA] Received private parent</p>",
-            "partner_ids": [Command.set((agent.user_id.partner_id | self.owner.partner_id).ids)],
-        })
-        values = self._values(self.tasks[1], parent_id=parent.id)
+        task = self.tasks[0]
+        parent = self.env["mail.message"].create(self._values(
+            task, partner_ids=[Command.set((agent.user_id.partner_id | self.owner.partner_id).ids)],
+        ))
+        values = self._values(task, parent_id=parent.id)
         human = self.env["mail.message"].with_user(self.owner).create(values)
         reply = self._call("create", vals_list=[values])
-        self.assertEqual((reply.model, reply.res_id), (human.model, human.res_id))
-        self.assertEqual(reply.parent_id, parent)
+        for message in (human, reply):
+            self.assertEqual((message.model, message.res_id), (task._name, task.id))
+            self.assertEqual(message.parent_id, parent)
+
+        other_task = self.tasks[1]
+        self.assertFalse(other_task.with_user(agent.user_id).has_access("read"))
+        subject = "[QA] Reply outside delegated company"
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            self._call("create", vals_list=[self._values(other_task, parent_id=parent.id, subject=subject)])
+        self.assertFalse(self.env["mail.message"].search_count([("subject", "=", subject)]))

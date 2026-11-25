@@ -43,6 +43,16 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     && apt-get install -y --no-install-recommends nodejs npm \
     && npm install --global --prefix /opt/node rtlcss@4.3.0
 
+# The Bookworm repository builds wkhtmltopdf without the Qt patches Odoo uses
+# for HTML headers, footers and page counts. Pin each native release package.
+FROM scratch AS qweb-package-amd64
+ADD --checksum=sha256:98ba0d157b50d36f23bd0dedf4c0aa28c7b0c50fcdcdc54aa5b6bbba81a3941d https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb /wkhtmltox.deb
+
+FROM scratch AS qweb-package-arm64
+ADD --checksum=sha256:b6606157b27c13e044d0abbe670301f88de4e1782afca4f9c06a5817f3e03a9c https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_arm64.deb /wkhtmltox.deb
+
+FROM qweb-package-${TARGETARCH} AS qweb-package
+
 # Shared runnable environment. It contains only runtime libraries; Python
 # wheels are installed from the builder without copying the wheelhouse.
 FROM ${PYTHON_IMAGE} AS runtime
@@ -53,7 +63,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     LANG=C.UTF-8
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+RUN --mount=type=bind,from=qweb-package,target=/opt/qweb-package \
+    --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -73,7 +84,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         nodejs \
         postgresql-client \
         wait-for-it \
-        wkhtmltopdf \
+        /opt/qweb-package/wkhtmltox.deb \
+    && wkhtmltopdf --version | grep -Fqx "wkhtmltopdf 0.12.6.1 (with patched qt)" \
     && groupadd --gid 1000 odoo \
     && useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash odoo \
     && mkdir -p /etc/odoo /opt/odoo /var/lib/odoo /mnt/custom-addons \
