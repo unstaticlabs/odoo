@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from freezegun import freeze_time
 
 from odoo import Command, fields
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -89,6 +89,146 @@ class TestTaskReactivation(TransactionCase):
             ["inbox", "later"],
         )
         self.assertEqual(self._personal_link(task, self.user_a).stage_id, stages[0])
+
+    @freeze_time("2026-09-02 10:00:00")
+    def test_hourly_cron_returns_unassigned_task_to_its_project_inbox(self):
+        self.stage_a.usl_reactivation_role = "later"
+        self.stage_b.usl_reactivation_role = "inbox"
+        task = self._task(
+            "Unassigned deferred task",
+            user_ids=[Command.clear()],
+            planned_date_begin=datetime(2026, 9, 2, 9),
+            state="03_approved",
+        )
+
+        task._cron_usl_reactivate_later_tasks()
+
+        self.assertEqual(task.stage_id, self.stage_b)
+        self.assertEqual(task.state, "03_approved")
+        self.assertEqual(task._cron_usl_reactivate_later_tasks(), 0)
+
+    @freeze_time("2026-09-02 10:00:00")
+    def test_shared_source_routes_each_project_to_its_own_inbox(self):
+        other_project, unconfigured_project = self.env["project.project"].create(
+            [{"name": "Other board"}, {"name": "Unconfigured board"}],
+        )
+        self.stage_a.write(
+            {
+                "usl_reactivation_role": "later",
+                "project_ids": [Command.link(other_project.id), Command.link(unconfigured_project.id)],
+            },
+        )
+        self.stage_b.usl_reactivation_role = "inbox"
+        other_inbox = self.env["project.task.type"].create(
+            {
+                "name": "Team intake",
+                "project_ids": [Command.link(other_project.id)],
+                "usl_reactivation_role": "inbox",
+            },
+        )
+        tasks = self.env["project.task"].union(
+            self._task(
+                "Deferred task",
+                project_id=project.id,
+                planned_date_begin=datetime(2026, 9, 2, 9),
+            )
+            for project in self.project | other_project | unconfigured_project
+        )
+        self.assertEqual(tasks._cron_usl_reactivate_later_tasks(), 2)
+        self.assertEqual(tasks.mapped("stage_id"), self.stage_b | other_inbox | self.stage_a)
+
+        other_inbox.project_ids = [Command.link(unconfigured_project.id)]
+        self.stage_b.project_ids = [Command.link(unconfigured_project.id)]
+        tasks._cron_usl_reactivate_later_tasks()
+        self.assertEqual(tasks[2].stage_id, self.stage_a)
+
+    @freeze_time("2026-09-02 10:00:00")
+    def test_manual_drop_stays_later_until_a_real_trigger(self):
+        self.stage_a.usl_reactivation_role = "later"
+        self.stage_b.usl_reactivation_role = "inbox"
+        task = self._task("Manual defer", stage_id=self.stage_b.id)
+        personal_link = self._put_in_role(task, self.user_a, "later")
+        task.write(
+            {"stage_id": self.stage_a.id, "planned_date_begin": datetime(2026, 9, 2, 9)},
+        )
+        self.assertEqual(task.stage_id, self.stage_a)
+        self.assertEqual(personal_link.stage_id, self._role_stage(self.user_a, "inbox"))
+
+        self._put_in_role(task, self.user_a, "later")
+        task.write({"planned_date_begin": task.planned_date_begin, "state": task.state})
+        self.assertEqual(task.stage_id, self.stage_a)
+
+        # Dates are still eligible for both boards, but a project move alone
+        # must not trigger a second move in the personal pipeline.
+        self.user_a.tz = "Pacific/Honolulu"
+        self.project.company_id = self.env.company
+        self.env.company.tz = "Europe/Paris"
+        with freeze_time("2026-09-02 22:30:00"):
+            task.write({"planned_date_begin": False, "date_deadline": datetime(2026, 9, 6, 12)})
+        self.assertEqual(task.stage_id, self.stage_b)
+        self.assertEqual(personal_link.stage_id, self._role_stage(self.user_a, "later"))
+
+    def test_project_reactivation_on_reopening_dependency_and_subtasks(self):
+        self.stage_a.usl_reactivation_role = "later"
+        self.stage_b.usl_reactivation_role = "inbox"
+        reopened = self._task("Reopened", state="1_canceled")
+        blocker = self._task("Blocker", stage_id=self.stage_b.id)
+        blocked = self._task("Blocked", depend_on_ids=[Command.link(blocker.id)])
+        parent = self._task("Parent")
+        child = self._task("Child", parent_id=parent.id, stage_id=self.stage_b.id)
+        archived = self._task("Archived", active=False, state="1_done")
+
+        reopened.state = "02_changes_requested"
+        blocker.state = "1_done"
+        child.state = "1_done"
+        archived.state = "01_in_progress"
+
+        self.assertEqual((reopened | blocked | parent).stage_id, self.stage_b)
+        self.assertEqual(reopened.state, "02_changes_requested")
+        self.assertEqual(archived.stage_id, self.stage_a)
+
+    def test_project_deadline_follows_local_midnight_after_dst_transition(self):
+        self.project.company_id = self.env.company
+        self.env.company.tz = "Europe/Paris"
+        self.stage_a.usl_reactivation_role = "later"
+        self.stage_b.usl_reactivation_role = "inbox"
+        blocker = self._task("Open dependency", stage_id=self.stage_b.id)
+        task = self._task(
+            "Deadline after the clock change",
+            depend_on_ids=[Command.link(blocker.id)],
+            date_deadline=datetime(2026, 4, 2, 12),
+        )
+        with freeze_time("2026-03-29 21:59:59"):
+            task._cron_usl_reactivate_later_tasks()
+        self.assertEqual(task.stage_id, self.stage_a)
+
+        with freeze_time("2026-03-29 22:00:00"):
+            task._cron_usl_reactivate_later_tasks()
+        self.assertEqual(task.stage_id, self.stage_b)
+        self.assertEqual(task.state, "04_waiting_normal")
+
+    def test_project_association_cannot_take_ownership_of_a_personal_stage(self):
+        manager = new_test_user(
+            self.env,
+            login="reactivation.manager@example.invalid",
+            groups="base.group_user,project.group_project_manager",
+        )
+        personal = self._role_stage(manager, "later").with_user(manager)
+        project = self.project.with_user(manager)
+        with self.assertRaises(ValidationError):
+            personal.project_ids = [Command.link(project.id)]
+        with self.assertRaises(ValidationError):
+            project.type_ids = [Command.link(personal.id)]
+        with self.assertRaises(ValidationError):
+            project.write({"type_ids": [personal.id]})
+        with self.assertRaises(ValidationError):
+            project.create({"name": "Other project", "type_ids": [Command.link(personal.id)]})
+        self.assertEqual(personal.user_id, manager)
+
+        quick_project_id, _name = project.name_create("Quick project")
+        quick_stage = project.browse(quick_project_id).type_ids
+        self.assertTrue(quick_stage)
+        self.assertFalse(quick_stage.user_id)
 
     def test_stage_change_moves_only_later_assignees(self):
         task = self._task("Shared task", self.user_a | self.user_b)
