@@ -7460,7 +7460,7 @@ def _staging_pocketid_command(target, release, network, volumes, candidate_ident
         "--env", "USL_POCKET_ID_ENABLED=1",
         "--env", "USL_POCKET_ID_ISSUER=https://auth.unstaticlabs.com",
         "--env", f"USL_POCKET_ID_ODOO_BASE_URL={target.value['endpoints']['odoo']}",
-        "--env", "USL_POCKET_ID_REQUIRED_GROUP=c_suite",
+        "--env", "USL_POCKET_ID_REQUIRED_GROUP=odoo_staging",
         "--env", "USL_POCKET_ID_SCOPES=openid profile email groups",
         "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
         "--entrypoint", "/bin/sh",
@@ -7784,6 +7784,142 @@ print({json.dumps(STAGING_PAPERLESS_CONNECTION_PREFIX)} + json.dumps({{
             raise RuntimeError("staging Paperless connection evidence differs")
         return evidence
     raise RuntimeError("staging Paperless connection returned no evidence")
+
+
+STAGING_REVIEW_IDENTITY_SCHEMA = "usl-staging-review-identity/v1"
+STAGING_REVIEW_IDENTITY_PREFIX = "USL_STAGING_REVIEW_IDENTITY="
+STAGING_REVIEW_IDENTITY_PROFILE = "accountant_reviewer"
+STAGING_REVIEW_IDENTITY_PROGRAM = r"""import json
+import os
+import secrets
+
+inputs = {
+    key: os.environ.get(name, "").strip()
+    for key, name in (
+        ("login", "USL_STAGING_RECETTE_LOGIN"),
+        ("email", "USL_STAGING_RECETTE_EMAIL"),
+        ("subject", "USL_STAGING_RECETTE_SUBJECT"),
+    )
+}
+evidence = {"schema": "usl-staging-review-identity/v1", "status": "skipped"}
+if all(inputs.values()):
+    summary = env["res.users"].with_context(
+        usl_documents_defer_user_access_sync=True,
+    )._usl_pocketid_apply_user_configuration(
+        [{
+            "login": inputs["login"],
+            "name": "Recette staging",
+            "email": inputs["email"],
+            "subject": inputs["subject"],
+            "profile": "accountant_reviewer",
+            "companies": "all",
+            "create_if_missing": True,
+        }],
+        # Only a break-glass profile reads this value, and none is configured
+        # here: the existing break-glass administrator keeps its password.
+        break_glass_password=secrets.token_urlsafe(48),
+        strict=False,
+    )
+    user = env["res.users"].sudo().search([("login", "=", inputs["login"])])
+    provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+    identity = env["usl.oidc.identity"].sudo().search([
+        ("user_id", "in", user.ids),
+        ("issuer", "=", provider.usl_oidc_issuer),
+        ("subject", "=", inputs["subject"]),
+        ("active", "=", True),
+    ])
+    checks = {
+        "active": len(user) == 1 and user.active is True,
+        "pocketid_access": len(user) == 1 and user.usl_pocketid_access is True,
+        "identity_linked": len(identity) == 1,
+        "not_system_administrator": (
+            len(user) == 1 and not user.has_group("base.group_system")
+        ),
+    }
+    if not all(checks.values()):
+        raise RuntimeError("staging review identity failed: " + ", ".join(
+            key for key, value in checks.items() if not value
+        ))
+    env.cr.commit()
+    evidence = {
+        "schema": "usl-staging-review-identity/v1",
+        "status": "ensured",
+        "profile": "accountant_reviewer",
+        "created": summary["users"][0]["created"] is True,
+        "user_id": user.id,
+        **checks,
+    }
+print("USL_STAGING_REVIEW_IDENTITY=" + json.dumps(evidence, sort_keys=True))
+"""
+
+
+def _ensure_staging_review_identity(target, runner, generation_identity) -> dict:
+    """Give staging the review account that a rebuild from production removes.
+
+    Staging is rebuilt from a production backup, so an Odoo user that exists
+    only on staging disappears at every reset. This step links one staging-only
+    Pocket ID subject to a human user with the read-only accounting reviewer
+    profile, through the governed identity API. Its three inputs are not
+    secrets; the staging Compose file declares them on the Odoo service, and a
+    staging without them skips the step.
+
+    It runs in the admitted generation, after the release controls were
+    compared: those controls count users, their groups and their identities
+    against the restored snapshot, so the same write before the comparison
+    would make every staging release refuse itself. The account is a
+    convenience of the staging environment, so a failure is recorded as
+    evidence and never fails a release.
+    """
+    receipt = {"schema": STAGING_REVIEW_IDENTITY_SCHEMA, "status": "not-applicable"}
+    if target.value["environment"] != "staging":
+        return receipt
+    receipt["status"] = "failed"
+    try:
+        container = runner.run(compose_command(
+            generation_identity, ["ps", "--quiet", target.value["services"]["odoo"]],
+        )).stdout.strip()
+        if not container or "\n" in container:
+            raise ValueError("staging review identity requires one running Odoo container")
+        result = runner.run(
+            [
+                "docker", "exec", "--interactive", container,
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={target.value['databases']['odoo']['name']}",
+                "--no-http", "--max-cron-threads=0",
+            ],
+            input_text=STAGING_REVIEW_IDENTITY_PROGRAM,
+        )
+        evidence = None
+        for line in reversed(result.stdout.splitlines()):
+            if line.startswith(STAGING_REVIEW_IDENTITY_PREFIX):
+                evidence = json.loads(line.removeprefix(STAGING_REVIEW_IDENTITY_PREFIX))
+                break
+    except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
+        receipt["detail"] = type(error).__name__
+        return receipt
+    skipped = {"schema": STAGING_REVIEW_IDENTITY_SCHEMA, "status": "skipped"}
+    if evidence == skipped:
+        return skipped
+    ensured = {
+        "schema": STAGING_REVIEW_IDENTITY_SCHEMA,
+        "status": "ensured",
+        "profile": STAGING_REVIEW_IDENTITY_PROFILE,
+        "active": True,
+        "pocketid_access": True,
+        "identity_linked": True,
+        "not_system_administrator": True,
+    }
+    if (
+        not isinstance(evidence, dict)
+        or set(evidence) != set(ensured) | {"created", "user_id"}
+        or any(evidence[key] != value for key, value in ensured.items())
+        or type(evidence["created"]) is not bool
+        or type(evidence["user_id"]) is not int
+        or evidence["user_id"] < 1
+    ):
+        receipt["detail"] = "evidence differs"
+        return receipt
+    return evidence
 
 
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
@@ -8664,6 +8800,23 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         rollback_active_candidate(error)
         raise
+    review_identity = _ensure_staging_review_identity(
+        target, target_runner, generation_identity,
+    )
+    if review_identity["status"] != "not-applicable":
+        _record_event(
+            target,
+            target_runner,
+            generation,
+            "restore",
+            "review-identity",
+            review_identity["status"],
+            **{
+                key: review_identity[key]
+                for key in ("created", "user_id", "detail")
+                if key in review_identity
+            },
+        )
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,
