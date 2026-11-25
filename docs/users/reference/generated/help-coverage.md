@@ -53,6 +53,6 @@ documentation work done in the code.
 | `usl_locale` | 1 | 1 | 100 % |
 | `usl_platform_billing` | 9 | 98 | 9 % |
 | `usl_pocketid` | 9 | 40 | 22 % |
-| `usl_project` | 3 | 4 | 75 % |
+| `usl_project` | 3 | 5 | 60 % |
 | `usl_sign` | 6 | 384 | 2 % |
 | `usl_tese_payroll` | 3 | 172 | 2 % |
