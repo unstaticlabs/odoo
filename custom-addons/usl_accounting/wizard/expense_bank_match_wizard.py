@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class UslExpenseBankMatchWizard(models.TransientModel):
@@ -78,10 +79,15 @@ class UslExpenseBankMatchWizard(models.TransientModel):
 
     def action_confirm(self):
         self.ensure_one()
-        action = self.candidate_id._apply_match()
         review_id = self.env.context.get("usl_employee_payment_review_id")
-        if review_id:
-            review = self.env["hr.expense.post.wizard"].browse(review_id).exists()
-            if review:
-                return review._usl_after_bank_match(self.expense_id)
+        review = self.env["hr.expense.post.wizard"].browse(review_id).exists() if review_id else None
+        review_batch = None
+        if review and review.usl_review_stage == "submit":
+            if (self.expense_id not in review._usl_check_pending()
+                    or self.candidate_id not in review.usl_review_candidate_ids):
+                raise UserError(_("This expense is outside the current review. Reopen the review to continue."))
+            review_batch = review.usl_review_batch_id
+        action = self.candidate_id._apply_match(review_batch=review_batch)
+        if review:
+            return review._usl_after_bank_match(self.expense_id)
         return action

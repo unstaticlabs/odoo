@@ -22,7 +22,7 @@ CONTEXT_SOURCES = [
 class HrExpense(models.Model):
     _inherit = "hr.expense"
 
-    def action_submit(self):
+    def _check_batch_submission_scope(self):
         self.check_access("write")
         batched = self.filtered("expense_batch_id")
         delegated = (
@@ -35,6 +35,10 @@ class HrExpense(models.Model):
                 "Open %(batch)s and choose Submit batch for these expenses.",
                 batch=", ".join(batched.expense_batch_id.mapped("display_name")),
             ))
+        return batched.expense_batch_id
+
+    def action_submit(self):
+        self._check_batch_submission_scope()
         return super().action_submit()
 
     expense_batch_id = fields.Many2one(

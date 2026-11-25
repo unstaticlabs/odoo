@@ -1592,7 +1592,7 @@
       },
       "rationale": "Native expense submission changes approval state and therefore is not read-only. The exact batch-only private delegate adds restrictions without granting access or replacing native accounting and audit behavior. Standalone expenses retain native submission.",
       "reviewed_digests": {
-        "rpc:hr.expense.action_submit": "231c3dafd697a184dbccf160af4297c2e4dcfb4eff38131cff70da6088678ba2"
+        "rpc:hr.expense.action_submit": "954b4d88c8c8873cbe170d7a4ca8078b8b0394665f5abd869a9d41827f308270"
       }
     },
     {
@@ -143647,7 +143647,7 @@
         "rpc:usl.expense.batch.action_open_add_expenses_wizard": "a82976bd7131f6cce64d43aa6ce1a2dc1aa586567cdb773683d78a0c6d772b13",
         "rpc:usl.expense.batch.action_open_context_wizard": "a1f8bd3b3e1432d6157f9ba3e161e703c3dadc9bb1663f6a5186bb5c0551e9f9",
         "rpc:usl.expense.batch.action_post": "87eea95161c283bfb1a03cac483f67c3f1ee2a6cf9e2733d4fcb4f5158f11e24",
-        "rpc:usl.expense.batch.action_submit": "dbb5a3763f4f96290f75b834ac26a3a46f44d28e1e0bdf997b47bb391816b8c3",
+        "rpc:usl.expense.batch.action_submit": "714aa76aee369084a97dcfe1bcbb49e6c387de1ddccd874a8c9850db3802e3fe",
         "rpc:usl.expense.batch.add.wizard.action_add": "84e295f15a8995c58b2108c9f8b372e87dd0c3a03bfb1d3e139d80202c946587",
         "rpc:usl.expense.batch.add.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.expense.batch.add.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -143679,7 +143679,7 @@
         "rpc:usl.expense.batch.context.apply.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:usl.expense.batch.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.expense.batch.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:usl.expense.batch.create.wizard.action_create_and_submit": "94951cda3b3b4956cebe6d68633da462c3ae55654285dd80969305e7b0b2d349",
+        "rpc:usl.expense.batch.create.wizard.action_create_and_submit": "8a84a59b67b3fcf3c101cc6eda328f6f2da1445bb54cd25ac200dec8bc319804",
         "rpc:usl.expense.batch.create.wizard.action_create_batch": "42b75d1a9ce1f57a2f093c1d70c3b08e076d43dfb04045945617d23c3610fc42",
         "rpc:usl.expense.batch.create.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.expense.batch.create.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -155388,17 +155388,17 @@
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.line.write:orm_write:1": "def13d3e10ce5c96cd5b7a22cd5a75926646f128bddf9dd7e843f494ca46af58",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.unlink:orm_unlink:1": "28690d1852b7a48584d62d923fc9f1c9520b65366a274dbde6eb32fea72456a9",
         "sink:usl_accounting:custom-addons/usl_accounting/models/bank_statement_review.py:account.move.write:orm_write:1": "7305b7be90d30bdba01c313ee93fa6e65c73bed0e862cd9c91e3e9668df08f23",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1": "d375e5d80237e1a6cf070dbd53a1329e37751795503ede870e932bd139b8efc1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1": "6c9ee7d4d931bf654f2e5355b86086ba2dd4fe3fc7b8b34674e1f679000db43e",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_create:1": "f23ced9433def45ad1622d23f83db37de0c0096696d7af6c9fbffc00ddf6a081",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:1": "961f7e997c4ca190aaa2f2d6aedba86b3b2cbba32e59cb1b23afbb46b37d24a4",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_refresh_bank_match_candidates:orm_write:2": "cf4cbd218d95d70da7708c7cd6919320b28917f2a17fa878d9ab36209d5d7534",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense.action_post:orm_write:1": "5f0e56fd49206a07af22d85bbb38210866aa3ff4cd69b9e8f02dd5a955f09981",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "c59da01990ee546263bf8dd7b08b27e60847ff8ce2bf7650355f6595fe575639",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "20eaa11a601a6575dcf5fef46df947e82b88f844574d24f55df771a3ba0109ca",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "f83be48d2e73303498d45487e2830e8f4e049ab7144e8f7d2c919d5cb57f37cb",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "d8c4c4bdcbaa11fb03f969b2ffe5d0fbafdeeb1978f8c7fb157359c69cc3e9b7",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "466cc0f35ba2b09d0fcae0a8b1b31f341760a9434784161f4686f2ae14564f88",
-        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "ea2f81b96813ab012db62527fc8e6156928b0e464838b390e1f663fa85862e39",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1": "993779348736aa58a2d34e86602f3f4a40a733ae194de874cd3ceb1d6522fbee",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2": "b953161538979062d5fa38bc574e1aeecbcc08ad317f580224f385e27cbfa299",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1": "a9300ceb934b08586887962303679f011970ea0e85567a0a7b149f35ef6656a0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2": "aed81de262aea93531a01e12639cd92a0fc655ec5d9a0251a152fcbc2ec19e4e",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3": "b5b8d061fd49543d1aac745e0107e1c43729f92bdb6809f2462c56a41af198b8",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4": "d54946e6641402888e811b8165d673c8a1d45d705de939ea5f953cf75a78aa40",
         "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate.action_open_confirmation:orm_create:1": "8c018b115f85b5c586ed235d2559d2ba868d4e8c42fc758428abc8a2df9291c7",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
         "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:account.immediate.settlement._restore_payment_rate_document:orm_write:1": "2edf1302550b9c5889f195ba370523b1a03a91e7604a3b78ef2ecd1f11b9b886",
@@ -155533,7 +155533,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:orm_write:1": "ce59a1f422bab3a649a2c213f1bf567204001e8cbc147f7c8c2530c08e13d824",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:1": "3b6e3e2c048a509d443bf3fc3a6bc4bc0f947c5166109c0fcedd8e9595fa8382",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bank_statement_review_wizard.py:account.bank.statement.reopen.action_reopen:sudo:2": "e8bd9819300d080b1978381f23285e4b5b272673883614712a98de8b38197a2f",
-        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1": "d41a4fa290d5a8781cb58e520829b238a1c61145578d261ba978d8dd4a789418",
+        "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1": "9289fca952226ba3368cb5831e21c734672198fd7f766ad39f1a8240ad25d03a",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_open_employee_payment_review:orm_write:1": "c53c7c38fba79efa167cbbed64eaeeab1e02cca94cd5230cde91e6ebda867638",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1": "487b757045e414e9392b4d1b805987f29a108949e3e2d971b8b595d94bdbd3c2",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1": "088e2b7067dfc292f421df41837dabc7e421c60a3f38fa327a7a846b3b431d3e",
@@ -181559,13 +181559,13 @@
         "sink:uom:addons/uom/models/uom_uom.py:uom.uom._filter_protected_uoms:sudo:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_review_context:sudo:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:message_send:1",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:orm_write:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:sudo:1",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.apply_context:message_send:1",
@@ -184628,6 +184628,16 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:message_send:1": {
+          "evidence_id": "expense-batch-bank-review-3240",
+          "rationale": "Record the submission only after the reviewed batch transition has actually succeeded.",
+          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor’s normal batch and expense rights are checked before the native transition."
+        },
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:orm_write:1": {
+          "evidence_id": "expense-batch-bank-review-3240",
+          "rationale": "Record the submission only after the reviewed batch transition has actually succeeded.",
+          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor’s normal batch and expense rights are checked before the native transition."
+        },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_approve"
         },
@@ -184644,16 +184654,6 @@
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_post"
-        },
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": {
-          "evidence_id": "receipt-batch-handoff-20261014",
-          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_submit"
-        },
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1": {
-          "evidence_id": "receipt-batch-handoff-20261014",
-          "rationale": "The batch-oriented UI offers Add to batch and native Submit batch. Its in-process object delegate submits only the exact selected batch; standalone native submission remains available, and forged context or foreign-company writes fail without partial changes.",
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_submit"
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:orm_write:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.add_expenses"
@@ -185962,13 +185962,13 @@
         "sink:uom:addons/uom/models/uom_uom.py:uom.uom._filter_protected_uoms:sudo:1": "3677a8f5a6b03f5b572075195aa523f7a575c92ab545fc77886d6572081e8f3f",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._compute_review_context:sudo:1": "fc8dc6eaced574785768ae0aff87523648341ce7783f80ab76290587010cefbb",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._link_existing_moves:sudo:1": "e23cdc22e73b0992815e3ce2ad702adc38bab66fe25080c379701850716cc6e7",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:message_send:1": "2b8b861d8700ab795f9bb54864fc82712b6e49a9f287dc4b4b241e85e3d875e4",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:orm_write:1": "24f37e95d6fbf0e09b3670f81bc795e755b0c143f871b72c9f805c59ffaee9da",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1": "648900cf7b517713c1f78bf34421a900d4e97c90046d5a5c87dc92cc998d1730",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:orm_write:1": "3167e9560ec7cd7c61946de61b5a7bb263d0bf8ba14a97afc9e49492f53ceeb2",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_add_expenses_wizard:orm_create:1": "2d7e91a5bb19466c8bd79098232cd37c7e7b474a072155e5da87969886d73582",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_open_context_wizard:orm_create:1": "f6566cd0bb1f08d7cd36253d68c61397b1db657bc2b8a816d3d6beb051a35869",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_post:message_send:1": "3b82374259213ffade2f89cd13105f27cd9c4102f62a0a4de158ffe66e76b6a4",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1": "0dd7bed2ec7de7383c8247c55fc03d272211dcf6eaf625b8125834a1f4a8180b",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1": "44b99d53a3015438688d3204be582295b056d0033095f4e865e8d4f84ed5b51f",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:orm_write:1": "f467f288018df410491fadcf85523266a5ea826aa98c70f83ae4503facc03a78",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.add_expenses:sudo:1": "395830e657f5ec4b92d253780316eab1904a24bdfa5d3ba779d7d4a470b32829",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.apply_context:message_send:1": "f869abc8362a483cf00f61420f0699173931633ba4b01c236732fa0fb736e871",
@@ -185980,7 +185980,7 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.write:orm_write:1": "0a12be8dc526bc32ad460f796984d87fd3e70a6745b06cd41c0e8b5047964e82",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.write:orm_write:2": "1bbae0d8dd35672c15550ac947d2c5042ddb6851e93952c18f4c2c793e451a6a",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard._create_batch:orm_create:1": "21698a282e0bd3e64a8e2ec94375cb68cbdcd4655a475c2adc6cfe06ebcf13a9",
-        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_and_submit:orm_write:1": "600513d124de3f4bd62e7dcf88996d9ea422fc0583c851bbaddd724cbbb0a0cf",
+        "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_and_submit:orm_write:1": "0c0473c5cb558c12035d2663717d4650d17b060ba60ba6259fab0f9f1dffb6f7",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_batch:orm_write:1": "b1e87a2e33ff856f53565e20cd733345ad4bcefae4c53c547d452cdf057e9122",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_create:1": "9b41bba357cc2f9ec94e8b19959420198ba517bab095ce94765235466ccf1cbf",
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.create:orm_write:1": "ec99372022d1c93bfdc85608500386e4e36a8cba13a441c38b938bcdb41f00d9",
@@ -204379,7 +204379,7 @@
       "id": "operational.accounting.expense_bank_match_confirmation_20261030",
       "rationale": "This fixed, operator-selected workflow retains native access, company and accounting checks, fresh candidate validation and acting-user attribution. People and delegated Agents use the same effective permissions; no separate approval is introduced.",
       "reviewed_digests": {
-        "rpc:usl.expense.bank.match.wizard.action_confirm": "a9f8553fe54de0873c53711c1741121d7a77afc14116bcb74ccc1bc63e4f4098"
+        "rpc:usl.expense.bank.match.wizard.action_confirm": "2b2940f23f43dceadcc2eced3c2e01b891e377cfe634fcbe06e11b0bc631f977"
       }
     },
     {
@@ -210767,6 +210767,15 @@
         "custom-addons/usl_enablebanking/tests/test_enablebanking.py::TestEnableBanking",
         "custom-addons/usl_enablebanking/tests/test_transport_callback.py",
         "accounting_compat/tests/test_enablebanking_protocol.py"
+      ]
+    },
+    "expense-batch-bank-review-3240": {
+      "contract": "Native batch submission preserves the bank review until the operator decides. Resume checks the exact reviewed batch and current drafts, retains native financial and access rules, and records submission once after completion.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_submit_resumes_after_native_bank_review",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_submit_applies_company_match_and_continues_remaining_drafts",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_review_refuses_unreviewed_new_draft",
+        "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_create_and_submit_with_one_match_finishes_once"
       ]
     },
     "feedback-capture-20261013": {

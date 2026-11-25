@@ -8,6 +8,7 @@ class HrExpensePostWizard(models.TransientModel):
     _inherit = "hr.expense.post.wizard"
 
     usl_review_expense_ids = fields.Many2many("hr.expense", readonly=True)
+    usl_review_batch_id = fields.Many2one("usl.expense.batch", readonly=True)
     usl_review_candidate_ids = fields.Many2many("usl.expense.bank.match.candidate", readonly=True)
     usl_review_fingerprint = fields.Char(readonly=True)
     usl_review_stage = fields.Selection([
@@ -29,14 +30,18 @@ class HrExpensePostWizard(models.TransientModel):
         return self._usl_review_action()
 
     def _usl_review_action(self):
+        context = dict(self.env.context, active_ids=self.usl_review_expense_ids.ids,
+                       usl_employee_payment_review_id=self.id,
+                       usl_bank_match_show_expense=len(self.usl_review_expense_ids) > 1)
+        # Server-side submission authority is rebuilt after rechecking the batch.
+        context.pop("usl_batch_submission_token", None)
+        context.pop("usl_batch_submission_id", None)
         return {
             "type": "ir.actions.act_window", "name": _("Company payment match"),
             "res_model": self._name, "res_id": self.id, "view_mode": "form",
             "views": [(self.env.ref("usl_accounting.view_expense_post_bank_match_review").id, "form")],
             "target": "new",
-            "context": dict(self.env.context, active_ids=self.usl_review_expense_ids.ids,
-                            usl_employee_payment_review_id=self.id,
-                            usl_bank_match_show_expense=len(self.usl_review_expense_ids) > 1),
+            "context": context,
         }
 
     def _usl_check_pending(self):
@@ -50,6 +55,11 @@ class HrExpensePostWizard(models.TransientModel):
                   "post": {"approved"}, "post_entry": {"approved"}}
         if not expenses or any(expense.state not in states[self.usl_review_stage] for expense in expenses):
             raise UserError(_("The expense state changed. Refresh the expenses before continuing."))
+        if self.usl_review_stage == "submit":
+            if self.usl_review_batch_id:
+                self.usl_review_batch_id._draft_expenses_for_submission(expenses)
+            elif expenses.expense_batch_id:
+                raise UserError(_("The batch changed. Open it and choose Submit batch again."))
         return expenses
 
     def action_continue_employee_payment(self):
@@ -62,7 +72,11 @@ class HrExpensePostWizard(models.TransientModel):
     def _usl_dispatch(self, expenses):
         stage = self.usl_review_stage
         expenses = expenses.with_context(usl_bank_match_transition=_POSTING_REVIEW_CONFIRMED)
-        if stage in ("submit", "approve"):
+        if stage == "submit" and self.usl_review_batch_id:
+            batch = self.usl_review_batch_id.with_context(usl_bank_match_transition=_POSTING_REVIEW_CONFIRMED)
+            batch._submit_draft_expenses(expenses)
+            action = self.usl_review_batch_id._get_records_action()
+        elif stage in ("submit", "approve"):
             action = getattr(expenses, "action_" + stage)()
         elif stage == "post_entry" and all(expense.payment_mode == "own_account" for expense in expenses):
             action = self.with_context(active_ids=expenses.ids, usl_bank_match_transition=_POSTING_REVIEW_CONFIRMED).action_post_entry()
@@ -91,6 +105,9 @@ class HrExpensePostWizard(models.TransientModel):
         self.usl_review_expense_ids -= expense
         if not self.usl_review_expense_ids:
             self.usl_review_completed = True
+            if self.usl_review_batch_id:
+                self.usl_review_batch_id._record_submission()
+                return self.usl_review_batch_id._get_records_action()
             return expense._get_records_action()
         self.usl_review_fingerprint = False
         return self.action_continue_employee_payment()
