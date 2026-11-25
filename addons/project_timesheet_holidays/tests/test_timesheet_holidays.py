@@ -166,6 +166,35 @@ class TestTimesheetHolidays(TestCommonTimesheet):
             [(self.leave_start_datetime + relativedelta(days=d)).date() for d in (1, 2, 3)],
         )
 
+    def test_timesheet_generation_multi_day_half_day_time_off_duration_based_calendar(self):
+        """
+        On a duration-based calendar (8h per day), a half-day time off from
+        Monday PM to Tuesday AM must generate two 4h timesheets.
+        """
+        duration_based_calendar = self.env['resource.calendar'].create({
+            'name': 'Duration based',
+            'attendance_ids': [
+                fields.Command.clear(),
+                *[fields.Command.create({'duration_hours': 8, 'dayofweek': str(i)}) for i in range(5)],
+            ],
+        })
+        self.empl_employee.resource_calendar_id = duration_based_calendar
+
+        time_off = self.Requests.with_user(self.user_employee).create({
+            'name': 'Test Multi-Day Half Days',
+            'employee_id': self.empl_employee.id,
+            'work_entry_type_id': self.hr_work_entry_type_half_day.id,
+            'request_date_from': datetime(2026, 2, 9),  # Monday
+            'request_date_from_period': 'pm',
+            'request_date_to': datetime(2026, 2, 10),  # Tuesday
+            'request_date_to_period': 'am',
+        })
+        self.assertAlmostEqual(time_off.number_of_days, 1)
+        time_off.with_user(SUPERUSER_ID).action_approve()
+
+        self.assertEqual(len(time_off.timesheet_ids), 2)
+        self.assertEqual(time_off.timesheet_ids.sorted('date').mapped('unit_amount'), [4.0, 4.0])
+
     def test_validate_worked_leave(self):
         # employee creates a leave request of worked time type
         holiday = self.Requests.with_user(self.user_employee).create({
@@ -623,3 +652,57 @@ class TestTimesheetHolidays(TestCommonTimesheet):
         }).action_register()
 
         self.assertFalse(leave_timesheet.exists(), "The timesheet should be safely unlinked from the leave and deleted.")
+
+    def test_holiday_with_calendar_timezone(self):
+        """
+        Tests that the timesheets for public holidays use the working schedule's company's timezone
+        """
+        self.env.company.tz = 'Asia/Dubai'
+        dubai_calendar = self.env['resource.calendar'].create({
+            'name': 'Dubai tz calendar',
+            'hours_per_day': 8.0,
+            'attendance_ids': [
+                (0, 0, {
+                    'dayofweek': str(day),
+                    'hour_from': 8.0,
+                    'hour_to': 16.0,
+                    'day_period': 'morning',
+                }) for day in range(5)
+            ]
+        })
+
+        self.empl_employee.resource_calendar_id = dubai_calendar.id
+        christmas = self.env['resource.calendar.leaves'].create({
+            'name': 'Christmas',
+            'calendar_id': dubai_calendar.id,
+            'date_from': datetime(2026, 12, 24, 4, 0, 0),
+            'date_to': datetime(2026, 12, 24, 8, 0, 0),
+        })
+        timesheet = self.env['account.analytic.line'].search([
+            ('global_leave_id', '=', christmas.id),
+            ('employee_id', '=', self.empl_employee.id),
+        ])
+        self.assertEqual(timesheet.unit_amount, 4.0, "The amount of leaves should use the company's timezone and not blindly take UTC")
+
+    def test_public_holiday_timesheet_date_flexible_employee_timezone(self):
+        """
+        Tests that a public holiday timesheet of a flexible employee is in the employee's timezone
+        """
+        company = self.env['res.company'].create({"name": "new company"})
+        flexible_employee = self.env['hr.employee'].create({
+            'name': 'Flexible',
+            'company_id': company.id,
+            'resource_calendar_id': False,
+            'tz': 'Asia/Tokyo',
+            'hours_per_week': 7,
+            'hours_per_day': 7,
+        })
+
+        self.env['resource.calendar.leaves'].with_company(company).create({
+            'name': 'Public Holiday',
+            'date_from': datetime(2021, 1, 3, 15, 0, 0),
+            'date_to': datetime(2021, 1, 4, 14, 59, 59),
+        })
+        timesheet = self.env['account.analytic.line'].search([('employee_id', '=', flexible_employee.id)])
+        self.assertEqual(timesheet.unit_amount, 7)
+        self.assertEqual(timesheet.date, datetime(2021, 1, 4).date())

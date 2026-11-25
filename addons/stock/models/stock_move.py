@@ -196,7 +196,7 @@ class StockMove(models.Model):
     show_quant = fields.Boolean("Show Quant", compute="_compute_show_info")
     show_lots_m2o = fields.Boolean("Show lot_id", compute="_compute_show_info")
     show_lots_text = fields.Boolean("Show lot_name", compute="_compute_show_info")
-    scrap_reason_tag_ids = fields.Many2many('stock.scrap.reason.tag', string='Scrap Reason')
+    scrap_reason_tag_ids = fields.Many2many('stock.scrap.reason.tag', string='Scrap Reason', copy=False)
     should_replenish_scrapped = fields.Boolean('Should Replenish')
 
     _product_location_index = models.Index("(product_id, location_id, location_dest_id, company_id, state)")
@@ -712,9 +712,10 @@ Please change the quantity done or the rounding precision in your settings.""",
                     for quant in quants_to_reserve:
                         if reserved and product.uom_id.compare(extra_uom_qty, 0.0) <= 0:
                             break
-                        if not quant.lot_id or product.uom_id.compare(quant.available_quantity, 0.0) <= 0:
+                        quant_qty = quant.quantity if move.is_scrap else quant.available_quantity
+                        if not quant.lot_id or product.uom_id.compare(quant_qty, 0.0) <= 0:
                             continue
-                        quantity_to_reserve = min(quant.available_quantity, max(extra_uom_qty if reserved else extra_uom_qty + 1, 1))
+                        quantity_to_reserve = min(quant_qty, max(extra_uom_qty if reserved else extra_uom_qty + 1, 1))
                         if product.uom_id.compare(quantity_to_reserve, 0.0) > 0:
                             move_line_vals = self._prepare_move_line_vals(quantity=quantity_to_reserve, reserved_quant=quant)
                             move_line_vals.update({'lot_id': lot.id, 'lot_name': lot.name})
@@ -2659,9 +2660,15 @@ Please change the quantity done or the rounding precision in your settings.""",
                     ('location_dest_id', '=', move.location_dest_id.id),
                     ('action', '!=', 'push')
                 ]
+                warehouse = move.warehouse_id or move.picking_type_id.warehouse_id
+                rule = self.env['stock.rule']
                 if picking_type_code:
                     domain.append(('picking_type_id.code', '=', picking_type_code))
-                rule = self.env['stock.rule']._search_rule(False, move.packaging_uom_id, product_id, move.warehouse_id or move.picking_type_id.warehouse_id, domain)
+                elif move.picking_type_id:
+                    # Several rules can match, prefer one of the same operation type as the move.
+                    rule = self.env['stock.rule']._search_rule(False, move.packaging_uom_id, product_id, warehouse, domain + [('picking_type_id.code', '=', move.picking_type_id.code)])
+                if not rule:
+                    rule = self.env['stock.rule']._search_rule(False, move.packaging_uom_id, product_id, warehouse, domain)
                 if rule:
                     break
                 location = location.location_id
