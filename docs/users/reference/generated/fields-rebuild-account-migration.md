@@ -1016,6 +1016,7 @@ false
 | **Archived Journals Used in the Annual Close** (`annual_archived_journal_count`) | integer |  |  |
 | **Journals Used in the Annual Close** (`annual_journal_count`) | integer |  |  |
 | **Posted Entries in the Annual Close** (`annual_posted_move_count`) | integer |  |  |
+| **Approved Expenses** (`approved_expense_count`) | integer |  |  |
 | **Balance** (`balance`) | monetary |  |  |
 | **Bank and Cash Balance** (`bank_balance`) | monetary |  |  |
 | **Bank Checkpoint Config** (`bank_checkpoint_config_id`) | many2one → `account.bank.ingestion.config` |  |  |
@@ -1061,7 +1062,8 @@ false
 | **Currency** (`currency_id`) | many2one → `res.currency` |  |  |
 | **Debit** (`debit`) | monetary |  |  |
 | **Draft Customer Document Count** (`draft_customer_document_count`) | integer |  |  |
-| **Expenses to Process** (`draft_expense_count`) | integer |  |  |
+| **Expenses to Process** (`draft_expense_count`) | integer |  | Draft, submitted and approved expenses awaiting further processing. This legacy count does not mean editable drafts. |
+| **Draft Expenses Only** (`draft_only_expense_count`) | integer |  |  |
 | **Draft Vendor Document Count** (`draft_vendor_document_count`) | integer |  |  |
 | **Evidence Status** (`evidence_status`) | selection |  | Values: **Ready**, **Attention Required**. |
 | **Expected payments** (`expected_payment_amount`) | monetary |  |  |
@@ -1101,6 +1103,7 @@ false
 | **Review Decision Count** (`review_decision_count`) | integer |  |  |
 | **Stale Draft Documents** (`stale_draft_document_count`) | integer |  |  |
 | **Stale Expense Work** (`stale_draft_expense_count`) | integer |  |  |
+| **Submitted Expenses** (`submitted_expense_count`) | integer |  |  |
 | **Unmatched Bank Transaction Count** (`unmatched_bank_transaction_count`) | integer |  |  |
 | **Unusual Balance Review Amount** (`unusual_balance_amount`) | monetary |  |  |
 | **Unusual Account Balances** (`unusual_balance_count`) | integer |  |  |
