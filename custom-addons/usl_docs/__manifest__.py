@@ -1,7 +1,7 @@
 {
     "name": "USL Documentation",
     "summary": "Serve the release's user guide and prove it against browser journeys",
-    "version": "saas~19.3.1.1.1",
+    "version": "saas~19.3.1.1.2",
     "category": "Hidden",
     "author": "Unstatic Labs",
     "license": "LGPL-3",

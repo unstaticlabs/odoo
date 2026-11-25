@@ -104,6 +104,25 @@ class DocsGenerateTests(unittest.TestCase):
         page = (self.docs / "how-to" / "match-a-line.md").read_text(encoding="utf-8")
         self.assertIn("persona: accountant\nscreen: /odoo/accounting\njourney: match-a-line\n", page, "empty keys are omitted")
 
+    def test_named_tutorials_coexist_with_the_accounting_landing_page(self):
+        landing = self.docs / "TUTORIAL.md"
+        self.docs.mkdir(exist_ok=True)
+        landing.write_text("Accounting tour", encoding="utf-8")
+        for on_disk, slug, lang in (
+            ("first", "your-first-batch", "en"),
+            ("premier", "votre-premier-lot", "fr"),
+        ):
+            records = self.records / on_disk
+            data = write_record(records, journey=slug, page_type="tutorial")
+            data.update(named_tutorial=True, lang=lang)
+            if lang == "fr":
+                data["translation_of"] = "tutorial/your-first-batch.md"
+            (records / "tour_match/desktop/journey.json").write_text(json.dumps(data), encoding="utf-8")
+            docs_generate.render_all(records, self.docs)
+            self.assertIn(f"]({slug}/01-open.png)", (self.docs / "tutorial" / f"{slug}.md").read_text())
+        self.assertEqual(landing.read_text(), "Accounting tour")
+        self.assertIn("translation_of: tutorial/your-first-batch.md", (self.docs / "tutorial/votre-premier-lot.md").read_text())
+
     def test_a_tutorial_renders_at_the_root(self):
         write_record(self.records, journey="tour", page_type="tutorial")
         docs_generate.render_all(self.records, self.docs)

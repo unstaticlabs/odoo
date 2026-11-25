@@ -81,7 +81,7 @@ def page_path_for(record):
     if not SLUG_RE.match(record["journey"]):
         raise DocsGenerateError(f"journey id {record['journey']!r} is not a kebab-case slug")
     if record["type"] == "tutorial":
-        if record.get("translation_of"):
+        if record.get("translation_of") or record.get("named_tutorial"):
             return Path("tutorial") / f"{record['journey']}.md"
         return Path("TUTORIAL.md")
     return Path("how-to") / f"{record['journey']}.md"
