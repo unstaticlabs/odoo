@@ -7,12 +7,37 @@ import { VoiceCapture } from "./capture";
 import { captureTarget, dictationTarget } from "./dictation_target";
 import { VoiceMeter } from "./meter";
 
+/**
+ * Odoo closes a quick-create field, a list row or a popover on any click it sees outside
+ * it, and each component decides that in its own way. The controls act on the field that
+ * keeps the focus, so their pointer events are handled here, first, and reach nobody else.
+ * This module is loaded before any component is mounted, so these listeners run first.
+ */
+const ACTIONS = ["record", "stop", "cancel", "copyText"];
+let mounted = null;
+for (const type of ["pointerdown", "mousedown", "touchstart", "pointerup", "mouseup", "touchend", "click"]) {
+    window.addEventListener(type, (ev) => {
+        if (!mounted || !(ev.target instanceof Element) || !ev.target.closest(".o-usl-dictation")) {
+            return;
+        }
+        ev.stopImmediatePropagation();
+        if (type === "mousedown" && ev.target.closest(".o-usl-dictation-controls")) {
+            ev.preventDefault(); // the field keeps the focus and its selection
+        }
+        const action = type === "click" && ev.target.closest("[data-usl-action]")?.dataset.uslAction;
+        if (ACTIONS.includes(action)) {
+            mounted[action]();
+        }
+    }, true);
+}
+
 export class FieldDictation extends Component {
     static template = "usl_voice.FieldDictation";
     static props = {};
     static components = { VoiceMeter };
     setup() {
         this.notify = useService("notification");
+        mounted = this;
         this.state = useState({ mode: "idle", visible: false, x: 0, y: 0, recovered: "" });
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
@@ -46,6 +71,7 @@ export class FieldDictation extends Component {
         useExternalListener(document, "scroll", () => this.position(), true);
         useExternalListener(window, "pagehide", () => this.cancel());
         onWillUnmount(() => {
+            mounted = mounted === this ? null : mounted;
             this.cancel();
             this.target?.classList.remove("o-usl-dictation-target", "o-usl-dictation-busy");
         });
