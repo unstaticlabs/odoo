@@ -5,6 +5,7 @@ from decimal import Decimal
 from odoo import fields, models
 from odoo.exceptions import UserError
 
+from .report_export_assets import fixed_asset_ledger_totals
 from .report_export_wizard import (
     FRENCH_BALANCE_SUPPLIER_PREFIXES,
     FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES,
@@ -215,21 +216,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "presentation_role": presentation_role,
             }
 
-        fixed_types = {"asset_fixed", "asset_non_current"}
-        fixed_net, fixed_count = sum_types(
-            fixed_types,
-            balance_field="closing_balance",
-        )
-        fixed_gross, fixed_gross_count = sum_types(
-            fixed_types,
-            excluded_prefixes=["28", "29"],
-            balance_field="closing_balance",
-        )
-        fixed_depr_balance, fixed_depr_count = sum_types(
-            fixed_types,
-            prefixes=["28", "29"],
-            balance_field="closing_balance",
-        )
+        _, fixed_gross, depreciation, fixed_count = fixed_asset_ledger_totals(tb)
+        fixed_net = fixed_gross - depreciation
         current_asset_debits, current_asset_debit_count = sum_types(
             {"asset_current", "asset_receivable", "asset_prepayments"},
             excluded_prefixes=FRENCH_BALANCE_SUSPENSE_ASSET_PREFIXES,
@@ -266,7 +254,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             balance_field="closing_balance",
         )
         total_assets = fixed_net + other_receivables + cash
-        depreciation = -fixed_depr_balance
 
         capital, capital_count = sum_bal(
             ["101"],

@@ -1,5 +1,6 @@
 """Configurable closing control definitions and their evaluated control lines."""
 
+import re
 from ast import literal_eval
 
 from odoo import api, fields, models
@@ -478,9 +479,9 @@ class RebuildAccountClosingControl(models.Model):
                         result = self.env._("Export available")
                     finding = self.env._("Review file contents separately. Accepted files are listed under Accepted Snapshots.") + " " + (finding or "")
                 elif control.code == "document_completeness":
-                    finding = self.env._("Check Documents for supporting files that are not linked as the main attachment.") + " " + (finding or "")
+                    finding = self.env._("Check Documents for supporting files that are not linked as the main attachment.") + " " + control._localized_saved_finding()
                 elif control.code == "issues":
-                    finding = self.env._("Open findings through the closing date, including undated findings.") + " " + (finding or "")
+                    finding = self.env._("Open findings through the closing date, including undated findings.") + " " + control._localized_saved_finding()
             control.review_result = result
             control.review_finding = finding
 
@@ -604,3 +605,28 @@ class RebuildAccountClosingControl(models.Model):
             "domain": domain,
             "context": {"create": False, "delete": False},
         }
+
+    def _localized_saved_finding(self):
+        """Render counts from older snapshots without refreshing the closing period."""
+        summary = self.summary or ""
+        if self.code == "document_completeness":
+            counts = re.fullmatch(
+                r"([0-9]+) draft business document\(s\); ([0-9]+) posted document\(s\) without a main attachment\.",
+                summary,
+            )
+            if counts:
+                return self.env._(
+                    "Draft invoices and credit notes: %(drafts)s. Posted without a main attachment: %(missing)s.",
+                    drafts=counts[1], missing=counts[2],
+                )
+        elif self.code == "issues":
+            counts = re.fullmatch(
+                r"([0-9]+) actionable and ([0-9]+) informational Hygiene result\(s\); ([0-9]+) blocking\.",
+                summary,
+            )
+            if counts:
+                return self.env._(
+                    "Actionable: %(actionable)s. Information: %(information)s. Blocking: %(blocking)s.",
+                    actionable=counts[1], information=counts[2], blocking=counts[3],
+                )
+        return summary

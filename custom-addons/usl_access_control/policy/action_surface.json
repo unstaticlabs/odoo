@@ -11125,18 +11125,18 @@
       "delegates": [
         "rpc:res.users.browse"
       ],
-      "digest": "728dd014dd9116fe35817c715847af715344bf00c2c2b90accfe8228aa7d6602",
+      "digest": "1972dbd49a6f47da1adda80faac2b01b973fc48e29f727cd86b813f6fc38871e",
       "guards": [],
       "key": "route:jsonrpc:ANY:/base_setup/data",
       "kind": "route",
       "modules": [
-        "auth_signup",
-        "base_setup"
+        "base_setup",
+        "usl_access_control"
       ],
       "parents": [],
       "risk_flags": [],
       "route": "/base_setup/data",
-      "runtime_digest": "7e52e6ca91daa981102555a4d99b15ffa261fa8bb9d79de726338c6f65fc503b",
+      "runtime_digest": "7c7019a17ea2e7d37cb24bef82de70ccb6f3e76cb23d9d8f60662de1f45ba771",
       "sinks": [],
       "sources": [
         {
@@ -11144,7 +11144,7 @@
           "path": "addons/base_setup/controllers/main.py"
         },
         {
-          "path": "odoo/addons/auth_signup/controllers/main.py"
+          "path": "custom-addons/usl_access_control/controllers/settings.py"
         }
       ],
       "unresolved_delegates": [
@@ -419556,7 +419556,7 @@
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
         },
         {
-          "line": 478,
+          "line": 487,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -419801,7 +419801,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 728,
+          "line": 732,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -419837,7 +419837,7 @@
       ],
       "sources": [
         {
-          "line": 667,
+          "line": 671,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -420024,7 +420024,7 @@
           "path": "addons/project_sale_expense/models/hr_expense.py"
         },
         {
-          "line": 486,
+          "line": 495,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -420128,7 +420128,7 @@
       ],
       "sources": [
         {
-          "line": 865,
+          "line": 874,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -420377,7 +420377,7 @@
       ],
       "sources": [
         {
-          "line": 704,
+          "line": 708,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -420544,7 +420544,7 @@
         "rpc:hr.expense.post.wizard.with_context",
         "rpc:hr.expense.sudo"
       ],
-      "digest": "231c3dafd697a184dbccf160af4297c2e4dcfb4eff38131cff70da6088678ba2",
+      "digest": "954b4d88c8c8873cbe170d7a4ca8078b8b0394665f5abd869a9d41827f308270",
       "guards": [],
       "key": "rpc:hr.expense.action_submit",
       "kind": "rpc",
@@ -420558,7 +420558,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "317283c81ba250d57f512c70b0152ea799ea747324caaa140f0a6f7819d93399",
+      "runtime_digest": "e11f40d71de4a8b97f1fbb4ee1e45319c1467dfc709e4563402cf9e13fddedad",
       "sinks": [
         "orm_create",
         "sudo"
@@ -420573,11 +420573,11 @@
           "path": "custom-addons/rebuild_account_migration/models/operational_extensions.py"
         },
         {
-          "line": 25,
+          "line": 40,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
-          "line": 471,
+          "line": 479,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -422956,7 +422956,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 488,
+          "line": 492,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -423288,7 +423288,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 617,
+          "line": 621,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -423554,7 +423554,7 @@
       ],
       "sources": [
         {
-          "line": 133,
+          "line": 137,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -424774,7 +424774,7 @@
       ],
       "sources": [
         {
-          "line": 55,
+          "line": 65,
           "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         },
         {
@@ -424819,12 +424819,12 @@
       ],
       "sources": [
         {
-          "line": 44,
-          "path": "addons/hr_expense/wizard/hr_expense_post_wizard.py"
+          "line": 115,
+          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         },
         {
-          "line": 98,
-          "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
+          "line": 44,
+          "path": "addons/hr_expense/wizard/hr_expense_post_wizard.py"
         },
         {
           "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
@@ -432596,7 +432596,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 517,
+          "line": 521,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         },
         {
@@ -620371,12 +620371,12 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 48,
-          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
-        },
-        {
           "line": 579,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 87,
+          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
           "path": "decorators.py"
@@ -620409,7 +620409,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 224,
+          "line": 263,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
@@ -620451,7 +620451,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 31,
+          "line": 70,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
@@ -620637,12 +620637,12 @@
       ],
       "sources": [
         {
-          "line": 382,
-          "path": "addons/l10n_fr_account/wizard/account_fr_fec_export_wizard.py"
+          "line": 119,
+          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
-          "line": 80,
-          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
+          "line": 382,
+          "path": "addons/l10n_fr_account/wizard/account_fr_fec_export_wizard.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
@@ -621952,16 +621952,16 @@
       ],
       "sources": [
         {
+          "line": 100,
+          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
+        },
+        {
           "line": 3696,
           "path": "odoo/orm/models.py"
         },
         {
           "line": 608,
           "path": "custom-addons/usl_access_control/models/base.py"
-        },
-        {
-          "line": 61,
-          "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         },
         {
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
@@ -956544,7 +956544,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1614,
+          "line": 1639,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -961795,7 +961795,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 504,
+          "line": 505,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -962060,7 +962060,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 381,
+          "line": 382,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -962087,7 +962087,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 391,
+          "line": 392,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -962118,7 +962118,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 352,
+          "line": 353,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -963769,7 +963769,7 @@
       ],
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -972994,6 +972994,1693 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5205,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5216,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4954,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4832,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4889,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a79380d40b5dff61e79107f94d350cf0315d5a53fe951768b0def1f53b725a0",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 579,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.env",
+        "rpc:rebuild.account.declaration.candidate.review.with_env",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 315,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.env",
+        "rpc:rebuild.account.declaration.candidate.review.with_env",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 799,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 699,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2772,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5132,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3249,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3238,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:rebuild.account.declaration.candidate.review.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3156,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 335,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:rebuild.account.declaration.candidate.review.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:rebuild.account.declaration.candidate.review.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2923,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.search"
+      ],
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 220,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 182,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.check_access",
+        "rpc:rebuild.account.declaration.candidate.review.default_get",
+        "rpc:rebuild.account.declaration.candidate.review.fetch",
+        "rpc:rebuild.account.declaration.candidate.review.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1955,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6461,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.check_access",
+        "rpc:rebuild.account.declaration.candidate.review.fetch",
+        "rpc:rebuild.account.declaration.candidate.review.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1943,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1362,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.fields_get",
+        "rpc:rebuild.account.declaration.candidate.review.search_count",
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1775,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.fields_get",
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1634,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5164,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cb3a90a9ca4752d4aa8a98534ed1ffc659568c64c592a90eda2f67a36f67edd",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 46,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 639,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2787,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse",
+        "rpc:rebuild.account.declaration.candidate.review.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.ensure_one",
+        "rpc:rebuild.account.declaration.candidate.review.update_field_translations",
+        "rpc:res.lang.get_installed"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2174,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse",
+        "rpc:rebuild.account.declaration.candidate.review.formatted_read_group",
+        "rpc:rebuild.account.declaration.candidate.review.search",
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 346,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse",
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 319,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse",
+        "rpc:rebuild.account.declaration.candidate.review.create",
+        "rpc:rebuild.account.declaration.candidate.review.with_context",
+        "rpc:rebuild.account.declaration.candidate.review.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.browse",
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 135,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.onchange",
+        "rpc:rebuild.account.declaration.candidate.review.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.search_count",
+        "rpc:rebuild.account.declaration.candidate.review.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:rebuild.account.declaration.candidate.review.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+      "guards": [],
+      "key": "rpc:rebuild.account.declaration.candidate.review.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "rebuild.account.declaration.candidate.review",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8023729d4ec15a34439ea54d89d3e037ea6897df9039b6ead204c787e60e7a1f",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 608,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
     },
     {
       "abstract": false,
@@ -999270,7 +1000957,7 @@
       "delegates": [
         "rpc:rebuild.account.management.summary.line.ensure_one"
       ],
-      "digest": "2eaf759774e1823622d0bc3962339f37bed5ae8bf52bb507333ad67dc35ccb29",
+      "digest": "43be001e1bb60bbf9fd8ce4ff5a8f11423567ca613f21a6a0d8f79aada46eda5",
       "guards": [],
       "key": "rpc:rebuild.account.management.summary.line.action_open_journal_items",
       "kind": "rpc",
@@ -999281,7 +1000968,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "121a68599e5ec71762d61e4a3d3692942524cdaafef78ef11cb37a0f3bfa0c41",
+      "runtime_digest": "f2a69bb9a5b214e1398db0f379dc2632b3ad9c9a4f167a5478dab90f33324523",
       "sinks": [],
       "sources": [
         {
@@ -1012296,7 +1013983,7 @@
           "path": "custom-addons/usl_access_control/models/readonly_accounting_report.py"
         },
         {
-          "line": 981,
+          "line": 985,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -1012386,7 +1014073,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1027,
+          "line": 1031,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -1012464,7 +1014151,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1037,
+          "line": 1041,
           "path": "custom-addons/rebuild_account_migration/models/report_export_client.py"
         },
         {
@@ -1013158,7 +1014845,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1760,
+          "line": 1774,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -1013191,7 +1014878,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1769,
+          "line": 1783,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         },
         {
@@ -1014917,7 +1016604,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1469,
+          "line": 1494,
           "path": "custom-addons/rebuild_account_migration/models/report_views.py"
         },
         {
@@ -1401534,7 +1403221,7 @@
       ],
       "sources": [
         {
-          "line": 138,
+          "line": 139,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         },
         {
@@ -1403240,7 +1404927,7 @@
         "rpc:hr.expense.post.wizard.browse",
         "rpc:usl.expense.bank.match.wizard.ensure_one"
       ],
-      "digest": "a9f8553fe54de0873c53711c1741121d7a77afc14116bcb74ccc1bc63e4f4098",
+      "digest": "2b2940f23f43dceadcc2eced3c2e01b891e377cfe634fcbe06e11b0bc631f977",
       "guards": [],
       "key": "rpc:usl.expense.bank.match.wizard.action_confirm",
       "kind": "rpc",
@@ -1403251,11 +1404938,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "21fd83a73979bec0aa020bdfba5a163beea98c68c765f058a98f9b45c9d89b12",
+      "runtime_digest": "f01b0ff888e3b03e38383cc3948679149e2fd476e931cd1d288947c62f719222",
       "sinks": [],
       "sources": [
         {
-          "line": 79,
+          "line": 80,
           "path": "custom-addons/usl_accounting/wizard/expense_bank_match_wizard.py"
         },
         {
@@ -1404954,7 +1406641,7 @@
       ],
       "sources": [
         {
-          "line": 1116,
+          "line": 1134,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         },
         {
@@ -1405162,7 +1406849,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1152,
+          "line": 1170,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         },
         {
@@ -1405195,7 +1406882,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1156,
+          "line": 1174,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         },
         {
@@ -1405231,7 +1406918,7 @@
       ],
       "sources": [
         {
-          "line": 1136,
+          "line": 1154,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         },
         {
@@ -1405346,11 +1407033,12 @@
       "abstract": false,
       "archiveable": true,
       "delegates": [
+        "rpc:usl.expense.batch.check_access",
         "rpc:usl.expense.batch.ensure_one",
         "rpc:usl.expense.batch.message_post",
         "rpc:usl.expense.batch.write"
       ],
-      "digest": "dbb5a3763f4f96290f75b834ac26a3a46f44d28e1e0bdf997b47bb391816b8c3",
+      "digest": "714aa76aee369084a97dcfe1bcbb49e6c387de1ddccd874a8c9850db3802e3fe",
       "guards": [],
       "key": "rpc:usl.expense.batch.action_submit",
       "kind": "rpc",
@@ -1405361,7 +1407049,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "836a20a8537c5aca8d7fe78696ca63c5f63ea0b2c8d9d46d08c259b21ed6a5db",
+      "runtime_digest": "12a8c184130d4279a1283a01281c69c6cc6826cebd370228d2a8daa86c81ebb6",
       "sinks": [
         "message_send",
         "orm_write"
@@ -1405377,6 +1407065,7 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:usl.expense.batch.check_access",
         "rpc:usl.expense.batch.ensure_one"
       ]
     },
@@ -1407495,7 +1409184,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 466,
+          "line": 468,
           "path": "custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py"
         },
         {
@@ -1409376,7 +1411065,7 @@
         "rpc:usl.expense.batch.create",
         "rpc:usl.expense.batch.create.wizard.ensure_one"
       ],
-      "digest": "94951cda3b3b4956cebe6d68633da462c3ae55654285dd80969305e7b0b2d349",
+      "digest": "8a84a59b67b3fcf3c101cc6eda328f6f2da1445bb54cd25ac200dec8bc319804",
       "guards": [],
       "key": "rpc:usl.expense.batch.create.wizard.action_create_and_submit",
       "kind": "rpc",
@@ -1409387,7 +1411076,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "3ffc3dd9e428b9a543d48b42f2d301f78b38c5e007241463f7b0a916618f30ce",
+      "runtime_digest": "adb01dfcef890ff08e8ae9ccd733ecff0b6300b39b339a3eaf8868d64b19b0cf",
       "sinks": [
         "orm_create",
         "orm_write"
@@ -1644404,7 +1646093,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 495,
+          "line": 496,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644419,7 +1646108,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 495,
+          "line": 496,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644434,7 +1646123,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 159,
+          "line": 160,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644449,7 +1646138,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 159,
+          "line": 160,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644464,7 +1646153,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 159,
+          "line": 160,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644479,7 +1646168,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 159,
+          "line": 160,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1644497,7 +1646186,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1645190,7 +1646879,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 563,
+          "line": 566,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1645205,7 +1646894,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 563,
+          "line": 566,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1645220,7 +1646909,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 592,
+          "line": 595,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1645235,7 +1646924,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 592,
+          "line": 595,
           "path": "custom-addons/rebuild_account_migration/models/declaration_sync.py"
         }
       ]
@@ -1646372,7 +1648061,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 48,
+          "line": 87,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         }
       ]
@@ -1646390,7 +1648079,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 61,
+          "line": 100,
           "path": "custom-addons/rebuild_account_migration/models/fec_export_wizard.py"
         }
       ]
@@ -1647575,7 +1649264,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1541,
+          "line": 1555,
           "path": "custom-addons/rebuild_account_migration/models/report_export_wizard.py"
         }
       ]
@@ -1671074,7 +1672763,7 @@
       ]
     },
     {
-      "digest": "d375e5d80237e1a6cf070dbd53a1329e37751795503ede870e932bd139b8efc1",
+      "digest": "6c9ee7d4d931bf654f2e5355b86086ba2dd4fe3fc7b8b34674e1f679000db43e",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:hr.expense._usl_employee_payment_review:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1671083,7 +1672772,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 451,
+          "line": 457,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1671098,7 +1672787,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 734,
+          "line": 743,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1671113,7 +1672802,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 734,
+          "line": 743,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1671128,7 +1672817,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 734,
+          "line": 743,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1671146,13 +1672835,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 486,
+          "line": 495,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "c59da01990ee546263bf8dd7b08b27e60847ff8ce2bf7650355f6595fe575639",
+      "digest": "993779348736aa58a2d34e86602f3f4a40a733ae194de874cd3ceb1d6522fbee",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1671161,13 +1672850,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "20eaa11a601a6575dcf5fef46df947e82b88f844574d24f55df771a3ba0109ca",
+      "digest": "b953161538979062d5fa38bc574e1aeecbcc08ad317f580224f385e27cbfa299",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:message_send:2",
       "kind": "sink",
       "modules": [
@@ -1671176,13 +1672865,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "f83be48d2e73303498d45487e2830e8f4e049ab7144e8f7d2c919d5cb57f37cb",
+      "digest": "a9300ceb934b08586887962303679f011970ea0e85567a0a7b149f35ef6656a0",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1671191,13 +1672880,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "d8c4c4bdcbaa11fb03f969b2ffe5d0fbafdeeb1978f8c7fb157359c69cc3e9b7",
+      "digest": "aed81de262aea93531a01e12639cd92a0fc655ec5d9a0251a152fcbc2ec19e4e",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1671206,13 +1672895,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "466cc0f35ba2b09d0fcae0a8b1b31f341760a9434784161f4686f2ae14564f88",
+      "digest": "b5b8d061fd49543d1aac745e0107e1c43729f92bdb6809f2462c56a41af198b8",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1671221,13 +1672910,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
     },
     {
-      "digest": "ea2f81b96813ab012db62527fc8e6156928b0e464838b390e1f663fa85862e39",
+      "digest": "d54946e6641402888e811b8165d673c8a1d45d705de939ea5f953cf75a78aa40",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_bank_matching.py:usl.expense.bank.match.candidate._apply_match:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1671236,7 +1672925,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 259,
+          "line": 260,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1671254,7 +1672943,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 138,
+          "line": 139,
           "path": "custom-addons/usl_accounting/models/expense_bank_matching.py"
         }
       ]
@@ -1676171,7 +1677860,7 @@
       ]
     },
     {
-      "digest": "d41a4fa290d5a8781cb58e520829b238a1c61145578d261ba978d8dd4a789418",
+      "digest": "9289fca952226ba3368cb5831e21c734672198fd7f766ad39f1a8240ad25d03a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1676180,7 +1677869,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 62,
+          "line": 72,
           "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         }
       ]
@@ -1676195,7 +1677884,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 20,
+          "line": 21,
           "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         }
       ]
@@ -1676213,7 +1677902,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 98,
+          "line": 115,
           "path": "custom-addons/usl_accounting/wizard/expense_post_confirmation.py"
         }
       ]
@@ -1688909,6 +1690598,36 @@
       ]
     },
     {
+      "digest": "2b8b861d8700ab795f9bb54864fc82712b6e49a9f287dc4b4b241e85e3d875e4",
+      "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "usl_expense_batch"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 1122,
+          "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "24f37e95d6fbf0e09b3670f81bc795e755b0c143f871b72c9f805c59ffaee9da",
+      "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_expense_batch"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 1122,
+          "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
+        }
+      ]
+    },
+    {
       "digest": "648900cf7b517713c1f78bf34421a900d4e97c90046d5a5c87dc92cc998d1730",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1",
       "kind": "sink",
@@ -1688921,7 +1690640,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1116,
+          "line": 1134,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         }
       ]
@@ -1688939,7 +1690658,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1116,
+          "line": 1134,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         }
       ]
@@ -1688993,43 +1690712,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1136,
-          "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
-        }
-      ]
-    },
-    {
-      "digest": "0dd7bed2ec7de7383c8247c55fc03d272211dcf6eaf625b8125834a1f4a8180b",
-      "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:message_send:1",
-      "kind": "sink",
-      "modules": [
-        "usl_expense_batch"
-      ],
-      "parents": [
-        "rpc:usl.expense.batch.action_submit"
-      ],
-      "sink_kind": "message_send",
-      "sources": [
-        {
-          "line": 1084,
-          "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
-        }
-      ]
-    },
-    {
-      "digest": "44b99d53a3015438688d3204be582295b056d0033095f4e865e8d4f84ed5b51f",
-      "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_submit:orm_write:1",
-      "kind": "sink",
-      "modules": [
-        "usl_expense_batch"
-      ],
-      "parents": [
-        "rpc:usl.expense.batch.action_submit"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 1084,
+          "line": 1154,
           "path": "custom-addons/usl_expense_batch/models/expense_batch.py"
         }
       ]
@@ -1689335,7 +1691018,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 196,
+          "line": 200,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689353,7 +1691036,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 667,
+          "line": 671,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689371,7 +1691054,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 704,
+          "line": 708,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689389,7 +1691072,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 488,
+          "line": 492,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689407,7 +1691090,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 488,
+          "line": 492,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689425,7 +1691108,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 517,
+          "line": 521,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689443,7 +1691126,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 517,
+          "line": 521,
           "path": "custom-addons/usl_expense_batch/models/hr_expense.py"
         }
       ]
@@ -1689464,7 +1691147,7 @@
       ]
     },
     {
-      "digest": "600513d124de3f4bd62e7dcf88996d9ea422fc0583c851bbaddd724cbbb0a0cf",
+      "digest": "0c0473c5cb558c12035d2663717d4650d17b060ba60ba6259fab0f9f1dffb6f7",
       "key": "sink:usl_expense_batch:custom-addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:usl.expense.batch.create.wizard.action_create_and_submit:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1734803,6 +1736486,29 @@
       "xmlid": "rating.rating_rating_action"
     },
     {
+      "digest": "1320f0426a6f1a619bd8c3180001ee107c535c2ee2fa308f6ff544ada45b5174",
+      "guards": [],
+      "key": "ui:rebuild_account_migration.action_declaration_candidate_review",
+      "kind": "ui",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "2c053f386601d567e14bec2ee7a66f593c6b9cbef77e50a9cc3e3a385db238d0",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/rebuild_account_migration/views/declaration_candidates.xml"
+        },
+        {
+          "path": "database:ir.actions.act_window:rebuild_account_migration.action_declaration_candidate_review"
+        }
+      ],
+      "ui_type": "ir.actions.act_window",
+      "xmlid": "rebuild_account_migration.action_declaration_candidate_review"
+    },
+    {
       "digest": "5a4db4dcedac4b34c4e08c57c1a9e43460efe8c04546800a647c26d4e8aca673",
       "guards": [],
       "key": "ui:rebuild_account_migration.action_open_current_company_hygiene",
@@ -1738428,6 +1740134,31 @@
     },
     {
       "delegates": [
+        "ui:rebuild_account_migration.action_declaration_candidate_review"
+      ],
+      "digest": "fd3c9b0c3278f3fb7927dbb33a58d959229b60e7d5c34771ff8b0af472e3b2ee",
+      "guards": [],
+      "key": "ui:rebuild_account_migration.view_rebuild_account_declaration_form:button:action:rebuild_account_migration.action_declaration_candidate_review:1",
+      "kind": "ui",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0004f62af8b3cfbc1f3ccb8ab06c210e0b86a723201ded6b9c80f00b38b6833b",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/rebuild_account_migration/views/account_closing_declaration_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:rebuild_account_migration.view_rebuild_account_declaration_form"
+        }
+      ],
+      "xmlid": "rebuild_account_migration.view_rebuild_account_declaration_form"
+    },
+    {
+      "delegates": [
         "rpc:rebuild.account.declaration.action_mark_filed"
       ],
       "digest": "668701a782db488f68ecc12b375a1955088a77801c017f676660152cc72b7c40",
@@ -1738700,6 +1740431,31 @@
         }
       ],
       "xmlid": "rebuild_account_migration.view_rebuild_account_declaration_form"
+    },
+    {
+      "delegates": [
+        "ui:rebuild_account_migration.action_declaration_candidate_review"
+      ],
+      "digest": "97701ac28e0d569723c3b44e37f9a4b93d726d9309f1a658e53a56fe2f56c61e",
+      "guards": [],
+      "key": "ui:rebuild_account_migration.view_rebuild_account_declaration_list:button:action:rebuild_account_migration.action_declaration_candidate_review:1",
+      "kind": "ui",
+      "modules": [
+        "rebuild_account_migration"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "022e5ea7eab5614255e34251d9b6b868fe60163c9b869ad37b18e0e22ff6d84b",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/rebuild_account_migration/views/account_closing_declaration_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:rebuild_account_migration.view_rebuild_account_declaration_list"
+        }
+      ],
+      "xmlid": "rebuild_account_migration.view_rebuild_account_declaration_list"
     },
     {
       "delegates": [
@@ -1763978,11 +1765734,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "8e0f95cd220088601a005bce8a152d7c2ac69a2b5f4668e03b8d999468a5171d",
+      "manifest_sha256": "aec8544c95c591f95ca361528a9a7aaaf144d6db3300480a07db79887458a08e",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "376fa116af830d8252f79db491841fe0dbef6e8cdbac316e6351293cf02c67c8",
-      "version": "saas~19.3.1.13.52"
+      "source_sha256": "738bd42a0b92ba3db71a2e4b5dfa1b1438a1786e0c0ea248db5bb0633b49d7e2",
+      "version": "saas~19.3.1.13.53"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
@@ -1764279,18 +1766035,18 @@
       "version": ""
     },
     {
-      "manifest_sha256": "a09f9f9cf6b8422b32eb95f807fb60057571205ba7b83fcf1fdb7ddc684d39bc",
+      "manifest_sha256": "00684c6b1f606b172419b6ebeeda1ea0061e943f71c0b02a67f4eeead3fd0c31",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "8fdaa8888cfa7b442f3c9a01920493639739c8152a6a2efdd93fe5f0ea8ca67d",
-      "version": "saas~19.3.1.8.15"
+      "source_sha256": "35682673c8787f2f778136428676fbb9c60a79f85ca5ef21fc77cf577c75339c",
+      "version": "saas~19.3.1.8.16"
     },
     {
-      "manifest_sha256": "8d5a6e5a9a5d65b6c9fd803f041beb597d13740733f94aa7bb0f4f6083b5d719",
+      "manifest_sha256": "4f9040bdb650a3982873d52a71c8754c677f302157b991c86118b5154e06524f",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "daba385ee1825542ddcfbe87a4670b971a2b9a95060003910778fa6632070a71",
-      "version": "saas~19.3.2.2.22"
+      "source_sha256": "5e093707d432b228c2e4d3dabc0893e1c87bb8110790d4a4487ae2ff30da43b2",
+      "version": "saas~19.3.2.2.23"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
@@ -1764352,7 +1766108,7 @@
       "manifest_sha256": "7ff5ad5423a1e4ebe2f718eaf8d19017baca03671f9d9e411ad28d2b0c634f94",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "271ecb97df920ee7f95faf1e3a0d6709facfd4a2b03655d9cd912fe5ac1f5258",
+      "source_sha256": "3d44bd54167bcbc2e0235436398fb411d29919024e778dc20ee67058494d9d33",
       "version": "saas~19.3.1.3.20"
     },
     {

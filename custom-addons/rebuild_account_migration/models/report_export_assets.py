@@ -1,10 +1,73 @@
 """Fixed asset, depreciation and deferral schedule row sources."""
 
+from collections import defaultdict
+from decimal import Decimal
+
 from odoo import models
+
+from .report_export_wizard import _amount, _amount_text
+
+
+def fixed_asset_ledger_totals(trial_balance):
+    """Gross and depreciation accounts behind the French balance sheet's fixed assets."""
+    gross_accounts = {}
+    depreciation = Decimal("0.00")
+    count = 0
+    for row in trial_balance:
+        if row.get("account_type") not in {"asset_fixed", "asset_non_current"}:
+            continue
+        code = row.get("account_code") or ""
+        balance = _amount(row["closing_balance"])
+        count += int(row.get("move_line_count") or 0)
+        if code.startswith(("28", "29")):
+            depreciation -= balance
+        else:
+            gross_accounts[code] = gross_accounts.get(code, Decimal("0.00")) + balance
+    gross = sum(gross_accounts.values(), Decimal("0.00"))
+    return gross_accounts, gross, depreciation, count
 
 
 class RebuildAccountReportExportWizard(models.TransientModel):
     _inherit = "rebuild.account.report.export.wizard"
+
+    def _compare_asset_cards_with_ledger(self, asset_rows):
+        """Compare the complete register and the balance sheet at the same cutoff."""
+        if (
+            len(self._selected_companies()) != 1 or self.account_ids or self.target_move != "posted"
+            or self.analytic_plan_ids or self.analytic_account_ids
+            or self.company_id.account_fiscal_country_id.code != "FR"
+        ):
+            return {}
+        balances, ledger_gross, ledger_depreciation, _count = fixed_asset_ledger_totals(self._trial_balance_rows())
+        registered = defaultdict(Decimal)
+        register_depreciation = Decimal("0.00")
+        register_net = Decimal("0.00")
+        for row in asset_rows:
+            if not row.get("source_asset_id") or row.get("comparison_only") == "true":
+                continue
+            registered[row.get("account_code") or ""] += _amount(row.get("original_value"))
+            register_depreciation += _amount(row.get("depreciation_amount"))
+            register_net += _amount(row.get("imported_period_net_value"))
+        gross = sum(registered.values(), Decimal("0.00"))
+        differences = []
+        for code in sorted(balances.keys() | registered.keys()):
+            difference = balances.get(code, 0) - registered.get(code, 0)
+            if difference:
+                differences.append({
+                    "code": code or "Compte sans code",
+                    "difference": _amount_text(difference),
+                    "participation_without_card": code.startswith("26") and code not in registered,
+                })
+        return {
+            "totals": [
+                {"label": "Valeur brute", "register": _amount_text(gross), "ledger": _amount_text(ledger_gross)},
+                {"label": "Amortissements et dépréciations", "register": _amount_text(register_depreciation),
+                 "ledger": _amount_text(ledger_depreciation)},
+                {"label": "Valeur nette", "register": _amount_text(register_net),
+                 "ledger": _amount_text(ledger_gross - ledger_depreciation)},
+            ],
+            "gross_differences": differences,
+        }
 
     def _fixed_asset_rows(self):
         filter_sql, filter_params = self._asset_account_filter_sql()

@@ -150,6 +150,9 @@ false
 | --- | --- | --- | --- |
 | **Rebuild Can Generate Official Fec** (`rebuild_can_generate_official_fec`) | boolean |  |  |
 | **Closing Company** (`rebuild_closing_company_id`) | many2one → `res.company` |  |  |
+| **Entries omitted** (`rebuild_empty_entry_count`) | integer |  |  |
+| **Entries to export** (`rebuild_included_entry_count`) | integer |  |  |
+| **Entries in the selected period** (`rebuild_period_entry_count`) | integer |  |  |
 
 ## Product Variant
 
@@ -512,6 +515,21 @@ false
 | **Unresolved Information** (`unresolved_information`) | text |  |  |
 | **Validation Status** (`validation_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warning**, **Blocked**. |
 | **Validation Summary** (`validation_summary`) | text |  |  |
+
+## DES and DAS2 documents to review
+
+`rebuild.account.declaration.candidate.review`, defined by this module. Transient: the record lives only while its dialog is open.
+
+Use the source dates and linked accounting documents to decide which items need a declaration review.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Company** (`company_id`) | many2one → `res.company` | yes | Active company whose accounting documents you want to review. |
+| **From** (`date_from`) | date | yes | First invoice or payment date to include. |
+| **To** (`date_to`) | date | yes | Last invoice or payment date to include. |
+| **Items to review** (`evidence_html`) | html |  | Source documents grouped by declaration period for the accountant to review. |
+| **Declaration** (`kind`) | selection | yes | Review DES by invoice month or DAS2 by payment year and beneficiary. Values: **DES**, **DAS2**. |
+| **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also give the settlement, the 622 share in company currency and the date used by the calendar. |
 
 ## USL French Declaration Prefilled Field
 

@@ -141,3 +141,81 @@ class TestReportHeaderCards(TransactionCase):
                 # exactly as transaction commit does before a browser opens it.
                 self.env.flush_all()
                 self.assertEqual(self._cards(self._wizard(report, preview_limit=1)), [65])
+
+    def test_cash_flow_carries_opening_and_reconciles_closing(self):
+        opening = self.env["account.move"].create({
+            "company_id": self.company.id, "journal_id": self.journal.id,
+            "date": "2025-12-31", "move_type": "entry",
+            "line_ids": [
+                Command.create({"account_id": self.cash.id, "debit": 120}),
+                Command.create({"account_id": self.income.id, "credit": 120}),
+            ],
+        })
+        opening.action_post()
+        self.env.flush_all()
+        for date_from, expected in [
+            ("2026-01-01", (120, 73, 193)),
+            ("2026-04-01", (193, 0, 193)),
+        ]:
+            with self.subTest(date_from=date_from):
+                wizard = self._wizard("cash_flow", date_from=date_from)
+                rows = {row["line_code"]: float(row["amount"])
+                        for row in wizard._management_summary_rows("cash_flow")}
+                self.assertEqual(rows["CLOSING_CASH"], expected[2])
+                for code, balance in [("OPENING_CASH", expected[0]), ("CLOSING_CASH", expected[2])]:
+                    domain = wizard._preview_journal_item_domain({"line_code": code})
+                    lines = self.env["account.move.line"].with_user(self.reader).search(domain)
+                    self.assertEqual(sum(lines.mapped("balance")), balance)
+                self.assertEqual(rows["OPENING_CASH"], expected[0])
+                self.assertEqual(rows["CASH_RECEIVED"] - rows["CASH_SPENT"], expected[1])
+                scoped = self._wizard("cash_flow", date_from=date_from,
+                                      account_ids=[Command.set(self.other.ids)])
+                self.assertFalse(any(float(row["amount"])
+                                     for row in scoped._management_summary_rows("cash_flow")))
+        rows = self.env["rebuild.account.management.summary.line"].with_user(self.reader).search([
+            ("company_id", "=", self.company.id),
+            ("period_date_from", "=", "2026-01-01"),
+            ("report_key", "=", "cash_flow"),
+        ])
+        for code, balance in [("OPENING_CASH", 120), ("CLOSING_CASH", 193)]:
+            row = rows.filtered(lambda item: item.line_code == code)
+            self.assertEqual(row.amount, balance)
+            lines = self.env["account.move.line"].with_user(self.reader).search(
+                row.action_open_journal_items()["domain"],
+            )
+            self.assertEqual(sum(lines.mapped("balance")), balance)
+
+    def test_fec_preview_distinguishes_zero_lines_from_zero_total(self):
+        Move = self.env["account.move"].with_company(self.company)
+        zero = Move.create({
+            "journal_id": self.journal.id, "date": "2026-03-16",
+            "line_ids": [Command.create({"account_id": account.id})
+                         for account in (self.cash, self.income)],
+        })
+        zero.action_post()
+        draft = self.moves[0].copy({"date": "2026-03-17"})
+        self.assertEqual(draft.state, "draft")
+        self.env.flush_all()
+        wizard = self.env["l10n_fr.fec.export.wizard"].with_company(self.company).new({
+            "date_from": "2026-01-01", "date_to": "2026-12-31",
+            "test_file": True, "export_type": "official",
+        })
+        self.assertEqual(wizard.rebuild_period_entry_count, 3)
+        self.assertEqual(wizard.rebuild_included_entry_count, 2)
+        self.assertEqual(wizard.rebuild_empty_entry_count, 1)
+        wizard.export_type = "nonofficial"
+        self.assertEqual(wizard.rebuild_period_entry_count, 4)
+        self.assertEqual(wizard.rebuild_included_entry_count, 3)
+        wizard.date_from = "2026-03-17"
+        self.assertEqual(wizard.rebuild_period_entry_count, 1)
+        self.assertEqual(wizard.rebuild_included_entry_count, 1)
+        wizard.excluded_journal_ids = self.journal
+        self.assertEqual(wizard.rebuild_period_entry_count, 0)
+        self.assertEqual(wizard.rebuild_included_entry_count, 0)
+        # A final file is always official and covers every journal: saving
+        # clears both options, so the preview must not keep counting with them.
+        wizard.date_from = "2026-01-01"
+        wizard.test_file = False
+        self.assertEqual(wizard.rebuild_period_entry_count, 3)
+        self.assertEqual(wizard.rebuild_included_entry_count, 2)
+        self.assertEqual(wizard.rebuild_empty_entry_count, 1)
