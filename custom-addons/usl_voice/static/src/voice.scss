@@ -33,9 +33,37 @@
     white-space: pre-wrap;
 }
 
+.o-usl-dictation-controls {
+    gap: 4px;
+}
+// Anchored by its bottom edge, so a caption grows upwards and the controls stay by the caret.
+.o-usl-dictation-above {
+    transform: translateY(-100%);
+}
 .o-usl-dictation-pill {
     padding: 2px;
     gap: 2px;
+}
+.o-usl-dictation-preview {
+    display: flex;
+    justify-content: flex-end;
+    max-width: 24rem;
+    @media (max-width: 26rem) {
+        max-width: calc(100vw - 16px);
+    }
+    overflow: hidden;
+    white-space: nowrap;
+    // The start of a long caption fades out: the newest words are the ones that matter.
+    mask-image: linear-gradient(to right, transparent, #000 0.75rem);
+}
+// A voice note is a sound to listen to, the microphone is for text: two icons, as on a phone.
+.o-usl-icon-voice-note {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cg stroke='%23000' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M2 6.5v3M5 4v8M8 1.5v13M11 4v8M14 6.5v3'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 // A dot that swells with the voice: proof that the microphone is live.

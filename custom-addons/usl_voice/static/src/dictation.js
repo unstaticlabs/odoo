@@ -4,7 +4,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
-import { captureTarget, caretRect, dictationTarget } from "./dictation_target";
+import { captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
 import { VoiceMeter } from "./meter";
 
 /**
@@ -43,7 +43,7 @@ export class FieldDictation extends Component {
         this.notify = useService("notification");
         mounted = this;
         this.root = useRef("controls");
-        this.state = useState({ mode: "idle", visible: false, typing: false, x: 0, y: 0, recovered: "" });
+        this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", recovered: "" });
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
                 return;
@@ -129,11 +129,13 @@ export class FieldDictation extends Component {
             this.anchor = caret;
             const size = this.root.el?.offsetHeight || 28;
             const width = this.root.el?.offsetWidth || size;
-            const above = caret.top - size - 4;
+            // Grow upwards from the insertion point; go below it only when there is no room above.
+            this.state.above = caret.top - size - 4 >= 4;
             this.state.x = Math.max(4, Math.min(innerWidth - width - 4, caret.left + 6));
-            this.state.y = above >= 4 ? above : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
+            this.state.y = this.state.above ? caret.top - 4 : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
         }
         this.state.visible = shown;
+        this.state.wanted = Boolean(target && wantsMicrophone(target));
     }
     setMode(mode) {
         this.state.mode = mode;
@@ -147,6 +149,8 @@ export class FieldDictation extends Component {
         this.request?.abort();
         this.request = null;
         this.destination = null;
+        this.listening?.abort();
+        this.state.preview = "";
         this.setMode("idle");
         this.state.recovered = "";
     }
@@ -162,6 +166,7 @@ export class FieldDictation extends Component {
             await capture.start(() => this.stop());
             if (this.capture === capture) {
                 this.setMode("recording");
+                this.listen(capture);
             }
         } catch {
             if (this.capture === capture) {
@@ -170,10 +175,46 @@ export class FieldDictation extends Component {
             }
         }
     }
+    async transcribe(file, signal) {
+        const form = new FormData();
+        form.append("file", file);
+        form.append("csrf_token", odoo.csrf_token);
+        const response = await fetch("/usl/voice/dictate", { method: "POST", body: form, signal });
+        if (!response.ok) {
+            throw Error();
+        }
+        return (await response.json()).text;
+    }
+    /**
+     * Show the last words heard while the writer is still speaking: without it they talk
+     * into silence until the end. One request at a time, on the last seconds only.
+     */
+    async listen(capture) {
+        const listening = new AbortController();
+        this.listening = listening;
+        const live = () => this.capture === capture && this.state.mode === "recording" && !listening.signal.aborted;
+        while (live()) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+            const file = live() && capture.tail();
+            if (!file) {
+                continue;
+            }
+            try {
+                const text = await this.transcribe(file, listening.signal);
+                if (live() && text) {
+                    this.state.preview = text;
+                    this.position();
+                }
+            } catch {
+                // The preview is a comfort: the dictation itself is unaffected.
+            }
+        }
+    }
     async stop() {
         if (this.state.mode !== "recording") {
             return;
         }
+        this.listening?.abort();
         const file = this.capture.finish();
         this.capture = null;
         if (!file) {
@@ -184,14 +225,7 @@ export class FieldDictation extends Component {
         const request = new AbortController();
         this.request = request;
         try {
-            const form = new FormData();
-            form.append("file", file);
-            form.append("csrf_token", odoo.csrf_token);
-            const response = await fetch("/usl/voice/dictate", { method: "POST", body: form, signal: request.signal });
-            if (!response.ok) {
-                throw Error();
-            }
-            const { text } = await response.json();
+            const text = await this.transcribe(file, request.signal);
             if (this.request !== request) {
                 return;
             }
@@ -207,6 +241,7 @@ export class FieldDictation extends Component {
         } finally {
             if (this.request === request) {
                 this.request = null;
+                this.state.preview = "";
                 this.setMode("idle");
             }
         }

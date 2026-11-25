@@ -95,7 +95,7 @@ function chatter({ composer, owner }) {
 }
 registerComposerAction("usl-voice-record", {
     condition: (p) => chatter(p) && p.owner.uslVoice.mode === "idle" && !p.composer.voiceAttachment,
-    icon: "fa fa-microphone", name: _t("Record a voice note"),
+    icon: "o-usl-icon-voice-note", name: _t("Record a voice note"),
     onSelected: ({ owner }) => owner.startUslVoice(), sequenceQuick: 15,
 });
 patch(Composer, { components: { ...Composer.components, VoiceMeter } });

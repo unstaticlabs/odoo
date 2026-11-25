@@ -68,6 +68,12 @@ msgstr "Fermer"
 
 #. module: usl_voice
 #. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Heard so far"
+msgstr "Entendu jusqu’ici"
+
+#. module: usl_voice
+#. odoo-javascript
 #: code:addons/usl_voice/static/src/chatter.xml:0
 msgid "No speech detected."
 msgstr "Aucune parole détectée."

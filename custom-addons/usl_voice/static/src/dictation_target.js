@@ -107,3 +107,17 @@ export function caretRect(element) {
         height,
     };
 }
+
+/**
+ * Whether the resting microphone is worth showing in this field. Search boxes, pickers and
+ * number or date fields take a word or a value, not a sentence: there the keyboard shortcut
+ * still dictates, but no button comes to sit over them.
+ */
+export function wantsMicrophone(element) {
+    if (element.isContentEditable || element.tagName === "TEXTAREA") {
+        return true;
+    }
+    return element.type === "text" &&
+        !element.matches('[role="combobox"], [inputmode="numeric"], [inputmode="decimal"], .o_searchview_input, .o-autocomplete--input, .o_datetime_input') &&
+        !element.closest(".o_searchview, .o-autocomplete, .o_field_integer, .o_field_float, .o_field_monetary, .o_field_percentage, .o_field_float_time, .o_field_date, .o_field_datetime, .o_datetime_picker, .dropdown-menu");
+}

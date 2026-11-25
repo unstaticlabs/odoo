@@ -59,6 +59,22 @@ export class VoiceCapture {
         }
         return Math.min(1, (Math.sqrt(sum / this.samples.length) / 128) * 4);
     }
+    /**
+     * The last seconds recorded so far, as a file of their own, or null when there is too
+     * little to recognize. Only the tail is sent for a preview, so its cost stays the same
+     * however long the dictation runs.
+     */
+    tail(seconds = 20) {
+        const chunks = this.encoder?.dataBuffer || [];
+        const wanted = seconds * 16_000; // 128 kbit/s
+        const kept = [];
+        let bytes = 0;
+        for (let index = chunks.length - 1; index >= 0 && bytes < wanted; index--) {
+            kept.unshift(chunks[index]);
+            bytes += chunks[index].length;
+        }
+        return bytes >= 16_000 ? new File(kept, "Voice.mp3", { type: "audio/mpeg" }) : null;
+    }
     finish() {
         const buffers = this.encoder?.finish() || [];
         this.discard();

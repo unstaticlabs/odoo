@@ -9,24 +9,30 @@
             <button class="btn btn-primary btn-sm" data-usl-action="copyText"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Copy transcript</button>
             <button class="btn btn-secondary btn-sm ms-2" data-usl-action="cancel">Dismiss</button>
         </div>
-        <div t-elif="(this.state.visible and !this.state.typing) or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-center" t-custom-ref="controls"
-             t-att-class="{ 'o-usl-dictation-pill border rounded-pill bg-view shadow-sm': this.state.mode !== 'idle' }"
+        <div t-elif="(this.state.visible and this.state.wanted and !this.state.typing) or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-start" t-custom-ref="controls"
+             t-att-class="{ 'o-usl-dictation-above flex-column-reverse': this.state.above, 'flex-column': !this.state.above }"
              t-att-style="'left:' + this.state.x + 'px;top:' + this.state.y + 'px'">
             <button t-if="this.state.mode === 'idle'" class="o-usl-dictation-mic btn btn-light border rounded-circle shadow-sm" title="Dictate (Alt+Shift+D)" aria-label="Dictate text" aria-keyshortcuts="Alt+Shift+D" data-usl-action="record">
                 <i class="fa fa-microphone" aria-hidden="true"/>
             </button>
-            <t t-elif="this.state.mode === 'recording'">
-                <span class="ps-2 pe-1 small"><VoiceMeter capture="this.capture"/></span>
-                <button class="btn btn-danger btn-sm rounded-circle" title="Stop and insert the text" aria-label="Stop and insert the text" data-usl-action="stop">
-                    <i class="fa fa-stop" aria-hidden="true"/>
-                </button>
-            </t>
-            <span t-else="" class="ps-2 pe-1 small text-muted text-nowrap" role="status">
-                <i class="fa fa-circle-o-notch fa-spin me-1" aria-hidden="true"/>
-                <t t-if="this.state.mode === 'starting'">Starting…</t>
-                <t t-else="">Transcribing…</t>
-            </span>
-            <button t-if="this.state.mode !== 'idle'" class="btn btn-link btn-sm text-muted rounded-circle" title="Cancel dictation (Esc)" aria-label="Cancel dictation" data-usl-action="cancel"><i class="oi oi-close" aria-hidden="true"/></button>
+            <div t-else="" class="o-usl-dictation-pill d-flex align-items-center border rounded-pill bg-view shadow-sm">
+                <t t-if="this.state.mode === 'recording'">
+                    <span class="ps-2 pe-1 small"><VoiceMeter capture="this.capture"/></span>
+                    <button class="btn btn-danger btn-sm rounded-circle" title="Stop and insert the text" aria-label="Stop and insert the text" data-usl-action="stop">
+                        <i class="fa fa-stop" aria-hidden="true"/>
+                    </button>
+                </t>
+                <span t-else="" class="ps-2 pe-1 small text-muted text-nowrap" role="status">
+                    <i class="fa fa-circle-o-notch fa-spin me-1" aria-hidden="true"/>
+                    <t t-if="this.state.mode === 'starting'">Starting…</t>
+                    <t t-else="">Transcribing…</t>
+                </span>
+                <button class="btn btn-link btn-sm text-muted rounded-circle" title="Cancel dictation (Esc)" aria-label="Cancel dictation" data-usl-action="cancel"><i class="oi oi-close" aria-hidden="true"/></button>
+            </div>
+            <!-- The last words heard, clipped at their start: a caption, not the final text. -->
+            <div t-if="this.state.preview and this.state.mode !== 'idle'" class="o-usl-dictation-preview border rounded bg-view shadow-sm small text-muted ps-3 pe-2 py-1" title="Heard so far">
+                <span t-esc="this.state.preview"/>
+            </div>
         </div>
     </t>
 </templates>

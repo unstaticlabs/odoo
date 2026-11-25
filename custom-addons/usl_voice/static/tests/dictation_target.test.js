@@ -1,5 +1,6 @@
 import { expect, test } from "@odoo/hoot";
-import { caretRect, dictationTarget, captureTarget } from "@usl_voice/dictation_target";
+import { caretRect, dictationTarget, captureTarget, wantsMicrophone } from "@usl_voice/dictation_target";
+import { VoiceCapture } from "@usl_voice/capture";
 
 test("dictation preserves suffix and rejects a stale field", () => {
     const input = document.createElement("textarea");
@@ -95,4 +96,35 @@ test("the insertion point is found inside the field, on the right line", () => {
         input.remove();
         area.remove();
     }
+});
+
+test("the resting microphone keeps to fields where a sentence is written", () => {
+    const holder = document.createElement("div");
+    holder.innerHTML = `
+        <input class="title" type="text"/>
+        <textarea></textarea>
+        <div class="o_searchview"><input class="o_searchview_input" type="text"/></div>
+        <div class="o-autocomplete"><input class="o-autocomplete--input" type="text" role="combobox"/></div>
+        <div class="o_field_float"><input class="amount" type="text" inputmode="decimal"/></div>
+        <input class="o_datetime_input" type="text"/>`;
+    document.body.append(holder);
+    try {
+        expect(wantsMicrophone(holder.querySelector(".title"))).toBe(true);
+        expect(wantsMicrophone(holder.querySelector("textarea"))).toBe(true);
+        for (const selector of [".o_searchview_input", ".o-autocomplete--input", ".amount", ".o_datetime_input"]) {
+            expect(wantsMicrophone(holder.querySelector(selector))).toBe(false);
+            // The keyboard shortcut still dictates there.
+            expect(dictationTarget(holder.querySelector(selector))).not.toBe(null);
+        }
+    } finally {
+        holder.remove();
+    }
+});
+
+test("a preview sends only the last seconds, and nothing before a second is recorded", () => {
+    const capture = new VoiceCapture();
+    capture.encoder = { dataBuffer: [new Int8Array(8_000)] };
+    expect(capture.tail()).toBe(null);
+    capture.encoder.dataBuffer = Array.from({ length: 100 }, () => new Int8Array(16_000));
+    expect(capture.tail(20).size).toBe(320_000);
 });
