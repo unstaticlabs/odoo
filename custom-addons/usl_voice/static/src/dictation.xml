@@ -9,6 +9,12 @@
             <button class="btn btn-primary btn-sm" data-usl-action="copyText"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Copy transcript</button>
             <button class="btn btn-secondary btn-sm ms-2" data-usl-action="cancel">Dismiss</button>
         </div>
+        <div t-elif="this.state.mode === 'retry'" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow p-3" role="status">
+            <div class="fw-bold mb-1">Transcription unavailable</div>
+            <p class="text-muted small mb-2">Your recording is still in this tab.</p>
+            <button class="btn btn-primary btn-sm" data-usl-action="retry">Retry transcription</button>
+            <button class="btn btn-secondary btn-sm ms-2" data-usl-action="cancel">Discard recording</button>
+        </div>
         <div t-elif="(this.state.visible and this.state.wanted and !this.state.typing) or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-start" t-custom-ref="controls"
              t-att-class="{ 'o-usl-dictation-above flex-column-reverse': this.state.above, 'flex-column': !this.state.above }"
              t-att-style="'left:' + this.state.x + 'px;top:' + this.state.y + 'px'">

@@ -157,11 +157,6 @@ msgstr "Transcription"
 msgid "Transcript copied."
 msgstr "Transcription copiée."
 
-#. module: usl_voice
-#. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.js:0
-msgid "Transcription is unavailable. Try dictating again."
-msgstr "La transcription est indisponible. Réessayez de dicter."
 
 #. module: usl_voice
 #. odoo-javascript
@@ -186,3 +181,21 @@ msgstr "En attente du micro…"
 #: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Your dictation is ready"
 msgstr "Votre dictée est prête"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Transcription unavailable"
+msgstr "Transcription indisponible"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Your recording is still in this tab."
+msgstr "Votre enregistrement est conservé dans cet onglet."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Retry transcription"
+msgstr "Réessayer la transcription"

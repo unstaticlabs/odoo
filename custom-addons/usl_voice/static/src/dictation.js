@@ -5,6 +5,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
 import { captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
+import { requestDictation } from "./dictation_request";
 import { VoiceMeter } from "./meter";
 
 /**
@@ -13,7 +14,7 @@ import { VoiceMeter } from "./meter";
  * keeps the focus, so their pointer events are handled here, first, and reach nobody else.
  * This module is loaded before any component is mounted, so these listeners run first.
  */
-const ACTIONS = ["record", "stop", "cancel", "copyText"];
+const ACTIONS = ["record", "stop", "cancel", "retry", "copyText"];
 let mounted = null;
 for (const type of ["pointerdown", "mousedown", "touchstart", "pointerup", "mouseup", "touchend", "click"]) {
     window.addEventListener(type, (ev) => {
@@ -144,6 +145,7 @@ export class FieldDictation extends Component {
         requestAnimationFrame(() => requestAnimationFrame(() => this.position()));
     }
     cancel() {
+        this.pendingAudio = null;
         this.capture?.discard();
         this.capture = null;
         this.request?.abort();
@@ -176,17 +178,7 @@ export class FieldDictation extends Component {
         }
     }
     async transcribe(file, signal, preview = false) {
-        const form = new FormData();
-        form.append("file", file);
-        if (preview) {
-            form.append("preview", "1");
-        }
-        form.append("csrf_token", odoo.csrf_token);
-        const response = await fetch("/usl/voice/dictate", { method: "POST", body: form, signal });
-        if (!response.ok) {
-            throw Error();
-        }
-        return (await response.json()).text;
+        return requestDictation(file, signal, preview);
     }
     /**
      * Show the last words heard while the writer is still speaking: without it they talk
@@ -224,28 +216,34 @@ export class FieldDictation extends Component {
             this.cancel();
             return;
         }
+        this.pendingAudio = file;
+        await this.retry();
+    }
+    async retry() {
+        if (!this.pendingAudio || this.request) {
+            return;
+        }
         this.setMode("processing");
         const request = new AbortController();
         this.request = request;
         try {
-            const text = await this.transcribe(file, request.signal);
+            const text = await this.transcribe(this.pendingAudio, request.signal);
             if (this.request !== request) {
                 return;
             }
+            this.pendingAudio = null;
             if (text && !this.destination?.insert(text)) {
                 this.state.recovered = text;
             } else if (!text) {
                 this.notify.add(_t("No speech detected. Try recording again."), { type: "info" });
             }
         } catch {
-            if (!request.signal.aborted) {
-                this.notify.add(_t("Transcription is unavailable. Try dictating again."), { type: "warning" });
-            }
+            // Keep the file in memory for Retry. Cancel, pagehide and unmount discard it.
         } finally {
             if (this.request === request) {
                 this.request = null;
                 this.state.preview = "";
-                this.setMode("idle");
+                this.setMode(this.pendingAudio ? "retry" : "idle");
             }
         }
     }
