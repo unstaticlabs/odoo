@@ -61,8 +61,12 @@ current ACLs and record rules in the same company context, and everything
 shared with the Agent's own identity, such as a project it follows or a task
 assigned to it. Both sets stay under the platform safety policy. The owner's
 set includes private, assigned-only, employee, Accounting and Documents rules,
-so a record visible only to the owner is visible to their Agents too. Losing
-an owner permission or company removes it from the Agent immediately. Restoring the owner's access
+so a record visible only to the owner is visible to their Agents too. The
+union also applies to create, write and delete for applications delegated
+with write access. Chatter messages and attachments keep the Agent's own
+identity for author and recipient rules, so an owner's private discussion
+messages stay out of reach. Losing an owner permission or company removes it
+from the Agent immediately. Restoring the owner's access
 does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.

@@ -294,6 +294,26 @@ class TestDelegatedOwnerDomains(HttpCase):
         with self.assertRaises(AccessError):
             shared_task.with_user(self.agent_user).write({"name": "Forbidden"})
 
+    def test_writable_agent_writes_union_of_owner_and_own_access(self):
+        writer, user = self._writer()
+        shared = self.env["project.project"].create({
+            "name": "[QA owner domains] Shared with the writer", "privacy_visibility": "followers",
+            "company_id": self.company.id,
+        })
+        shared_task = self.env["project.task"].create({
+            "name": "[QA owner domains] Writer shared task", "project_id": shared.id,
+        })
+        shared.message_subscribe(partner_ids=user.partner_id.ids)
+        self.env.flush_all()
+        self.assertFalse(shared_task.with_user(self.owner).has_access("write"))
+        context = self._scope(writer, "write")
+        shared_task.with_user(user).with_context(context).write({"description": "[QA owner domains] Shared"})
+        self.assertIn("Shared", shared_task.sudo().description)
+        self.tasks[:1].with_user(user).with_context(context).write({"description": "[QA owner domains] Owner"})
+        self.assertIn("Owner", self.tasks[:1].sudo().description)
+        with self.assertRaises(AccessError):
+            self.hidden_task.with_user(user).with_context(context).write({"description": "Forbidden"})
+
     def test_native_create_write_unlink_relations_and_owner_acl_loss(self):
         writer, user = self._writer()
         Task = self.env["project.task"].with_user(user)
