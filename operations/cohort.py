@@ -1676,10 +1676,33 @@ def _reset_database(prefix: str, dump: Path) -> None:
         raise CohortError("restore generation confirmation differs")
     connection, environment = database_environment(prefix)
     name = os.environ[f"{prefix}_DB_NAME"]
-    run(["dropdb", *connection, "--if-exists", name], environment=environment)
-    run(["createdb", *connection, name], environment=environment)
+    restore_options = ["--no-owner", "--no-acl"]
+    if prefix == "ODOO" and os.environ.get("USL_RESTORE_ODOO_PREPARED_DATABASE") == "1":
+        ready = run(
+            [
+                "psql", *connection, "--dbname", name, "--no-psqlrc", "--tuples-only", "--no-align",
+                "--command", """
+                    SELECT NOT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole OR r.rolreplication OR r.rolbypassrls)
+                       AND d.datdba <> r.oid
+                       AND NOT pg_has_role(r.oid, d.datdba, 'MEMBER')
+                       AND NOT EXISTS (
+                           SELECT FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                           WHERE n.nspname <> 'information_schema' AND n.nspname !~ '^pg_'
+                       )
+                      FROM pg_roles r, pg_database d
+                     WHERE r.rolname = current_user AND d.datname = current_database()
+                """,
+            ],
+            environment=environment, capture=True,
+        )
+        if ready.stdout.strip() != "t":
+            raise CohortError("Odoo restore requires an empty, independently owned application database")
+        restore_options.append("--exit-on-error")
+    else:
+        run(["dropdb", *connection, "--if-exists", name], environment=environment)
+        run(["createdb", *connection, name], environment=environment)
     run(
-        ["pg_restore", *connection, "--dbname", name, "--no-owner", "--no-acl", str(dump)],
+        ["pg_restore", *connection, "--dbname", name, *restore_options, str(dump)],
         environment=environment,
     )
 
