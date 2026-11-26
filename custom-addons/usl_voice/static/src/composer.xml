@@ -1,0 +1,23 @@
+<templates xml:space="preserve">
+    <t t-inherit="mail.Composer" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('o-mail-Composer-footer')]/AttachmentList" position="before">
+            <div t-if="this.uslVoice and this.uslVoice.mode !== 'idle'" class="o-usl-voice-bar d-flex flex-wrap align-items-center gap-2 mt-2 px-3 py-1 border rounded bg-view" t-custom-ref="usl-voice-bar" t-on-keydown="this.onUslVoiceBarKeydown">
+                <t t-if="this.uslVoice.mode === 'recording'">
+                    <VoiceMeter capture="this.uslCapture"/>
+                    <span class="text-muted small flex-grow-1" role="status">Recording a voice note</span>
+                    <button class="btn btn-danger btn-sm rounded-circle" title="Stop and preview" aria-label="Stop and preview" t-on-click="this.stopUslVoice">
+                        <i class="fa fa-stop" aria-hidden="true"/>
+                    </button>
+                    <button class="btn btn-link btn-sm text-muted" title="Discard recording" aria-label="Discard recording" t-on-click="this.cancelUslVoice">
+                        <i class="fa fa-trash-o" aria-hidden="true"/>
+                    </button>
+                </t>
+                <t t-elif="this.uslVoice.mode === 'starting'">
+                    <span class="text-muted small flex-grow-1" role="status"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Waiting for the microphone…</span>
+                    <button class="btn btn-secondary btn-sm" t-on-click="this.cancelUslVoice">Cancel</button>
+                </t>
+                <span t-else="" class="text-muted small" role="status"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Preparing the preview…</span>
+            </div>
+        </xpath>
+    </t>
+</templates>

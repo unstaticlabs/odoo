@@ -32,11 +32,6 @@ msgid "ID"
 msgstr "ID"
 
 #. module: usl_project
-#: model:ir.model.fields.selection,name:usl_project.selection__project_task_type__usl_reactivation_role__inbox
-msgid "Inbox destination"
-msgstr "Destination Boîte de réception"
-
-#. module: usl_project
 #: model:ir.model.constraint,message:usl_project.constraint_project_task_type_usl_reactivation_role_unique
 msgid "A user can have only one personal stage for each reactivation role."
 msgstr "Un utilisateur ne peut avoir qu’une étape personnelle par rôle de réactivation."
@@ -82,12 +77,10 @@ msgstr "Tâches : renvoyer les tâches reportées et exploitables vers la Boîte
 #: model:ir.model.fields,help:usl_project.field_project_task_type__usl_reactivation_role
 msgid ""
 "Deferred tasks return from Later to Inbox when work becomes actionable. "
-"For a project board, set these roles on stages linked to the project "
-"and use one active Inbox. Use the Projects field to share a project stage."
+"The default task stage receives returns. Use the Projects field to share a project stage."
 msgstr ""
 "Les tâches reportées reviennent de « Plus tard » à la boîte de réception "
-"lorsqu’elles redeviennent d’actualité. Dans un projet, attribuez ces rôles "
-"à des étapes du projet et utilisez une seule boîte de réception active. "
+"lorsqu’elles redeviennent d’actualité. Les retours arrivent dans l’étape par défaut. "
 "Utilisez le champ Projets pour partager une étape de projet."
 
 #. module: usl_project
@@ -616,3 +609,124 @@ msgstr "Ancienne référence GitHub"
 #: code:addons/usl_project/static/src/task_github_properties.xml:0
 msgid "Legacy GitHub:"
 msgstr "Ancienne référence GitHub :"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Task reopened"
+msgstr "Tâche rouverte"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Last blocker resolved"
+msgstr "Dernier blocage levé"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Subtasks closed"
+msgstr "Sous-tâches closes"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Deadline overdue"
+msgstr "Échéance dépassée"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Due today"
+msgstr "Échéance aujourd’hui"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Deadline approaching"
+msgstr "Échéance proche"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Scheduled start reached"
+msgstr "Début planifié atteint"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Status changed"
+msgstr "Statut modifié"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Project stage changed"
+msgstr "Étape de projet modifiée"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "“%s”"
+msgstr "« %s »"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "An open, unarchived task returns to %s in any of the following cases."
+msgstr "Une tâche ouverte et non archivée revient vers %s dans l’un des cas suivants."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "Tasks assigned to you start here on your personal board. Tasks in %s return here when a reminder is triggered."
+msgstr "Les tâches qui vous sont attribuées commencent leur classement personnel ici. Celles placées dans %s y reviennent lorsqu’un rappel se déclenche."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "New tasks start here when no stage is specified. Tasks in %s return here when a reminder is triggered."
+msgstr "Les nouvelles tâches arrivent ici quand aucune étape n’est précisée. Les tâches mises dans %s y reviennent lorsqu’un rappel se déclenche."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#. odoo-javascript
+msgid "About %s"
+msgstr "À propos de %s"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "Its scheduled start has arrived, or its deadline is overdue or due within three calendar days."
+msgstr "Son début planifié est atteint, ou son échéance est dépassée ou prévue d’ici trois jours calendaires."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "It is reopened or changes to another open status."
+msgstr "Elle est rouverte ou passe à un autre statut ouvert."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "Its last blocking dependency is resolved or removed."
+msgstr "Sa dernière dépendance bloquante est levée."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "All eligible direct subtasks are now done or canceled."
+msgstr "Toutes ses sous-tâches directes prises en compte sont désormais terminées ou annulées."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "Its project stage is changed manually."
+msgstr "Son étape de projet est changée manuellement."
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_reactivation/indicators.js:0
+#: code:addons/usl_project/static/src/task_reactivation/indicators.xml:0
+#. odoo-javascript
+msgid "Reasons for return"
+msgstr "Motifs du retour"
