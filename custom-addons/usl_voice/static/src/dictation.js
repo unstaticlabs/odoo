@@ -223,6 +223,11 @@ export class FieldDictation extends Component {
         if (!this.pendingAudio || this.request) {
             return;
         }
+        if (this.state.mode === "retry" && this.destination && this.target?.isConnected) {
+            // The retry button disappears while processing. Return focus so
+            // the result can be inserted at the selection captured earlier.
+            this.target.focus({ preventScroll: true });
+        }
         this.setMode("processing");
         const request = new AbortController();
         this.request = request;
