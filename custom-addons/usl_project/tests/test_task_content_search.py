@@ -38,6 +38,16 @@ class TestTaskContentSearch(TransactionCase):
         task = self._task(description='<p>Amber heliograph specification</p>')
         self.assertEqual(self._matches('Amber heliograph'), task)
 
+    def test_search_works_once_the_database_holds_more_messages_than_odoo_checks_at_once(self):
+        # Odoo refuses a message search that leaves more candidates than its limit, with
+        # "Too many messages to be processed". A text typed in the task search must never
+        # become such a search: production crossed the limit and every search failed.
+        task = self._task(description='<p>Saffron heliograph budget</p>')
+        for index in range(4):
+            task.message_post(body=f'Chatter line {index}', subject=f'Saffron heliograph {index}')
+        with patch('odoo.addons.mail.models.mail_message.MAX_SEARCH_LIMIT', 3):
+            self.assertEqual(self._matches('Saffron heliograph'), task)
+
     def test_related_activity_note_is_searchable(self):
         task = self._task()
         self.env['mail.activity'].create({
