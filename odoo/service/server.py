@@ -23,7 +23,6 @@ from io import BytesIO
 
 import psutil
 import werkzeug.serving
-from werkzeug .urls import uri_to_iri
 
 if os.name == 'posix':
     # Unix only for workers
@@ -124,22 +123,31 @@ class BaseWSGIServerNoBind(LoggingBaseWSGIServerMixIn, werkzeug.serving.BaseWSGI
         pass
 
 
+def _access_log_request(environ):
+    """Use the matched controller and protocol, independent of the client's URL."""
+    environ = environ or {}
+    method = environ.get('REQUEST_METHOD')
+    if method not in {'GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'}:
+        method = 'OTHER'
+    protocol = environ.get('SERVER_PROTOCOL')
+    if protocol not in {'HTTP/1.0', 'HTTP/1.1', 'HTTP/2', 'HTTP/2.0'}:
+        protocol = 'HTTP'
+    return f"{method} {environ.get('odoo.access_endpoint', 'unmatched')} {protocol}"
+
+
 class CommonRequestHandler(werkzeug.serving.WSGIRequestHandler):
     def __init__(self, *args, **kwargs):
         self._sent_date_header = None
         self._sent_server_header = None
         super().__init__(*args, **kwargs)
 
+    def make_environ(self):
+        self._access_environ = super().make_environ()
+        return self._access_environ
+
     def log_request(self, code='-', size='-'):
-        try:
-            path = uri_to_iri(self.path)
-            fragment = threading.current_thread().rpc_model_method
-            if fragment:
-                path += '#' + fragment
-            msg = f"{self.command} {path} {self.request_version}"
-        except AttributeError:
-            # path isn't set if the requestline was bad
-            msg = self.requestline
+        msg = _access_log_request(getattr(self, '_access_environ', None))
+        self._access_environ = None
 
         code = str(code)
 
@@ -845,6 +853,8 @@ class GeventServer(CommonServer):
 
             def format_request(self):
                 old_address = self.client_address
+                old_requestline = self.requestline
+                self.requestline = _access_log_request(getattr(self, 'environ', None))
                 if getattr(self, 'environ', None):
                     self.client_address = self.environ['REMOTE_ADDR']
                 elif not self.client_address:
@@ -854,6 +864,7 @@ class GeventServer(CommonServer):
                     return super().format_request()
                 finally:
                     self.client_address = old_address
+                    self.requestline = old_requestline
 
             def finalize_headers(self):
                 # We need to make gevent.pywsgi stop dealing with chunks when the connection

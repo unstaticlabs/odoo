@@ -12244,7 +12244,7 @@
       ]
     },
     {
-      "digest": "ff64328645cae134ede7f26fc455956ca8385cca7dcc2a236279d6f8adfe2f04",
+      "digest": "47383c5855c80f4ca8ffe4e7d2863271700c406d5c9bb37f8984bbd44271ade1",
       "guards": [],
       "key": "route:jsonrpc:ANY:/web/dataset/call_button",
       "kind": "route",
@@ -12254,11 +12254,11 @@
       "parents": [],
       "risk_flags": [],
       "route": "/web/dataset/call_button",
-      "runtime_digest": "4fede7e5e27fcc067a4303668883d98d1d78af4c9f1c930a247b5f6a641a7f6c",
+      "runtime_digest": "2703a0b8b206234d40d8952438c97fdc7910d2b0d0e74739e860237fec60965f",
       "sinks": [],
       "sources": [
         {
-          "line": 35,
+          "line": 32,
           "path": "addons/web/controllers/dataset.py"
         },
         {
@@ -12267,7 +12267,7 @@
       ]
     },
     {
-      "digest": "86fbe6db0752260f4f68fbbb10553579b7609f0dbd6f5c2f4291d230c1b9e7a6",
+      "digest": "12b39ebe4f5a174b39145880c48f92d44f385635e1a3af7bddae42c4fc60181d",
       "guards": [],
       "key": "route:jsonrpc:ANY:/web/dataset/call_button/<path:path>",
       "kind": "route",
@@ -12277,11 +12277,11 @@
       "parents": [],
       "risk_flags": [],
       "route": "/web/dataset/call_button/<path:path>",
-      "runtime_digest": "80b3a5221f6ffd4d1160e205fa5b5620afc091e5d198de277a23d566b431d06e",
+      "runtime_digest": "e1d311ef6273c473e1cd6547d821b221cd15b51ac9ae6c2cdb4b4bd592c561dd",
       "sinks": [],
       "sources": [
         {
-          "line": 35,
+          "line": 32,
           "path": "addons/web/controllers/dataset.py"
         },
         {
@@ -12290,7 +12290,7 @@
       ]
     },
     {
-      "digest": "fa71687568beac3b483c30e88bc3a154120972924de1a86a951571c603e7e9d0",
+      "digest": "eb78a5dffcfe64d81867d969e76feaff03c165c2ec85160339e6939aa06eb67d",
       "guards": [],
       "key": "route:jsonrpc:ANY:/web/dataset/call_kw",
       "kind": "route",
@@ -12300,11 +12300,11 @@
       "parents": [],
       "risk_flags": [],
       "route": "/web/dataset/call_kw",
-      "runtime_digest": "df8fe93b486e4f42234d5afe3af94197ff628e961bdfc61dafa4b7b140dba9e1",
+      "runtime_digest": "62398fa400262c6ca63c0d81a065d0a1081c39738351b4aab75f5453b8efbe5a",
       "sinks": [],
       "sources": [
         {
-          "line": 29,
+          "line": 28,
           "path": "addons/web/controllers/dataset.py"
         },
         {
@@ -12313,7 +12313,7 @@
       ]
     },
     {
-      "digest": "b9d13d24c74b97d4927959c958016bbad3f5da7792e03b5e6354ab050eb413b0",
+      "digest": "6df39a38ada377b58003e6ebc45051bdc0b4c83f4721921e6f0b739a98917474",
       "guards": [],
       "key": "route:jsonrpc:ANY:/web/dataset/call_kw/<path:path>",
       "kind": "route",
@@ -12323,11 +12323,11 @@
       "parents": [],
       "risk_flags": [],
       "route": "/web/dataset/call_kw/<path:path>",
-      "runtime_digest": "1e40af2f15d3d1e9eafb28ba2ab6b70046180f8b2c1ba6600f36f1c84f0fa055",
+      "runtime_digest": "ed5fadc7dc4aa6bac3760972248cb12313000f854c7da5100b7c4af4a61fe798",
       "sinks": [],
       "sources": [
         {
-          "line": 29,
+          "line": 28,
           "path": "addons/web/controllers/dataset.py"
         },
         {
@@ -1768699,7 +1768699,7 @@
       "manifest_sha256": "b3db8f4d1acfff6b387bef1d2375195acae92abc3f0541845615d45670d0da17",
       "name": "web",
       "origin": "native",
-      "source_sha256": "945e0129907bd145d08250d1ad46c264c62229275ca5f197dab76712ae097aa3",
+      "source_sha256": "0e2347e7475abbd6bed8a585e0dc738325795c6eaa8ad444691dc0e13d3b17c4",
       "version": ""
     },
     {

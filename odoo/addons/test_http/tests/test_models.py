@@ -125,7 +125,7 @@ class TestHttpModels(TestHttpBase):
             res.raise_for_status()
 
         self.assertEqual(capture.output, [
-            Like('..."POST /xmlrpc/2/object#res.users.read HTTP/...'),
+            Like('..."POST /xmlrpc/2/<service>#res.users.read HTTP/...'),
             Like('..."GET /test_http/wsgi_environ HTTP/...'),
         ], "there must be two requests, the first with a fragment, the second without")
 
