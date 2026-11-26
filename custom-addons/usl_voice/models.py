@@ -84,7 +84,7 @@ class MailMessage(models.Model):
                 raise ValueError()
             if attachment.file_size > MAX_AUDIO_BYTES:
                 raise ValueError()
-            text = transcribe(bytes(attachment.raw), attachment.mimetype, self.env.user.lang)
+            text = transcribe(bytes(attachment.raw), attachment.mimetype, self.env.user.lang, patience=90)
         except (SpeechUnavailable, ValueError, AccessError, MissingError):
             voice.write({"usl_transcription_state": "failed"})
             return
