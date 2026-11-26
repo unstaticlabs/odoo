@@ -138,6 +138,14 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertEqual(lines.mapped("amount"), [95, 180])
         self.assertEqual(lines.mapped("period"), ["2026", "2026"])
         self.assertFalse(lines[0].payment_move_id)
+        # The lines hold partners and amounts: another accounting reader must not see them.
+        reader = self.env["res.users"].with_context(no_reset_password=True, usl_governed_identity_provisioning=True).create({
+            "name": "Example reader", "login": "example.das2.reader",
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_readonly")).ids)],
+        })
+        self.assertFalse(lines.with_user(reader).search(action["domain"]))
+        with self.assertRaises(AccessError):
+            lines.with_user(reader).read(["amount"])
         self.assertEqual(lines[1].action_open_document()["res_id"], bill.id)
         self.assertEqual(lines[1].action_open_payment()["res_id"], current.id)
         self.assertEqual(self._review("das2", "2025-12-01", "2025-12-31").source_rows[0]["payment_id"], earlier.id)

@@ -92,7 +92,7 @@ class DeclarationCandidateReview(models.TransientModel):
             "search_view_id": [self.env.ref("rebuild_account_migration.view_declaration_candidate_line_search").id],
             "domain": [("review_id", "=", self.id)],
             "context": {"group_by": ["date:month"] if des else ["partner_id"] if one_year else ["period", "partner_id"]},
-            "help": self.env._("No matching source documents in this period."),
+            "help": self.env._("No source documents listed. If you opened this list more than an hour ago, show the documents again from the declaration calendar."),
             "target": "current",
         }
 
@@ -223,7 +223,7 @@ class DeclarationCandidateReviewLine(models.TransientModel):
     _order = "date desc, move_id desc, payment_move_id desc"
 
     review_id = fields.Many2one(
-        "rebuild.account.declaration.candidate.review", required=True, ondelete="cascade", index=True,
+        "rebuild.account.declaration.candidate.review", string="Source review", required=True, ondelete="cascade", index=True,
         help="Review that listed this document.",
     )
     company_id = fields.Many2one(related="review_id.company_id", help="Company whose accounting holds the document.")

@@ -14026,8 +14026,8 @@ msgstr "Sélectionnez une société dont le pays fiscal est la France pour exami
 #. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
-msgid "No matching source documents in this period."
-msgstr "Aucune pièce correspondant à ces critères sur la période."
+msgid "No source documents listed. If you opened this list more than an hour ago, show the documents again from the declaration calendar."
+msgstr "Aucune pièce listée. Si vous avez ouvert cette liste il y a plus d’une heure, affichez de nouveau les pièces depuis le calendrier des déclarations."
 
 #. module: rebuild_account_migration
 #. odoo-python

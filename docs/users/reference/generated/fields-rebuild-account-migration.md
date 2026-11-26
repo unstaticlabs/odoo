@@ -551,7 +551,7 @@ One source document behind a potential DES or DAS2 declaration, with the reason 
 | **Payment** (`payment_move_id`) | many2one → `account.move` |  | Payment entry that settled the bill, when the document is a bill. |
 | **Period** (`period`) | char |  | Declaration period the document belongs to: a month for DES, a year for DAS2. |
 | **Reason for review** (`reason`) | char |  | Why this document may belong in the declaration. |
-| **Review** (`review_id`) | many2one → `rebuild.account.declaration.candidate.review` | yes | Review that listed this document. |
+| **Source review** (`review_id`) | many2one → `rebuild.account.declaration.candidate.review` | yes | Review that listed this document. |
 
 ## USL French Declaration Prefilled Field
 
