@@ -112,8 +112,9 @@ class TestVoice(TransactionCase):
             answers = iter([{"text": "Obrigado", "language": "portuguese"}, {"text": "Merci beaucoup", "language": "fr"}])
             post.return_value.json.side_effect = lambda: next(answers)
             self.assertEqual(transcribe(b"audio", "audio/mpeg", "fr_FR"), "Merci beaucoup")
-            self.assertNotIn("language", post.call_args_list[0].kwargs["data"])
-            self.assertEqual(post.call_args_list[1].kwargs["data"]["language"], "fr")
+            # The gateway answers 400 to any field it does not know: the first request carries none.
+            self.assertEqual(post.call_args_list[0].kwargs["data"], {})
+            self.assertEqual(post.call_args_list[1].kwargs["data"], {"language": "fr"})
             post.reset_mock()
             # English speech in a French interface is kept as heard, in one request.
             post.return_value.json.side_effect = None
