@@ -242,19 +242,20 @@ documents, without locks, permanent deletion or administration. A replay
 clicks through wizards and posts entries, and staging is a neutralized copy
 that the next reset replaces.
 
-On staging the step then links two more groups to that user, the ones the
-company-payment expense journey requires, and nothing else:
+On staging the step then links one more group to that user, the one the
+company-payment expense journey requires: `account.group_account_manager`. The
+bank-match review that offers the company payment opens for an Accounting
+Manager only. That group implies Expense Administrator (`usl_expense_batch`),
+which is what lets the account submit and approve an expense that is not its
+own; without it Odoo answers "You do not have the required permission to
+submit this expense". It is wider than the journey: on staging the account can
+also configure Accounting and Expenses. No narrower group opens the journey.
 
-| Group | What it opens |
-|---|---|
-| `hr_expense.group_hr_expense_user` | submitting and approving an expense of any employee; without it Odoo answers "You do not have the required permission to submit this expense" |
-| `account.group_account_manager` | the bank-match review that offers the company payment: it opens for an Accounting Manager only |
-
-The profile sets the user's groups exactly, so both are linked again after
+The profile sets the user's groups exactly, so the group is linked again after
 every release. The journey writes to the staging database alone: it posts a
 payment entry and reconciles a bank line that was already imported. No bank is
 called, and a neutralized database sends no mail. The profile itself is
-unchanged, so nobody gains these groups in production, where the step is
+unchanged, so nobody gains the group in production, where the step is
 `not-applicable`. The step reads three
 values from the environment of the staging Odoo service, which the GitOps
 staging Compose file declares; none is a secret:
