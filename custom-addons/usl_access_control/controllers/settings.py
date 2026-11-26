@@ -7,12 +7,15 @@ class AgentSettings(AuthBaseSetup):
     @http.route()
     def base_setup_data(self, **kw):
         data = super().base_setup_data(**kw)
-        # The invitation widget also uses the original logins to detect duplicates.
+        # An agent never signs in, so it would sit among the pending invitations forever.
         pending = request.env["res.users"].search([
-            ("id", "in", [uid for uid, _login in data["pending_users"]]),
-            ("usl_identity_classification", "=", "agent"),
-        ])
-        data["usl_pending_agent_names"] = {
-            user.id: user.name for user in pending
-        }
+            ("share", "=", False), ("log_ids", "=", False),
+            ("usl_identity_classification", "!=", "agent"),
+        ], order="id desc")
+        shown = pending[:10]
+        data.update(
+            pending_count=len(pending),
+            pending_users=[(user.id, user.login) for user in shown],
+            action_pending_users=shown._action_show(),
+        )
         return data

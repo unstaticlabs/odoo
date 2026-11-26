@@ -11166,7 +11166,7 @@
       "delegates": [
         "rpc:res.users.browse"
       ],
-      "digest": "1972dbd49a6f47da1adda80faac2b01b973fc48e29f727cd86b813f6fc38871e",
+      "digest": "525abd046c03c586b3c4a15a4afbf522464799273ea92bfd97d2db7e24d2dc93",
       "guards": [],
       "key": "route:jsonrpc:ANY:/base_setup/data",
       "kind": "route",
@@ -11177,7 +11177,7 @@
       "parents": [],
       "risk_flags": [],
       "route": "/base_setup/data",
-      "runtime_digest": "7c7019a17ea2e7d37cb24bef82de70ccb6f3e76cb23d9d8f60662de1f45ba771",
+      "runtime_digest": "6a5690af4875185f64c2c599c5ea0175b16f0dce94af93a7668637c6c5af7044",
       "sinks": [],
       "sources": [
         {
@@ -1767535,7 +1767535,6 @@
     }
   ],
   "country_codes": [
-    "fr",
     "us"
   ],
   "diagnostics": [],
@@ -1768529,11 +1768528,11 @@
       "version": ""
     },
     {
-      "manifest_sha256": "00684c6b1f606b172419b6ebeeda1ea0061e943f71c0b02a67f4eeead3fd0c31",
+      "manifest_sha256": "6e45c88e85ba5b270b2114485539752b3c154d02f3cae84b9e4e81a0886471cb",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "35682673c8787f2f778136428676fbb9c60a79f85ca5ef21fc77cf577c75339c",
-      "version": "saas~19.3.1.8.16"
+      "source_sha256": "6d8619ea8557b734afa0e29eccf0ad7293116cac1cc4e02903bce8cd27897b2e",
+      "version": "saas~19.3.1.8.17"
     },
     {
       "manifest_sha256": "4f9040bdb650a3982873d52a71c8754c677f302157b991c86118b5154e06524f",

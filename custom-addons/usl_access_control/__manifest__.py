@@ -1,7 +1,7 @@
 {
     "name": "USL Distribution Access Control",
     "summary": "Recoverability-based roles, protected actions, and agent auditability",
-    "version": "saas~19.3.1.8.16",
+    "version": "saas~19.3.1.8.17",
     "category": "Administration/Access Rights",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -39,7 +39,6 @@
             "usl_access_control/static/src/js/agent_user_menu.js",
             "usl_access_control/static/src/xml/accounting_readonly.xml",
             "usl_access_control/static/src/xml/agent_access_field.xml",
-            "usl_access_control/static/src/xml/agent_identity_display.xml",
         ],
         "web.assets_unit_tests": [
             "usl_access_control/static/tests/agent_access_field.test.js",
