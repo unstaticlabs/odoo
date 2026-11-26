@@ -238,11 +238,21 @@ class Base(models.AbstractModel):
 
         An Agent sees every record its owner can see, within the delegated
         applications and companies, and also every record shared with the
-        Agent's own identity, for example a project it follows. Both sets are
-        evaluated in the same companies.
+        Agent's own identity, for example a project it follows. Both sets stay
+        within the same companies: native rules such as the internal-user
+        partner rule ignore company, so the ceiling is applied here too.
         """
         own_model = self.with_context(allowed_company_ids=sorted(allowed_companies))
         own_domain = super(Base, own_model)._access_domain(operation)
+        if "company_id" in self._fields:
+            own_domain = Domain.AND([
+                own_domain,
+                Domain([
+                    "|",
+                    ("company_id", "=", False),
+                    ("company_id", "in", sorted(allowed_companies)),
+                ]),
+            ])
         return Domain.OR([delegated_domain, own_domain])
 
     @api.model

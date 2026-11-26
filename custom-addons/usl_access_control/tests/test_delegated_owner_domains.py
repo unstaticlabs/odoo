@@ -294,6 +294,30 @@ class TestDelegatedOwnerDomains(HttpCase):
         with self.assertRaises(AccessError):
             shared_task.with_user(self.agent_user).write({"name": "Forbidden"})
 
+    def test_agent_own_access_keeps_the_company_ceiling(self):
+        # Native partner rules let any internal user read internal-user
+        # partners whatever their company; the Agent's companies still bind.
+        colleague = self.env["res.users"].with_context(
+            no_reset_password=True, usl_governed_identity_provisioning=True,
+        ).create({
+            "name": "[QA owner domains] Other-company colleague", "login": "qa.owner.domains.other",
+            "company_id": self.other_company.id, "company_ids": [Command.set(self.other_company.ids)],
+            "usl_identity_classification": "active",
+        })
+        colleague.partner_id.company_id = self.other_company
+        self.env.flush_all()
+        partners =self.env["res.partner"].with_user(self.agent_user).with_context(
+            allowed_company_ids=self.company.ids,
+        )
+        self.assertFalse(partners.search([("id", "=", colleague.partner_id.id)]))
+        native = self.env["ir.rule"].with_user(self.agent_user).with_context(
+            allowed_company_ids=self.company.ids,
+        )._compute_domain("res.partner", "read")
+        self.assertTrue(
+            self.env["res.partner"].search_count(native & Domain("id", "=", colleague.partner_id.id)),
+            "The native rule must reach the partner, or this test proves nothing.",
+        )
+
     def test_writable_agent_writes_union_of_owner_and_own_access(self):
         writer, user = self._writer()
         shared = self.env["project.project"].create({
