@@ -55,11 +55,14 @@ delegable when available, but identity administration, credentials, secrets
 and Irreversible Actions are never offered—even by the highest-access shortcut.
 A newly installed application never expands an existing Agent silently.
 
-Read access is the intersection of the Agent's delegated applications and
-companies, the owner's current ACLs and record rules in the same company
-context, and the platform safety policy. This includes private, assigned-only,
-employee, Accounting and Documents rules. Losing an owner permission or
-company removes it from the Agent immediately. Restoring the owner's access
+Within its delegated applications and companies, an Agent reaches the union
+of two sets of records: everything its owner can reach under the owner's
+current ACLs and record rules in the same company context, and everything
+shared with the Agent's own identity, such as a project it follows or a task
+assigned to it. Both sets stay under the platform safety policy. The owner's
+set includes private, assigned-only, employee, Accounting and Documents rules,
+so a record visible only to the owner is visible to their Agents too. Losing
+an owner permission or company removes it from the Agent immediately. Restoring the owner's access
 does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.

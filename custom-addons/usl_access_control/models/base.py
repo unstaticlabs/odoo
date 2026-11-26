@@ -197,7 +197,7 @@ class Base(models.AbstractModel):
                 if condition.operator == "access" else condition,
             )
             if owner_rule_domain.is_false():
-                return Domain.FALSE
+                return self._usl_agent_union_domain(operation, Domain.FALSE, allowed_companies)
 
             def optimize_owner_rule(_domain, evaluation_model):
                 # Defer full expansion: native mail rules need the actual caller
@@ -227,8 +227,23 @@ class Base(models.AbstractModel):
                     ("company_id", "in", sorted(allowed_companies)),
                 ],
             )
-            return Domain.AND([owner_domain, company_domain])
-        return owner_domain
+            owner_domain = Domain.AND([owner_domain, company_domain])
+        if native_relationship:
+            return owner_domain
+        return self._usl_agent_union_domain(operation, owner_domain, allowed_companies)
+
+    @api.model
+    def _usl_agent_union_domain(self, operation, delegated_domain, allowed_companies):
+        """Add what the Agent may reach itself to what its owner delegates.
+
+        An Agent sees every record its owner can see, within the delegated
+        applications and companies, and also every record shared with the
+        Agent's own identity, for example a project it follows. Both sets are
+        evaluated in the same companies.
+        """
+        own_model = self.with_context(allowed_company_ids=sorted(allowed_companies))
+        own_domain = super(Base, own_model)._access_domain(operation)
+        return Domain.OR([delegated_domain, own_domain])
 
     @api.model
     def _has_field_access(self, field, operation):

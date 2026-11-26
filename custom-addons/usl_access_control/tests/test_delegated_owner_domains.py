@@ -264,6 +264,36 @@ class TestDelegatedOwnerDomains(HttpCase):
         self.project.message_unsubscribe(partner_ids=self.owner.partner_id.ids)
         self.assertFalse(model.search(domain))
 
+    def test_agent_sees_union_of_owner_and_own_access(self):
+        shared = self.env["project.project"].create({
+            "name": "[QA owner domains] Shared with the Agent", "privacy_visibility": "followers",
+            "company_id": self.company.id,
+        })
+        shared_task = self.env["project.task"].create({
+            "name": "[QA owner domains] Shared task", "project_id": shared.id,
+        })
+        shared.message_subscribe(partner_ids=self.agent_user.partner_id.ids)
+        self.env.flush_all()
+        self.assertFalse(shared.with_user(self.owner).has_access("read"))
+        projects = (self.project | self.hidden_project | shared).ids
+        self.assertEqual(
+            set(self.env["project.project"].with_user(self.agent_user).search([("id", "in", projects)]).ids),
+            set((self.project | shared).ids),
+        )
+        tasks = (self.tasks | self.hidden_task | shared_task).ids
+        self.assertEqual(
+            set(self.env["project.task"].with_user(self.agent_user).search([("id", "in", tasks)]).ids),
+            set((self.tasks | shared_task).ids),
+        )
+        self.assertEqual(
+            shared_task.with_user(self.agent_user).read(["name"])[0]["name"],
+            "[QA owner domains] Shared task",
+        )
+        with self.assertRaises(AccessError):
+            self.hidden_task.with_user(self.agent_user).read(["name"])
+        with self.assertRaises(AccessError):
+            shared_task.with_user(self.agent_user).write({"name": "Forbidden"})
+
     def test_native_create_write_unlink_relations_and_owner_acl_loss(self):
         writer, user = self._writer()
         Task = self.env["project.task"].with_user(user)
@@ -295,7 +325,10 @@ class TestDelegatedOwnerDomains(HttpCase):
         original = Rules._compute_domain
 
         def rule(records, model_name, mode="read"):
-            if model_name == "hr.employee.skill.report" and records.env.uid == self.owner.id:
+            # The Agent sees the union of both identities, so both must refuse.
+            if model_name == "hr.employee.skill.report" and records.env.uid in (
+                self.owner.id, self.agent_user.id,
+            ):
                 return Domain("employee_id", "access", "write")
             return original(records, model_name, mode)
 
