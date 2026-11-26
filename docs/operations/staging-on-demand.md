@@ -240,7 +240,27 @@ read-only: it does accounting review work in unlocked periods (draft
 adjustments, posting, reset, reconciliation) and reads the accounting
 documents, without locks, permanent deletion or administration. A replay
 clicks through wizards and posts entries, and staging is a neutralized copy
-that the next reset replaces. It reads three
+that the next reset replaces.
+
+On staging the step then links one more group to that user, the one the
+company-payment expense journey requires: `account.group_account_manager`. The
+bank-match review that offers the company payment opens for an Accounting
+Manager only. That group implies Expense Administrator (`usl_expense_batch`),
+which is what lets the account submit and approve an expense that is not its
+own; without it Odoo answers "You do not have the required permission to
+submit this expense". It is wider than the journey and than the profile:
+Accounting Manager is Odoo's full accounting access, configuration included,
+so the profile's limits on accounting described above no longer hold for this
+account on staging, and it can also configure Expenses. It is still not a
+system administrator, and it does not hold the irreversible-actions group. No
+narrower group opens the journey.
+
+The profile sets the user's groups exactly, so the group is linked again after
+every release. The journey writes to the staging database alone: it posts a
+payment entry and reconciles a bank line that was already imported. No bank is
+called, and a neutralized database sends no mail. The profile itself is
+unchanged, so nobody gains the group in production, where the step is
+`not-applicable`. The step reads three
 values from the environment of the staging Odoo service, which the GitOps
 staging Compose file declares; none is a secret:
 

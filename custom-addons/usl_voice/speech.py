@@ -27,9 +27,9 @@ def transcribe(data, mimetype, lang=None):
     gateway = os.environ.get("USL_VOICE_GATEWAY", "http://ollama:11434").rstrip("/")
 
     def ask(language=None):
-        fields = {"response_format": "verbose_json"}
-        if language:
-            fields["language"] = language
+        # The gateway answers with the text and the language heard, and refuses any
+        # field other than ``language``.
+        fields = {"language": language} if language else {}
         try:
             response = requests.post(
                 f"{gateway}/v1/audio/transcriptions",

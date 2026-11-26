@@ -1,6 +1,6 @@
 from odoo import Command
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
 
 
@@ -13,6 +13,14 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         return self.env["rebuild.account.declaration.candidate.review"].new({
             "kind": kind, "company_id": self.env.company.id, "date_from": start, "date_to": end,
         })
+
+    def _listed(self, kind, start, end):
+        """What the person sees after "Show documents": the native list and its lines."""
+        review = self.env["rebuild.account.declaration.candidate.review"].create({
+            "kind": kind, "company_id": self.env.company.id, "date_from": start, "date_to": end,
+        })
+        action = review.action_show()
+        return action, self.env[action["res_model"]].search(action["domain"])
 
     def test_des_explicit_tax_and_dates_without_a_declaration(self):
         partner = self.env["res.partner"].with_context(no_vat_validation=True).create({
@@ -40,8 +48,22 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertEqual([row["source_id"] for row in review.source_rows], [refund.id, native_invoice.id, original.id])
         self.assertEqual({r["period"] for r in review.source_rows}, {"2026-03"})
         self.assertIn(tax.name, review.source_rows[0]["reason"])
-        self.assertIn(f"/odoo/account.move/{original.id}", review.evidence_html)
+        action, lines = self._listed("des", "2026-03-01", "2026-03-31")
+        self.assertEqual(lines.move_id.ids, [refund.id, native_invoice.id, original.id])
+        self.assertEqual(action["context"]["group_by"], ["date:month"])
+        self.assertEqual(lines[-1].action_open_document()["res_id"], original.id)
         self.assertEqual(self.env["rebuild.account.declaration"].search(domain).ids, before)
+        # From the declaration itself, the same list opens without asking for the dates again.
+        declaration = self.env["rebuild.account.declaration"].create({
+            "name": "Example DES", "company_id": self.env.company.id,
+            "rule_id": self.env["rebuild.account.declaration.rule"].search([("code", "=", "FR_DES")], limit=1).id,
+            "period_start": "2026-03-01", "period_end": "2026-03-31",
+            "fiscalyear_start": "2026-01-01", "fiscalyear_end": "2026-12-31",
+            "deadline_date": "2026-04-14", "deadline_basis": "Example deadline.",
+            "applicability": "applicable", "applicability_reason": "Example obligation.",
+        })
+        direct = declaration.action_review_documents()
+        self.assertEqual(self.env[direct["res_model"]].search(direct["domain"]).move_id, lines.move_id)
 
     def test_des_shows_what_opens_the_calendar_declaration_with_signed_amounts(self):
         Partner = self.env["res.partner"].with_context(no_vat_validation=True)
@@ -68,6 +90,10 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertEqual([row["source_id"] for row in rows], [refund.id, original.id])
         self.assertEqual([row["amount_untaxed"] for row in rows], [-120, 120])
         self.assertEqual([row["credit_note"] for row in rows], [True, False])
+        lines = self._listed("des", "2026-03-01", "2026-03-31")[1]
+        # The month total a person reads under the list nets the credit note.
+        self.assertEqual(lines.mapped("amount"), [-120, 120])
+        self.assertEqual(lines.mapped("move_type"), ["out_refund", "out_invoice"])
 
     def _bank_debit(self, when, debit_account, amount):
         journal = self.company_data["default_journal_bank"]
@@ -106,7 +132,22 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
             [("2026-01-21", direct.id, 0), ("2026-01-12", bill.id, current.id)],
         )
         self.assertEqual([r["payment_amount"] for r in review.source_rows], [95, 180])
-        self.assertIn(f"/odoo/account.move/{current.id}", review.evidence_html)
+        action, lines = self._listed("das2", "2026-01-01", "2026-01-31")
+        self.assertEqual(action["context"]["group_by"], ["partner_id"])
+        self.assertEqual(self._listed("das2", "2025-12-01", "2026-01-31")[0]["context"]["group_by"], ["period", "partner_id"])
+        self.assertEqual(lines.mapped("amount"), [95, 180])
+        self.assertEqual(lines.mapped("period"), ["2026", "2026"])
+        self.assertFalse(lines[0].payment_move_id)
+        # The lines hold partners and amounts: another accounting reader must not see them.
+        reader = self.env["res.users"].with_context(no_reset_password=True, usl_governed_identity_provisioning=True).create({
+            "name": "Example reader", "login": "example.das2.reader",
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_readonly")).ids)],
+        })
+        self.assertFalse(lines.with_user(reader).search(action["domain"]))
+        with self.assertRaises(AccessError):
+            lines.with_user(reader).read(["amount"])
+        self.assertEqual(lines[1].action_open_document()["res_id"], bill.id)
+        self.assertEqual(lines[1].action_open_payment()["res_id"], current.id)
         self.assertEqual(self._review("das2", "2025-12-01", "2025-12-31").source_rows[0]["payment_id"], earlier.id)
 
     def test_622_allocation_and_mixed_bill_show_one_settlement(self):
@@ -164,7 +205,10 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
     def test_inactive_company_and_invalid_range(self):
         review = self._review("des", "2026-03-01", "2026-01-31")
         self.assertFalse(review.source_rows)
-        self.assertIn("end date", review.evidence_html)
+        with self.assertRaisesRegex(ValidationError, "end date"):
+            self.env["rebuild.account.declaration.candidate.review"].create({
+                "kind": "des", "company_id": self.env.company.id, "date_from": "2026-03-01", "date_to": "2026-01-31",
+            })
         other = self.env["res.company"].create({"name": "Other example company"})
         scoped = self.env["rebuild.account.declaration.candidate.review"].with_context(
             allowed_company_ids=self.env.company.ids,

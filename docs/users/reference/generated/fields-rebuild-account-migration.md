@@ -527,9 +527,31 @@ Use the source dates and linked accounting documents to decide which items need 
 | **Company** (`company_id`) | many2one → `res.company` | yes | Active company whose accounting documents you want to review. |
 | **From** (`date_from`) | date | yes | First invoice or payment date to include. |
 | **To** (`date_to`) | date | yes | Last invoice or payment date to include. |
-| **Items to review** (`evidence_html`) | html |  | Source documents grouped by declaration period for the accountant to review. |
 | **Declaration** (`kind`) | selection | yes | Review DES by invoice month or DAS2 by payment year and beneficiary. Values: **DES**, **DAS2**. |
+| **Documents to review** (`line_ids`) | one2many → `rebuild.account.declaration.candidate.review.line` |  | One line per source document, listed when you show the documents. |
 | **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also give the settlement, the 622 share in company currency and the date used by the calendar. |
+
+## DES or DAS2 document to review
+
+`rebuild.account.declaration.candidate.review.line`, defined by this module. Transient: the record lives only while its dialog is open.
+
+One source document behind a potential DES or DAS2 declaration, with the reason it needs a review.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Amount** (`amount`) | monetary |  | Signed amount excluding tax for DES, amount settled for DAS2, in company currency. |
+| **622 share** (`amount_622`) | monetary |  | Part of the settlement the declaration calendar allocates to 622 fees. |
+| **Calendar date (622)** (`calendar_date`) | date |  | Date used by the declaration calendar for the 622 share, when it differs from the payment date. |
+| **Company** (`company_id`) | many2one → `res.company` |  | Company whose accounting holds the document. |
+| **Currency** (`currency_id`) | many2one → `res.currency` |  | Company currency of the amounts. |
+| **Date** (`date`) | date |  | Invoice date for DES, payment date for DAS2. |
+| **Document** (`move_id`) | many2one → `account.move` |  | Posted invoice, bill or payment entry to review. |
+| **Type** (`move_type`) | selection |  | Tells an invoice from a credit note. |
+| **Partner** (`partner_id`) | many2one → `res.partner` |  | Customer of the invoice or beneficiary of the payment. |
+| **Payment** (`payment_move_id`) | many2one → `account.move` |  | Payment entry that settled the bill, when the document is a bill. |
+| **Period** (`period`) | char |  | Declaration period the document belongs to: a month for DES, a year for DAS2. |
+| **Reason for review** (`reason`) | char |  | Why this document may belong in the declaration. |
+| **Source review** (`review_id`) | many2one → `rebuild.account.declaration.candidate.review` | yes | Review that listed this document. |
 
 ## USL French Declaration Prefilled Field
 

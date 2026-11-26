@@ -98,12 +98,14 @@ test("the insertion point is found inside the field, on the right line", () => {
     }
 });
 
-test("the resting microphone keeps to fields where a sentence is written", () => {
+test("the resting microphone shows where words are written or searched, not on pickers", () => {
     const holder = document.createElement("div");
     holder.innerHTML = `
         <input class="title" type="text"/>
         <textarea></textarea>
         <div class="o_searchview"><input class="o_searchview_input" type="text"/></div>
+        <input class="home-search" type="text" role="combobox"/>
+        <input class="native-search" type="search"/>
         <div class="o-autocomplete"><input class="o-autocomplete--input" type="text" role="combobox"/></div>
         <div class="o_field_float"><input class="amount" type="text" inputmode="decimal"/></div>
         <input class="o_datetime_input" type="text"/>`;
@@ -111,7 +113,10 @@ test("the resting microphone keeps to fields where a sentence is written", () =>
     try {
         expect(wantsMicrophone(holder.querySelector(".title"))).toBe(true);
         expect(wantsMicrophone(holder.querySelector("textarea"))).toBe(true);
-        for (const selector of [".o_searchview_input", ".o-autocomplete--input", ".amount", ".o_datetime_input"]) {
+        for (const selector of [".o_searchview_input", ".home-search", ".native-search"]) {
+            expect(wantsMicrophone(holder.querySelector(selector))).toBe(true);
+        }
+        for (const selector of [".o-autocomplete--input", ".amount", ".o_datetime_input"]) {
             expect(wantsMicrophone(holder.querySelector(selector))).toBe(false);
             // The keyboard shortcut still dictates there.
             expect(dictationTarget(holder.querySelector(selector))).not.toBe(null);
