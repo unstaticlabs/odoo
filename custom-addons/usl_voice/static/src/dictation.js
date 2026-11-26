@@ -4,7 +4,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
-import { captionBox, captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
+import { captionBox, captureTarget, caretRect, dictationTarget, typeHost, wantsMicrophone } from "./dictation_target";
 import { VoiceMeter } from "./meter";
 
 /**
@@ -139,7 +139,12 @@ export class FieldDictation extends Component {
         if (this.state.mode !== "idle") {
             // The words heard so far are written in the field itself, where they will be inserted:
             // not in another field the writer moved to, nor once this one has scrolled away.
-            const at = shown && this.destination && target === this.origin && captionBox(target, caret);
+            // They stay where the text will go, wherever the writer then puts the insertion point.
+            const pin = this.pin;
+            const line = { height: pin.height, left: box?.left + pin.x - (target?.scrollLeft - pin.scrollLeft),
+                top: box?.top + pin.y - (target?.scrollTop - pin.scrollTop) };
+            const at = shown && this.destination && target === this.origin && line.top + line.height / 2 > box.top &&
+                line.top + line.height / 2 < box.bottom && captionBox(target, line, pin.host);
             this.state.caption = at ? `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
                 `font:${at.font};color:${at.color};background-color:${at.background}` : "";
         }
@@ -173,6 +178,10 @@ export class FieldDictation extends Component {
             return;
         }
         this.origin = this.target;
+        const caret = caretRect(this.target);
+        const box = this.target.getBoundingClientRect();
+        this.pin = { x: caret.left - box.left, y: caret.top - box.top, height: caret.height, host: typeHost(this.target),
+            scrollLeft: this.target.scrollLeft, scrollTop: this.target.scrollTop };
         this.destination = captureTarget(this.target);
         const capture = markRaw(new VoiceCapture());
         this.capture = capture;

@@ -108,12 +108,18 @@ export function caretRect(element) {
     };
 }
 
+/** The element whose type the text at the insertion point takes: in rich text, maybe a heading. */
+export function typeHost(element) {
+    const focus = element.isContentEditable && element.ownerDocument.getSelection()?.focusNode;
+    return focus && element.contains(focus) ? (focus.nodeType === Node.ELEMENT_NODE ? focus : focus.parentElement) : element;
+}
+
 /**
  * Where the words heard so far are written while the writer speaks: on the line of the
  * insertion point, from it to the end of the field, in the field's own type. With too little
  * room left on that line, the whole line is used. Viewport pixels, like caretRect.
  */
-export function captionBox(element, caret) {
+export function captionBox(element, caret, host = typeHost(element)) {
     const box = element.getBoundingClientRect();
     const style = getComputedStyle(element);
     const start = box.left + parseFloat(style.borderLeftWidth || 0) + parseFloat(style.paddingLeft || 0);
@@ -125,10 +131,7 @@ export function captionBox(element, caret) {
         const color = getComputedStyle(node).backgroundColor;
         background = /^(transparent|rgba\(.*,\s*0\))$/.test(color) ? "" : color;
     }
-    // In rich text the line may be a heading: take the type of the text at the insertion point.
-    const focus = element.isContentEditable && element.ownerDocument.getSelection()?.focusNode;
-    const host = focus && element.contains(focus) ? (focus.nodeType === Node.ELEMENT_NODE ? focus : focus.parentElement) : element;
-    const type = getComputedStyle(host);
+    const type = getComputedStyle(host.isConnected ? host : element);
     return {
         left, top: caret.top, width: Math.max(0, end - left), height: caret.height,
         font: `${type.fontStyle} ${type.fontWeight} ${type.fontSize} / ${caret.height}px ${type.fontFamily}`,

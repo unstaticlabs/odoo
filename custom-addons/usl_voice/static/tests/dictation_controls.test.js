@@ -4,7 +4,7 @@ import { animationFrame } from "@odoo/hoot-mock";
 import { mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { FieldDictation } from "@usl_voice/dictation";
-import { captureTarget } from "@usl_voice/dictation_target";
+import { VoiceCapture } from "@usl_voice/capture";
 
 defineMailModels();
 
@@ -35,35 +35,76 @@ test("a click on the microphone reaches no other listener and keeps the field fo
     }
 });
 
-test("the words heard so far appear in the field being dictated, not beside the controls", async () => {
-    const input = document.createElement("input");
-    input.style.cssText = "position:fixed;left:50px;top:200px;width:400px";
+test("the words heard so far appear in the field being dictated, where the text will go", async () => {
+    // No microphone here: the recorder starts at once and no recognition is requested.
+    patchWithCleanup(VoiceCapture.prototype, {
+        async start() {},
+    });
+    patchWithCleanup(FieldDictation.prototype, {
+        listen() {},
+    });
+    const input = document.createElement("textarea");
+    input.style.cssText = "position:fixed;left:50px;top:200px;width:400px;height:80px;font:16px/20px monospace";
     const other = document.createElement("input");
-    other.style.cssText = "position:fixed;left:50px;top:300px;width:400px";
+    other.style.cssText = "position:fixed;left:50px;top:400px;width:400px";
     document.body.append(input, other);
+    const words = () => document.querySelector(".o-usl-dictation-caption")?.getBoundingClientRect();
+    const hear = async (dictation) => {
+        dictation.state.preview = "prepare the report";
+        dictation.settle();
+        await animationFrame();
+        await animationFrame();
+        await animationFrame();
+    };
+    const start = async (dictation) => {
+        input.value = "First line\nSecond line\nThird line";
+        input.focus();
+        input.setSelectionRange(10, 10); // end of the first line
+        await animationFrame();
+        await dictation.record();
+        await hear(dictation);
+    };
     try {
         const dictation = await mountWithCleanup(FieldDictation);
-        input.focus();
-        await animationFrame();
-        dictation.origin = input;
-        dictation.destination = captureTarget(input);
-        dictation.state.preview = "prepare the report";
-        // While transcribing the words stay in place until the final text replaces them.
-        dictation.setMode("processing");
-        await animationFrame();
-        await animationFrame();
-        const words = document.querySelector(".o-usl-dictation-caption").getBoundingClientRect();
+        await start(dictation);
         const field = input.getBoundingClientRect();
-        expect(words.left).toBeGreaterThan(field.left);
-        expect(words.right).toBeLessThan(field.right);
-        expect(words.top).toBeGreaterThan(field.top - 1);
-        expect(words.bottom).toBeLessThan(field.bottom + 1);
-        // The writer moves to another field: the text will not go there, so neither do the words.
+        const first = words();
+        expect(first.left).toBeGreaterThan(field.left);
+        expect(first.right).toBeLessThan(field.right);
+        expect(first.top).toBeGreaterThan(field.top - 1);
+        expect(first.bottom).toBeLessThan(field.top + 30);
+        // Nothing is typed before the end.
+        expect(input.value).toBe("First line\nSecond line\nThird line");
+
+        // The insertion point moves two lines down: the text still goes to the first line, and so do the words.
+        input.setSelectionRange(input.value.length, input.value.length);
+        await hear(dictation);
+        expect(Math.round(words().top)).toBe(Math.round(first.top));
+        expect(Math.round(words().left)).toBe(Math.round(first.left));
+
+        // Typing in the field means the text will not be inserted: the words leave it.
+        input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+        await hear(dictation);
+        expect(".o-usl-dictation-caption").toHaveCount(0);
+        dictation.cancel();
+        await animationFrame();
+
+        // Moving to another field: the text will not go there, so neither do the words.
+        await start(dictation);
+        expect(".o-usl-dictation-caption").toHaveCount(1);
         other.focus();
+        await hear(dictation);
+        expect(".o-usl-dictation-caption").toHaveCount(0);
+        dictation.cancel();
+        await animationFrame();
+
+        // Cancelling removes them.
+        await start(dictation);
+        expect(".o-usl-dictation-caption").toHaveCount(1);
+        dictation.cancel();
         await animationFrame();
         await animationFrame();
         expect(".o-usl-dictation-caption").toHaveCount(0);
-        dictation.cancel();
     } finally {
         input.remove();
         other.remove();
