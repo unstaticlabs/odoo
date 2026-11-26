@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from odoo.exceptions import AccessError
 from odoo.tests import TransactionCase, new_test_user, tagged
@@ -36,7 +36,7 @@ class TestVoice(TransactionCase):
         with patch("odoo.addons.usl_voice.models.transcribe", return_value=text) as server:
             message._usl_transcribe_voice(voice.id)
             message._usl_transcribe_voice(voice.id)
-        server.assert_called_once_with(b"ID3synthetic-audio", "audio/mpeg", self.env.user.lang)
+        server.assert_called_once_with(b"ID3synthetic-audio", "audio/mpeg", self.env.user.lang, patience=90)
         self.assertIsInstance(server.call_args.args[0], bytes)
         message.invalidate_recordset(["usl_voice_notes"])
         self.assertEqual(message.usl_voice_notes, [{
@@ -105,6 +105,44 @@ class TestVoice(TransactionCase):
                 transcribe(b"audio", "audio/mpeg")
             with self.assertRaises(ValueError):
                 transcribe(b"", "audio/mpeg")
+
+    def test_a_busy_worker_is_asked_again_within_the_patience_given(self):
+        def answers(*codes):
+            replies = []
+            for code in codes:
+                reply = MagicMock(status_code=code, headers={"Retry-After": "2"} if code == 503 else {})
+                reply.json.return_value = {"text": "Bonjour", "language": "fr"}
+                replies.append(reply)
+            return replies
+
+        with patch("odoo.addons.usl_voice.speech.requests.post") as post, \
+                patch("odoo.addons.usl_voice.speech.time.sleep") as sleep:
+            # Without patience, as for a caption, a busy worker is a failure at once.
+            post.side_effect = answers(503)
+            with self.assertRaises(SpeechUnavailable):
+                transcribe(b"audio", "audio/mpeg")
+            sleep.assert_not_called()
+            # With patience the recording is sent again after the pause the worker asks for.
+            post.side_effect = answers(503, 503, 200)
+            self.assertEqual(transcribe(b"audio", "audio/mpeg", patience=20), "Bonjour")
+            self.assertEqual([call.args[0] for call in sleep.call_args_list], [2, 2])
+            # Patience shorter than one pause does not wait at all.
+            sleep.reset_mock()
+            post.side_effect = answers(503)
+            with self.assertRaises(SpeechUnavailable):
+                transcribe(b"audio", "audio/mpeg", patience=1)
+            sleep.assert_not_called()
+
+    def test_a_voice_note_waits_for_a_busy_worker(self):
+        message, voice = self.post_voice()
+        busy = MagicMock(status_code=503, headers={"Retry-After": "2"})
+        heard = MagicMock(status_code=200, headers={})
+        heard.json.return_value = {"text": "Bonjour", "language": "fr"}
+        with patch("odoo.addons.usl_voice.speech.requests.post", side_effect=[busy, heard]), \
+                patch("odoo.addons.usl_voice.speech.time.sleep"):
+            message._usl_transcribe_voice(voice.id)
+        self.assertEqual(voice.usl_transcription_state, "done")
+        self.assertEqual(voice.usl_transcription, "Bonjour")
 
     def test_speech_heard_as_a_third_language_is_heard_again_in_french_or_english(self):
         with patch("odoo.addons.usl_voice.speech.requests.post") as post:

@@ -213617,7 +213617,7 @@
       "id": "voice.dictation",
       "rationale": "The endpoint accepts audio only and fixes its destination. Dictation writes no records.",
       "reviewed_digests": {
-        "route:http:POST:/usl/voice/dictate": "680147985d6d6630b39361115eaf423e3a26b22a15746d90e7848f940cf59c92"
+        "route:http:POST:/usl/voice/dictate": "799c97b52088cc1c2399f472e6a5f88829d1f822fb31187292784e8020107c83"
       }
     },
     {
@@ -213657,12 +213657,12 @@
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:1": "79836a64bf9014345be310d8ef3d1515498498b819a39ae06a7099be71932af1",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_accessible_voices:sudo:2": "58feb5b2bc4f7f294bbfd7f8e720e95729e0d4b2b307133917640a464493cadc",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_enqueue_voice:orm_write:1": "95306bcf5a0ef45129dc1532e05e0f62b8cb670518a7118a46167445a983e7b0",
-        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1": "bd25e47eb42ee66ab697c65d641edba81e9629a9313f97d1f1f10820cb87ca55",
-        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2": "ebecb829a0c2754b679092cbfdf205213b3a88c1ad161c4f6946146f18f1f8d2",
-        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1": "87fc7f1a45935144e971a50d7d41e038d1915f7bb3c31ea60d85f3217e8981fc",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:1": "26c972181bdd3c2ebb1fc5ea2cec1b2420f4e33543d5b367b1127f4690126361",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:orm_write:2": "116454ba14e86c4677c13cdba66cfd7352a4e76adc80461c32ec88d8a7e9dd2b",
+        "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1": "d701c5d4e4760cce369a96981163cec8e6f02055c4aae178c9af59a77b7fb755",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1": "a37ddb9ea0b59b65cca2ad85c293337b9dd59a4be002f8f999e1fb3afa721873",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1": "900e7fa0fdbb9efaca2157e9fa3e86ca29579bef4fad719239b1f5dda42c8b3f",
-        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "d13e16d0a9c10aa23fc0be54a4cfd5b0ab59e80ef444cdccce25c7f09b397156"
+        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "6940b9213bca0adb5ebb3b81ba20ca3f960808c38f8da97722f16569f8e934ce"
       }
     },
     {
