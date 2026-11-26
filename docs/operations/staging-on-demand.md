@@ -248,8 +248,12 @@ bank-match review that offers the company payment opens for an Accounting
 Manager only. That group implies Expense Administrator (`usl_expense_batch`),
 which is what lets the account submit and approve an expense that is not its
 own; without it Odoo answers "You do not have the required permission to
-submit this expense". It is wider than the journey: on staging the account can
-also configure Accounting and Expenses. No narrower group opens the journey.
+submit this expense". It is wider than the journey and than the profile:
+Accounting Manager is Odoo's full accounting access, configuration included,
+so the profile's limits on accounting described above no longer hold for this
+account on staging, and it can also configure Expenses. It is still not a
+system administrator, and it does not hold the irreversible-actions group. No
+narrower group opens the journey.
 
 The profile sets the user's groups exactly, so the group is linked again after
 every release. The journey writes to the staging database alone: it posts a

@@ -7906,9 +7906,12 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
     offers the company payment opens for that group only. That group implies
     Expense Administrator (``usl_expense_batch``), which is what lets the
     account submit and approve an expense that is not its own. It is wider
-    than the journey, and no narrower group opens it. The journey writes to
-    the staging database alone: it posts a payment entry and reconciles a bank
-    line already imported, and a neutralized database sends no mail.
+    than the journey and than the profile: it is Odoo's full accounting
+    access, configuration included, so the profile's limits on accounting no
+    longer hold for this account on staging. No narrower group opens the
+    journey. The journey writes to the staging database alone: it posts a
+    payment entry and reconciles a bank line already imported, and a
+    neutralized database sends no mail.
 
     It runs in the admitted generation, after the release controls were
     compared: those controls count users, their groups and their identities
