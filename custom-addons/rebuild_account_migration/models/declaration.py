@@ -251,6 +251,14 @@ class RebuildAccountDeclaration(models.Model):
             "applicability_reason": self._applicability_reason(self.company_id, self.rule_id),
         })
 
+    def action_review_documents(self):
+        """Open the source documents of this DES or DAS2 period, without asking for the dates again."""
+        self.ensure_one()
+        return self.env["rebuild.account.declaration.candidate.review"].create({
+            "company_id": self.company_id.id, "kind": "des" if self.form_code == "DES" else "das2",
+            "date_from": self.period_start, "date_to": self.period_end,
+        }).action_show()
+
     def action_refresh_preparation(self):
         reviewed = self._with_recorded_review()
         for declaration in self:

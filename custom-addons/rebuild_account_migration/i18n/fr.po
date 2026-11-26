@@ -1284,6 +1284,7 @@ msgstr "Allocation"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_management_summary_line_list
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_list
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__amount
 msgid "Amount"
 msgstr "Montant"
 
@@ -2774,6 +2775,7 @@ msgstr "Sociétés"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_einvoice_reception_search
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__company_id
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__company_id
 msgid "Company"
 msgstr "Société"
 
@@ -3489,6 +3491,7 @@ msgstr "Crédit"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_currency_report_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_rate_list_trace
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_currency_rate_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__currency_id
 msgid "Currency"
 msgstr "Devise"
 
@@ -3656,6 +3659,7 @@ msgstr "Données manquantes"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_partner_ledger_line__date
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_report_preview_line__date
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_analytic_reporting_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__date
 msgid "Date"
 msgstr "Date"
 
@@ -6671,6 +6675,7 @@ msgstr "Montant comptable"
 #: model:ir.model.fields.selection,name:rebuild_account_migration.selection__rebuild_account_report_export_wizard__period_preset__month
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_move_line_reconciliation_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_revenue_spending_month_search
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_search
 msgid "Month"
 msgstr "Mois"
 
@@ -8067,6 +8072,8 @@ msgstr "Partiellement assorti"
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_partner_ledger_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_revenue_spending_month_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_bank_transaction_form
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__partner_id
 msgid "Partner"
 msgstr "Partenaire"
 
@@ -8154,6 +8161,7 @@ msgstr "Fournisseur"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_account_payment
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__payment_move_id
 msgid "Payment"
 msgstr "Paiement"
 
@@ -8247,6 +8255,7 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_report_export_wizard_form
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_tax_report_line_search
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_trial_balance_line_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__period
 msgid "Period"
 msgstr "Période"
 
@@ -11990,6 +11999,7 @@ msgstr "Réessayer"
 
 #. module: rebuild_account_migration
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_deferral_search
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__move_type
 msgid "Type"
 msgstr "Type"
 
@@ -13847,50 +13857,9 @@ msgid "To"
 msgstr "Au"
 
 #. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Choose an end date on or after the start date."
-msgstr "Choisissez une date de fin égale ou postérieure à la date de début."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Review posted EU customer invoices and credit notes carrying a DES service tax. Confirm which services belong in each month with your accountant."
-msgstr "Ces factures et avoirs clients comptabilisés portent une taxe de services intracommunautaires. Vérifiez avec votre comptable quelles prestations retenir pour chaque mois."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Review 622 fees and additional 604 services with your accountant. Each settlement appears once. The 622 share uses the calendar’s allocation on the source document."
-msgstr "Examinez les honoraires en 622 et les prestations en 604 avec votre comptable. Chaque règlement apparaît une fois. La part des honoraires est calculée comme dans le calendrier déclaratif."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "No matching source documents in this period."
-msgstr "Aucune pièce correspondant à ces critères sur la période."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Date, amount excl. tax"
-msgstr "Date, montant HT"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Date, amount settled"
-msgstr "Date, montant réglé"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__source_rows
 msgid "Source documents"
 msgstr "Pièces sources"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Reason for review"
-msgstr "Motif de vérification"
-
-#. module: rebuild_account_migration
-#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__evidence_html
-msgid "Items to review"
-msgstr "Éléments à examiner"
 
 #. module: rebuild_account_migration
 #. odoo-python
@@ -13915,11 +13884,6 @@ msgstr "Prestation au compte 604. Sa nature doit être confirmée avec votre com
 #: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
 msgid "Fees booked to 622, the account used by the declaration calendar."
 msgstr "Honoraires au compte 622, retenu par le calendrier déclaratif."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Choose a company with France as its fiscal country to review DES or DAS2 sources."
-msgstr "Sélectionnez une société dont le pays fiscal est la France pour examiner les pièces DES ou DAS2."
 
 #. module: rebuild_account_migration
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__company_id
@@ -13947,30 +13911,10 @@ msgid "Source move IDs, dates, periods and reasons. DAS2 rows also give the sett
 msgstr "Identifiants des pièces, dates, périodes et motifs. Les lignes DAS2 indiquent aussi le règlement, la part en 622 dans la devise de la société et la date retenue par le calendrier."
 
 #. module: rebuild_account_migration
-#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__evidence_html
-msgid "Source documents grouped by declaration period for the accountant to review."
-msgstr "Pièces à examiner avec le comptable, regroupées par période déclarative."
-
-#. module: rebuild_account_migration
 #. odoo-python
 #: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
 msgid "622 fees and a 604 service on the same document. Review the 604 service separately."
 msgstr "La même pièce contient des honoraires en 622 et une prestation en 604. Vérifiez cette prestation séparément."
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "622 share:"
-msgstr "Part des honoraires (622) :"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Date used by the calendar (622):"
-msgstr "Date retenue par le calendrier (622) :"
-
-#. module: rebuild_account_migration
-#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.declaration_candidate_evidence
-msgid "Credit note ·"
-msgstr "Avoir ·"
 
 #. module: rebuild_account_migration
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_declaration_candidate_review
@@ -13996,3 +13940,202 @@ msgstr "Dépenses approuvées"
 #: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_overview__draft_expense_count
 msgid "Draft, submitted and approved expenses awaiting further processing. This legacy count does not mean editable drafts."
 msgstr "Dépenses en brouillon, soumises ou approuvées restant à traiter. Ce compteur historique ne désigne pas uniquement les brouillons modifiables."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_des
+msgid "Amount excl. tax"
+msgstr "Montant HT"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_des
+msgid "Total excl. tax"
+msgstr "Total HT"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_das2
+msgid "Paid on"
+msgstr "Réglé le"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_das2
+msgid "Open the payment"
+msgstr "Ouvrir le règlement"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_das2
+msgid "Amount settled"
+msgstr "Montant réglé"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_das2
+msgid "Total settled"
+msgstr "Total réglé"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_das2
+msgid "Total 622 share"
+msgstr "Total part en 622"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_search
+msgid "With a 622 share"
+msgstr "Avec une part en 622"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_search
+msgid "Credit notes"
+msgstr "Avoirs"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_line_search
+msgid "Declaration period"
+msgstr "Période déclarative"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+msgid "Show documents"
+msgstr "Afficher les pièces"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+msgid "Posted EU customer invoices and credit notes carrying a DES service tax, by invoice month. Confirm which services belong in each month with your accountant."
+msgstr "Factures et avoirs clients comptabilisés portant une taxe de services intracommunautaires, par mois de facturation. Vérifiez avec votre comptable quelles prestations retenir pour chaque mois."
+
+#. module: rebuild_account_migration
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_declaration_candidate_review
+msgid "622 fees and additional 604 services, by payment year and beneficiary. Each settlement appears once. The 622 share uses the calendar’s allocation on the source document."
+msgstr "Honoraires en 622 et prestations en 604, par année de règlement et bénéficiaire. Chaque règlement apparaît une fois. La part des honoraires est calculée comme dans le calendrier déclaratif."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
+msgid "Choose an end date on or after the start date."
+msgstr "Choisissez une date de fin égale ou postérieure à la date de début."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
+msgid "Choose a company with France as its fiscal country to review DES or DAS2 sources."
+msgstr "Sélectionnez une société dont le pays fiscal est la France pour examiner les pièces DES ou DAS2."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
+msgid "No matching source documents in this period."
+msgstr "Aucune pièce correspondant à ces critères sur la période."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_candidates.py:0
+msgid "%(kind)s documents, %(start)s to %(end)s"
+msgstr "Pièces %(kind)s du %(start)s au %(end)s"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__review_id
+msgid "Source review"
+msgstr "Revue d’origine"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__review_id
+msgid "Review that listed this document."
+msgstr "Revue qui a listé cette pièce."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__company_id
+msgid "Company whose accounting holds the document."
+msgstr "Société dont la comptabilité contient la pièce."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__currency_id
+msgid "Company currency of the amounts."
+msgstr "Devise de la société, dans laquelle les montants sont exprimés."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__date
+msgid "Invoice date for DES, payment date for DAS2."
+msgstr "Date de facture pour la DES, date de règlement pour la DAS2."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__period
+msgid "Declaration period the document belongs to: a month for DES, a year for DAS2."
+msgstr "Période déclarative de la pièce : un mois pour la DES, une année pour la DAS2."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__partner_id
+msgid "Customer of the invoice or beneficiary of the payment."
+msgstr "Client de la facture ou bénéficiaire du règlement."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__move_id
+msgid "Document"
+msgstr "Pièce"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__move_id
+msgid "Posted invoice, bill or payment entry to review."
+msgstr "Facture client, facture fournisseur ou écriture de règlement comptabilisée à examiner."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__move_type
+msgid "Tells an invoice from a credit note."
+msgstr "Distingue une facture d’un avoir."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__payment_move_id
+msgid "Payment entry that settled the bill, when the document is a bill."
+msgstr "Écriture de règlement qui a soldé la facture fournisseur, quand la pièce en est une."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__amount
+msgid "Signed amount excluding tax for DES, amount settled for DAS2, in company currency."
+msgstr "Montant HT signé pour la DES, montant réglé pour la DAS2, dans la devise de la société."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__amount_622
+msgid "622 share"
+msgstr "Part en 622"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__amount_622
+msgid "Part of the settlement the declaration calendar allocates to 622 fees."
+msgstr "Part du règlement que le calendrier déclaratif affecte aux honoraires en 622."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__calendar_date
+msgid "Calendar date (622)"
+msgstr "Date calendrier 622"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__calendar_date
+msgid "Date used by the declaration calendar for the 622 share, when it differs from the payment date."
+msgstr "Date retenue par le calendrier déclaratif pour la part en 622, quand elle diffère de la date de règlement."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__reason
+msgid "Reason for review"
+msgstr "Motif de vérification"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__reason
+msgid "Why this document may belong in the declaration."
+msgstr "Pourquoi cette pièce peut relever de la déclaration."
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__line_ids
+msgid "Documents to review"
+msgstr "Pièces à examiner"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,help:rebuild_account_migration.field_rebuild_account_declaration_candidate_review__line_ids
+msgid "One line per source document, listed when you show the documents."
+msgstr "Une ligne par pièce source, listée quand vous affichez les pièces."
+
+#. module: rebuild_account_migration
+#: model:ir.model,name:rebuild_account_migration.model_rebuild_account_declaration_candidate_review_line
+msgid "DES or DAS2 document to review"
+msgstr "Pièce DES ou DAS2 à examiner"

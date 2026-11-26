@@ -2,10 +2,10 @@
 
 import re
 
-from odoo import api, fields, models
-from odoo.exceptions import AccessError
+from odoo import Command, api, fields, models
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tools import format_amount, format_date
+from odoo.tools import format_date
 
 from .declaration import EU_COUNTRY_CODES
 
@@ -38,10 +38,15 @@ class DeclarationCandidateReview(models.TransientModel):
         compute="_compute_sources", string="Source documents",
         help="Source move IDs, dates, periods and reasons. DAS2 rows also give the settlement, the 622 share in company currency and the date used by the calendar.",
     )
-    evidence_html = fields.Html(
-        compute="_compute_sources", string="Items to review",
-        help="Source documents grouped by declaration period for the accountant to review.",
+    line_ids = fields.One2many(
+        "rebuild.account.declaration.candidate.review.line", "review_id", string="Documents to review",
+        help="One line per source document, listed when you show the documents.",
     )
+
+    @api.constrains("date_from", "date_to")
+    def _check_dates(self):
+        if any(review.date_from > review.date_to for review in self):
+            raise ValidationError(self.env._("Choose an end date on or after the start date."))
 
     @api.depends("company_id", "kind", "date_from", "date_to")
     @api.depends_context("uid", "allowed_company_ids", "lang")
@@ -50,40 +55,50 @@ class DeclarationCandidateReview(models.TransientModel):
             complete = review.company_id and review.date_from and review.date_to and review.kind
             if complete and review.company_id not in self.env.companies:
                 raise AccessError(self.env._("Select an active company to see its source documents."))
-            valid = complete and review.date_from <= review.date_to
-            country = review.company_id.account_fiscal_country_id or review.company_id.country_id
-            french = country.code == "FR"
             rows = []
-            if valid and french:
+            if complete and review.date_from <= review.date_to and review._is_french():
                 scoped = review.with_company(review.company_id)
                 rows = scoped._des_rows() if review.kind == "des" else scoped._das2_rows()
             rows.sort(key=lambda row: (row["date"], row["source_id"], row.get("payment_id", 0)), reverse=True)
-            groups = {}
-            for row in rows:
-                if review.kind == "des":
-                    group = row["period"], 0
-                    label = format_date(self.env, row["date"], date_format="MMMM y")
-                    label = label[:1].upper() + label[1:]
-                    row["amount_label"] = format_amount(self.env, row["amount_untaxed"], review.company_id.currency_id)
-                else:
-                    group = row["period"], row["partner_id"]
-                    label = f"{row['period']} · {row['partner']}" if row["partner"] else row["period"]
-                    row["amount_label"] = format_amount(self.env, row["payment_amount"], review.company_id.currency_id)
-                    calendar_date = row.get("calendar_622_date")
-                    if calendar_date and calendar_date != row["date"]:
-                        row["calendar_date_label"] = format_date(self.env, calendar_date)
-                    if row["native_622_amount"]:
-                        row["native_622_label"] = format_amount(self.env, row["native_622_amount"], review.company_id.currency_id)
-                groups.setdefault(group, {"label": label, "rows": []})["rows"].append(row)
             review.source_rows = rows
-            review.evidence_html = self.env["ir.qweb"]._render(
-                "rebuild_account_migration.declaration_candidate_evidence",
-                {"groups": list(groups.values()), "kind": review.kind, "complete": complete, "valid": valid, "french": french},
-            )
+
+    def _is_french(self):
+        return (self.company_id.account_fiscal_country_id or self.company_id.country_id).code == "FR"
+
+    def action_show(self):
+        """List the source documents natively: groups, totals, and a click opens the document."""
+        self.ensure_one()
+        if not self._is_french():
+            raise UserError(self.env._("Choose a company with France as its fiscal country to review DES or DAS2 sources."))
+        des = self.kind == "des"
+        # One year is the usual DAS2 review: a second, folded level would only add a click.
+        one_year = self.date_from.year == self.date_to.year
+        self.line_ids = [Command.clear()] + [Command.create({
+            "date": row["date"], "period": row["period"], "partner_id": row["partner_id"] or False,
+            "move_id": row["source_id"], "payment_move_id": row["payment_id"] or False, "reason": row["reason"],
+            "amount": row["amount_untaxed"] if des else row["payment_amount"],
+            "amount_622": 0.0 if des else row["native_622_amount"],
+            "calendar_date": not des and row.get("calendar_622_date") != row["date"] and row.get("calendar_622_date") or False,
+        }) for row in self.source_rows]
+        view = "view_declaration_candidate_line_des" if des else "view_declaration_candidate_line_das2"
+        return {
+            "type": "ir.actions.act_window",
+            "name": self.env._(
+                "%(kind)s documents, %(start)s to %(end)s", kind=self.kind.upper(),
+                start=format_date(self.env, self.date_from), end=format_date(self.env, self.date_to),
+            ),
+            "res_model": "rebuild.account.declaration.candidate.review.line",
+            "views": [(self.env.ref(f"rebuild_account_migration.{view}").id, "list")],
+            "search_view_id": [self.env.ref("rebuild_account_migration.view_declaration_candidate_line_search").id],
+            "domain": [("review_id", "=", self.id)],
+            "context": {"group_by": ["date:month"] if des else ["partner_id"] if one_year else ["period", "partner_id"]},
+            "help": self.env._("No matching source documents in this period."),
+            "target": "current",
+        }
 
     def _source_row(self, move, date, reason, payment=None):
         return {
-            "date": fields.Date.to_string(date), "date_label": format_date(self.env, date),
+            "date": fields.Date.to_string(date),
             "period": date.strftime("%Y-%m" if self.kind == "des" else "%Y"),
             "partner": move.commercial_partner_id.display_name or move.partner_id.display_name or "",
             "partner_id": move.commercial_partner_id.id or move.partner_id.id or 0,
@@ -199,3 +214,40 @@ class DeclarationCandidateReview(models.TransientModel):
             row["account_prefixes"] = sorted(row["account_prefixes"])
             row["reason"] = reasons[tuple(row["account_prefixes"])]
         return list(rows.values())
+
+
+class DeclarationCandidateReviewLine(models.TransientModel):
+    _name = "rebuild.account.declaration.candidate.review.line"
+    _description = "DES or DAS2 document to review"
+    _explanation = "One source document behind a potential DES or DAS2 declaration, with the reason it needs a review."
+    _order = "date desc, move_id desc, payment_move_id desc"
+
+    review_id = fields.Many2one(
+        "rebuild.account.declaration.candidate.review", required=True, ondelete="cascade", index=True,
+        help="Review that listed this document.",
+    )
+    company_id = fields.Many2one(related="review_id.company_id", help="Company whose accounting holds the document.")
+    currency_id = fields.Many2one(related="company_id.currency_id", help="Company currency of the amounts.")
+    date = fields.Date(help="Invoice date for DES, payment date for DAS2.")
+    period = fields.Char(help="Declaration period the document belongs to: a month for DES, a year for DAS2.")
+    partner_id = fields.Many2one("res.partner", string="Partner", help="Customer of the invoice or beneficiary of the payment.")
+    move_id = fields.Many2one("account.move", string="Document", help="Posted invoice, bill or payment entry to review.")
+    move_type = fields.Selection(related="move_id.move_type", string="Type", help="Tells an invoice from a credit note.")
+    payment_move_id = fields.Many2one("account.move", string="Payment", help="Payment entry that settled the bill, when the document is a bill.")
+    amount = fields.Monetary(help="Signed amount excluding tax for DES, amount settled for DAS2, in company currency.")
+    amount_622 = fields.Monetary(string="622 share", help="Part of the settlement the declaration calendar allocates to 622 fees.")
+    calendar_date = fields.Date(
+        string="Calendar date (622)", help="Date used by the declaration calendar for the 622 share, when it differs from the payment date.",
+    )
+    reason = fields.Char(string="Reason for review", help="Why this document may belong in the declaration.")
+
+    def _open(self, move):
+        return {"type": "ir.actions.act_window", "res_model": "account.move", "res_id": move.id, "views": [(False, "form")], "target": "current"}
+
+    def action_open_document(self):
+        self.ensure_one()
+        return self._open(self.move_id)
+
+    def action_open_payment(self):
+        self.ensure_one()
+        return self._open(self.payment_move_id)
