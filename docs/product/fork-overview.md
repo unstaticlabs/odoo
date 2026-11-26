@@ -154,6 +154,21 @@ commit is the one named.
   same-count replacement (a favorite project swapped for another) updates it
   immediately. Test: `addons/web/static/tests/webclient/navbar.test.js`.
 
+### Saving on leaving the page — `web`
+
+- `addons/web/static/src/model/relational_model/record.js`
+  (`_preprocessX2manyChanges`): when the page is closed or reloaded while a
+  line of an editable list holds text that was typed and not yet confirmed,
+  the form's last-chance save replaces the commands of that list with the list
+  itself before its first `await`. Upstream replaces them after it, and the
+  last-chance save does not wait, so the list field became an empty array:
+  the save raised `_abandonRecords is not a function` and the typed line was
+  lost. Upgrade cost: one function, twelve lines upstream; a conflict there
+  means upstream changed the same function, so keep theirs if the test below
+  passes with it, and remove this entry. Test: `save on closing tab/browser
+  (pending change in a x2many list row)` in
+  `addons/web/static/tests/views/form/auto_save.test.js`.
+
 ### Agents' effective API access — `api_doc`
 
 - `addons/api_doc/controllers/api_doc.py`, `models/__init__.py`,
