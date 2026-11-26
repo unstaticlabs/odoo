@@ -4,7 +4,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
-import { captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
+import { captionBox, captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
 import { VoiceMeter } from "./meter";
 
 /**
@@ -43,7 +43,8 @@ export class FieldDictation extends Component {
         this.notify = useService("notification");
         mounted = this;
         this.root = useRef("controls");
-        this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", recovered: "" });
+        this.caption = useRef("caption");
+        this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", caption: "", clipped: false, recovered: "" });
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
                 return;
@@ -134,13 +135,24 @@ export class FieldDictation extends Component {
             this.state.x = Math.max(4, Math.min(innerWidth - width - 4, caret.left + 6));
             this.state.y = this.state.above ? caret.top - 4 : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
         }
+        if (shown && this.state.mode !== "idle") {
+            // The words heard so far are written in the field itself, where they will be inserted.
+            const at = captionBox(target, caret);
+            this.state.caption = `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
+                `font:${at.font};color:${at.color};background-color:${at.background}`;
+        }
+        const words = this.caption.el;
+        this.state.clipped = Boolean(words && words.firstElementChild.offsetWidth > words.clientWidth);
         this.state.visible = shown;
         this.state.wanted = Boolean(target && wantsMicrophone(target));
     }
     setMode(mode) {
         this.state.mode = mode;
+        this.settle();
+    }
+    /** Place everything now, and again once redrawn: the controls and the words change width. */
+    settle() {
         this.position();
-        // The controls change width with the mode: once redrawn, keep them inside the window.
         requestAnimationFrame(() => requestAnimationFrame(() => this.position()));
     }
     cancel() {
@@ -189,8 +201,8 @@ export class FieldDictation extends Component {
         return (await response.json()).text;
     }
     /**
-     * Show the last words heard while the writer is still speaking: without it they talk
-     * into silence until the end. One request at a time, on the last seconds only.
+     * Write the last words heard in the field while the writer is still speaking: without it
+     * they talk into silence until the end. One request at a time, on the last seconds only.
      */
     async listen(capture) {
         const listening = new AbortController();
@@ -206,7 +218,7 @@ export class FieldDictation extends Component {
                 const text = await this.transcribe(file, listening.signal, true);
                 if (live() && text) {
                     this.state.preview = text;
-                    this.position();
+                    this.settle();
                 }
             } catch {
                 // The preview is a comfort: the dictation itself is unaffected.

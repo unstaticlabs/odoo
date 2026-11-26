@@ -33,3 +33,29 @@ test("a click on the microphone reaches no other listener and keeps the field fo
         input.remove();
     }
 });
+
+test("the words heard so far appear in the field being dictated, not beside the controls", async () => {
+    const input = document.createElement("input");
+    input.style.cssText = "position:fixed;left:50px;top:200px;width:400px";
+    document.body.append(input);
+    try {
+        const dictation = await mountWithCleanup(FieldDictation);
+        input.focus();
+        await animationFrame();
+        dictation.state.preview = "prepare the report";
+        // While transcribing the words stay in place until the final text replaces them.
+        dictation.setMode("processing");
+        await animationFrame();
+        await animationFrame();
+        const words = document.querySelector(".o-usl-dictation-caption").getBoundingClientRect();
+        const field = input.getBoundingClientRect();
+        expect(words.left).toBeGreaterThan(field.left);
+        expect(words.right).toBeLessThan(field.right);
+        expect(words.top).toBeGreaterThan(field.top - 1);
+        expect(words.bottom).toBeLessThan(field.bottom + 1);
+        expect(".o-usl-dictation-controls .o-usl-dictation-caption").toHaveCount(0);
+        dictation.cancel();
+    } finally {
+        input.remove();
+    }
+});

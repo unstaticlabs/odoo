@@ -109,6 +109,34 @@ export function caretRect(element) {
 }
 
 /**
+ * Where the words heard so far are written while the writer speaks: on the line of the
+ * insertion point, from it to the end of the field, in the field's own type. With too little
+ * room left on that line, the whole line is used. Viewport pixels, like caretRect.
+ */
+export function captionBox(element, caret) {
+    const box = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    const start = box.left + parseFloat(style.borderLeftWidth || 0) + parseFloat(style.paddingLeft || 0);
+    const end = box.right - parseFloat(style.borderRightWidth || 0) - parseFloat(style.paddingRight || 0);
+    const left = end - caret.left >= 120 ? Math.max(caret.left, start) : start;
+    // The words sit over the field, so they need its background: often an ancestor's.
+    let background = "";
+    for (let node = element; node && !background; node = node.parentElement) {
+        const color = getComputedStyle(node).backgroundColor;
+        background = /^(transparent|rgba\(.*,\s*0\))$/.test(color) ? "" : color;
+    }
+    // In rich text the line may be a heading: take the type of the text at the insertion point.
+    const focus = element.isContentEditable && element.ownerDocument.getSelection()?.focusNode;
+    const host = focus && element.contains(focus) ? (focus.nodeType === Node.ELEMENT_NODE ? focus : focus.parentElement) : element;
+    const type = getComputedStyle(host);
+    return {
+        left, top: caret.top, width: Math.max(0, end - left), height: caret.height,
+        font: `${type.fontStyle} ${type.fontWeight} ${type.fontSize} / ${caret.height}px ${type.fontFamily}`,
+        color: type.color, background: background || "Canvas",
+    };
+}
+
+/**
  * Whether the resting microphone is worth showing in this field. Record pickers and number or
  * date fields take a value, not words: there the keyboard shortcut still dictates, but no
  * button comes to sit over them. Search boxes do show it: nothing else says they can be spoken to.
