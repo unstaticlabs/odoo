@@ -6737,3 +6737,28 @@ msgstr "Le document n’a pas pu être rechargé."
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "The preview could not be loaded."
 msgstr "Impossible de charger l’aperçu."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The complete document file is unavailable. Try its download URL."
+msgstr "Le fichier complet est indisponible. Essayez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has an invalid size."
+msgstr "La taille du fichier transféré est invalide."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "This file is too large for direct reading. Use its download URL."
+msgstr "Ce fichier est trop volumineux pour la lecture directe. Utilisez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer is incomplete. No file was returned."
+msgstr "Le transfert du document est incomplet. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document bytes do not match the selected version. No file was returned."
+msgstr "Le contenu reçu ne correspond pas à la version choisie. Aucun fichier n’a été renvoyé."

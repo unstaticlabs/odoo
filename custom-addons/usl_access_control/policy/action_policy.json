@@ -38536,7 +38536,7 @@
         "rpc:usl.document.mcp_get": "e6e605a0a4e29d79cdfb69555f77e1d99074802d13f795f86b69f0754b838477",
         "rpc:usl.document.mcp_get_content": "ef8818964722402ea8dfe96a012899dc354d87470611bcff1d1ad88104c0a554",
         "rpc:usl.document.mcp_get_links": "2725ad69f4a2397f38a3bfc194a1d7a1714ba124047b47b789b9b0b568fb0b71",
-        "rpc:usl.document.mcp_get_versions": "95006575d5629456b4a83ff5f7c29edc9f310ef1a9b0c61217beb04fc3bb4c6c",
+        "rpc:usl.document.mcp_get_versions": "2224fcc05f4bacfa0746425c3575d98fe5d4738bc778a8e76781b95859428a70",
         "rpc:usl.document.mcp_list_correspondents": "ed281cc6b3ccd47ff7609acbddb8a1e6cf119fe89c077c922b26e1d61194db59",
         "rpc:usl.document.mcp_list_saved_views": "7bcc97fd56389e92db3234c787fc8dc829501a88255577a51436431401edc6ea",
         "rpc:usl.document.mcp_list_tags": "4895650ff2bdb4c0d71e246d93ffe8219aaf738da34087afb0f8252e760dc367",
@@ -221765,6 +221765,20 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:orm_write:1": "4c977c0e7f38cf5dce6281f4ef507e0b207f6c0c97b0c3bbb9be9c8b41a0a958",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:sudo:1": "9a9e1c1252aaef58b99afb9cef21a9845e73389757fab0302a132a56af97ac4d"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.mcp_read_binary"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns at most 4 MiB of the exact authorized file without creating a grant or changing Odoo, financial history or an external system.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-direct-binary-3751",
+      "id": "read_only.documents.direct_binary_read",
+      "rationale": "Reviewed in docs/operations/document-binary-action-risk-review.md. Reuses native document/version/company/linked-record authority, bounded read-only archive streaming and actual byte integrity; no sudo, actor switch, arbitrary URL, mutation or generic grant.",
+      "reviewed_digests": {
+        "rpc:usl.document.mcp_read_binary": "eed8e1669f813ee5022fdc1c134b70f28797ec85f9f91602996281d1a1a49241"
+      }
     }
   ],
   "evidence_families": {
@@ -221884,6 +221898,17 @@
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
+    "documents-direct-binary-3751": {
+      "contract": "Native read-only file authority and exact version/bytes; bounded stream with no local or external mutation; fresh access denial after share/company withdrawal.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_returns_exact_bytes_without_creating_a_grant",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_and_integrity_metadata_stop_after_explicit_share_withdrawal",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_direct_binary_keeps_the_selected_old_version_after_replacement",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_checks_access_before_fetching_any_bytes",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_checks_actual_bytes_not_only_upstream_etag",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_refuses_oversize_stream_before_returning_partial_content"
       ]
     },
     "documents-local-attachment-removal-20261014": {

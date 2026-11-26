@@ -1381333,7 +1381333,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 579,
+          "line": 681,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381368,7 +1381368,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 545,
+          "line": 586,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381402,7 +1381402,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 550,
+          "line": 652,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381436,7 +1381436,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 810,
+          "line": 920,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381456,7 +1381456,7 @@
         "rpc:usl.document.check_access",
         "rpc:usl.document.search"
       ],
-      "digest": "95006575d5629456b4a83ff5f7c29edc9f310ef1a9b0c61217beb04fc3bb4c6c",
+      "digest": "2224fcc05f4bacfa0746425c3575d98fe5d4738bc778a8e76781b95859428a70",
       "guards": [],
       "key": "rpc:usl.document.mcp_get_versions",
       "kind": "rpc",
@@ -1381467,11 +1381467,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e5086e36e6068e5966795d4b1f6477e7b4c92c0a7d5978bdd805313b977ea085",
+      "runtime_digest": "6570c52f256af03ac368ad9a5d27ff154d77d87787043c8057a149e6048d1d5a",
       "sinks": [],
       "sources": [
         {
-          "line": 695,
+          "line": 797,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381502,7 +1381502,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 792,
+          "line": 902,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381533,7 +1381533,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 733,
+          "line": 843,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381563,7 +1381563,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 783,
+          "line": 893,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381590,7 +1381590,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 801,
+          "line": 911,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381598,6 +1381598,40 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.search"
+      ],
+      "digest": "eed8e1669f813ee5022fdc1c134b70f28797ec85f9f91602996281d1a1a49241",
+      "guards": [],
+      "key": "rpc:usl.document.mcp_read_binary",
+      "kind": "rpc",
+      "method": "mcp_read_binary",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "87796a3713caa6dd07f82f44afb94c22c63ca8ac636e20d2eb5bb15e5fcf7741",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 592,
+          "path": "custom-addons/usl_documents/models/document_mcp.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/document_mcp.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.check_access"
+      ]
     },
     {
       "abstract": false,
@@ -1381715,7 +1381749,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 318,
+          "line": 359,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1768570,11 +1768604,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "761a304fb65ab29cffc75fad8262b4044c28d4457d4fad0e21d5ec20e6a9a1bf",
+      "manifest_sha256": "8441b203d8544f2dcc125960ebd238995c4836580526795487b10b4c5f3469da",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "be0b0d946ca644e8981ade2aee194ea1c2f9f4012a24b33bd402e82bfb9cc9ea",
-      "version": "saas~19.3.1.10.7"
+      "source_sha256": "14834a3016d23b0760dd79da16874b73bd3ff9da3dd511821ead5d2fd844a5fa",
+      "version": "saas~19.3.1.10.8"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",

@@ -115,6 +115,114 @@ class TestDocumentDownloadGrants(TransactionCase):
                 allowed_company_ids=self.company.ids,
             ).mcp_create_download_grant(document.id, **kwargs)
 
+    def _binary_read(self, payload, *, checksum=None, **kwargs):
+        document, version = self._document()
+        version.sudo().write({"checksum": checksum or hashlib.sha256(payload).hexdigest()})
+        stream = MagicMock()
+        stream.status = 200
+        stream.headers = {"Content-Length": str(len(payload))}
+        stream.iter_chunks.return_value = iter([payload[:3], payload[3:]])
+        with patch.object(PaperlessClient, "open_download", return_value=stream) as download:
+            result = self.env["usl.document"].with_user(self.user).with_context(
+                allowed_company_ids=self.company.ids,
+            ).mcp_read_binary(document.id, **kwargs)
+        stream.close.assert_called()
+        download.assert_called_once_with(
+            document.paperless_id, version_id=version.paperless_version_id, original=True,
+        )
+        return result
+
+    def test_binary_read_returns_exact_bytes_without_creating_a_grant(self):
+        import base64
+        payload = b"%PDF-1.4\nSynthetic incomplete-OCR evidence.\n%%EOF\n"
+        before = self.env["usl.document.download.grant"].sudo().search_count([])
+        result = self._binary_read(payload)
+        self.assertEqual(base64.b64decode(result["content_base64"], validate=True), payload)
+        self.assertEqual(result["sha256"], hashlib.sha256(payload).hexdigest())
+        self.assertEqual(result["size_bytes"], len(payload))
+        self.assertEqual(result["source_checksum_verified"], "sha256")
+        self.assertEqual(before, self.env["usl.document.download.grant"].sudo().search_count([]))
+        self.assertNotIn("url", result)
+
+    def test_binary_read_checks_actual_bytes_not_only_upstream_etag(self):
+        with self.assertRaisesRegex(ValidationError, "match"):
+            self._binary_read(b"%PDF changed source", checksum="0" * 64)
+
+    def test_binary_read_checks_access_before_fetching_any_bytes(self):
+        document, _version = self._document()
+        document.sudo().write({"company_id": self.other_company.id})
+        with patch.object(PaperlessClient, "open_download") as download:
+            with self.assertRaises(AccessError):
+                self.env["usl.document"].with_user(self.user).with_context(
+                    allowed_company_ids=self.company.ids,
+                ).mcp_read_binary(document.id)
+        download.assert_not_called()
+
+    def test_binary_read_refuses_oversize_stream_before_returning_partial_content(self):
+        document, _version = self._document()
+        stream = MagicMock()
+        stream.status = 200
+        stream.headers = {"Content-Length": str(4 * 1024 * 1024 + 1)}
+        with patch.object(PaperlessClient, "open_download", return_value=stream):
+            with self.assertRaisesRegex(ValidationError, "large"):
+                self.env["usl.document"].with_user(self.user).mcp_read_binary(document.id)
+        stream.iter_chunks.assert_not_called()
+        stream.close.assert_called()
+
+    def test_binary_and_integrity_metadata_stop_after_explicit_share_withdrawal(self):
+        document, version = self._document()
+        partner = self.env["res.partner"].create({"name": "Synthetic shared evidence target"})
+        document.sudo().with_context(usl_documents_policy_write=True).write({
+            "access_scope": "linked_record",
+        })
+        document.with_context(usl_documents_defer_access_sync=True).link_to_record("res.partner", partner.id)
+        document._recompute_linked_record_access(sync_permissions=False)
+        document.sudo().with_context(usl_documents_cache_write=True).write({"permission_sync_state": "synchronized"})
+        reader = self.env["usl.document"].with_user(self.user).with_context(allowed_company_ids=self.company.ids)
+        self.assertEqual(reader.mcp_get(document.id)["id"], document.id)
+        self._issue(document)
+        grant = self.env["usl.document.download.grant"].sudo().search([
+            ("document_id", "=", document.id),
+        ], limit=1)
+        document.with_context(usl_documents_defer_access_sync=True).unlink_from_record("res.partner", partner.id)
+        with patch.object(PaperlessClient, "open_download") as download, patch.object(PaperlessClient, "probe_download") as probe:
+            for read in (
+                lambda: reader.mcp_read_binary(document.id),
+                lambda: reader.mcp_get(document.id),
+                lambda: reader.mcp_get_versions(document.id, include_integrity=True),
+                lambda: grant.with_user(self.user)._authorize_redemption(),
+            ):
+                with self.assertRaises(AccessError):
+                    read()
+        download.assert_not_called()
+        probe.assert_not_called()
+
+    def test_direct_binary_keeps_the_selected_old_version_after_replacement(self):
+        import base64
+        document, old = self._document()
+        old_payload = b"%PDF old synthetic source"
+        new_payload = b"%PDF new synthetic source"
+        old.sudo().write({"checksum": hashlib.sha256(old_payload).hexdigest(), "is_current": False})
+        new = self.env["usl.document.version"].sudo().create({
+            "document_id": document.id, "paperless_version_id": "version-2",
+            "label": "Replacement", "original_filename": "qa-new.pdf", "mime_type": "application/pdf",
+            "checksum": hashlib.sha256(new_payload).hexdigest(), "is_current": True,
+        })
+        def stream(_client, _document_id, *, version_id, original):
+            self.assertTrue(original)
+            payload = old_payload if version_id == old.paperless_version_id else new_payload
+            result = MagicMock(status=200, headers={"Content-Length": str(len(payload))})
+            result.iter_chunks.return_value = iter([payload])
+            return result
+        reader = self.env["usl.document"].with_user(self.user)
+        with patch.object(PaperlessClient, "open_download", autospec=True, side_effect=stream):
+            previous = reader.mcp_read_binary(document.id, document_version_id=old.id)
+            current = reader.mcp_read_binary(document.id)
+        self.assertEqual(base64.b64decode(previous["content_base64"]), old_payload)
+        self.assertEqual(base64.b64decode(current["content_base64"]), new_payload)
+        self.assertEqual(previous["document_version_id"], old.id)
+        self.assertEqual(current["document_version_id"], new.id)
+
     def test_issuance_binds_version_and_stores_only_token_hash(self):
         document, version = self._document()
         result = self._issue(document)
