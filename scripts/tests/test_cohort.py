@@ -1289,6 +1289,8 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
+                if command[-1] == "capabilities":
+                    return subprocess.CompletedProcess(command, 0, '{"prepared_odoo_database":true}', "")
                 if command[:2] == ["mktemp", "-d"]:
                     return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
                 if command[-2:] == ["config", "--services"]:
@@ -4027,6 +4029,26 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": "mutable:latest"}):
             with self.assertRaisesRegex(RuntimeError, "immutable"):
                 _operations_image(release)
+
+    def test_recovery_requires_a_capable_operations_image_without_database_access(self):
+        old = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "a" * 64
+        qualified = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "b" * 64
+        release = {"components": {"backup-tool": {"digest_reference": old}}}
+        runner = mock.Mock()
+        for rc, output in ((2, ""), (0, "{}"), (0, "unknown"), (0, '{"prepared_odoo_database":1}')):
+            runner.run.return_value = subprocess.CompletedProcess([], rc, output, "")
+            with self.subTest(rc=rc, output=output), mock.patch.dict(os.environ, {}, clear=True):
+                with self.assertRaisesRegex(OperationsError, "USL_OPERATIONS_IMAGE"):
+                    stack_module._require_prepared_database_tool(runner, _operations_image(release))
+                args = runner.run.call_args.args[0]
+                self.assertEqual(args[-2:], [old, "capabilities"])
+                self.assertEqual(args[args.index("--network") + 1], "none")
+                self.assertNotIn("--volume", args)
+                self.assertNotIn("--env-file", args)
+        runner.run.return_value = subprocess.CompletedProcess([], 0, '{"prepared_odoo_database":true}', "")
+        with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": qualified}):
+            stack_module._require_prepared_database_tool(runner, _operations_image(release))
+        self.assertEqual(runner.run.call_args.args[0][-2:], [qualified, "capabilities"])
 
     def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
         target = load_target("staging", TARGETS)
