@@ -2511,6 +2511,22 @@ def _operations_image(release: dict) -> str:
     return image
 
 
+def _require_prepared_database_tool(runner, image: str) -> None:
+    result = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", image, "capabilities",
+    ], check=False)
+    try:
+        capability = json.loads(result.stdout) if result.returncode == 0 else {}
+    except ValueError:
+        capability = {}
+    if not isinstance(capability, dict) or capability.get("prepared_odoo_database") is not True:
+        raise RuntimeError(
+            "backup tool did not confirm prepared Odoo database support; "
+            "select a qualified immutable backup tool with USL_OPERATIONS_IMAGE"
+        )
+
+
 def _release_images(release: dict, mcp_authority: dict | None = None) -> list[str]:
     """Return Odoo-cohort images needed before a restore can start.
 
@@ -3203,6 +3219,7 @@ def _prepare_release_candidate(
     for image in _release_images(release, mcp_authority):
         _ensure_image(runner, image)
     tool_image = _operations_image(release)
+    _require_prepared_database_tool(runner, tool_image)
     candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
     capacity_after_pull = _require_restore_capacity(
         target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
@@ -5335,7 +5352,7 @@ def _generation_database_entrypoint(database_key: str, database: dict, image: st
         "--entrypoint", "/bin/bash", image, "-ceu",
         'test ! -e "$PGDATA/PG_VERSION" || { echo "generation database already initialized" >&2; exit 1; }\n'
         'export POSTGRES_PASSWORD="$(head -c 32 /dev/urandom | base64)"\n'
-        "cat > /docker-entrypoint-initdb.d/90-usl-application.sh <<'USL_INIT'\n"
+        "set -o noclobber\ncat > /docker-entrypoint-initdb.d/90-usl-application.sh <<'USL_INIT'\n"
         + initializer
         + "USL_INIT\nchmod 755 /docker-entrypoint-initdb.d/90-usl-application.sh\n"
         "exec /usr/local/bin/docker-entrypoint.sh postgres",
@@ -10644,6 +10661,8 @@ def _recovery_proof_command_locked(
     perimeter_sha = None
     failure_armed = False
     try:
+        tool_image = _operations_image(release)
+        _require_prepared_database_tool(runner, tool_image)
         if backup is None:
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
@@ -10687,7 +10706,6 @@ def _recovery_proof_command_locked(
         )
         rendered = _recovery_proof_runtime_config(runner, identity)
         images = {name: value["image"] for name, value in rendered["services"].items()}
-        tool_image = _operations_image(release)
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
         )

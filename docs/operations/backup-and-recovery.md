@@ -154,7 +154,11 @@ On a failed materialization, create a new generation using the existing
 recovery procedure. A wake or rollback reopens the selected volume with its
 original ownership. When restoring an older release with the current
 controller, select a qualified backup tool that supports prepared databases
-with the immutable `USL_OPERATIONS_IMAGE` override.
+with the immutable `USL_OPERATIONS_IMAGE` override. The GitOps release
+launcher pins its matching tool automatically. Release preparation and the
+independent recovery proof ask that image for its capabilities with no
+network or data mounts. An older or unreadable tool stops there and names
+the required override.
 
 ## Independent staging recovery restore
 

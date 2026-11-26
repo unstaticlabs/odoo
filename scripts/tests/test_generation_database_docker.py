@@ -1,6 +1,6 @@
 """Run the generation loader against disposable, network-isolated PostgreSQL 16."""
-import os
 import json
+import os
 import subprocess
 import tempfile
 import time
@@ -20,12 +20,12 @@ class GenerationDatabaseTests(unittest.TestCase):
     password = "fixture-only"
     image = os.environ.get("USL_QA_POSTGRES_IMAGE", "postgres:16-bookworm")
 
-    def new_generation(self):
+    def new_generation(self, *, extra_mounts=()):
         name = "usl-generation-qa-" + uuid.uuid4().hex[:12]
         database = {"name": self.db, "user": self.role, "password_key": "FIXTURE_PASSWORD"}
         subprocess.run([
             "docker", "run", "--detach", "--rm", "--network", "none", "--name", name,
-            "--tmpfs", "/var/lib/postgresql/data", "--env", f"FIXTURE_PASSWORD={self.password}",
+            "--tmpfs", "/var/lib/postgresql/data", "--env", f"FIXTURE_PASSWORD={self.password}", *extra_mounts,
             *_generation_database_entrypoint("odoo", database, self.image),
         ], check=True, capture_output=True)
         self.addCleanup(subprocess.run, ["docker", "stop", name], check=False, capture_output=True)
@@ -85,6 +85,17 @@ class GenerationDatabaseTests(unittest.TestCase):
         with self.assertRaisesRegex(cohort.CohortError, "empty"):
             self.materialize(restored, archive)
         self.assertEqual(self.sql(restored, "SELECT count(*) FROM fixture"), "1")
+
+    def test_keeps_image_initializers_before_and_after_ordinary_role_creation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            mounts = []
+            for key, file in (("before", "10-fixture.sql"), ("after", "95-fixture.sql")):
+                path = Path(directory) / file
+                path.write_text(f"ALTER DATABASE {self.db} SET fixture.{key}='present';\n")
+                mounts.extend(["--volume", f"{path}:/docker-entrypoint-initdb.d/{file}:ro"])
+            database = self.new_generation(extra_mounts=mounts)
+            self.assertEqual(self.sql(database, "SELECT current_setting('fixture.before'), current_setting('fixture.after')"),
+                             "present|present")
 
     def test_old_archive_and_runtime_rollback(self):
         # The release overlay is normally composed with the entire distribution.

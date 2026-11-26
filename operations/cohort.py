@@ -1848,7 +1848,7 @@ def parser() -> argparse.ArgumentParser:
         "action",
         choices=(
             "capture", "push", "verify", "qualify", "list", "materialize",
-            "retention-plan", "retention-apply", "anchor-verify",
+            "retention-plan", "retention-apply", "anchor-verify", "capabilities",
         ),
     )
     command.add_argument("--root", default="/cohort")
@@ -1868,6 +1868,7 @@ def main() -> int:
         if arguments.action in {"verify", "qualify", "materialize"} and not arguments.durable_snapshot:
             raise CohortError(f"{arguments.action} requires --durable-snapshot")
         handlers = {
+            "capabilities": lambda args: {"prepared_odoo_database": True},
             "list": list_snapshots,
             "anchor-verify": verify_usable_anchor,
             "retention-plan": lambda args: plan_retention(protected_anchor=args.protected_anchor_json),
