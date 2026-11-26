@@ -64,6 +64,7 @@ export class FieldDictation extends Component {
             }
             if (this.state.mode !== "idle") {
                 this.destination = null;
+                this.position();
                 return;
             }
             // Step aside while the writer types, and come back at the insertion point after a pause.
@@ -135,11 +136,12 @@ export class FieldDictation extends Component {
             this.state.x = Math.max(4, Math.min(innerWidth - width - 4, caret.left + 6));
             this.state.y = this.state.above ? caret.top - 4 : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
         }
-        if (shown && this.state.mode !== "idle") {
-            // The words heard so far are written in the field itself, where they will be inserted.
-            const at = captionBox(target, caret);
-            this.state.caption = `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
-                `font:${at.font};color:${at.color};background-color:${at.background}`;
+        if (this.state.mode !== "idle") {
+            // The words heard so far are written in the field itself, where they will be inserted:
+            // not in another field the writer moved to, nor once this one has scrolled away.
+            const at = shown && this.destination && target === this.origin && captionBox(target, caret);
+            this.state.caption = at ? `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
+                `font:${at.font};color:${at.color};background-color:${at.background}` : "";
         }
         const words = this.caption.el;
         this.state.clipped = Boolean(words && words.firstElementChild.offsetWidth > words.clientWidth);
@@ -170,6 +172,7 @@ export class FieldDictation extends Component {
         if (this.state.mode !== "idle" || !this.target?.isConnected) {
             return;
         }
+        this.origin = this.target;
         this.destination = captureTarget(this.target);
         const capture = markRaw(new VoiceCapture());
         this.capture = capture;

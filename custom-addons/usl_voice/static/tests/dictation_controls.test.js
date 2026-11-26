@@ -4,6 +4,7 @@ import { animationFrame } from "@odoo/hoot-mock";
 import { mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { FieldDictation } from "@usl_voice/dictation";
+import { captureTarget } from "@usl_voice/dictation_target";
 
 defineMailModels();
 
@@ -37,11 +38,15 @@ test("a click on the microphone reaches no other listener and keeps the field fo
 test("the words heard so far appear in the field being dictated, not beside the controls", async () => {
     const input = document.createElement("input");
     input.style.cssText = "position:fixed;left:50px;top:200px;width:400px";
-    document.body.append(input);
+    const other = document.createElement("input");
+    other.style.cssText = "position:fixed;left:50px;top:300px;width:400px";
+    document.body.append(input, other);
     try {
         const dictation = await mountWithCleanup(FieldDictation);
         input.focus();
         await animationFrame();
+        dictation.origin = input;
+        dictation.destination = captureTarget(input);
         dictation.state.preview = "prepare the report";
         // While transcribing the words stay in place until the final text replaces them.
         dictation.setMode("processing");
@@ -53,9 +58,14 @@ test("the words heard so far appear in the field being dictated, not beside the 
         expect(words.right).toBeLessThan(field.right);
         expect(words.top).toBeGreaterThan(field.top - 1);
         expect(words.bottom).toBeLessThan(field.bottom + 1);
-        expect(".o-usl-dictation-controls .o-usl-dictation-caption").toHaveCount(0);
+        // The writer moves to another field: the text will not go there, so neither do the words.
+        other.focus();
+        await animationFrame();
+        await animationFrame();
+        expect(".o-usl-dictation-caption").toHaveCount(0);
         dictation.cancel();
     } finally {
         input.remove();
+        other.remove();
     }
 });
