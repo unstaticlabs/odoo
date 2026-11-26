@@ -45,8 +45,10 @@ STATES = ("active", "waking", "sleeping", "stopping", "failed")
 KINDS = ("ci", "interactive")
 HISTORY_LIMIT = 30
 # Anything that is not a person using Odoo must never keep staging awake, and
-# must never wake it.  Matching is on the user agent because the gateway sits
-# behind Cloudflare and sees only the tunnel's address.
+# must never wake it, with one exception: the staging review identity may wake
+# it from an automated browser (``wake_attempt_allowed``).  Matching is on the
+# user agent because the gateway sits behind Cloudflare and sees only the
+# tunnel's address.
 AUTOMATED_AGENT = re.compile(
     r"bot|crawl|spider|slurp|uptime|kuma|monitor|pingdom|healthcheck|probe|"
     r"curl/|wget/|python-requests|python-httpx|aiohttp|node-fetch|axios|okhttp|"
@@ -288,9 +290,17 @@ def interactive_activity(lines: list[str]) -> datetime | None:
     return latest
 
 
-def wake_attempt_allowed(agent: str) -> bool:
-    """Bots, crawlers and probes never wake staging, even with a valid token."""
-    return bool(agent) and not AUTOMATED_AGENT.search(agent)
+def wake_attempt_allowed(agent: str, *, subject: str = "", review_subject: str = "") -> bool:
+    """Bots, crawlers and probes never wake staging, even with a valid session.
+
+    One identity is admitted from an automated browser: the staging review
+    identity, which replays journeys on staging.  ``review_subject`` is its
+    Pocket ID subject as the daemon's environment declares it, ``subject`` the
+    signed-in one.  Where none is declared, nothing automated passes.
+    """
+    if agent and not AUTOMATED_AGENT.search(agent):
+        return True
+    return bool(review_subject) and subject == review_subject
 
 
 def public_status(state: dict | None, now: datetime) -> dict:

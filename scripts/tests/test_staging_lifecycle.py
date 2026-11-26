@@ -174,6 +174,17 @@ class ActivityTests(unittest.TestCase):
         self.assertFalse(lifecycle.wake_attempt_allowed("Uptime-Kuma"))
         self.assertTrue(lifecycle.wake_attempt_allowed("Mozilla/5.0 (Macintosh) Safari"))
 
+    def test_only_the_declared_review_identity_wakes_from_an_automated_browser(self) -> None:
+        headless = "Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/140.0.0.0 Safari/537.36"
+        allowed = lifecycle.wake_attempt_allowed
+        self.assertTrue(allowed(headless, subject="review-1", review_subject="review-1"))
+        self.assertFalse(allowed(headless, subject="user-1", review_subject="review-1"))
+        self.assertFalse(allowed(headless, subject="", review_subject="review-1"))
+        # Nothing declared: no subject passes, not even an empty one.
+        self.assertFalse(allowed(headless, subject="", review_subject=""))
+        self.assertFalse(allowed(headless, subject="review-1"))
+        self.assertTrue(allowed("Mozilla/5.0 Firefox", subject="user-1", review_subject="review-1"))
+
 
 class PageTests(unittest.TestCase):
     def test_public_status_reveals_no_detail(self) -> None:
@@ -705,6 +716,8 @@ class CleanupWhileAsleepTests(unittest.TestCase):
 class DaemonHttpTests(unittest.TestCase):
     """The wake page and endpoints, over a real socket, against a fake Pocket ID."""
 
+    HEADLESS = "Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/140.0.0.0 Safari/537.36"
+
     def setUp(self) -> None:
         import http.client
         import threading
@@ -757,10 +770,10 @@ class DaemonHttpTests(unittest.TestCase):
                 return value.split(";", 1)[0]
         raise AssertionError(f"no {name} cookie in {headers}")
 
-    def sign_in(self, groups=("odoo_staging",)) -> str:
+    def sign_in(self, groups=("odoo_staging",), agent: str = "Mozilla/5.0 Firefox") -> str:
         """Run the whole browser flow; returns the session cookie."""
         self.provider.userinfo = {**self.provider.userinfo, "groups": list(groups)}
-        status, _, headers = self.request("GET", "/__usl/login")
+        status, _, headers = self.request("GET", "/__usl/login", headers={"User-Agent": agent})
         self.assertEqual(status, 302)
         location = dict(headers)["Location"]
         import urllib.parse
@@ -768,9 +781,15 @@ class DaemonHttpTests(unittest.TestCase):
         self.provider.nonce = query["nonce"]
         login = self.cookie_from(headers, "usl_wake_login")
         status, _, headers = self.request(
-            "GET", f"/__usl/callback?state={query['state']}&code=abc", headers={"Cookie": login},
+            "GET", f"/__usl/callback?state={query['state']}&code=abc",
+            headers={"Cookie": login, "User-Agent": agent},
         )
         return self.cookie_from(headers, "usl_wake_session") if status == 302 else ""
+
+    def declare_review_identity(self, subject: str) -> None:
+        environment = mock.patch.dict("os.environ", {"USL_STAGING_RECETTE_SUBJECT": subject})
+        environment.start()
+        self.addCleanup(environment.stop)
 
     def test_a_sleeping_staging_serves_the_sign_in_page_and_healthy_probes(self) -> None:
         self.set_state("sleeping")
@@ -899,6 +918,31 @@ class DaemonHttpTests(unittest.TestCase):
         status, _, headers = self.request("GET", "/__usl/login", headers={"User-Agent": "Googlebot/2.1"})
         self.assertEqual(status, 503)
         self.assertNotIn("Location", dict(headers))
+
+    def test_the_review_identity_signs_in_and_wakes_staging_from_an_automated_browser(self) -> None:
+        self.set_state("sleeping")
+        self.declare_review_identity("user-1")  # the fake provider's subject
+        session = self.sign_in(agent=self.HEADLESS)
+        self.assertTrue(session)
+        origin = self.target.value["endpoints"]["odoo"].rstrip("/")
+        status, _, _ = self.request(
+            "POST", "/__usl/wake", headers={"Cookie": session, "User-Agent": self.HEADLESS, "Origin": origin})
+        self.assertEqual(status, 202)
+        self.assertEqual(self.woken, ["web:valentin@example.test"])
+
+    def test_any_other_identity_is_still_refused_from_an_automated_browser(self) -> None:
+        self.set_state("sleeping")
+        self.declare_review_identity("review-1")
+        # The callback knows who signed in: someone else gets no session there.
+        self.assertEqual(self.sign_in(agent=self.HEADLESS), "")
+        # A session a person obtained in their own browser does not pass either.
+        session = self.sign_in()
+        self.assertTrue(session)
+        self.assertEqual(self.request(
+            "POST", "/__usl/wake", headers={"Cookie": session, "User-Agent": self.HEADLESS})[0], 403)
+        self.assertEqual(self.request(
+            "POST", "/__usl/wake", headers={"User-Agent": self.HEADLESS})[0], 403)
+        self.assertEqual(self.woken, [])
 
     def test_odd_requests_get_an_answer_and_the_log_never_holds_the_oidc_code(self) -> None:
         import contextlib

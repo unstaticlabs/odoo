@@ -13,32 +13,51 @@ def _relation_commands(value):
 class ProjectTaskType(models.Model):
     _inherit = "project.task.type"
 
-    user_id = fields.Many2one(default=lambda self: self._default_user_id())
-
     usl_reactivation_role = fields.Selection(
         selection=[
-            ("inbox", "Inbox destination"),
             ("later", "Later source"),
         ],
         string="Reactivation Role",
         copy=False,
         help=(
             "Deferred tasks return from Later to Inbox when work becomes actionable. "
-            "For a project board, set these roles on stages linked to the project "
-            "and use one active Inbox. Use the Projects field to share a project stage."
+            "The default task stage receives returns. Use the Projects field to share a project stage."
         ),
     )
+
+    usl_reactivation_help = fields.Json(compute="_compute_usl_reactivation_help")
+
+    @api.depends_context("uid", "lang", "usl_reactivation_project_id")
+    def _compute_usl_reactivation_help(self):
+        project_id = self.env.context.get("usl_reactivation_project_id")
+        Stage = self.env["project.task.type"].with_context(active_test=True)
+        if project_id:
+            project = self.env["project.project"].search([("id", "=", project_id)], limit=1)
+            inbox = project.with_context(active_test=True)._get_default_task_stage() if project else Stage
+            stages = project.type_ids.filtered(lambda stage: stage.active and not stage.user_id)
+        else:
+            inbox = Stage._usl_personal_inboxes(self.env.user).get(self.env.uid, Stage)
+            stages = Stage.search([("user_id", "=", self.env.uid)])
+        later = stages.filtered(lambda stage: stage.usl_reactivation_role == "later") - inbox
+        for stage in self:
+            stage.usl_reactivation_help = (
+                {"kind": "inbox", "names": later.mapped("name"), "personal": not project_id}
+                if stage == inbox and later
+                else {"kind": "later", "names": [inbox.name], "personal": not project_id}
+                if stage in later and inbox
+                else False
+            )
+
+    @api.model
+    def _usl_personal_inboxes(self, users):
+        # Same order and active-stage scope as _populate_missing_personal_stages.
+        stages = self.with_context(active_test=True).search([("user_id", "in", users.ids)])
+        return {user.id: owned[0] for user, owned in stages.grouped("user_id").items()}
 
     _usl_reactivation_role_unique = models.Constraint(
         "UNIQUE (user_id, usl_reactivation_role)",
         "A user can have only one personal stage for each reactivation role.",
     )
-
-    @api.model
-    def _default_user_id(self):
-        if self.env.context.get("usl_project_quick_create"):
-            return False
-        return super()._default_user_id()
 
     def _usl_check_shareable(self):
         if self.filtered("user_id"):
@@ -72,14 +91,7 @@ class ProjectTaskType(models.Model):
             open_stages = user_stages.filtered(lambda stage: not stage.fold)
             if not open_stages:
                 continue
-            if not user_stages.filtered(
-                lambda stage: stage.usl_reactivation_role == "inbox",
-            ):
-                open_stages[0].usl_reactivation_role = "inbox"
-            if (
-                len(open_stages) > 1
-                and not user_stages.filtered(
-                    lambda stage: stage.usl_reactivation_role == "later",
-                )
+            if len(open_stages) > 1 and not user_stages.filtered(
+                lambda stage: stage.usl_reactivation_role == "later",
             ):
                 open_stages[-1].usl_reactivation_role = "later"

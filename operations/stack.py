@@ -1771,6 +1771,19 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
         def _human(self) -> bool:
             return lifecycle.wake_attempt_allowed(self.headers.get("User-Agent", ""))
 
+        def _admitted(self, person) -> bool:
+            """A person, or the staging review identity from an automated browser."""
+            return lifecycle.wake_attempt_allowed(
+                self.headers.get("User-Agent", ""),
+                subject=person.subject if person else "",
+                review_subject=os.environ.get(STAGING_REVIEW_SUBJECT_VARIABLE, ""),
+            )
+
+        def _may_sign_in(self) -> bool:
+            # Who signs in is known only at the callback, so an automated browser
+            # may start a sign-in wherever a review identity is declared.
+            return self._human() or bool(os.environ.get(STAGING_REVIEW_SUBJECT_VARIABLE))
+
         def do_GET(self):
             parts = split(self.path)
             path = parts.path
@@ -1780,7 +1793,7 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 self._send(200, '{"status":"pass"}', "application/json")
             elif path == "/__usl/login":
                 oidc, _ = self._person()
-                if oidc is None or not self._human():
+                if oidc is None or not self._may_sign_in():
                     self._page("/", "Sign-in is not available.")
                     return
                 try:
@@ -1791,7 +1804,7 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 self._redirect(url, [("Set-Cookie", f"usl_wake_login={cookie}; Max-Age=600{login_flags}")])
             elif path == "/__usl/callback":
                 oidc, _ = self._person()
-                if oidc is None or not self._human():
+                if oidc is None or not self._may_sign_in():
                     self._page("/", "Sign-in is not available.")
                     return
                 cookies = wake_oidc.parse_cookies(self.headers.get("Cookie"))
@@ -1800,6 +1813,10 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 except wake_oidc.OidcError as error:
                     sys.stderr.write(f"sign-in refused: {error}\n")
                     self._page("/", str(error))
+                    return
+                if not self._admitted(who):
+                    sys.stderr.write("sign-in refused: automated client\n")
+                    self._page("/", "Sign-in is not available.")
                     return
                 sys.stderr.write(f"sign-in accepted: {who.label}\n")
                 self._redirect("/", [
@@ -1816,7 +1833,8 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
             if path != "/__usl/wake":
                 self._page(path)
                 return
-            if not self._human():
+            _, person = self._person()
+            if not self._admitted(person):
                 self._send(403, '{"error":"automated clients cannot wake staging"}', "application/json")
                 return
             # A cross-site form post would carry the SameSite=Strict session cookie
@@ -1826,7 +1844,6 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
             if origin is not None and origin != expected:
                 self._send(403, '{"error":"cross-site request"}', "application/json")
                 return
-            _, person = self._person()
             if person is None:
                 self._send(401, '{"error":"sign in first"}', "application/json")
                 return
@@ -7789,6 +7806,9 @@ print({json.dumps(STAGING_PAPERLESS_CONNECTION_PREFIX)} + json.dumps({{
 STAGING_REVIEW_IDENTITY_SCHEMA = "usl-staging-review-identity/v1"
 STAGING_REVIEW_IDENTITY_PREFIX = "USL_STAGING_REVIEW_IDENTITY="
 STAGING_REVIEW_IDENTITY_PROFILE = "accountant_reviewer"
+# The review identity's Pocket ID subject.  The lifecycle daemon reads it from
+# its own environment to admit that identity on the wake page.
+STAGING_REVIEW_SUBJECT_VARIABLE = "USL_STAGING_RECETTE_SUBJECT"
 STAGING_REVIEW_IDENTITY_PROGRAM = r"""import json
 import os
 import secrets

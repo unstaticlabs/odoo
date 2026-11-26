@@ -1,0 +1,15 @@
+.o_usl_reactivation_popover {
+    width: 22rem;
+    max-width: calc(100vw - 2rem);
+}
+
+.o_usl_return_badge {
+    max-width: 100%;
+    color: $o-brand-primary;
+    background-color: rgba($o-brand-primary, .14);
+    border: 0;
+}
+
+.o_usl_return_reasons_popover {
+    width: max-content;
+}
