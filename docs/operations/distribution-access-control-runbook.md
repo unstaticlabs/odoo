@@ -56,9 +56,10 @@ administrator from **Settings > Users & Companies > Agents**. Odoo creates and
 governs the non-interactive backing user; it has no password, Pocket ID link,
 invitation flow or Home session.
 
-An Agent's effective authority is always the intersection of:
+An Agent's effective authority is set by:
 
-- its owner's current authority and record rules;
+- its owner's current authority and record rules, plus the records shared
+  with the Agent itself;
 - the applications and access levels delegated on the Agent;
 - the Agent's selected companies;
 - the qualified action policy.

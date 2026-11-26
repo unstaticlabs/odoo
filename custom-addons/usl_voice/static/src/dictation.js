@@ -175,9 +175,12 @@ export class FieldDictation extends Component {
             }
         }
     }
-    async transcribe(file, signal) {
+    async transcribe(file, signal, preview = false) {
         const form = new FormData();
         form.append("file", file);
+        if (preview) {
+            form.append("preview", "1");
+        }
         form.append("csrf_token", odoo.csrf_token);
         const response = await fetch("/usl/voice/dictate", { method: "POST", body: form, signal });
         if (!response.ok) {
@@ -200,7 +203,7 @@ export class FieldDictation extends Component {
                 continue;
             }
             try {
-                const text = await this.transcribe(file, listening.signal);
+                const text = await this.transcribe(file, listening.signal, true);
                 if (live() && text) {
                     this.state.preview = text;
                     this.position();
