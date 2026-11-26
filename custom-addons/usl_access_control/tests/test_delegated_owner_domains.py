@@ -310,6 +310,8 @@ class TestDelegatedOwnerDomains(HttpCase):
             allowed_company_ids=self.company.ids,
         )
         self.assertFalse(partners.search([("id", "=", colleague.partner_id.id)]))
+        # Partner reads stay open inside the ceiling, so the refusal is real.
+        self.assertTrue(partners.search([("id", "=", self.owner.partner_id.id)]))
         native = self.env["ir.rule"].with_user(self.agent_user).with_context(
             allowed_company_ids=self.company.ids,
         )._compute_domain("res.partner", "read")
