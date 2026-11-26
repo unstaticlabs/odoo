@@ -7841,6 +7841,15 @@ if all(inputs.values()):
         strict=False,
     )
     user = env["res.users"].sudo().search([("login", "=", inputs["login"])])
+    # The profile sets the user's groups exactly, so the group of the
+    # company-payment expense journey is linked again after every release.
+    manager = env.ref("account.group_account_manager").sudo()
+    if len(user) == 1 and manager not in user.group_ids:
+        user.with_context(
+            usl_documents_defer_user_access_sync=True,
+            usl_governed_identity_provisioning=True,
+            mail_auto_subscribe_no_notify=True,
+        ).write({"group_ids": [(4, manager.id)]})
     provider = env.ref("usl_pocketid.provider_pocketid").sudo()
     identity = env["usl.oidc.identity"].sudo().search([
         ("user_id", "in", user.ids),
@@ -7854,6 +7863,13 @@ if all(inputs.values()):
         "identity_linked": len(identity) == 1,
         "not_system_administrator": (
             len(user) == 1 and not user.has_group("base.group_system")
+        ),
+        # Accounting Manager opens the bank-match review, and implies the
+        # expense approval the match then needs.
+        "expense_company_payment": (
+            len(user) == 1
+            and user.has_group("account.group_account_manager")
+            and user.has_group("hr_expense.group_hr_expense_user")
         ),
     }
     if not all(checks.values()):
@@ -7884,6 +7900,18 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
     which a replay of a journey needs; it is not read-only. Its three inputs are not
     secrets; the staging Compose file declares them on the Odoo service, and a
     staging without them skips the step.
+
+    On staging the account also gets the one group the company-payment expense
+    journey requires: Accounting Manager, because the bank-match review that
+    offers the company payment opens for that group only. That group implies
+    Expense Administrator (``usl_expense_batch``), which is what lets the
+    account submit and approve an expense that is not its own. It is wider
+    than the journey and than the profile: it is Odoo's full accounting
+    access, configuration included, so the profile's limits on accounting no
+    longer hold for this account on staging. No narrower group opens the
+    journey. The journey writes to the staging database alone: it posts a
+    payment entry and reconciles a bank line already imported, and a
+    neutralized database sends no mail.
 
     It runs in the admitted generation, after the release controls were
     compared: those controls count users, their groups and their identities
@@ -7930,6 +7958,7 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
         "pocketid_access": True,
         "identity_linked": True,
         "not_system_administrator": True,
+        "expense_company_payment": True,
     }
     if (
         not isinstance(evidence, dict)
