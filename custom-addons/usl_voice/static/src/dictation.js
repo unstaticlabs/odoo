@@ -144,7 +144,7 @@ export class FieldDictation extends Component {
             const line = { height: pin.height, left: box?.left + pin.x - (target?.scrollLeft - pin.scrollLeft),
                 top: box?.top + pin.y - (target?.scrollTop - pin.scrollTop) };
             const at = shown && this.destination && target === this.origin && line.top + line.height / 2 > box.top &&
-                line.top + line.height / 2 < box.bottom && captionBox(target, line, pin.host);
+                line.top + line.height / 2 < box.bottom && line.left >= box.left && line.left <= box.right && captionBox(target, line, pin.host);
             this.state.caption = at ? `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
                 `font:${at.font};color:${at.color};background-color:${at.background}` : "";
         }

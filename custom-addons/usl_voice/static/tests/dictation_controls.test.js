@@ -98,6 +98,29 @@ test("the words heard so far appear in the field being dictated, where the text 
         dictation.cancel();
         await animationFrame();
 
+        // A one-line field scrolled sideways: once the saved place is out of sight, so are the words.
+        const line = document.createElement("input");
+        line.style.cssText = "position:fixed;left:50px;top:500px;width:120px;font:16px monospace";
+        document.body.append(line);
+        try {
+            line.value = "A sentence much longer than the field that holds it, by far";
+            line.focus();
+            line.setSelectionRange(line.value.length, line.value.length);
+            line.scrollLeft = line.scrollWidth;
+            await animationFrame();
+            await dictation.record();
+            await hear(dictation);
+            expect(".o-usl-dictation-caption").toHaveCount(1);
+            line.setSelectionRange(0, 0);
+            line.scrollLeft = 0;
+            await hear(dictation);
+            expect(".o-usl-dictation-caption").toHaveCount(0);
+            dictation.cancel();
+            await animationFrame();
+        } finally {
+            line.remove();
+        }
+
         // Cancelling removes them.
         await start(dictation);
         expect(".o-usl-dictation-caption").toHaveCount(1);
