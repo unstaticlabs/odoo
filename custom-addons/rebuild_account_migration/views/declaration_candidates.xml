@@ -1,30 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="declaration_candidate_evidence">
-        <p t-if="complete and not valid" class="text-warning">Choose an end date on or after the start date.</p>
-        <p t-elif="valid and not french" class="text-muted">Choose a company with France as its fiscal country to review DES or DAS2 sources.</p>
-        <t t-elif="valid">
-            <p t-if="kind == 'des'">Review posted EU customer invoices and credit notes carrying a DES service tax. Confirm which services belong in each month with your accountant.</p>
-            <p t-else="">Review 622 fees and additional 604 services with your accountant. Each settlement appears once. The 622 share uses the calendar’s allocation on the source document.</p>
-            <p t-if="not groups" class="text-muted">No matching source documents in this period.</p>
-            <div t-else="" class="o_declaration_candidate_evidence table-responsive">
-                <table class="table table-sm align-middle"><thead><tr>
-                    <th scope="col"><t t-if="kind == 'des'">Date, amount excl. tax</t><t t-else="">Date, amount settled</t></th>
-                    <th scope="col">Source documents</th><th scope="col">Reason for review</th>
-                </tr></thead><tbody t-foreach="groups" t-as="section">
-                    <tr class="table-light"><th colspan="3" scope="rowgroup" t-out="section['label']"/></tr>
-                    <tr t-foreach="section['rows']" t-as="row">
-                        <td class="text-nowrap"><t t-out="row['date_label']"/><div t-out="row['amount_label']"/></td>
-                        <td><a target="_blank" rel="noopener" t-att-href="'/odoo/account.move/%s' % row['source_id']"><t t-out="row['source']"/></a>
-                            <div t-if="row['payment_id']"><a target="_blank" rel="noopener" t-att-href="'/odoo/account.move/%s' % row['payment_id']"><t t-out="row['payment']"/></a></div>
-                            <div t-if="kind == 'des'" class="text-muted"><t t-if="row.get('credit_note')">Credit note · </t><t t-out="row['partner']"/></div></td>
-                        <td><t t-out="row['reason']"/><div t-if="row.get('native_622_label')" class="text-muted">622 share: <t t-out="row['native_622_label']"/></div>
-                            <div t-if="row.get('calendar_date_label')" class="text-muted">Date used by the calendar (622): <t t-out="row['calendar_date_label']"/></div></td>
-                    </tr>
-                </tbody></table>
-            </div>
-        </t>
-    </template>
+    <record id="view_declaration_candidate_line_des" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.des.list</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" expand="1" default_order="date, id" action="action_open_document" type="object">
+                <field name="date"/>
+                <field name="move_id"/>
+                <field name="move_type" widget="badge" decoration-warning="move_type == 'out_refund'" decoration-info="move_type != 'out_refund'"/>
+                <field name="partner_id"/>
+                <field name="reason" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" string="Amount excl. tax" sum="Total excl. tax"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_declaration_candidate_line_das2" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.das2.list</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" expand="1" default_order="date, id" action="action_open_document" type="object">
+                <field name="date" string="Paid on"/>
+                <field name="move_id"/>
+                <field name="payment_move_id" optional="show"/>
+                <button name="action_open_payment" type="object" icon="fa-external-link" title="Open the payment" invisible="not payment_move_id"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="reason" optional="show"/>
+                <field name="calendar_date" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" string="Amount settled" sum="Total settled"/>
+                <field name="amount_622" sum="Total 622 share"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_declaration_candidate_line_search" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.search</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <filter name="fees_622" string="With a 622 share" domain="[('amount_622', '!=', 0)]"/>
+                <filter name="credit_notes" string="Credit notes" domain="[('move_type', 'in', ('out_refund', 'in_refund'))]"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_period" string="Declaration period" context="{'group_by': 'period'}"/>
+                    <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
     <record id="view_declaration_candidate_review" model="ir.ui.view">
         <field name="name">rebuild.account.declaration.candidate.review.form</field>
         <field name="model">rebuild.account.declaration.candidate.review</field>
@@ -35,8 +60,12 @@
                         <field name="company_id" groups="base.group_multi_company" options="{'no_create': true}" domain="[('id', 'in', allowed_company_ids)]"/></group>
                     <group><field name="date_from" string="From"/><field name="date_to" string="To"/></group>
                 </group>
-                <field name="evidence_html" widget="html" readonly="1" nolabel="1"/>
-                <footer><button special="cancel" string="Close" class="btn-secondary"/></footer>
+                <p class="text-muted" invisible="kind != 'des'">Posted EU customer invoices and credit notes carrying a DES service tax, by invoice month. Confirm which services belong in each month with your accountant.</p>
+                <p class="text-muted" invisible="kind != 'das2'">622 fees and additional 604 services, by payment year and beneficiary. Each settlement appears once. The 622 share uses the calendar’s allocation on the source document.</p>
+                <footer>
+                    <button name="action_show" type="object" string="Show documents" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
             </form>
         </field>
     </record>

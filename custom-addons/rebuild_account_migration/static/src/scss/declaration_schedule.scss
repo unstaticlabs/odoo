@@ -121,35 +121,3 @@
         }
     }
 }
-
-@include media-breakpoint-down(sm) {
-    .o_declaration_candidate_evidence {
-        table, tbody {
-            display: block;
-        }
-
-        thead {
-            @include visually-hidden();
-        }
-
-        tr {
-            display: grid;
-            grid-template-columns: minmax(6rem, auto) 1fr;
-        }
-
-        th[scope="rowgroup"], td:last-child {
-            grid-column: 1 / -1;
-        }
-
-        td {
-            border-bottom-width: 0;
-            overflow-wrap: anywhere;
-        }
-
-        td:last-child {
-            color: var(--body-color);
-            padding-bottom: 0.65rem;
-            border-bottom-width: 1px;
-        }
-    }
-}

@@ -221,9 +221,8 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
-                    <button name="%(action_declaration_candidate_review)d" type="action" string="Review documents"
-                        invisible="form_code not in ('DES', 'DAS2')"
-                        context="{'default_company_id': company_id, 'default_kind': 'des' if form_code == 'DES' else 'das2', 'default_date_from': period_start, 'default_date_to': period_end}"/>
+                    <button name="action_review_documents" type="object" string="Review documents"
+                        invisible="form_code not in ('DES', 'DAS2')"/>
 
                     <button name="action_refresh_preparation" type="object" string="Refresh from Ledger" icon="fa-refresh" groups="account.group_account_manager"/>
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
