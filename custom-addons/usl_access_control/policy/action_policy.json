@@ -207094,7 +207094,7 @@
       "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative. Reviewed 2026-11-26: the owner domain is now OR-ed with the Agent's own native access domain (Valentin: \"il faut que la permission s'étende, que ce soit l'union de ce à quoi l'agent a accès et de ce que moi j'ai accès\"). The added branch is native core _access_domain for the Agent UID without sudo, in the same owner-permitted companies, after the unchanged delegation, hidden-model and read-only gates.",
       "reachability_proof": "Private Base._access_domain is called by native ORM access checks, not an ordinary public RPC/controller/UI/scheduled action. Its sudo recordset is confined to native domain optimization and never used for returned Agent records.",
       "reviewed_digests": {
-        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "814ca671bd6cb4a5f440867bada669de1a6510651549ace91fae7695b78876cb"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "9246535c7846e7f567127cd6cc153af3f82d1b9fb4be6db343b13dd2f79b5d5f"
       }
     },
     {
