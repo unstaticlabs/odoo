@@ -681,6 +681,7 @@ class RebuildAccountClosingPeriod(models.Model):
             "context": {
                 "default_report_type": "closing_package",
                 "default_company_id": self.company_id.id,
+                "default_company_ids": self.company_id.ids,
                 "default_date_from": fields.Date.to_string(self.date_from),
                 "default_date_to": fields.Date.to_string(self.date_to),
                 "default_export_format": "xlsx",

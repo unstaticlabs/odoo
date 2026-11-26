@@ -1,3 +1,4 @@
+import csv
 import hashlib
 import io
 import json
@@ -2135,6 +2136,41 @@ class TestMultiCompanyAccountingReports(TransactionCase):
             ),
             domain,
         )
+
+    def test_closing_review_exports_only_the_workspace_ledger(self):
+        self._post_revenue(self.first_company, 100)
+        self._post_revenue(self.second_company, 25)
+        start, end = date(2026, 1, 1), date(2026, 12, 31)
+        closing = self.allowed_env["rebuild.account.closing.period"]._upsert_period(
+            self.second_company, "annual", start, end, start, end,
+        )
+        control = self.allowed_env["rebuild.account.closing.control"]._upsert(
+            closing, "reports", closing._control_reports(),
+        )
+        for action in (control.action_open_records(), closing.action_open_closing_package()):
+            with self.subTest(action=action["name"]):
+                # Restoring the web action reapplies the session's selected companies.
+                Wizard = self.allowed_env[action["res_model"]].with_context({
+                    **action["context"], "allowed_company_ids": self.allowed_env.companies.ids,
+                })
+                report = Wizard.create({"report_type": "trial_balance", "export_format": "csv"})
+                self.assertEqual(report.company_id, self.second_company)
+                self.assertEqual(report.company_ids, self.second_company)
+                report.action_generate_export()
+                rows = list(csv.DictReader(io.StringIO(bytes(report.export_file).decode())))
+                self.assertTrue(rows)
+                self.assertEqual(
+                    {row["report_company_name"] for row in rows if row["report_company_name"]},
+                    {self.second_company.name},
+                )
+                self.assertEqual({json.loads(row["metadata"])["company"] for row in rows}, {self.second_company.name})
+                cash = next(row for row in rows if row["account_code"] == "512991")
+                self.assertEqual(Decimal(cash["closing_balance"]), 25)
+
+                # An older saved form may already contain the session's wider filter.
+                report.company_ids = self.first_company | self.second_company
+                with self.assertRaises(UserError):
+                    report.action_generate_export()
 
     def test_trial_balance_combines_real_company_ledgers(self):
         self._post_revenue(self.first_company, 100)
