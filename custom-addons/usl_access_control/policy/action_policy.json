@@ -213662,7 +213662,7 @@
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1": "d701c5d4e4760cce369a96981163cec8e6f02055c4aae178c9af59a77b7fb755",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1": "a37ddb9ea0b59b65cca2ad85c293337b9dd59a4be002f8f999e1fb3afa721873",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1": "900e7fa0fdbb9efaca2157e9fa3e86ca29579bef4fad719239b1f5dda42c8b3f",
-        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "6940b9213bca0adb5ebb3b81ba20ca3f960808c38f8da97722f16569f8e934ce"
+        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "6bfaf7783d5b157d58474df241b1c0f0cda3d63dd6c4f4e0d01cbe012624617a"
       }
     },
     {

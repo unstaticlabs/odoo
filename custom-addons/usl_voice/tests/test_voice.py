@@ -132,6 +132,21 @@ class TestVoice(TransactionCase):
             with self.assertRaises(SpeechUnavailable):
                 transcribe(b"audio", "audio/mpeg", patience=1)
             sleep.assert_not_called()
+            # A failed recognition, or a gateway with no worker awake, answers 503 without
+            # saying when to come back: it is not asked again, however patient the caller.
+            post.reset_mock()
+            post.side_effect = [MagicMock(status_code=503, headers={})]
+            with self.assertRaises(SpeechUnavailable):
+                transcribe(b"audio", "audio/mpeg", patience=90)
+            self.assertEqual(post.call_count, 1)
+            sleep.assert_not_called()
+
+    def test_words_heard_are_kept_when_the_second_hearing_fails(self):
+        first = MagicMock(status_code=200, headers={})
+        first.json.return_value = {"text": "Obrigado", "language": "pt"}
+        with patch("odoo.addons.usl_voice.speech.requests.post",
+                   side_effect=[first, MagicMock(status_code=503, headers={})]):
+            self.assertEqual(transcribe(b"audio", "audio/mpeg"), "Obrigado")
 
     def test_a_voice_note_waits_for_a_busy_worker(self):
         message, voice = self.post_voice()

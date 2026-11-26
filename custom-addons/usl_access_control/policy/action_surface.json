@@ -1706178,7 +1706178,7 @@
       ]
     },
     {
-      "digest": "6940b9213bca0adb5ebb3b81ba20ca3f960808c38f8da97722f16569f8e934ce",
+      "digest": "6bfaf7783d5b157d58474df241b1c0f0cda3d63dd6c4f4e0d01cbe012624617a",
       "key": "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1",
       "kind": "sink",
       "modules": [
@@ -1768685,7 +1768685,7 @@
       "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
       "name": "usl_voice",
       "origin": "custom",
-      "source_sha256": "c0b238064b228fd4e54cc19109b520682f803a6601dcd0a44e220e2c3de45bbf",
+      "source_sha256": "ca04e0c1f6fe3685e22382f02f35fc98eb56802a3c3659f2beb3e11f2eb46683",
       "version": "saas~19.3.1.0.0"
     },
     {
