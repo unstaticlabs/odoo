@@ -11,6 +11,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -1523,9 +1524,14 @@ def verify(arguments: argparse.Namespace) -> dict[str, Any]:
         "USL_BACKUP_CACHE_REPOSITORY",
         "USL_BACKUP_CACHE_PASSWORD",
     )
-    verify_root = Path(arguments.root) / f"verify-{arguments.durable_snapshot[:12]}"
-    if verify_root.exists():
-        shutil.rmtree(verify_root)
+    # Each run restores into a directory of its own, so two verifications of
+    # the same snapshot at once never remove each other's restored files.
+    verify_root = Path(
+        tempfile.mkdtemp(
+            prefix=f"verify-{arguments.durable_snapshot[:12]}-",
+            dir=arguments.root,
+        ),
+    )
     try:
         durable_snapshot = restore_snapshot(
             arguments.durable_snapshot,

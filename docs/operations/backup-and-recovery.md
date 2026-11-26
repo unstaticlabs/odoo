@@ -132,6 +132,9 @@ scripts/usl-stack backup verify --target production \
   --snapshot <64-character-qualified-snapshot-id> --json
 ```
 
+Each verification restores into a directory of its own and removes it when it
+ends, so a snapshot can be rechecked while a release verifies the same one.
+
 `backup select` is the unattended-controller interface. It rejects malformed or
 ambiguous Restic timestamps, recovery tags from another target, legacy cohorts,
 and any verification result that does not name the exact selected production
