@@ -240,6 +240,11 @@ RECOVERY_PROOF_RUNTIME_ROLES = (
 )
 
 
+# The websocket health probe is asked again this many times, this far apart.
+WEBSOCKET_PROBE_ATTEMPTS = 6
+WEBSOCKET_PROBE_PAUSE_SECONDS = 5
+
+
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
     """Write concise operator progress without contaminating JSON stdout."""
     suffix = f": {detail}" if detail else ""
@@ -4975,32 +4980,41 @@ def health_command(arguments: argparse.Namespace) -> int:
     if ingress["websocket"]:
         origin = admission["odoo_websocket"].rstrip("/")
         public_origin = target.value["endpoints"]["odoo"].rstrip("/")
-        websocket_result = runner.run(
-            [
-                "curl",
-                "--silent",
-                "--show-error",
-                "--include",
-                "--no-buffer",
-                "--http1.1",
-                "--max-time",
-                "3",
-                "--header",
-                "Connection: Upgrade",
-                "--header",
-                "Upgrade: websocket",
-                "--header",
-                f"Origin: {public_origin}",
-                "--header",
-                "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
-                "--header",
-                "Sec-WebSocket-Version: 13",
-                origin + "/websocket",
-            ],
-            check=False,
-        )
-        first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
-        websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+        # A release fails and rolls back on this probe. The websocket worker of a stack
+        # started seconds ago can take longer than one short request to answer on a busy
+        # host (production, 2026-11-26), so a refusal is asked again before it counts.
+        websocket_ok = False
+        for attempt in range(WEBSOCKET_PROBE_ATTEMPTS):
+            if attempt:
+                time.sleep(WEBSOCKET_PROBE_PAUSE_SECONDS)
+            websocket_result = runner.run(
+                [
+                    "curl",
+                    "--silent",
+                    "--show-error",
+                    "--include",
+                    "--no-buffer",
+                    "--http1.1",
+                    "--max-time",
+                    "5",
+                    "--header",
+                    "Connection: Upgrade",
+                    "--header",
+                    "Upgrade: websocket",
+                    "--header",
+                    f"Origin: {public_origin}",
+                    "--header",
+                    "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
+                    "--header",
+                    "Sec-WebSocket-Version: 13",
+                    origin + "/websocket",
+                ],
+                check=False,
+            )
+            first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
+            websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+            if websocket_ok:
+                break
         websocket_status = {"required": True, "status_code": 101 if websocket_ok else 0, "ok": websocket_ok}
         if not websocket_ok:
             failures.append("odoo:websocket")
