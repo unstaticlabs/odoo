@@ -2723,6 +2723,7 @@ class CohortContractTests(unittest.TestCase):
             "pocketid_access": True,
             "identity_linked": True,
             "not_system_administrator": True,
+            "expense_company_payment": True,
             **changes,
         }
 
@@ -2748,6 +2749,11 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("_usl_pocketid_apply_user_configuration", program)
         self.assertIn('"profile": "accountant_reviewer"', program)
         self.assertIn("strict=False", program)
+        # The only groups added to the profile: the company-payment expense journey.
+        self.assertEqual(
+            sorted(set(re.findall(r'"([a-z_]+\.group_[a-z_]+)"', program))),
+            ["account.group_account_manager", "base.group_system", "hr_expense.group_hr_expense_user"],
+        )
         self.assertNotIn("administrator\"", program.replace("not_system_administrator", ""))
         self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
         compile(program, "<staging-review-identity>", "exec")
@@ -2807,11 +2813,28 @@ class CohortContractTests(unittest.TestCase):
         self.assertEqual(_ensure_staging_review_identity(target, runner, candidate), skipped)
 
     def test_staging_review_identity_program_skips_and_ensures(self) -> None:
-        def execute(environment, *, created):
+        expense_approver = mock.Mock(id=7)
+        accounting_manager = mock.Mock(id=9)
+        for group in (expense_approver, accounting_manager):
+            group.sudo.return_value = group
+        journey = {
+            "hr_expense.group_hr_expense_user": expense_approver,
+            "account.group_account_manager": accounting_manager,
+        }
+
+        def execute(environment, *, created, held=()):
             calls = []
             user = mock.Mock(id=42, ids=[42], active=True, usl_pocketid_access=True)
             user.__len__ = lambda self: 1
-            user.has_group.return_value = False
+            # Odoo sets the profile's groups exactly, then the journey's two
+            # groups are linked: only those the user does not hold are written.
+            user.group_ids = list(held)
+            user.with_context.return_value = user
+            user.write.side_effect = lambda values: user.group_ids.extend(
+                group for group in journey.values()
+                if (4, group.id) in values["group_ids"]
+            )
+            user.has_group.side_effect = lambda xmlid: journey.get(xmlid) in user.group_ids
             identity = mock.Mock()
             identity.__len__ = lambda self: 1
             users = mock.Mock()
@@ -2829,10 +2852,12 @@ class CohortContractTests(unittest.TestCase):
             env.__getitem__.side_effect = {
                 "res.users": users, "usl.oidc.identity": identities,
             }.__getitem__
+            env.ref.side_effect = lambda xmlid: journey.get(xmlid, mock.MagicMock())
             output = io.StringIO()
             with mock.patch.dict(os.environ, environment, clear=True), contextlib.redirect_stdout(output):
                 exec(STAGING_REVIEW_IDENTITY_PROGRAM, {"env": env})  # noqa: S102
             line = output.getvalue().strip().splitlines()[-1]
+            env.review_user = user
             return json.loads(line.removeprefix("USL_STAGING_REVIEW_IDENTITY=")), calls, env
 
         complete = {
@@ -2863,6 +2888,51 @@ class CohortContractTests(unittest.TestCase):
             }])
             self.assertIs(kwargs["strict"], False)
             env.cr.commit.assert_called_once_with()
+            # The company-payment expense journey: expense approver and
+            # accounting manager, linked without unlinking anything.
+            env.review_user.with_context.assert_called_once_with(
+                usl_governed_identity_provisioning=True,
+                mail_auto_subscribe_no_notify=True,
+            )
+            env.review_user.write.assert_called_once_with({"group_ids": [(4, 7), (4, 9)]})
+        evidence, _calls, env = execute(complete, created=False, held=(expense_approver,))
+        self.assertEqual(evidence, self._staging_review_identity_evidence(created=False))
+        env.review_user.write.assert_called_once_with({"group_ids": [(4, 9)]})
+        evidence, _calls, env = execute(
+            complete, created=False, held=(expense_approver, accounting_manager),
+        )
+        self.assertEqual(evidence, self._staging_review_identity_evidence(created=False))
+        env.review_user.write.assert_not_called()
+
+    def test_staging_review_identity_program_refuses_a_user_without_the_journey_groups(self) -> None:
+        user = mock.Mock(id=42, ids=[42], active=True, usl_pocketid_access=True, group_ids=[])
+        user.__len__ = lambda self: 1
+        user.with_context.return_value = user
+        user.has_group.return_value = False
+        users = mock.Mock()
+        users.with_context.return_value = users
+        users._usl_pocketid_apply_user_configuration.return_value = {"users": [{"created": False}]}
+        users.sudo.return_value.search.return_value = user
+        identity = mock.Mock()
+        identity.__len__ = lambda self: 1
+        identities = mock.Mock()
+        identities.sudo.return_value.search.return_value = identity
+        env = mock.MagicMock()
+        env.__getitem__.side_effect = {
+            "res.users": users, "usl.oidc.identity": identities,
+        }.__getitem__
+        environment = {
+            "USL_STAGING_RECETTE_LOGIN": "review@example.test",
+            "USL_STAGING_RECETTE_EMAIL": "review@example.test",
+            "USL_STAGING_RECETTE_SUBJECT": "subject-1",
+        }
+        with (
+            mock.patch.dict(os.environ, environment, clear=True),
+            contextlib.redirect_stdout(io.StringIO()),
+            self.assertRaisesRegex(RuntimeError, "expense_company_payment"),
+        ):
+            exec(STAGING_REVIEW_IDENTITY_PROGRAM, {"env": env})  # noqa: S102
+        env.cr.commit.assert_not_called()
 
     def test_staging_review_identity_failure_is_evidence_not_an_error(self) -> None:
         target, candidate, _release, _rendered = self._staging_paperless_fixture()
@@ -2873,6 +2943,9 @@ class CohortContractTests(unittest.TestCase):
             "command failed": RuntimeError("docker exec failed"),
             "system administrator": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
                 {**ensured, "not_system_administrator": False},
+            ) + "\n",
+            "without the journey groups": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "expense_company_payment": False},
             ) + "\n",
             "other profile": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
                 {**ensured, "profile": "administrator"},

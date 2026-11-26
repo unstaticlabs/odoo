@@ -7841,6 +7841,21 @@ if all(inputs.values()):
         strict=False,
     )
     user = env["res.users"].sudo().search([("login", "=", inputs["login"])])
+    # The profile sets the user's groups exactly, so the two groups of the
+    # company-payment expense journey are linked again after every release.
+    journey = [
+        env.ref(xmlid).sudo()
+        for xmlid in (
+            "hr_expense.group_hr_expense_user",
+            "account.group_account_manager",
+        )
+    ]
+    missing = [group for group in journey if group not in user.group_ids]
+    if len(user) == 1 and missing:
+        user.with_context(
+            usl_governed_identity_provisioning=True,
+            mail_auto_subscribe_no_notify=True,
+        ).write({"group_ids": [(4, group.id) for group in missing]})
     provider = env.ref("usl_pocketid.provider_pocketid").sudo()
     identity = env["usl.oidc.identity"].sudo().search([
         ("user_id", "in", user.ids),
@@ -7854,6 +7869,11 @@ if all(inputs.values()):
         "identity_linked": len(identity) == 1,
         "not_system_administrator": (
             len(user) == 1 and not user.has_group("base.group_system")
+        ),
+        "expense_company_payment": (
+            len(user) == 1
+            and user.has_group("hr_expense.group_hr_expense_user")
+            and user.has_group("account.group_account_manager")
         ),
     }
     if not all(checks.values()):
@@ -7884,6 +7904,14 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
     which a replay of a journey needs; it is not read-only. Its three inputs are not
     secrets; the staging Compose file declares them on the Odoo service, and a
     staging without them skips the step.
+
+    On staging the account also gets the two groups the company-payment
+    expense journey requires, and nothing else: expense approver for every
+    employee (submitting and approving an expense that is not its own) and
+    accounting manager (the bank-match review that offers the company payment
+    opens for that group only). The journey writes to the staging database
+    alone: it posts a payment entry and reconciles a bank line already
+    imported, and a neutralized database sends no mail.
 
     It runs in the admitted generation, after the release controls were
     compared: those controls count users, their groups and their identities
@@ -7930,6 +7958,7 @@ def _ensure_staging_review_identity(target, runner, generation_identity) -> dict
         "pocketid_access": True,
         "identity_linked": True,
         "not_system_administrator": True,
+        "expense_company_payment": True,
     }
     if (
         not isinstance(evidence, dict)
