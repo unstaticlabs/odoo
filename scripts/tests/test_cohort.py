@@ -10,7 +10,9 @@ import os
 import re
 import subprocess
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
@@ -3340,6 +3342,55 @@ class CohortContractTests(unittest.TestCase):
             self.assertRaisesRegex(cohort.CohortError, "legacy production snapshot"),
         ):
             cohort.qualify(argparse.Namespace(root="/cohort", durable_snapshot="1" * 64))
+
+    def test_two_verifications_of_one_snapshot_at_once_both_pass(self) -> None:
+        identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+        value = manifest(identity, identity)
+        value["schema"] = cohort.LEGACY_SCHEMA
+        value["cache_snapshot_id"] = "c" * 64
+        both_restored = threading.Barrier(2, timeout=10)
+        work_directories = []
+
+        def restore(snapshot, destination, _environment):
+            if destination.exists():
+                raise cohort.CohortError(f"restore destination already exists: {destination}")
+            destination.mkdir(parents=True)
+            if destination.name == "durable-snapshot":
+                work_directories.append(destination.parent)
+                cohort_root = destination / "cohort"
+                (cohort_root / "durable/databases").mkdir(parents=True)
+                (cohort_root / "manifest.json").write_text(json.dumps(value))
+                for name in ("odoo", "paperless"):
+                    (cohort_root / f"durable/databases/{name}.dump").write_bytes(b"x")
+                # Both runs hold their restored snapshot before either goes on.
+                both_restored.wait()
+            else:
+                (destination / "payload/cache").mkdir(parents=True)
+            return snapshot
+
+        def read_dump(command, **_options):
+            if not Path(command[-1]).is_file():
+                raise cohort.CohortError(f"command failed ({' '.join(command)})")
+
+        with tempfile.TemporaryDirectory() as directory:
+            arguments = argparse.Namespace(root=directory, durable_snapshot="b" * 64)
+            with (
+                mock.patch.object(cohort, "restic_environment", return_value={}),
+                mock.patch.object(cohort, "restore_snapshot", side_effect=restore),
+                mock.patch.object(cohort, "verify_embedded_release"),
+                mock.patch.object(cohort, "tree_identity", return_value=identity),
+                mock.patch.object(
+                    cohort, "sha256_file",
+                    side_effect=lambda path: value["databases"][path.stem]["sha256"],
+                ),
+                mock.patch.object(cohort, "run", side_effect=read_dump),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                runs = [executor.submit(cohort.verify, arguments) for _ in range(2)]
+                results = [run.result(timeout=30) for run in runs]
+            self.assertEqual([result["status"] for result in results], ["verified", "verified"])
+            self.assertEqual(len(set(work_directories)), 2)
+            self.assertEqual(list(Path(directory).iterdir()), [])
 
     def test_push_uploads_cache_first_and_excludes_it_from_durable_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
