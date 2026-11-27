@@ -1,20 +1,30 @@
 import { markRaw, onWillUnmount } from "@odoo/owl";
 import { useRef, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
+import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { patch } from "@web/core/utils/patch";
 import { Composer } from "@mail/core/common/composer";
 import { registerComposerAction } from "@mail/core/common/composer_actions";
 import { VoiceCapture } from "./capture";
 import { VoiceMeter } from "./meter";
+import {
+    disownRecording, downloadRecording, forgetRecording, keepRecording, newRecordingId, offerUndo, ownRecording,
+} from "./recording_store";
+import { uploadVoiceNote } from "./voice_note_upload";
 
+/**
+ * A voice note is the writer's words: it is kept in this browser from the moment recording stops
+ * until the server holds it, and it is uploaded to the record it was recorded for, whatever
+ * screen is open by then. When the upload fails it stays, with Retry and Download.
+ */
 patch(Composer.prototype, {
     setup() {
         super.setup();
         this.uslVoice = useState({ mode: "idle" });
         this.uslVoiceNotify = useService("notification");
         this.uslVoiceBar = useRef("usl-voice-bar");
-        onWillUnmount(() => this.cancelUslVoice());
+        onWillUnmount(() => this.suspendUslVoice());
     },
     /** The record button disappears on click, so Escape is handled where focus goes next. */
     onUslVoiceBarKeydown(ev) {
@@ -29,10 +39,10 @@ patch(Composer.prototype, {
         requestAnimationFrame(() => requestAnimationFrame(() => this.uslVoiceBar.el?.querySelector("button")?.focus()));
     },
     get isSendButtonDisabled() {
-        return (this.uslVoice && this.uslVoice.mode !== "idle") || super.isSendButtonDisabled;
+        return (this.uslVoice && ["starting", "recording", "uploading"].includes(this.uslVoice.mode)) || super.isSendButtonDisabled;
     },
     onKeydown(ev) {
-        if (ev.key === "Enter" && this.uslVoice.mode !== "idle") {
+        if (ev.key === "Enter" && ["starting", "recording", "uploading"].includes(this.uslVoice.mode)) {
             ev.preventDefault();
             return;
         }
@@ -44,10 +54,46 @@ patch(Composer.prototype, {
         }
         return super.onKeydown(ev);
     },
+    /** Escape or the bin while recording: what was said is kept for ten seconds, with Undo. */
     cancelUslVoice() {
-        this.uslCapture?.discard();
+        const capture = this.uslCapture;
         this.uslCapture = null;
+        const file = this.uslVoice.mode === "recording" && capture?.finish();
+        capture?.discard();
         this.uslVoice.mode = "idle";
+        if (file) {
+            const kept = this.holdUslVoice(file);
+            this.discardUslVoice(kept);
+        }
+    },
+    /** Keep the finished recording in this browser, with the record it was made for. */
+    holdUslVoice(file) {
+        const kept = {
+            id: newRecordingId(),
+            file,
+            at: Date.now(),
+            destination: this.uslVoiceDestination,
+        };
+        ownRecording(kept.id);
+        keepRecording({
+            id: kept.id, kind: "voice_note", blob: file, createdAt: kept.at, userId: user.userId,
+            destination: kept.destination,
+        });
+        return kept;
+    },
+    /** Let the recording go, with ten seconds to change one's mind. */
+    discardUslVoice(kept = this.uslKept) {
+        if (!kept) {
+            return;
+        }
+        if (this.uslKept === kept) {
+            this.uslKept = null;
+            this.uslVoice.mode = "idle";
+        }
+        offerUndo(this.uslVoiceNotify, kept.at, {
+            undo: () => this.uploadUslVoice(kept),
+            expire: () => forgetRecording(kept.id),
+        });
     },
     async startUslVoice() {
         if (this.uslVoice.mode !== "idle") {
@@ -57,7 +103,7 @@ patch(Composer.prototype, {
         this.focusUslVoiceBar();
         const capture = markRaw(new VoiceCapture());
         this.uslCapture = capture;
-        this.uslVoiceDestination = { model: this.thread.model, id: this.thread.id };
+        this.uslVoiceDestination = { model: this.thread.model, id: this.thread.id, name: this.thread.name || this.thread.display_name || "" };
         try {
             await capture.start(() => this.stopUslVoice());
             if (this.uslCapture === capture) {
@@ -66,7 +112,9 @@ patch(Composer.prototype, {
             }
         } catch {
             if (this.uslCapture === capture) {
-                this.cancelUslVoice();
+                this.uslCapture?.discard();
+                this.uslCapture = null;
+                this.uslVoice.mode = "idle";
                 this.uslVoiceNotify.add(_t("Check microphone access and try again."), { type: "warning" });
             }
         }
@@ -75,16 +123,72 @@ patch(Composer.prototype, {
         if (this.uslVoice.mode !== "recording") {
             return;
         }
-        const sameThread = this.thread?.model === this.uslVoiceDestination.model && this.thread?.id === this.uslVoiceDestination.id;
         const file = this.uslCapture.finish();
         this.uslCapture = null;
-        this.uslVoice.mode = "uploading";
-        try {
-            if (sameThread && file) {
-                await this.attachmentUploader.uploadFile(file, { voice: true, thread: this.thread });
-            }
-        } finally {
+        if (!file) {
             this.uslVoice.mode = "idle";
+            return;
+        }
+        await this.uploadUslVoice(this.holdUslVoice(file));
+    },
+    /**
+     * Upload the recording to the record it was made for. On the same record it becomes the
+     * voice note of this message, as before; when the writer has moved on, it is attached to its
+     * record instead, so that nothing is dropped. A failure keeps it, with Retry and Download.
+     */
+    async uploadUslVoice(kept) {
+        const here = !this.uslGone && this.thread?.model === kept.destination.model && this.thread?.id === kept.destination.id;
+        if (!this.uslGone) {
+            this.uslKept = kept;
+            this.uslVoice.mode = "uploading";
+        }
+        let saved = false;
+        try {
+            saved = here
+                ? Boolean(await this.attachmentUploader.uploadFile(kept.file, { voice: true, thread: this.thread }))
+                : await uploadVoiceNote(this.env, kept.destination, kept.file);
+        } catch {
+            saved = false;
+        }
+        if (saved) {
+            await forgetRecording(kept.id);
+            if (!here) {
+                this.uslVoiceNotify.add(_t("Voice note attached to %s.", kept.destination.name || _t("the record")), { type: "success" });
+            }
+        } else if (this.uslGone) {
+            disownRecording(kept.id); // offered again at the start of the next page
+            this.uslVoiceNotify.add(_t("The voice note could not be uploaded. Your recording is kept."), { type: "warning" });
+        }
+        if (!this.uslGone) {
+            if (saved) {
+                this.uslKept = null;
+            }
+            this.uslVoice.mode = saved ? "idle" : "failed";
+        }
+    },
+    retryUslVoice() {
+        if (this.uslKept && this.uslVoice.mode === "failed") {
+            return this.uploadUslVoice(this.uslKept);
+        }
+    },
+    downloadUslVoice() {
+        if (this.uslKept) {
+            downloadRecording(this.uslKept.file, this.uslKept.at);
+        }
+    },
+    /** The composer goes away (the form is closed, the writer navigates): stop and keep, never drop. */
+    suspendUslVoice() {
+        this.uslGone = true;
+        const capture = this.uslCapture;
+        this.uslCapture = null;
+        if (capture) {
+            const file = this.uslVoice.mode === "recording" && capture.finish();
+            capture.discard();
+            if (file) {
+                this.uploadUslVoice(this.holdUslVoice(file));
+            }
+        } else if (this.uslKept && this.uslVoice.mode === "failed") {
+            disownRecording(this.uslKept.id);
         }
     },
 });
