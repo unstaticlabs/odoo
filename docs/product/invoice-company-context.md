@@ -71,6 +71,14 @@ the concrete baseline; operators must review those native extensions as well.
 Optional native onchange remains a separate scratch preview requiring native
 write access. Read-only callers do not need that access to read this context.
 
+When a draft bill changes supplier, Odoo recalculates its installments using
+the new supplier's payable account and the bill's fiscal position. The
+distribution carries a one-line correction in
+Odoo's installment account lookup. It excludes every line being recalculated
+when looking for an existing account to reuse. On an upstream sync, run
+`test_change_supplier_recomputes_payable_on_all_installments` to check whether
+the upstream implementation covers this case.
+
 The MCP shortcut opts in with `company_change: {target_company_id, offset, limit}`
 on `accounting_get_invoice_context`. This mode returns `context.company_change`
 and `invoice_ref` from one native call. Without it, the existing context and its

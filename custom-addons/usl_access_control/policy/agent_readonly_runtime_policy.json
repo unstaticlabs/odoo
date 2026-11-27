@@ -27116,6 +27116,7 @@
     "rpc:usl.document.mcp_list_saved_views",
     "rpc:usl.document.mcp_list_tags",
     "rpc:usl.document.mcp_list_types",
+    "rpc:usl.document.mcp_read_binary",
     "rpc:usl.document.mcp_search",
     "rpc:usl.document.message_get_followers",
     "rpc:usl.document.name_search",

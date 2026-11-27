@@ -6739,6 +6739,41 @@ msgid "The preview could not be loaded."
 msgstr "Impossible de charger l’aperçu."
 
 #. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The complete document file is unavailable. Try its download URL."
+msgstr "Le fichier complet est indisponible. Essayez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has an invalid size."
+msgstr "La taille du fichier transféré est invalide."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "This file is too large for direct reading. Use its download URL."
+msgstr "Ce fichier est trop volumineux pour la lecture directe. Utilisez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer is incomplete. No file was returned."
+msgstr "Le transfert du document est incomplet. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document bytes do not match the selected version. No file was returned."
+msgstr "Le contenu reçu ne correspond pas à la version choisie. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has no proof of completion. No file was returned. Retry when the archive provides a checksum or a complete framed response."
+msgstr "La réception complète du document ne peut pas être confirmée. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit une empreinte ou une réponse dont le transfert complet est vérifiable."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The archive returned a transformed file encoding. No file was returned. Retry when the archive serves the original bytes."
+msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit les octets d’origine."
+
+#. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Automatic tag history"
