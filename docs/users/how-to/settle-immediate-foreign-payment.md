@@ -32,8 +32,9 @@ Example:
 Odoo estimate $5.03     [Add] [Settle] [Correct original rate]
 ```
 
-Open the matching details to check the bank amount, any estimated foreign
-amount and the evidence behind the suggestion. The recommended action is highlighted.
+Check the bank amount and any estimated foreign amount in the payment row.
+Hover over the row of matching cues, or focus it with Tab, to read why Odoo
+suggests that transaction. The recommended action is highlighted.
 
 ## Choose the action
 

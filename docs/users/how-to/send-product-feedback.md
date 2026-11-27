@@ -34,6 +34,11 @@ include before sending.
 - **Add files** attaches the files you select. Remove anything that does not help
   the team understand the report.
 
+Check the assistant named in the form. In Gemini mode, Google receives the
+feedback conversation, the page details and preview you include, and a summary
+of the shared feedback board with recent task titles. In local mode, Odoo
+generates the replies itself.
+
 Workspace members can read and discuss feedback and its files. Feedback
 maintainers manage task fields and stages. Sharing a link in feedback keeps the
 source record's existing access rules.

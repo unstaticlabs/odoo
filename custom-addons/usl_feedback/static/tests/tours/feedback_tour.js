@@ -162,6 +162,19 @@ registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
         }),
 });
 
+registry.category("web_tour.tours").add("usl_feedback_omit_current_record", {
+    steps: () => [
+        { trigger: ".o_form_view .o_field_widget[name='name']" },
+        { trigger: ".o_menu_systray i[aria-label='Messages']", run: "click" },
+        { trigger: ".o-usl-FeedbackButton", run: "click" },
+        { trigger: "#usl_feedback_context:checked", run: "click" },
+        { trigger: "#usl_feedback_context:not(:checked)" },
+        { trigger: ".o-usl-FeedbackPanel textarea", run: "edit Keep page details out of this report." },
+        { trigger: ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)", run: "click" },
+        { trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter" },
+    ],
+});
+
 registry.category("usl_docs.journeys").add("usl_feedback_desktop_journey", {
     id: "send-feedback-from-any-page",
     type: "how-to",
