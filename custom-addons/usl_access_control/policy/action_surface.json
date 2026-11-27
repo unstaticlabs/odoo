@@ -1771897,10 +1771897,10 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "cc385516327b4a32f201eafe151a2b8739f64b432a804c1719e8d401dcd2b54c",
+      "manifest_sha256": "ca724d7ede5c5f055a8b6d6a63eada0cb03c676ed56e90252c15779f8fa6142f",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "036f2379ba482604e6cc6cfc482d62d71c0d24474be31ed8176e5a6f543b893a",
+      "source_sha256": "725285637419d3c0b6d4012579fccde9113f476c1f2d5bee3375b658b9f6daff",
       "version": "saas~19.3.1.0.18"
     },
     {
