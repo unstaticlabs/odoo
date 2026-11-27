@@ -13,13 +13,19 @@ Odoo then proposes the destination the way a new bill there would get it:
 - the first active purchase journal with no currency or the bill's currency;
 - the fiscal position Odoo finds for the supplier in the destination company;
 - the current payment terms when they are shared, otherwise the supplier's terms there;
-- for each line, the shared account, otherwise the product's expense account,
-  otherwise the account with the same code in the destination company. When
+- for each line, the shared account, otherwise the account with the same code
+  in the destination company, otherwise the product's expense account. When
   none matches, the journal's default account is only a guess: the dialog and
   the preview say so, and an agent must pass `account_id` to confirm it;
-- for each taxed line, the product's supplier taxes of the destination company
-  mapped by the fiscal position, otherwise the destination purchase tax with the
-  same rate, type and price-included setting.
+- for each taxed line, the destination purchase tax with the same rate, type
+  and price-included setting, otherwise the product's supplier taxes of the
+  destination company mapped by the fiscal position. The line's own tax wins
+  over the product's default, so a rate never changes silently.
+
+When the destination total differs from the current one, the dialog shows both
+(current total, then destination total) and an agent must pass
+`accept_total_change=true` in the `mapping` to accept it. The dialog's summary
+refreshes when you edit a tax, journal, terms or fiscal position.
 
 The dialog also shows the destination total, its taxes and the due dates Odoo
 will compute. A line whose tax has no equivalent stays empty and needs
@@ -36,7 +42,7 @@ identities. The bill's chatter names the original and destination companies.
 
 A draft cannot change company while it is linked to a payment, a bank
 transaction, another reconciled entry, a purchase order, an expense, a recurring
-bill, a cash rounding method of its current company, a supplier or product
+bill, cancelled originals merged into it, a cash rounding method of its current company, a supplier or product
 restricted to its current company, or, for a credit note, the bill it reverses.
 A bill that was posted
 before also stays where its sequence number was issued. Each blocker is shown
@@ -135,8 +141,8 @@ to be an original owned by the requested target company.
 
 Choices use the related model's native company compatibility domain, preserving
 shared accounts and branch behavior. They are readable candidates, not inferred
-mappings or permission to write. Accounts and taxes are never matched by code or
-name. Extension metadata lists readable `check_company` fields and those outside
+mappings or permission to write. This read never matches accounts or taxes by
+code or name; the transfer proposal above does, and says when it only guesses. Extension metadata lists readable `check_company` fields and those outside
 the concrete baseline; operators must review those native extensions as well.
 Optional native onchange remains a separate scratch preview requiring native
 write access. Read-only callers do not need that access to read this context.

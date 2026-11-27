@@ -138,31 +138,53 @@ class BillCompanyTransfer(models.TransientModel):
                 "target_tax_ids": [Command.set([tax["id"] for tax in line["to"]["taxes"]])],
                 "analytic_distribution": source_line.analytic_distribution,
             }))
-        destination = result["destination"] or {}
-        summary = []
-        if destination:
-            currency = bill.currency_id
-            summary.append(_("Destination total: %(total)s, of which taxes %(tax)s.",
-                             total=format_amount(self.env, destination["amount_total"], currency),
-                             tax=format_amount(self.env, destination["amount_tax"], currency)))
-            if destination["due_dates"]:
-                summary.append(_("Destination due dates: %(dates)s.", dates=", ".join(
-                    "%s (%s)" % (format_date(self.env, fields.Date.to_date(due["date"])),
-                                 format_amount(self.env, due["amount"], currency))
-                    for due in destination["due_dates"])))
-        payable = proposal["payable_account"]
-        if payable:
-            summary.append(_("Payable account: %(account)s.", account=payable["display_name"]))
         self.write({
             "stage": "map", "journal_id": proposal["journal"]["id"] if proposal["journal"] else False,
             "fiscal_position_id": proposal["fiscal_position"]["id"] if proposal["fiscal_position"] else False,
             "remove_fiscal_position": False,
             "term_id": proposal["payment_term"]["id"] if proposal["payment_term"] else False,
             "snapshot": bill._vendor_bill_merge_snapshot(), "mapping_ids": mapped,
-            "destination_summary": "\n".join(summary),
+            "destination_summary": self._summary_text(bill, result),
             "warning": "\n".join(item["message"] for item in result["unresolved"]) or False,
         })
         return self._dialog()
+
+    def _summary_text(self, bill, result):
+        """Current and destination totals, due dates and payable account, as the preview computed them."""
+        destination = result["destination"]
+        if not destination:
+            return False
+        currency = bill.currency_id
+        lines = [_("Current total: %(current)s → Destination total: %(total)s, of which taxes %(tax)s.",
+                   current=format_amount(self.env, bill.amount_total, currency),
+                   total=format_amount(self.env, destination["amount_total"], currency),
+                   tax=format_amount(self.env, destination["amount_tax"], currency))]
+        if destination["due_dates"]:
+            lines.append(_("Destination due dates: %(dates)s.", dates=", ".join(
+                "%s (%s)" % (format_date(self.env, fields.Date.to_date(due["date"])),
+                             format_amount(self.env, due["amount"], currency))
+                for due in destination["due_dates"])))
+        payable = result["proposal"]["payable_account"]
+        if payable:
+            lines.append(_("Payable account: %(account)s.", account=payable["display_name"]))
+        return "\n".join(lines)
+
+    @api.onchange("mapping_ids", "journal_id", "term_id", "fiscal_position_id", "remove_fiscal_position")
+    def _onchange_destination_choices(self):
+        """Edits in the dialog change the totals and due dates: show the new preview, read-only."""
+        for wizard in self:
+            if wizard.stage != "map":
+                continue
+            scoped = wizard._in_both_companies()
+            bill = scoped.bill_id
+            try:
+                mapping = scoped._mapping(bill)
+                mapping["accept_total_change"] = True
+                result = bill.change_bill_company(scoped.target_company_id.id, mapping)
+            except UserError:
+                wizard.destination_summary = False
+                continue
+            wizard.destination_summary = scoped._summary_text(bill, result)
 
     def action_choose_company(self):
         self.ensure_one()
@@ -219,6 +241,8 @@ class BillCompanyTransfer(models.TransientModel):
             raise UserError(_("The bill changed since this preview. Review the current bill and its accounts again."))
         # Preview what is on screen, then confirm exactly that: edits made in the dialog are part of the preview.
         mapping = wizard._mapping(bill)
+        # What is on screen, totals included, is what the operator reviewed and applies.
+        mapping["accept_total_change"] = True
         preview = bill.change_bill_company(wizard.target_company_id.id, mapping)
         if preview["status"] != "ready":
             raise UserError("\n".join("%s %s" % (item["message"], item.get("next_step", ""))

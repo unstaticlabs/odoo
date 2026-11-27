@@ -86,7 +86,9 @@ class AccountMove(models.Model):
                            | counterparts.move_id.statement_line_id | counterparts.move_id.statement_line_ids)
         for payment in payments:
             add("payment_linked",
-                _("Payment %(name)s is linked to this bill.", name=name(payment)), payment,
+                _("A payment is linked to this bill: %(name)s.", name=name(payment)), payment,
+                _("Open the payment and unlink it from this bill, then reopen Change company.")
+                if payment.state == "draft" else
                 _("Open the payment and unreconcile it from this bill, then reopen Change company. "
                   "Register the payment again in the destination company if it belongs there."))
         for statement_line in statement_lines:
@@ -130,6 +132,13 @@ class AccountMove(models.Model):
                 _("Cash rounding %(name)s belongs to the current company.", name=name(rounding)), rounding,
                 _("Clear the cash rounding in the bill's Other Info tab, transfer the bill, then choose the "
                   "destination company's rounding method."))
+        if "vendor_bill_merge_target_id" in self._fields:
+            originals = self.env["account.move"].sudo().search([("vendor_bill_merge_target_id", "=", self.id)])
+            for original in originals.with_env(self.env):
+                add("merged_originals",
+                    _("The cancelled original %(name)s was merged into this bill.", name=name(original)), original,
+                    _("The originals stay in the current company as evidence. Keep this bill here, or create a new bill "
+                      "in the destination company from the original documents and cancel this one."))
         partner = self.partner_id
         if partner.company_id and (target is None or partner != _compatible(partner, target)):
             add("partner_restricted",
@@ -175,7 +184,8 @@ class AccountMove(models.Model):
 
     def _company_transfer_proposed_journal(self, target):
         candidates = self._get_suitable_journal_ids(self.move_type, target).filtered(
-            lambda journal: journal.active and (not journal.currency_id or journal.currency_id == self.currency_id))
+            lambda journal: journal.active and journal.company_id == target
+            and (not journal.currency_id or journal.currency_id == self.currency_id))
         exact = candidates.filtered(lambda journal: journal.currency_id == self.currency_id)
         return (exact if exact else candidates)[:1]
 
@@ -186,10 +196,6 @@ class AccountMove(models.Model):
             return Tax, True
         if line.tax_ids == _compatible(line.tax_ids, target):
             return line.tax_ids, True
-        product_taxes = line.product_id.supplier_taxes_id.filtered_domain(
-            Tax._check_company_domain(target))._filter_taxes_by_company(target)
-        if product_taxes:
-            return (position.map_tax(product_taxes) if position else product_taxes), True
         chosen = Tax
         for tax in line.tax_ids:
             same = Tax.search([
@@ -198,9 +204,17 @@ class AccountMove(models.Model):
                 ("price_include", "=", tax.price_include),
             ]).sorted(lambda item: (item.name != tax.name, item.sequence, item.id))[:1]
             if not same:
-                return Tax, False
+                chosen = None
+                break
             chosen |= same
-        return chosen, True
+        if chosen:
+            return chosen, True
+        # No equivalent: the product's defaults are the next best thing, never a silent change of rate.
+        product_taxes = line.product_id.supplier_taxes_id.filtered_domain(
+            Tax._check_company_domain(target))._filter_taxes_by_company(target)
+        if product_taxes:
+            return (position.map_tax(product_taxes) if position else product_taxes), True
+        return Tax, False
 
     def _company_transfer_plan(self, target, mapping=None):
         """Resolve destination values: the native proposal, then explicit choices on top."""
@@ -249,15 +263,15 @@ class AccountMove(models.Model):
                 account = self.env["account.account"].browse(_record_id(override["account_id"]))
             else:
                 account = _compatible(line.account_id, target)
-                if not account and line.product_id:
-                    account = line.product_id.product_tmpl_id.with_company(target).get_product_accounts(
-                        fiscal_pos=position).get("expense")
                 code = line.account_id.with_company(self.company_id).code
                 if not account and code:
                     # The same account code over there is the same account for the books.
                     Account = self.env["account.account"].with_company(target)
                     account = Account.search([*Account._check_company_domain(target), ("active", "=", True),
                                               ("code", "=", code)], limit=1)
+                if not account and line.product_id:
+                    account = line.product_id.product_tmpl_id.with_company(target).get_product_accounts(
+                        fiscal_pos=position).get("expense")
                 if not account and journal and journal.default_account_id:
                     # A guess, not a proposal: say so, so nobody confirms it unseen.
                     account = journal.default_account_id
@@ -427,8 +441,11 @@ class AccountMove(models.Model):
                 unresolved.append({"code": "invalid_choice", "message": str(error),
                                    "next_step": _("Correct the mapping and preview again.")})
         token = bill._company_transfer_stamp(target, plan)
+        if confirm and values:
+            bill._company_transfer_check_total(unresolved, bill._company_transfer_destination(plan, target), mapping)
         if not confirm:
             destination = bill._company_transfer_destination(plan, target) if values else None
+            bill._company_transfer_check_total(unresolved, destination, mapping)
             return bill._company_transfer_preview(source, target, blockers, unresolved, plan, destination, before, token)
         problems = blockers + unresolved
         if problems:
@@ -447,6 +464,17 @@ class AccountMove(models.Model):
                                      source=source.display_name, target=target.display_name),
                               subtype_xmlid="mail.mt_note")
         return bill._company_transfer_result("done", before)
+
+    def _company_transfer_check_total(self, unresolved, destination, mapping):
+        """A move that changes the total, through a tax or a rate, must be accepted knowingly."""
+        if not destination or (mapping or {}).get("accept_total_change") is True:
+            return
+        if self.currency_id.compare_amounts(destination["amount_total"] or 0.0, self.amount_total):
+            unresolved.append({
+                "code": "total_changed", "current_total": self.amount_total, "destination_total": destination["amount_total"],
+                "message": _("The total changes from %(current)s to %(destination)s.",
+                             current=self.amount_total, destination=destination["amount_total"]),
+                "next_step": _("Check the taxes, then pass accept_total_change=true in the mapping to accept this total.")})
 
     def _company_transfer_result(self, status, before):
         return {"status": status, "bill": self._company_transfer_ref(self), "before": before,

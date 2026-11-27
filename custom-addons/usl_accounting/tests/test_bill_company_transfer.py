@@ -178,6 +178,13 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         bill.invoice_cash_rounding_id = rounding
         return rounding
 
+    def _blocked_by_merge(self, bill):
+        original = self._bill()
+        # Merge history is only written by the Merge Bills action: reproduce its result.
+        self.env.cr.execute("UPDATE account_move SET vendor_bill_merge_target_id = %s WHERE id = %s", [bill.id, original.id])
+        original.invalidate_recordset()
+        return original
+
     def _blocked_by_partner(self, bill):
         self.partner_a.company_id = bill.company_id
         return self.partner_a
@@ -201,6 +208,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             ("recurring_copy", self._blocked_by_recurrence),
             ("posted_before", self._blocked_by_history),
             ("cash_rounding", self._blocked_by_cash_rounding),
+            ("merged_originals", self._blocked_by_merge),
             ("partner_restricted", self._blocked_by_partner),
             ("product_restricted", self._blocked_by_product),
             ("reversal", self._blocked_by_reversal),
@@ -247,14 +255,14 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         wizard = self._wizard(bill)
         self.assertTrue(wizard.has_blockers)
         self.assertIn(payment.display_name, wizard.blockers_html)
-        self.assertIn("unreconcile", wizard.blockers_html)
+        self.assertIn("unlink", wizard.blockers_html)
         with self.assertRaisesRegex(UserError, payment.display_name):
             wizard.action_prepare_mapping()
         self.assertEqual((payment.company_id, bill.company_id, bill.matched_payment_ids), (source, source, payment))
 
     # --- native proposals -------------------------------------------------------------
 
-    def test_destination_taxes_come_from_the_product_when_no_equivalent_exists(self):
+    def test_destination_taxes_fall_back_to_the_product_only_when_no_equivalent_exists(self):
         target_tax = self.target_data["default_tax_purchase"]
         target_tax.amount = 21
         product = self.env["product.product"].create({
@@ -278,11 +286,61 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
         mapping = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": self.target_data["default_account_expense"].id,
                               "tax_ids": []}]}
+        silent = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual((silent["status"], [item["code"] for item in silent["unresolved"]]), ("needs_input", ["total_changed"]))
+        self.assertEqual((silent["unresolved"][0]["current_total"], silent["unresolved"][0]["destination_total"]), (97.75, 85))
+        mapping["accept_total_change"] = True
         preview = bill.change_bill_company(self.target.id, mapping)
         self.assertEqual(preview["status"], "ready")
         bill.change_bill_company(self.target.id, mapping, confirm=True, preview_id=preview["preview_id"])
         self.assertEqual((bill.company_id, bill.amount_tax, bill.amount_total), (self.target, 0, 85))
         self.assertNotEqual(source, bill.company_id)
+
+    def test_the_lines_own_tax_wins_over_the_products_default(self):
+        Tax = self.env["account.tax"]
+        twenty = Tax.create({"name": "Synthetic 20", "amount": 20, "type_tax_use": "purchase", "company_id": self.target.id})
+        product = self.env["product.product"].create({
+            "name": "Rehearsal hour",
+            "supplier_taxes_id": [Command.set((self.company_data["default_tax_purchase"] | twenty).ids)]})
+        bill = self._bill(taxed=True, product=product)
+        preview = bill.change_bill_company(self.target.id)
+        (line,) = preview["proposal"]["lines"]
+        self.assertEqual([tax["id"] for tax in line["to"]["taxes"]], self.target_data["default_tax_purchase"].ids)
+        self.assertEqual(preview["status"], "ready")
+
+    def test_a_changed_total_must_be_accepted(self):
+        self.target_data["default_tax_purchase"].amount = 21
+        bill = self._bill(taxed=True)
+        mapping = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": self.target_same_code.id,
+                              "tax_ids": self.target_data["default_tax_purchase"].ids}]}
+        preview = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual((preview["status"], [item["code"] for item in preview["unresolved"]]), ("needs_input", ["total_changed"]))
+        with self.assertRaisesRegex(UserError, "total"):
+            bill.change_bill_company(self.target.id, mapping, confirm=True, preview_id=preview["preview_id"])
+        accepted = {**mapping, "accept_total_change": True}
+        ready = bill.change_bill_company(self.target.id, accepted)
+        self.assertEqual(ready["status"], "ready")
+        bill.change_bill_company(self.target.id, accepted, confirm=True, preview_id=ready["preview_id"])
+        self.assertEqual((bill.company_id, bill.amount_total), (self.target, 102.85))
+
+    def test_editing_a_destination_tax_refreshes_the_summary(self):
+        bill = self._bill(taxed=True)
+        wizard = self._mapping(bill)
+        self.assertIn("97.75", wizard.destination_summary.split("→")[1])
+        wizard.mapping_ids.target_tax_ids = False
+        wizard.mapping_ids.remove_taxes = True
+        wizard._onchange_destination_choices()
+        current, destination = wizard.destination_summary.split("→")[:2]
+        self.assertIn("97.75", current)
+        self.assertNotIn("97.75", destination)
+        self.assertIn("85.00", destination)
+
+    def test_a_branch_is_not_offered_its_parents_journal(self):
+        branch = self.env["res.company"].create({"name": "Amber Branch", "parent_id": self.target.id})
+        self.env.user.company_ids = [Command.link(branch.id)]
+        bill = self._bill()
+        preview = bill.change_bill_company(branch.id)
+        self.assertEqual((preview["proposal"]["journal"], [item["code"] for item in preview["unresolved"]][:1]), (None, ["journal"]))
 
     def test_dialog_needs_an_explicit_choice_to_remove_taxes(self):
         self.target_data["default_tax_purchase"].amount = 21
@@ -324,7 +382,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         none = bill.change_bill_company(self.target.id, {"fiscal_position_id": False})
         self.assertIsNone(none["proposal"]["fiscal_position"])
 
-    def test_same_account_code_in_the_destination_is_proposed_before_any_default(self):
+    def test_same_account_code_in_the_destination_wins_over_the_product_and_any_default(self):
         source_account = self._account(self.company_data["company"], "601000")
         target_account = self._account(self.target, "601000")
         bill = self._bill()

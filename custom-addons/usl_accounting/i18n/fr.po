@@ -8727,12 +8727,6 @@ msgstr "Compte fournisseur : %(account)s."
 #. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/models/bill_company_transfer.py:0
-msgid "Payment %(name)s is linked to this bill."
-msgstr "Le paiement %(name)s est lié à cette facture."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/models/bill_company_transfer.py:0
 msgid "Purchase order %(name)s is invoiced by this bill."
 msgstr "La commande d’achat %(name)s est facturée par cette facture."
 
@@ -8877,12 +8871,6 @@ msgstr ""
 "une extourne reste avec l’écriture qu’elle extourne."
 
 #. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
-msgid "Destination total: %(total)s, of which taxes %(tax)s."
-msgstr "Total à destination : %(total)s, dont taxes %(tax)s."
-
-#. module: usl_accounting
 #: model:ir.model.fields,help:usl_accounting.field_usl_bill_company_transfer__operator_company_ids
 msgid "Every company the operator can access, active in the selector or not."
 msgstr ""
@@ -8973,3 +8961,62 @@ msgstr ""
 #: code:addons/usl_accounting/models/bill_company_transfer.py:0
 msgid "This credit note reverses %(name)s."
 msgstr "Cet avoir extourne %(name)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "A payment is linked to this bill: %(name)s."
+msgstr "Un paiement est lié à cette facture : %(name)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"Check the taxes, then pass accept_total_change=true in the mapping to accept"
+" this total."
+msgstr ""
+"Vérifiez les taxes, puis transmettez accept_total_change=true dans la "
+"correspondance pour accepter ce total."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid ""
+"Current total: %(current)s → Destination total: %(total)s, of which taxes "
+"%(tax)s."
+msgstr ""
+"Total actuel : %(current)s → Total à destination : %(total)s, dont taxes "
+"%(tax)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"Open the payment and unlink it from this bill, then reopen Change company."
+msgstr ""
+"Ouvrez le paiement et déliez-le de cette facture, puis rouvrez Changer de "
+"société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "The cancelled original %(name)s was merged into this bill."
+msgstr "L’original annulé %(name)s a été fusionné dans cette facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"The originals stay in the current company as evidence. Keep this bill here, "
+"or create a new bill in the destination company from the original documents "
+"and cancel this one."
+msgstr ""
+"Les originaux restent dans la société actuelle comme justificatifs. Gardez "
+"cette facture ici, ou créez une nouvelle facture dans la société de "
+"destination à partir des documents d’origine et annulez celle-ci."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "The total changes from %(current)s to %(destination)s."
+msgstr "Le total passe de %(current)s à %(destination)s."
