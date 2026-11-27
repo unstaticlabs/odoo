@@ -91,6 +91,12 @@ Readers can review the file name, import results and structured rows for their
 selected companies. Import operators and members of **Sensitive Evidence** can
 also download the original CSV from the batch.
 
+As an import operator, open the batch and choose **Read the files**. The report
+shows what the export contains and lists any findings. If you need to check
+the files again, choose **Read again**. Odoo replaces the findings and
+structured rows for this batch and keeps the uploaded originals. If reading
+stops partway, you can still open the previous report and retry.
+
 Raw provider payloads may contain customer personal data. Open
 **Restricted Provider Evidence** only when the
 separate sensitive-evidence role has been granted for a documented
