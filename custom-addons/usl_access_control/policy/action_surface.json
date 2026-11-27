@@ -2954,11 +2954,11 @@
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 2898,
+          "line": 2899,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 3408,
+          "line": 3418,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1770561,7 +1770561,7 @@
       "manifest_sha256": "baedaad58e2022924b9742852389b86a5bcca272304afd5d502ab2851b0d19a0",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "f9b7839efc2567c0a43c38354e749ec6b008aafc04a7053502332a448fd74560",
+      "source_sha256": "46e9be96e854b1a6f27643d23d01f02daf12b643046ba4f7ce9150d778625c42",
       "version": "saas~19.3.1.11.3"
     },
     {
