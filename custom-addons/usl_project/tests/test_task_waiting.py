@@ -105,6 +105,28 @@ class TestTaskWaitingReason(TransactionCase):
         )
         self.assertTrue(cleared, "Resuming is recorded as a cleared reason")
 
+    def test_chosen_status_wins_over_a_reason_edited_in_the_same_save(self):
+        task = self._task(usl_waiting_reason="Supplier quote", usl_waiting_partner_id=self.supplier.id)
+        task.write({"state": "01_in_progress", "usl_waiting_reason": "Edited before resuming"})
+        self.assertEqual(task.state, "01_in_progress")
+        self.assertFalse(task.usl_waiting_reason)
+        self.assertFalse(task.usl_waiting_partner_id)
+        stage = self.env["project.task.type"].create({"name": "[QA] Later", "project_ids": [Command.link(self.project.id)]})
+        task.stage_id = stage
+        self.assertEqual(task.state, "01_in_progress", "No hidden reason sends it back to Waiting")
+
+    def test_disabling_task_dependencies_keeps_external_reasons(self):
+        blocker = self._task(name="[QA] Blocker")
+        by_task = self._task()
+        by_task.depend_on_ids = blocker
+        by_reason = self._task(usl_waiting_reason="Supplier quote", usl_waiting_partner_id=self.supplier.id)
+        self.assertEqual((by_task | by_reason).mapped("state"), [WAITING, WAITING])
+        self.project.allow_task_dependencies = False
+        self.assertEqual(by_task.state, "01_in_progress", "Native reset still applies to dependency waits")
+        self.assertEqual(by_reason.state, WAITING)
+        self.assertEqual(by_reason.usl_waiting_reason, "Supplier quote")
+        self.assertEqual(by_reason.usl_waiting_partner_id, self.supplier)
+
     def test_waiting_needs_a_reason_or_an_open_dependency(self):
         task = self._task()
         with self.assertRaises(ValidationError):

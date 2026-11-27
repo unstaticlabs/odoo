@@ -259,13 +259,23 @@ class ProjectTask(models.Model):
         check_return_write(self, [vals])
         if not self.env.context.get("usl_resume_checked"):
             state = vals.get("state")
+            leaving_waiting = bool(state) and state != _WAITING
+            if leaving_waiting and self.env.context.get("usl_keep_waiting_reasons"):
+                # A project setting resets Waiting tasks that wait on a task;
+                # tasks waiting on an external reason are not part of that.
+                keep = self.sudo().filtered("usl_waiting_reason")
+                if keep:
+                    return (self - keep).write(vals) if self - keep else True
             if "usl_waiting_reason" in vals and not vals["usl_waiting_reason"] and "usl_waiting_partner_id" not in vals:
                 vals = {**vals, "usl_waiting_partner_id": False}
+            if leaving_waiting and "usl_waiting_reason" in vals:
+                # The status that was chosen wins over a reason edited in the same save.
+                vals = {**vals, "usl_waiting_reason": False, "usl_waiting_partner_id": False}
             # Choosing any other status resumes the task. The reason is cleared
             # as the system, so collaborators who cannot read or write it still can.
             resume = (
                 self.sudo().filtered("usl_waiting_reason")
-                if state and state != _WAITING and "usl_waiting_reason" not in vals
+                if leaving_waiting and "usl_waiting_reason" not in vals
                 else self.browse()
             )
             if resume:

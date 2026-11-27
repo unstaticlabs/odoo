@@ -34,7 +34,7 @@ defineModels([WaitingProject, WaitingTask]);
 
 const formArch = `<form><sheet>
     <field name="name"/>
-    <field name="state" widget="project_task_state_selection"/>
+    <field name="state" widget="project_task_state_selection" options="{'usl_offer_waiting': true}"/>
     <field name="usl_waiting_reason" widget="usl_waiting_reason" invisible="state != '04_waiting_normal'" required="state == '04_waiting_normal'"/>
 </sheet></form>`;
 
@@ -96,4 +96,30 @@ test("Kanban and list menus never offer Waiting", async () => {
     });
     await contains(".o_data_row:eq(0) .o_field_widget[name=state] button").click();
     expect(".o-dropdown--menu .dropdown-item:contains(Waiting)").toHaveCount(0);
+});
+
+test("a form without the reason field never offers Waiting", async () => {
+    await mountView({
+        type: "form",
+        resModel: "project.task",
+        resId: 1,
+        arch: `<form><sheet><field name="name"/><field name="state" widget="project_task_state_selection"/></sheet></form>`,
+    });
+    await openStateMenu();
+    expect(".o-dropdown--menu .dropdown-item:contains(Waiting)").toHaveCount(0);
+});
+
+test("Waiting, a typed reason, then In Progress saves no reason", async () => {
+    let saved;
+    onRpc("project.task", "web_save", ({ args }) => {
+        saved = args[1];
+    });
+    await mountView({ type: "form", resModel: "project.task", resId: 1, arch: formArch });
+    await openStateMenu();
+    await contains(".o-dropdown--menu .dropdown-item:contains(Waiting)").click();
+    await contains(".o_field_widget[name=usl_waiting_reason] input").edit("Typed before resuming");
+    await openStateMenu();
+    await contains(".o-dropdown--menu .dropdown-item:contains(In Progress)").click();
+    expect(saved.state).toBe("01_in_progress");
+    expect(Boolean(saved.usl_waiting_reason)).toBe(false);
 });

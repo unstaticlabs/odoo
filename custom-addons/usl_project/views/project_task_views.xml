@@ -106,6 +106,9 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='state'][@widget='project_task_state_selection'][not(ancestor::field)]" position="attributes">
+                <attribute name="options">{'usl_offer_waiting': True}</attribute>
+            </xpath>
             <xpath expr="//sheet/group[1]" position="before">
                 <div class="o_usl_waiting_reason d-flex flex-wrap gap-2 mb-3" invisible="state != '04_waiting_normal'">
                     <i class="fa fa-hourglass-o text-muted align-self-center" title="Waiting reason"/>
