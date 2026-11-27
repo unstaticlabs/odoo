@@ -1680,6 +1680,25 @@ test("a dismissal made while a save is pending stays dismissed", async () => {
 });
 
 test.tags("desktop");
+test("Undo waits for a tag save that is still running and keeps both changes", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await contains(".o_notification:first button", { text: "Undo" }).click();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }]);
+    state.hold = null;
+    release();
+    await animationFrame();
+    await animationFrame();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }, { tag_ids: [43] }]);
+});
+
+test.tags("desktop");
 test("Undo after leaving the document restores its tags and reloads the list", async () => {
     const state = suggestionFixture();
     onRpc("usl.document", "read", () => [{ id: 41, tag_ids: [42] }]);

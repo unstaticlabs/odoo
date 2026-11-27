@@ -2911,6 +2911,11 @@ export class DocumentsWorkspaceView extends Component {
             }
             return;
         }
+        // A tag save may still be running: wait for it so both changes survive.
+        await this.metadataSaveQueue;
+        if (this.state.selected?.id !== documentId) {
+            return this.undoSuggestedTags(documentId, addedIds, suggestions);
+        }
         const remaining = (this.state.selected.tags || [])
             .map((tag) => tag.id)
             .filter((id) => !addedIds.includes(id));
