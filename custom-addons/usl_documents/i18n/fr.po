@@ -1093,6 +1093,7 @@ msgstr "Tri personnalisé"
 
 #. module: usl_documents
 #. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Date"
 msgstr "Date"
@@ -4603,6 +4604,8 @@ msgid "System Rule"
 msgstr "Règle du système"
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__tag_id
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Tag"
@@ -5266,6 +5269,7 @@ msgstr "Tente à nouveau de charger ce document depuis Paperless."
 
 #. module: usl_documents
 #. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Type"
 msgstr "Type"
