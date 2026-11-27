@@ -21,7 +21,6 @@ import { Dialog } from "@web/core/dialog/dialog";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { deserializeDate, serializeDate } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
-import { formatFloat } from "@web/views/fields/formatters";
 import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
@@ -268,8 +267,13 @@ export class DocumentsWorkspaceView extends Component {
                 : null;
         this.listScroller = useRef("documentList");
         this.linkedRecordsRef = useRef("linkedRecords");
+        this.detailTagsRef = useRef("detailTags");
+        this.pendingSuggestionFocus = null;
         this.pendingLinkedRecordsScroll = null;
-        onPatched(() => this.scrollToLinkedRecords());
+        onPatched(() => {
+            this.scrollToLinkedRecords();
+            this.focusAfterSuggestion();
+        });
         onMounted(() => this.scrollToLinkedRecords());
         const storagePrefix = `usl_documents.workspace.${user.userId}`;
         this.globalStorageKey = `${storagePrefix}.global`;
@@ -2742,7 +2746,6 @@ export class DocumentsWorkspaceView extends Component {
                     this.state.selected = {
                         ...detail,
                         paperless_suggestions: paperlessSuggestions,
-                        tagScoreState: this.state.selected.tagScoreState === "ready" ? "ready" : undefined,
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
@@ -2764,68 +2767,194 @@ export class DocumentsWorkspaceView extends Component {
         return this.metadataSaveQueue;
     }
 
-    async reviewTagScores() {
+    get suggestedTags() {
+        // Highest model score first, then rule matches, then unscored proposals.
+        const rank = (suggestion) => {
+            const score = this.suggestionScore(suggestion);
+            return score !== null ? 2 + score : suggestion.rule ? 1 : 0;
+        };
+        return (this.state.selected?.paperless_suggestions || [])
+            .filter((suggestion) => suggestion.kind === "tag")
+            .sort(
+                (left, right) =>
+                    rank(right) - rank(left) ||
+                    String(left.label).localeCompare(String(right.label))
+            );
+    }
+
+    suggestionFor(kind) {
+        return (this.state.selected?.paperless_suggestions || []).find(
+            (suggestion) => suggestion.kind === kind
+        );
+    }
+
+    applyFieldSuggestion(kind) {
+        return this.applyPaperlessSuggestion(this.suggestionFor(kind));
+    }
+
+    suggestionScore(suggestion) {
+        const score = suggestion?.classifier_score;
+        if (!Number.isFinite(score) || score < 0 || score > 1) {
+            return null;
+        }
+        return Math.round(score * 100);
+    }
+
+    suggestionBadge(suggestion) {
+        const score = this.suggestionScore(suggestion);
+        if (score !== null) {
+            return String(score);
+        }
+        return suggestion.rule ? _t("Rule") : "";
+    }
+
+    suggestionExplanation(suggestion) {
+        if (this.suggestionScore(suggestion) !== null) {
+            return _t(
+                "How closely this document resembles the ones you already tagged %s. Higher is more similar; it is not a guarantee.",
+                suggestion.label
+            );
+        }
+        return suggestion.rule ? _t("A text rule on this tag matched this document.") : "";
+    }
+
+    suggestionAcceptLabel(suggestion) {
+        const score = this.suggestionScore(suggestion);
+        if (score !== null) {
+            return _t("Add tag %s, similarity %s out of 100", suggestion.label, score);
+        }
+        if (suggestion.rule) {
+            return _t("Add tag %s, suggested by a rule", suggestion.label);
+        }
+        return _t("Add tag %s", suggestion.label);
+    }
+
+    suggestionRejectLabel(suggestion) {
+        return _t("Dismiss suggestion %s", suggestion.label);
+    }
+
+    get addAllSuggestionsLabel() {
+        return _t("Add all (%s)", this.suggestedTags.length);
+    }
+
+    async acceptSuggestedTags(suggestions, { focusIndex = null } = {}) {
         const selected = this.state.selected;
-        if (!selected || selected.tagScoreState === "loading") {
+        if (!selected?.can_edit || !suggestions.length) {
             return;
         }
-        selected.tagScoreState = "loading";
-        try {
-            const detail = await this.rpc("usl.document", "document_detail", [selected.id], {
-                check_archive: true, include_tag_scores: true,
-            });
-            if (this.state.selected !== selected) {
-                return;
-            }
-            if (detail.archive_available === false || detail.tag_scores_available === false) {
-                selected.tagScoreState = "unavailable";
-                return;
-            }
-            selected.paperless_suggestions = detail.paperless_suggestions;
-            selected.tagScoreState = "ready";
-        } catch {
-            selected.tagScoreState = "unavailable";
+        const documentId = selected.id;
+        const previousIds = (selected.tags || []).map((tag) => tag.id);
+        const addedIds = suggestions
+            .map((suggestion) => suggestion.record_id)
+            .filter((id) => !previousIds.includes(id));
+        const applied = await this.setSelectedTags([...previousIds, ...addedIds]);
+        if (applied !== true) {
+            return;
+        }
+        // The drawer may have been refreshed meanwhile: act on the current one.
+        if (this.state.selected?.id === documentId) {
+            this.pendingSuggestionFocus = { index: focusIndex };
+            this.state.selected.paperless_suggestions = (
+                this.state.selected.paperless_suggestions || []
+            ).filter(
+                (item) => !(item.kind === "tag" && addedIds.includes(item.record_id))
+            );
+        }
+        const message =
+            suggestions.length === 1
+                ? _t("Tag %s added", suggestions[0].label)
+                : _t("%s tags added", suggestions.length);
+        this.notification.add(message, {
+            type: "success",
+            buttons: [
+                {
+                    name: _t("Undo"),
+                    onClick: () => this.undoSuggestedTags(documentId, addedIds, suggestions),
+                },
+            ],
+        });
+    }
+
+    async undoSuggestedTags(documentId, addedIds, suggestions) {
+        if (this.state.selected?.id !== documentId) {
+            const [{ tag_ids: current }] = await this.orm.read(
+                "usl.document", [documentId], ["tag_ids"]
+            );
+            await this.orm.call("usl.document", "update_archive_metadata", [
+                [documentId],
+                { tag_ids: current.filter((id) => !addedIds.includes(id)) },
+            ]);
+            return;
+        }
+        const remaining = (this.state.selected.tags || [])
+            .map((tag) => tag.id)
+            .filter((id) => !addedIds.includes(id));
+        const reverted = await this.setSelectedTags(remaining);
+        if (reverted === true && this.state.selected?.id === documentId) {
+            const listed = new Set(this.suggestedTags.map((item) => item.record_id));
+            this.state.selected.paperless_suggestions = [
+                ...(this.state.selected.paperless_suggestions || []),
+                ...suggestions
+                    .filter((item) => !listed.has(item.record_id))
+                    .map((item) => ({ ...item })),
+            ];
         }
     }
 
-    tagScoreLabel(suggestion) {
-        const score = suggestion.classifier_score;
-        if (!Number.isFinite(score) || score < 0 || score > 1) {
-            return _t("No model score");
+    acceptSuggestedTag(suggestion) {
+        const index = this.suggestedTags.indexOf(suggestion);
+        return this.acceptSuggestedTags([suggestion], { focusIndex: index });
+    }
+
+    acceptAllSuggestedTags() {
+        return this.acceptSuggestedTags([...this.suggestedTags]);
+    }
+
+    rejectSuggestedTag(suggestion) {
+        const index = this.suggestedTags.indexOf(suggestion);
+        this.pendingSuggestionFocus = { index };
+        this.state.selected.paperless_suggestions = (
+            this.state.selected.paperless_suggestions || []
+        ).filter((item) => item.record_id !== suggestion.record_id || item.kind !== "tag");
+    }
+
+    onSuggestionKeydown(event, suggestion) {
+        if (event.key === "Delete" || event.key === "Backspace") {
+            event.preventDefault();
+            this.rejectSuggestedTag(suggestion);
         }
-        return _t("Score %s/100", formatFloat(score * 100, { digits: [16, 1] }));
+    }
+
+    focusAfterSuggestion() {
+        const request = this.pendingSuggestionFocus;
+        if (!request) {
+            return;
+        }
+        this.pendingSuggestionFocus = null;
+        const chips = this.detailTagsRef.el?.querySelectorAll(".o_usl_ghost_accept") || [];
+        if (request.index !== null && chips.length) {
+            chips[Math.min(request.index, chips.length - 1)].focus();
+            return;
+        }
+        this.detailTagsRef.el?.querySelector(".o_usl_tag_autocomplete input")?.focus();
     }
 
     async applyPaperlessSuggestion(suggestion) {
         if (!suggestion || !this.state.selected?.can_edit) {
             return;
         }
-        let applied;
         if (suggestion.kind === "tag") {
-            applied = await this.addSelectedTag({
-                id: suggestion.record_id,
-                display_name: suggestion.label,
-            });
-        } else {
-            applied = await this.saveMetadataField(
-                suggestion.field,
-                suggestion.record_id || suggestion.value
-            );
+            return this.acceptSuggestedTag(suggestion);
         }
+        const applied = await this.saveMetadataField(
+            suggestion.field,
+            suggestion.record_id || suggestion.value
+        );
         if (applied !== false && this.state.selected) {
             this.state.selected.paperless_suggestions = (
                 this.state.selected.paperless_suggestions || []
             ).filter((item) => item !== suggestion);
         }
-    }
-
-    paperlessSuggestionKindLabel(kind) {
-        return {
-            document_type: _t("Type"),
-            correspondent: _t("From"),
-            tag: _t("Tag"),
-            date: _t("Date"),
-        }[kind] || _t("Suggestion");
     }
 
     selectCorrespondent(value) {

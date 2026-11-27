@@ -1,4 +1,4 @@
-import { beforeEach, expect, mockUserAgent, test } from "@odoo/hoot";
+import { beforeEach, expect, mockUserAgent, press, test } from "@odoo/hoot";
 import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
@@ -1541,104 +1541,182 @@ test("tags are searchable, removable, and creatable from document details", asyn
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
 });
 
-test.tags("desktop");
-test("reviewing real tag scores leaves the document unchanged until a tag is chosen", async () => {
-    const suggestedTag = {
-        id: 42,
-        name: "Payroll",
-        color: "#2d7d68",
-        text_color: "#ffffff",
-    };
-    const document = {
-        id: 41,
-        name: "August payslip",
-        paperless_id: 141,
-        date: "2026-08-31",
-        company: "USL",
-        review_state: "classified",
-        availability_state: "available",
-        access_error: false,
-        correspondent: "",
-        document_type: "",
-        tags: [],
-        link_count: 0,
-        primary_link: false,
-    };
-    const suggestions = [
-        {
-            kind: "tag",
-            field: "tag_ids",
-            record_id: suggestedTag.id,
-            label: suggestedTag.name,
-        },
-        {
-            kind: "date",
-            field: "document_date",
-            value: "2026-08-30",
-            label: "2026-08-30",
-        },
+function suggestionFixture() {
+    const tagRecords = [
+        { id: 42, name: "Payroll", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 43, name: "Concert", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 44, name: "Literal match", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 45, name: "Unscored", color: "#2d7d68", text_color: "#ffffff" },
     ];
-    let detail = {
-        ...document,
-        can_edit: true,
-        can_change_links: true,
-        can_manage: false,
-        versions: [],
-        links: [],
-        paperless_suggestions: suggestions,
+    const document = {
+        id: 41, name: "August payslip", paperless_id: 141, date: "2026-08-31", company: "USL",
+        review_state: "classified", availability_state: "available", access_error: false,
+        correspondent: "", document_type: "", tags: [], link_count: 0, primary_link: false,
     };
-    const updates = [];
+    // The server lists proposals in its own order, not by score.
+    const suggestions = [
+        { kind: "tag", field: "tag_ids", record_id: 45, label: "Unscored", rule: false },
+        { kind: "tag", field: "tag_ids", record_id: 43, label: "Concert", rule: false, classifier_score: 0.692 },
+        { kind: "tag", field: "tag_ids", record_id: 44, label: "Literal match", rule: true },
+        { kind: "tag", field: "tag_ids", record_id: 42, label: "Payroll", rule: false, classifier_score: 0.716 },
+        { kind: "correspondent", field: "correspondent_id", record_id: 7, label: "TESE" },
+        { kind: "date", field: "document_date", value: "2026-08-30", label: "2026-08-30" },
+    ];
+    const state = {
+        detail: {
+            ...document, can_edit: true, can_change_links: true, can_manage: false, versions: [], links: [],
+            paperless_suggestions: suggestions,
+        },
+        requests: [], updates: [],
+    };
     onRpc("usl.document", "workspace_data", () => ({
-        ...emptyWorkspace,
-        tags: [suggestedTag],
-        documents: [{ ...document, tags: detail.tags }],
-        count: 1,
+        ...emptyWorkspace, tags: tagRecords, documents: [{ ...document, tags: state.detail.tags }], count: 1,
     }));
-    const requests = [];
     onRpc("usl.document", "document_detail", ({ kwargs }) => {
-        requests.push(Boolean(kwargs.include_tag_scores));
-        if (!kwargs.include_tag_scores) {
-            return detail;
-        }
-        return {
-            ...detail,
-            paperless_suggestions: [
-                { ...suggestions[0], classifier_score: 0.861335 },
-                { kind: "tag", field: "tag_ids", record_id: 43, label: "Check manually" },
-                suggestions[1],
-            ],
-        };
+        state.requests.push(Boolean(kwargs.include_tag_scores));
+        return state.detail;
     });
     onRpc("usl.document", "update_archive_metadata", ({ args }) => {
-        updates.push(args[1]);
-        detail = {
-            ...detail,
-            tags: args[1].tag_ids ? [suggestedTag] : detail.tags,
-        };
-        return { ...detail, paperless_suggestions: [] };
+        state.updates.push(args[1]);
+        if (args[1].tag_ids) {
+            state.detail = {
+                ...state.detail,
+                tags: tagRecords.filter((tag) => args[1].tag_ids.includes(tag.id)),
+            };
+        }
+        return { ...state.detail, paperless_suggestions: [] };
     });
+    return state;
+}
 
-    await mountWithCleanup(DocumentsWorkspace, {
-        props: { action: action() },
-    });
+async function openSuggestedDocument() {
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
     await contains(".o_usl_document_card").click();
     await animationFrame();
+}
 
-    expect(".o_usl_paperless_suggestion").toHaveCount(2);
-    expect(requests).toEqual([false]);
-    await contains("button", { text: "Review tag scores" }).click();
-    expect(requests).toEqual([false, true]);
-    expect(".o_usl_paperless_suggestion").toHaveCount(3);
-    expect(".o_usl_paperless_suggestions").toHaveText(/Score 86.1\/100/);
-    expect(".o_usl_paperless_suggestions").toHaveText(/No model score/);
-    expect(updates).toEqual([]);
-    await contains(".o_usl_paperless_suggestion span", { text: "Payroll" }).click();
+const ghostLabels = () => [...document.querySelectorAll(".o_usl_tag_ghost .o_usl_tag_chip_label")].map((el) => el.textContent.trim());
+
+test.tags("desktop");
+test("suggested tags show their scores on open, sorted, as whole numbers inside the Tags field", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    // One ordinary read, no extra click and no uncached scoring request.
+    expect(state.requests).toEqual([false]);
+    expect(".o_usl_detail_tags .o_usl_tag_ghost").toHaveCount(4);
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+    const scores = [...document.querySelectorAll(".o_usl_tag_ghost .o_usl_ghost_score")].map((el) => el.textContent.trim());
+    expect(scores).toEqual(["72", "69", "Rule"]);
+    expect(".o_usl_detail_tags").not.toHaveText(/71[.,]6/);
+    expect(".o_usl_detail_tags").not.toHaveText(/Paperless/);
+    expect(".o_usl_ghost_all").toHaveText("Add all (4)");
+    expect(".o_usl_tag_ghost:first .o_usl_ghost_accept").toHaveAttribute(
+        "aria-label", "Add tag Payroll, similarity 72 out of 100"
+    );
+    expect(".o_usl_tag_ghost:eq(2) .o_usl_ghost_accept").toHaveAttribute(
+        "aria-label", "Add tag Literal match, suggested by a rule"
+    );
+    expect(".o_usl_tag_ghost:first .o_usl_ghost_accept").toHaveAttribute("title", /resembles the ones you already tagged Payroll/);
+    expect(".o_usl_paperless_suggestions").toHaveCount(0);
+    expect(state.updates).toEqual([]);
+});
+
+test.tags("desktop");
+test("accepting a suggested tag adds only that tag, keeps the others and can be undone", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
     await animationFrame();
-
-    expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
     expect(".o_usl_detail_tags").toHaveText(/Payroll/);
-    expect(".o_usl_paperless_suggestion").toHaveCount(2);
-    expect(".o_usl_paperless_suggestions").toHaveText(/Date: 2026-08-30/);
+    // The remaining proposals survive the refresh and stay actionable.
+    expect(ghostLabels()).toEqual(["Concert", "Literal match", "Unscored"]);
+    expect(".o_usl_tag_ghost .o_usl_ghost_accept:disabled").toHaveCount(0);
+    expect(".o_notification").toHaveText(/Tag Payroll added/);
+    // Focus moves to the next suggestion.
+    expect(document.activeElement.closest(".o_usl_tag_ghost")).toHaveText(/Concert/);
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+});
+
+test.tags("desktop");
+test("rejecting a suggestion writes nothing and the keyboard can reject or accept it", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:eq(3) .o_usl_ghost_reject").click();
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match"]);
+    expect(state.updates).toEqual([]);
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").focus();
+    await press("Delete");
+    await animationFrame();
+    expect(ghostLabels()).toEqual(["Concert", "Literal match"]);
+    expect(document.activeElement.closest(".o_usl_tag_ghost")).toHaveText(/Concert/);
+    expect(state.updates).toEqual([]);
+    await press("Enter");
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [43] }]);
+});
+
+test.tags("desktop");
+test("Add all writes every suggested tag in one save and undoes it in one save", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_ghost_all").click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42, 43, 44, 45] }]);
+    expect(".o_usl_tag_ghost").toHaveCount(0);
+    expect(".o_usl_ghost_all").toHaveCount(0);
+    expect(".o_notification").toHaveText(/4 tags added/);
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42, 43, 44, 45] }, { tag_ids: [] }]);
+    expect(".o_usl_tag_ghost").toHaveCount(4);
+});
+
+test.tags("desktop");
+test("a single suggestion offers no Add all, and other metadata suggestions sit under their own field", async () => {
+    const state = suggestionFixture();
+    state.detail.paperless_suggestions = state.detail.paperless_suggestions.filter(
+        (item) => item.record_id === 42 || item.kind !== "tag"
+    );
+    await openSuggestedDocument();
+    expect(ghostLabels()).toEqual(["Payroll"]);
+    expect(".o_usl_ghost_all").toHaveCount(0);
+    expect(".o_usl_field_suggestion").toHaveCount(2);
+    expect(".o_usl_field_suggestion:eq(0)").toHaveText(/Suggested:\s*TESE/);
+    expect(".o_usl_field_suggestion:eq(1)").toHaveText(/30\/08\/2026/);
+    await contains(".o_usl_field_suggestion:eq(1) button", { text: "Use" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ document_date: "2026-08-30" }]);
+    expect(".o_usl_field_suggestion").toHaveCount(1);
+    expect(".o_usl_field_suggestion").toHaveText(/Suggested:\s*TESE/);
+});
+
+test.tags("mobile");
+test("on a phone every suggestion control is at least 44px tall and nothing overflows", async () => {
+    mockUserAgent("android");
+    suggestionFixture();
+    await openSuggestedDocument();
+    const controls = [...document.querySelectorAll(
+        ".o_usl_ghost_accept, .o_usl_ghost_reject, .o_usl_ghost_all, .o_usl_field_suggestion button"
+    )];
+    expect(controls.length).toBeGreaterThan(8);
+    for (const control of controls) {
+        expect(control.getBoundingClientRect().height).toBeGreaterThan(43.5);
+    }
+    const tags = document.querySelector(".o_usl_detail_tags");
+    expect(tags.scrollWidth <= tags.clientWidth + 1).toBe(true);
+});
+
+test.tags("desktop");
+test("a viewer without edit rights sees no suggestions to apply", async () => {
+    const state = suggestionFixture();
+    state.detail.can_edit = false;
+    await openSuggestedDocument();
+    expect(".o_usl_tag_ghost").toHaveCount(0);
+    expect(".o_usl_field_suggestion").toHaveCount(0);
 });
 
 test.tags("desktop");
@@ -2815,7 +2893,8 @@ test("classifier history reviews the visible batch and retries only its unfinish
     await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
     await contains(".o_usl_document_card").click();
     await contains("button", { text: "Automatic tag history" }).click();
-    expect(".modal").toHaveText(/Score 89.2\/100/);
+    // One score reads the same everywhere: a whole number.
+    expect(".modal").toHaveText(/Score 89\/100/);
     await contains(".modal button", { text: "Review batch" }).click();
     expect(".modal").toHaveText(/Stage notes/);
     expect(".modal").toHaveText(/Tags to remove: Concerts, Programmes/);

@@ -6,7 +6,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelBinarizer, MultiLabelBinarizer
 
 from evaluate_tag_scores import evaluate
-from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator
+from paperless_usl_tag_scores import scored_cache_entry, suggested_tag_scores, unscored_cache_validator
 
 
 def tag(pk, auto=True):
@@ -80,6 +80,13 @@ class TestTagScores(TestCase):
         validate.assert_not_called()
         request.GET.clear()
         self.assertEqual(guard(request, 5), "legacy-etag")
+
+    def test_only_cache_entries_that_carry_scores_are_reused(self):
+        scored = SimpleNamespace(suggestions={"tags": [17], "tag_scores": {17: .8}})
+        legacy = SimpleNamespace(suggestions={"tags": [17]})
+        self.assertIs(scored_cache_entry(scored), scored)
+        self.assertIsNone(scored_cache_entry(legacy))
+        self.assertIsNone(scored_cache_entry(None))
 
     def test_evaluator_counts_wrong_proposals_and_unseen_expected_tags(self):
         rows = [

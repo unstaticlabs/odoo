@@ -974,11 +974,31 @@
                                 <label for="usl_document_type"
                                        class="small fw-semibold">Document type</label>
                                 <Many2One t-props="documentTypeProps"/>
+                                <div t-if="state.selected.can_edit and suggestionFor('document_type')"
+                                     class="o_usl_field_suggestion">
+                                    <i class="fa fa-magic" aria-hidden="true"/>
+                                    <span class="o_usl_field_suggestion_caption">Suggested:</span>
+                                    <strong class="o_usl_field_suggestion_label" t-esc="suggestionFor('document_type').label"/>
+                                    <button type="button"
+                                            class="btn btn-link btn-sm p-0 o_usl_paperless_suggestion"
+                                            t-att-disabled="state.savingFields[suggestionFor('document_type').field]"
+                                            t-on-click="() => this.applyFieldSuggestion('document_type')">Use</button>
+                                </div>
                             </div>
                             <div class="o_usl_inline_field">
                                 <label for="usl_document_correspondent"
                                        class="small fw-semibold">Correspondent</label>
                                 <Many2One t-props="correspondentProps"/>
+                                <div t-if="state.selected.can_edit and suggestionFor('correspondent')"
+                                     class="o_usl_field_suggestion">
+                                    <i class="fa fa-magic" aria-hidden="true"/>
+                                    <span class="o_usl_field_suggestion_caption">Suggested:</span>
+                                    <strong class="o_usl_field_suggestion_label" t-esc="suggestionFor('correspondent').label"/>
+                                    <button type="button"
+                                            class="btn btn-link btn-sm p-0 o_usl_paperless_suggestion"
+                                            t-att-disabled="state.savingFields[suggestionFor('correspondent').field]"
+                                            t-on-click="() => this.applyFieldSuggestion('correspondent')">Use</button>
+                                </div>
                             </div>
                             <div class="o_usl_inline_field">
                                 <label for="usl_document_date"
@@ -996,6 +1016,16 @@
                                 <span t-else=""
                                       class="o_usl_readonly_value"
                                       t-esc="selectedDocumentDateDisplay || 'Loading…'"/>
+                                <div t-if="state.selected.can_edit and suggestionFor('date')"
+                                     class="o_usl_field_suggestion">
+                                    <i class="fa fa-magic" aria-hidden="true"/>
+                                    <span class="o_usl_field_suggestion_caption">Suggested:</span>
+                                    <strong class="o_usl_field_suggestion_label" t-esc="formatDocumentDate(suggestionFor('date').value)"/>
+                                    <button type="button"
+                                            class="btn btn-link btn-sm p-0 o_usl_paperless_suggestion"
+                                            t-att-disabled="state.savingFields[suggestionFor('date').field]"
+                                            t-on-click="() => this.applyFieldSuggestion('date')">Use</button>
+                                </div>
                             </div>
                             <div class="o_usl_inline_field">
                                 <label t-if="state.selected.can_change_company"
@@ -1009,41 +1039,7 @@
                                       t-esc="state.selected.company || 'Needs attention'"/>
                             </div>
                         </div>
-                        <div t-if="state.selected.paperless_suggestions?.length || state.selected.tagScoreState"
-                             class="o_usl_paperless_suggestions mt-3"
-                             aria-label="Paperless suggestions">
-                            <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
-                                <label class="form-label small fw-semibold mb-0">
-                                    Suggested by Paperless
-                                </label>
-                                <button t-if="state.selected.tagScoreState !== 'ready' &amp;&amp; state.selected.paperless_suggestions?.some((proposal) => proposal.kind === 'tag')"
-                                        type="button" class="btn btn-link btn-sm p-0"
-                                        t-att-disabled="state.selected.tagScoreState === 'loading'"
-                                        t-on-click="reviewTagScores">Review tag scores</button>
-                            </div>
-                            <p t-if="state.selected.tagScoreState === 'ready'" class="small text-muted mb-2" role="status">
-                                <t t-if="state.selected.paperless_suggestions?.length">Higher scores mean a stronger match to the model. Choose a suggestion to apply it.</t>
-                                <t t-else="">No suggestions are available for this document.</t>
-                            </p>
-                            <p t-elif="state.selected.tagScoreState === 'unavailable'" class="small text-muted mb-2" role="status">Scores could not be loaded. Try again.</p>
-                            <p t-elif="state.selected.tagScoreState === 'loading'" class="small text-muted mb-2" role="status">Checking tag scores…</p>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button t-foreach="state.selected.paperless_suggestions"
-                                        t-as="suggestion"
-                                        t-key="suggestion.kind + '-' + (suggestion.record_id || suggestion.value)"
-                                        type="button"
-                                        class="btn btn-sm btn-outline-secondary o_usl_paperless_suggestion"
-                                        t-att-disabled="!state.selected.can_edit || state.savingFields[suggestion.field]"
-                                        t-on-click="() => this.applyPaperlessSuggestion(suggestion)">
-                                    <i class="fa fa-magic me-1" aria-hidden="true"/>
-                                    <span t-esc="paperlessSuggestionKindLabel(suggestion.kind)"/>:
-                                    <span t-esc="suggestion.label"/>
-                                    <small t-if="state.selected.tagScoreState === 'ready' &amp;&amp; suggestion.kind === 'tag'"
-                                           class="d-block" t-esc="tagScoreLabel(suggestion)"/>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="o_usl_detail_tags mt-3">
+                        <div class="o_usl_detail_tags mt-3" t-ref="detailTags">
                             <div class="d-flex align-items-baseline justify-content-between gap-2 mb-2">
                                 <label class="form-label small fw-semibold mb-0">Tags</label>
                                 <button t-if="state.selected.availability_state === 'available'" type="button"
@@ -1064,6 +1060,43 @@
                                         <i class="fa fa-times"/>
                                     </button>
                                 </span>
+                                <t t-if="state.selected.can_edit and suggestedTags.length">
+                                    <span class="o_usl_ghost_caption" aria-hidden="true">
+                                        <i class="fa fa-magic" aria-hidden="true"/>Suggestions
+                                    </span>
+                                    <span t-foreach="suggestedTags" t-as="suggestion"
+                                          t-key="suggestion.record_id"
+                                          class="o_usl_tag_chip o_usl_tag_ghost"
+                                          role="group">
+                                        <button type="button"
+                                                class="o_usl_ghost_accept"
+                                                t-att-disabled="state.savingFields.tag_ids"
+                                                t-att-aria-label="suggestionAcceptLabel(suggestion)"
+                                                t-att-title="suggestionExplanation(suggestion)"
+                                                t-on-click="() => this.acceptSuggestedTag(suggestion)"
+                                                t-on-keydown="(ev) => this.onSuggestionKeydown(ev, suggestion)">
+                                            <i class="fa fa-plus" aria-hidden="true"/>
+                                            <span class="o_usl_tag_chip_label" t-esc="suggestion.label"/>
+                                            <span t-if="suggestionBadge(suggestion)"
+                                                  class="o_usl_ghost_score"
+                                                  t-att-class="suggestion.rule and suggestionScore(suggestion) === null ? 'is-rule' : ''"
+                                                  t-esc="suggestionBadge(suggestion)"/>
+                                        </button>
+                                        <button type="button"
+                                                class="o_usl_ghost_reject"
+                                                t-att-aria-label="suggestionRejectLabel(suggestion)"
+                                                t-att-title="suggestionRejectLabel(suggestion)"
+                                                t-on-click="() => this.rejectSuggestedTag(suggestion)">
+                                            <i class="fa fa-times" aria-hidden="true"/>
+                                        </button>
+                                    </span>
+                                    <button t-if="suggestedTags.length &gt; 1"
+                                            type="button"
+                                            class="btn btn-link btn-sm o_usl_ghost_all"
+                                            t-att-disabled="state.savingFields.tag_ids"
+                                            t-esc="addAllSuggestionsLabel"
+                                            t-on-click="acceptAllSuggestedTags"/>
+                                </t>
                             </div>
                             <div t-if="state.selected.can_edit"
                                  class="o_usl_tag_autocomplete mt-2">

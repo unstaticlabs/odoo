@@ -116,18 +116,22 @@ read-only and never invokes embedding or generative models.
 
 ## Evaluate automatic tag proposals
 
-Request `GET /api/documents/{id}/suggestions/?include_tag_scores=1` to
-receive a `tag_scores` object alongside the usual suggestions. Its keys are
-Paperless tag IDs. Its values are the local model's output for each proposed
-tag the caller can see. Several tags may score highly on the same document.
-A text-matching rule can propose a tag without a model score. A missing
-classifier or a model trained on only one outcome also yields no score.
+Every `GET /api/documents/{id}/suggestions/` response carries a `tag_scores`
+object next to the usual suggestions, and the shared suggestion cache stores
+it with them. Its keys are Paperless tag IDs. Its values are the local model's
+output for each proposed tag the caller can see. Several tags may score highly
+on the same document. A text-matching rule can propose a tag without a model
+score. A missing classifier or a model trained on only one outcome also
+yields no score. Cache entries written before scores existed are recomputed
+once.
 
-The scored request recomputes the proposals for the requesting user's access.
-Ordinary requests keep their existing shared suggestion cache. In Odoo,
-call `usl.document.document_detail(id, check_archive=True, include_tag_scores=True)`.
-A readable, unapplied tag proposal with a score carries `classifier_score`.
-An older Paperless server can continue returning its usual suggestions.
+Request `?include_tag_scores=1` to skip the cache and read the model afresh
+for the requesting user's access. In Odoo, the ordinary
+`usl.document.document_detail(id, check_archive=True)` already returns the
+scores. A readable, unapplied tag proposal carries `classifier_score` when the
+model scored it, and `rule: true` when a text rule rather than the model
+proposed it. An older Paperless server can continue returning its usual
+suggestions.
 
 To assess a threshold, freeze one model revision and independently label a
 held-out sample, including documents with no applicable automatic tag. Keep
