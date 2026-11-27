@@ -56,6 +56,10 @@ class RebuildAccountDeclaration(models.Model):
         index=True,
     )
     applicability_reason = fields.Text(required=True)
+    applicability_summary = fields.Text(
+        string="Why this applies", compute="_compute_applicability_summary", inverse="_inverse_applicability_summary",
+        help="The reason this declaration applies, shown in the language of the reader. The saved reason stays in English.",
+    )
     status = fields.Selection(
         [
             ("to_prepare", "To Prepare"),
@@ -229,6 +233,23 @@ class RebuildAccountDeclaration(models.Model):
                 "accepted", "accepted_with_difference", "not_applicable",
             }
         ))
+
+    @api.depends("applicability_reason")
+    @api.depends_context("lang")
+    def _compute_applicability_summary(self):
+        # Generated wording is saved in English and rendered in the reader's
+        # language; any other saved text, such as an accountant's decision, is shown as written.
+        english = self.with_context(lang="en_US")._des_services_reason()
+        for declaration in self:
+            declaration.applicability_summary = (
+                declaration._des_services_reason()
+                if declaration.applicability_reason == english else declaration.applicability_reason
+            )
+
+    def _inverse_applicability_summary(self):
+        for declaration in self:
+            if declaration.applicability_summary != declaration.applicability_reason:
+                declaration.applicability_reason = declaration.applicability_summary
 
     def _apply_reviewed_exclusion(self, reason):
         """Keep the decision visible on the filing and clear its filing requirement."""
