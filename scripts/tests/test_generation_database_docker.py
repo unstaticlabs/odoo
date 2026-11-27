@@ -10,7 +10,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 from operations import cohort
-from operations.stack import _generation_database_entrypoint
+from operations.runtime import CommandRunner, Target
+from operations.stack import (
+    _generation_database_entrypoint, _start_generation_database, _start_recovery_proof_database,
+)
 
 
 @unittest.skipUnless(os.environ.get("USL_GENERATION_DATABASE_QA") == "1", "native PostgreSQL QA is opt-in")
@@ -19,6 +22,79 @@ class GenerationDatabaseTests(unittest.TestCase):
     db = "fixture_odoo"
     password = "fixture-only"
     image = os.environ.get("USL_QA_POSTGRES_IMAGE", "postgres:16-bookworm")
+
+    def test_release_and_recovery_each_database_receives_only_its_own_password(self):
+        project = "usl-pg-env-" + uuid.uuid4().hex[:12]
+        network = project + "-isolated"
+        subprocess.run(["docker", "network", "create", "--internal", network], check=True, capture_output=True)
+        self.addCleanup(subprocess.run, ["docker", "network", "rm", network], capture_output=True)
+        self.password = "  fixture # \"double\" '$DOLLAR' = back\\slash  "
+        passwords = {"ODOO_DB_PASSWORD": self.password, "PAPERLESS_DB_PASSWORD": "other # fixture value"}
+        roles = {
+            "odoo": {"name": self.db, "user": self.role, "password_key": "ODOO_DB_PASSWORD", "service": "db"},
+            "paperless": {"name": "fixture_docs", "user": "fixture_docs", "password_key": "PAPERLESS_DB_PASSWORD", "service": "docs-db"},
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            release_env = Path(directory) / "release.env"
+            common = "".join(f"{key}={value}\r\n" for key, value in passwords.items())
+            release_env.write_bytes(("\ufeff" + common + "FIXTURE_OFFSITE_KEY=unrelated\n").encode())
+            proof_env = Path(directory) / "proof.env"
+            proof_env.write_text(common + "PAPERLESS_DBPASS=other # fixture value\n")
+            target = Target(release_env, {
+                "compose": {"project": project}, "secrets": {"env_file": str(release_env)},
+                "databases": roles, "services": {"odoo_db": "db", "paperless_db": "docs-db"},
+            })
+            runner = CommandRunner()
+            sources = {}
+            for stage in ("release", "proof"):
+                for key, database in roles.items():
+                    role = key + "_db"
+                    name = f"{project}-{stage}-{key}-db"
+                    volume = name + "-data"
+                    subprocess.run(["docker", "volume", "create", volume], check=True, capture_output=True)
+                    self.addCleanup(subprocess.run, ["docker", "volume", "rm", volume], capture_output=True)
+                    self.addCleanup(subprocess.run, ["docker", "rm", "-f", name], capture_output=True)
+                    if stage == "release":
+                        started = _start_generation_database(
+                            target, runner, stage, network, volume, self.image, key, database["service"],
+                        )
+                    else:
+                        names = {"network": network, "containers": {role: name},
+                                 "volumes": {key + "_postgres": volume}}
+                        started = _start_recovery_proof_database(
+                            target, runner, "fixture-proof", names, {database["service"]: self.image}, key, str(proof_env),
+                        )
+                    self.assertEqual(started, name)
+                    actual = json.loads(runner.run(["docker", "inspect", name, "--format", "{{json .Config.Env}}"]).stdout)
+                    source_values = dict(item.split("=", 1) for item in actual)
+                    password_key = database["password_key"]
+                    self.assertEqual(source_values[password_key], passwords[password_key])
+                    self.assertEqual(source_values.keys() & (passwords.keys() | {"FIXTURE_OFFSITE_KEY", "PAPERLESS_DBPASS"}),
+                                     {password_key})
+                    if key == "odoo":
+                        sources[stage] = name
+            # Exercise the normal prepared-database restore, with the literal
+            # password checked by native PostgreSQL during the TCP connection.
+            self.sql(sources["release"], "CREATE TABLE env_fixture (id integer); INSERT INTO env_fixture VALUES (7)")
+            backup_dir = Path(directory) / "archive"
+            backup_dir.mkdir()
+            destination = backup_dir / "fixture.dump"
+
+            def backup_client(command, *, environment=None, capture=False):
+                return subprocess.run([
+                    "docker", "run", "--rm", "--network", "container:" + sources["release"],
+                    "--volume", f"{backup_dir}:{backup_dir}", "--env", "PGPASSWORD",
+                    self.image, *command,
+                ], env=environment, check=True, text=True, capture_output=True)
+
+            with patch.dict(os.environ, {
+                "ODOO_DB_NAME": self.db, "ODOO_DB_USER": self.role, "ODOO_DB_PASSWORD": self.password,
+                "ODOO_DB_HOST": "127.0.0.1", "ODOO_DB_PORT": "5432",
+            }), patch.object(cohort, "run", backup_client):
+                receipt = cohort.dump_database("ODOO", destination)
+            self.assertEqual(receipt["sha256"], cohort.sha256_file(destination))
+            self.materialize(sources["proof"], destination.read_bytes())
+            self.assertEqual(self.sql(sources["proof"], "SELECT id FROM env_fixture"), "7")
 
     def new_generation(self, *, extra_mounts=()):
         name = "usl-generation-qa-" + uuid.uuid4().hex[:12]
@@ -38,9 +114,9 @@ class GenerationDatabaseTests(unittest.TestCase):
 
     def sql(self, container, statement):
         return subprocess.check_output([
-            "docker", "exec", "-e", f"PGPASSWORD={self.password}", container, "psql", "-XAtq",
+            "docker", "exec", "-e", "PGPASSWORD", container, "psql", "-XAtq",
             "-v", "ON_ERROR_STOP=1", "-h", "127.0.0.1", "-U", self.role, "-d", self.db, "-c", statement,
-        ], text=True).strip()
+        ], text=True, env={**os.environ, "PGPASSWORD": self.password}).strip()
 
     def materialize(self, container, archive):
         subprocess.run(["docker", "exec", "-i", container, "sh", "-c", "cat >/tmp/synthetic.dump"],
@@ -159,20 +235,31 @@ class GenerationDatabaseTests(unittest.TestCase):
             ], check=True, capture_output=True)
             self.addCleanup(subprocess.run, ["docker", "stop", name], check=False, capture_output=True)
             return name
+        odoo = [
+            "/opt/odoo/odoo-bin", "--without-demo=all", "--db_host=127.0.0.1", f"--db_user={self.role}",
+            f"--db_password={self.password}", f"--database={self.db}", "--data-dir=/tmp/odoo-role-qa",
+            "--addons-path=/opt/odoo/odoo/addons,/opt/odoo/addons",
+        ]
         def load(container, *action):
-            command = [
-                "docker", "exec", container, "/opt/odoo/odoo-bin", "--stop-after-init", "--no-http",
-                "--without-demo=all", "--db_host=127.0.0.1", f"--db_user={self.role}",
-                f"--db_password={self.password}", f"--database={self.db}", "--data-dir=/tmp/odoo-role-qa",
-                "--addons-path=/opt/odoo/odoo/addons,/opt/odoo/addons", *action,
-            ]
+            command = ["docker", "exec", container, *odoo, "--stop-after-init", "--no-http", *action]
             result = subprocess.run(command, text=True, capture_output=True, timeout=240)
             self.assertEqual(result.returncode, 0, (result.stdout + result.stderr)[-3000:])
         writer = start_odoo(original)
-        load(writer, "--init=base")
+        load(writer, "--init=web,bus")
         for _ in range(2):
             load(writer, "--update=base")
         archive = subprocess.check_output(["docker", "exec", original, "pg_dump", "-U", self.role, "-Fc", self.db])
         self.materialize(restored, archive)
-        load(start_odoo(restored))
+        server = start_odoo(restored)
+        load(server)
         self.assertEqual(self.sql(restored, "SELECT state FROM ir_module_module WHERE name='base'"), "installed")
+
+        # A healthy connection to the system DB does not exercise the first
+        # anonymous visit or the evented worker against the restored database.
+        subprocess.run(["docker", "exec", "--detach", server, *odoo, "--workers=2", "--max-cron-threads=0",
+                        "--http-port=18069", "--gevent-port=18072", f"--db-filter=^{self.db}$", "--no-database-list"], check=True)
+        probe = Path(__file__).with_name("fixtures") / "generation_database_web_probe.py"
+        with probe.open() as script:
+            receipt = subprocess.check_output(["docker", "exec", "-i", server, "python", "-"],
+                                              stdin=script, text=True, timeout=80)
+        self.assertEqual(json.loads(receipt), [200, True, 101, "odoo.exceptions.AccessDenied"])

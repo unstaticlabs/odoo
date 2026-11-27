@@ -5373,6 +5373,46 @@ def _ready_generation_database(runner, name: str, user: str) -> str:
     raise RuntimeError(f"generation database did not become ready: {name}")
 
 
+# Executed on the Docker host. Only the selected env-file line reaches Docker;
+# the controller never transports its value, even when using an SSH runner.
+_DATABASE_PASSWORD_LAUNCH = r"""
+import subprocess
+import sys
+
+source, key = sys.argv[1:3]
+prefix = key.encode("ascii") + b"="
+selected = None
+try:
+    with open(source, "rb") as lines:
+        for number, raw in enumerate(lines):
+            if number == 0:
+                raw = raw.removeprefix(b"\xef\xbb\xbf")
+            line = raw.removesuffix(b"\n").removesuffix(b"\r").lstrip(b" \t")
+            if not line.startswith(prefix):
+                continue
+            if selected is not None or not line[len(prefix):] or b"\x00" in line:
+                sys.exit("database password entry is empty, invalid or duplicated")
+            selected = line
+except OSError:
+    sys.exit("database password file is unreadable")
+if selected is None:
+    sys.exit("database password entry is missing")
+
+# Use Docker's env-file parser, including its literal quotation marks, spaces
+# and dollar signs. The detached container does not inherit the client's stdin.
+try:
+    run = subprocess.run(sys.argv[3:], input=selected + b"\n", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except OSError:
+    sys.exit("Docker could not be executed for the database container")
+if run.returncode:
+    sys.exit(f"Docker could not start the database container (exit {run.returncode}). Check the image, network and volume.")
+"""
+
+
+def _start_database_with_password(runner, environment_file, password_key, command):
+    runner.run(["python3", "-c", _DATABASE_PASSWORD_LAUNCH, environment_file, password_key, *command])
+
+
 def _start_generation_database(
     target,
     runner,
@@ -5385,7 +5425,8 @@ def _start_generation_database(
 ) -> str:
     database = target.value["databases"][database_key]
     name = f"{target.project}-{generation}-{database_key}-db"
-    runner.run(
+    _start_database_with_password(
+        runner, target.value["secrets"]["env_file"], database["password_key"],
         [
             "docker",
             "run",
@@ -5400,8 +5441,7 @@ def _start_generation_database(
             network,
             "--network-alias",
             alias,
-            "--env-file",
-            target.value["secrets"]["env_file"],
+            "--env-file", "/dev/stdin",
             "--volume",
             f"{volume}:/var/lib/postgresql/data",
             *_generation_database_entrypoint(database_key, database, image),
@@ -9655,11 +9695,11 @@ def _start_recovery_proof_database(
         command.extend(["--label", f"{key}={value}"])
     command.extend([
         "--network", names["network"], "--network-alias", alias,
-        "--env-file", runtime_env,
+        "--env-file", "/dev/stdin",
         "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
         *_generation_database_entrypoint(database_key, database, images[target.value["services"][service_role]]),
     ])
-    runner.run(command)
+    _start_database_with_password(runner, runtime_env, database["password_key"], command)
     return _ready_generation_database(runner, names["containers"][role], database["user"])
 
 
@@ -10664,6 +10704,7 @@ def _recovery_proof_command_locked(
         tool_image = _operations_image(release)
         _require_prepared_database_tool(runner, tool_image)
         if backup is None:
+            stage = "backup-started"
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
             if arguments.resume_backup:
@@ -10684,7 +10725,7 @@ def _recovery_proof_command_locked(
                     arguments.resume_backup = _recover_recovery_proof_backup(
                         target, runner, backup_run_id, runtime_sha,
                     )
-                write_state("backup-started", None)
+                write_state(stage, None)
                 backup = _run_recovery_proof_backup(arguments, release)
         else:
             backup = _backup_run_receipt(

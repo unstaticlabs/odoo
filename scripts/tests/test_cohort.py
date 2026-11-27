@@ -320,6 +320,19 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_database_client_preserves_the_literal_password(self):
+        from operations.cohort import database_environment
+
+        for prefix in ("ODOO", "PAPERLESS"):
+            with self.subTest(prefix=prefix), mock.patch.dict(os.environ, {
+                f"{prefix}_DB_HOST": "fixture-db", f"{prefix}_DB_PORT": "5432",
+                f"{prefix}_DB_NAME": "fixture", f"{prefix}_DB_USER": "fixture",
+                f"{prefix}_DB_PASSWORD": "  fixture $value # literal  ",
+            }):
+                command, environment = database_environment(prefix)
+                self.assertEqual(environment["PGPASSWORD"], "  fixture $value # literal  ")
+                self.assertNotIn(environment["PGPASSWORD"], command)
+
     def test_production_reconcile_requires_stopped_writer_receipt(self):
         arguments = build_parser().parse_args([
             "--targets", str(ROOT / "operations/targets-host"),
