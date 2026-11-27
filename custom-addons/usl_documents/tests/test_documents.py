@@ -5129,6 +5129,48 @@ class TestDocuments(TransactionCase):
             110, view_users=[21, 22], change_users=[22],
         )
 
+    def test_company_selection_preserves_native_readers_during_permission_sync(self):
+        companies = self.company_a | self.company_b
+        operator = mail_new_test_user(
+            self.env, login="archive-two-company-operator", groups="usl_documents.group_documents_manager",
+            company_id=self.company_a.id, company_ids=[Command.set(companies.ids)],
+        )
+        other_reader = mail_new_test_user(
+            self.env, login="archive-other-company", groups="usl_documents.group_documents_user",
+            company_id=self.company_b.id, company_ids=[Command.set(self.company_b.ids)],
+        )
+        document = self._document(6810, access_scope="linked_record")
+        unselected = self._document(6811, company_id=self.company_b.id)
+        document.with_context(usl_documents_defer_access_sync=True).link_to_record("res.partner", self.partner_a.id)
+        self.assertTrue(self.partner_a.with_user(self.user).with_context(allowed_company_ids=self.company_a.ids).has_access("read"))
+        self.assertFalse(self.partner_a.with_user(other_reader).with_context(allowed_company_ids=self.company_b.ids).has_access("read"))
+        self._verified_mapping([
+            {"user_id": self.user.id, "paperless_user_id": 86, "paperless_username": self.user.login, "sync_state": "synchronized"},
+            {"user_id": other_reader.id, "paperless_user_id": 87, "paperless_username": other_reader.login, "sync_state": "synchronized"},
+        ])
+        with patch.object(PaperlessClient, "set_document_permissions", return_value={}) as sync:
+            for selected in (self.company_a.ids, companies.ids, self.company_b.ids + self.company_a.ids):
+                with self.subTest(selected=selected):
+                    dispatched = document.with_user(operator).with_context(allowed_company_ids=selected)
+                    dispatched._recompute_linked_record_access(sync_permissions=False)
+                    self.assertIn(self.user, document.permitted_user_ids)
+                    self.assertNotIn(other_reader, document.permitted_user_ids)
+                    dispatched.action_sync_permissions()
+                    sync.assert_called_once_with(document.paperless_id, view_users=[86], change_users=[])
+                    sync.reset_mock()
+            # Repair an old cached reader list with the ordinary sync action.
+            document.with_context(usl_documents_policy_write=True).write({"permitted_user_ids": [Command.clear()]})
+            self.assertNotIn(self.user, document.permitted_user_ids)
+            dispatched.action_sync_permissions()
+            self.assertIn(self.user, document.permitted_user_ids)
+            sync.assert_called_once_with(document.paperless_id, view_users=[86], change_users=[])
+            sync.reset_mock()
+            with self.assertRaises(AccessError):
+                document.with_user(self.user).action_sync_permissions()
+            with self.assertRaises(AccessError):
+                unselected.with_user(operator).with_context(allowed_company_ids=self.company_a.ids).action_sync_permissions()
+            sync.assert_not_called()
+
     def test_permission_sync_batches_documents_with_the_same_acl(self):
         documents = (
             self._document(1510)

@@ -106106,6 +106106,7 @@
           "reversal_action": "rpc:usl.document.action_set_starred"
         },
         "rpc:usl.document.action_sync_permissions": {
+          "evidence_id": "documents-native-reader-companies-20261127",
           "reversal_action": "rpc:usl.document.write"
         },
         "rpc:usl.document.activity_schedule": {
@@ -108920,7 +108921,7 @@
         "rpc:usl.document.action_preview": "0663e132d69ad84609dcfeb7269d33f0524fcecee90cee1f562ee98a181f41a1",
         "rpc:usl.document.action_set_library_visibility": "01065980293d85c184d64634b1fdbe95c312f941c3fab82c5e9da4cc4f28cbb6",
         "rpc:usl.document.action_set_starred": "f9ec67540d88ab5139d49420849a038642abb9a15bb211d14a5d6ebcc9fb847a",
-        "rpc:usl.document.action_sync_permissions": "3705885878f5ef2808e1854075825b52e73c1571cc62cdad936ca627073260f9",
+        "rpc:usl.document.action_sync_permissions": "475d1f6657b45d61074e1dae991218ff03d2a6ff5e6818fae2f677f553de0a90",
         "rpc:usl.document.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.document.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.document.context.tag.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -176402,11 +176403,11 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._merge_original_timestamps:orm_write:1": "838d21d11e208440f108848e8509591b0ba0682d669402d687c302e2f6b37557",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._merge_original_timestamps:sudo:1": "6eaac0367ab11b133698367677d270a6b5c94aff40108708d05f7b4d79f0a233",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._personal_state_document_ids:sudo:1": "59918e73d5de23213a343b87491adcc7f5fffc4be61795ca8896a7e4f52ac050",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:orm_write:1": "b946647d3306820f303bd32483e786374601e14c1952e5e8376bd97a40b550be",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:1": "a0dc214883ed9d0927de2f6990a7ed4d259bbd4eaca10d7d2f43e76b745e864d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:2": "0a36cdd4df75f314fefbc1ec6eabae735b1c6a1c7fb9f191495fddce037b65df",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:3": "4b5165c915a18a0951064e602447244166f357863ebbd3abf360bcdc08c51131",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:4": "0fff1cb95971d1db317d233c8cb0cc5a178ec015d95ef26b1d1c21be98ae31fd",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:orm_write:1": "4627735d74b476f230b5914757d3e2fb14091f8a916efaeb1cfe5d30acbe0627",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:1": "832c4239e689a0a397a329b66ac144d963e5291fc6f3302690c4f5ce31e30b1d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:2": "96be620326394e25130760a7afb4cdd9fd2752421d08db08e2f91191ae4a9866",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:3": "9d3952dabb47c49cee9d2b325a3d3254070a9385cfb04767416a2a105772336d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:4": "2f70fe0b57b51db488a80af688a462cc816607b2c7902f0a5ba099a36e5545c0",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._search_linked_employee:sudo:1": "852879b4cd2dd517d16ea4a060166322db81ae08178ab886f33f1f8585bf87ba",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._search_linked_record_ref:sudo:1": "3fa788070f77885d9cac49ed16e51ca4f46b6a78d2a6e43b638005cd6872200b",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._synchronize_versions:orm_create:1": "afd4d28f3d74cba5c7c9862f4d3bdaf47fd05ee4f6db931bd20d7aba2d03ccea",
@@ -176428,13 +176429,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:orm_create:1": "b350af50c6fcbef8f6fcab2764a7bb7d3ee6515790c88cf3056f97fec3fdafd2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:orm_write:1": "f97d0d5a101ab4e11a4bbd1543b682a9dbde46312ac68e041e0e4593499963e1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:sudo:1": "0104b2682be8458f62c053966221a2cdd8e3a7a31ee1b3c0a5457f816490d967",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1": "6f7932705260eec70d432433d3177b3ed62bb3bfbc7e23013ba6df9e840e763f",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2": "316a5e7149cb5f2783843c69900606060fece7da8b2a06080574d5a9a8c3ccfe",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3": "579560ae8bebd35adf1d1452a9d2905c549a66ded9d94f3796708f06ee4f2904",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4": "291e641e7d25f19f78b57eb3f5ffc16be01853ce12430d04f92712eabc89fcba",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1": "68444fd4bd4d3fae372f3edff01c219daecc9409e283a657d7de9483eff5384d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2": "ece81fb6a176a9776d7bb82ad1bcc6f21309862ca580a739c882717ba3d9246e",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1": "93672b46d2341f64e359dc4a854895422bfe3b1b7ad5c0df74b1b56426f48325",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2": "108bda5e0cda9ddc4e74c45ec3c4fe3ad473ca9db640e752ccd103e8f89b563d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3": "b90fcce3efbbda1c02082bca328b0dbea00eca8d84118e3b71b432bd8bf0d375",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4": "e5329f9807cd97bb940a7759ccc0ef899b9535e05dc9032275666317eb4e6908",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1": "b12eba46df54a9b645331ceec9bf741f6c021b9f711e2a7e5a99eda19a8977e0",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2": "bfe026633f426f28c6857d3b8fd0f95bb9838eec133847b4f41a4970ef78fe4d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "a5052530a33ab9a41470ddb51bc4885d591cf78e90394098e642fcfc7af8201e",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1ffc3e0b7b5069ccd850b08aea1057e7e48b086749c86fad8c28b05d1c75a850",
         "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": "7d6898ac70c080d40f8f7a829180eeab94cb9d932a29ac1500d296f5c11677bc",
@@ -221924,6 +221925,13 @@
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_canonical_tracked_operation_rejects_stale_local_state",
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_unattached_native_upload_cleanup_remains_available",
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_task_upload_can_be_removed_without_archiving"
+      ]
+    },
+    "documents-native-reader-companies-20261127": {
+      "contract": "The Documents administrator synchronizes a readable, selected document. Linked-record membership and Paperless permissions reflect each mapped reader’s native rights across their own companies. Explicit synchronization repairs stale cached membership and preserves the rights of other native users.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_company_selection_preserves_native_readers_during_permission_sync",
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_company_access_loss_revokes_paperless_object_permission"
       ]
     },
     "draft-expense-correction-20261014": {
