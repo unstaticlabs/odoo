@@ -680,7 +680,7 @@ class AccountMoveLine(models.Model):
                       FROM account_move_line line
                      WHERE line.move_id = ANY(%(move_ids)s)
                        AND line.display_type = 'payment_term'
-                       AND line.id != ANY(%(current_ids)s)
+                       AND line.id <> ALL(%(current_ids)s)
                 ),
                 fallback AS (
                     SELECT DISTINCT ON (account_companies.res_company_id, account.account_type)

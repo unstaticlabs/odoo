@@ -35,6 +35,7 @@ def call_kw(model: BaseModel, name: str, args: list, kwargs: Mapping):
     Private methods cannot be called, only ones returned by `get_public_method`.
     """
     method = get_public_method(model, name)
+    threading.current_thread().rpc_model_method = f'{model._name}.{name}'
 
     # get the records and context
     if getattr(method, '_api_model', False):
@@ -102,7 +103,6 @@ def execute_cr(cr, uid, obj, method, args, kw):
     recs = env.get(obj)
     if recs is None:
         raise UserError(f"Object {obj} doesn't exist")  # pylint: disable=missing-gettext
-    threading.current_thread().rpc_model_method = f'{obj}.{method}'
     result = retrying(partial(call_kw, recs, method, args, kw), env)
     # force evaluation of lazy values before the cursor is closed, as it would
     # error afterwards if the lazy isn't already evaluated (and cached)

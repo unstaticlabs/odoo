@@ -4,7 +4,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { VoiceCapture } from "./capture";
-import { captureTarget, caretRect, dictationTarget, wantsMicrophone } from "./dictation_target";
+import { captionBox, captureTarget, caretRect, dictationTarget, typeHost, wantsMicrophone } from "./dictation_target";
 import { requestDictation } from "./dictation_request";
 import { VoiceMeter } from "./meter";
 
@@ -44,7 +44,8 @@ export class FieldDictation extends Component {
         this.notify = useService("notification");
         mounted = this;
         this.root = useRef("controls");
-        this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", recovered: "" });
+        this.caption = useRef("caption");
+        this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", caption: "", clipped: false, recovered: "" });
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
                 return;
@@ -64,6 +65,7 @@ export class FieldDictation extends Component {
             }
             if (this.state.mode !== "idle") {
                 this.destination = null;
+                this.position();
                 return;
             }
             // Step aside while the writer types, and come back at the insertion point after a pause.
@@ -135,13 +137,31 @@ export class FieldDictation extends Component {
             this.state.x = Math.max(4, Math.min(innerWidth - width - 4, caret.left + 6));
             this.state.y = this.state.above ? caret.top - 4 : Math.min(innerHeight - size - 4, caret.top + caret.height + 4);
         }
+        if (this.state.mode !== "idle") {
+            // The words heard so far are written in the field itself, where they will be inserted:
+            // not in another field the writer moved to, nor once this one has scrolled away.
+            // They stay where the text will go, wherever the writer then puts the insertion point.
+            // A field that changed width has wrapped its text again, so the saved place is gone.
+            const pin = this.pin;
+            const line = { height: pin.height, left: box?.left + pin.x - (target?.scrollLeft - pin.scrollLeft),
+                top: box?.top + pin.y - (target?.scrollTop - pin.scrollTop) };
+            const at = shown && this.destination && target === this.origin && Math.abs(box.width - pin.width) < 1 && line.top + line.height / 2 > box.top &&
+                line.top + line.height / 2 < box.bottom && line.left >= box.left && line.left <= box.right && captionBox(target, line, pin.host);
+            this.state.caption = at ? `left:${at.left}px;top:${at.top}px;max-width:${at.width}px;height:${at.height}px;` +
+                `font:${at.font};color:${at.color};background-color:${at.background}` : "";
+        }
+        const words = this.caption.el;
+        this.state.clipped = Boolean(words && words.firstElementChild.offsetWidth > words.clientWidth);
         this.state.visible = shown;
         this.state.wanted = Boolean(target && wantsMicrophone(target));
     }
     setMode(mode) {
         this.state.mode = mode;
+        this.settle();
+    }
+    /** Place everything now, and again once redrawn: the controls and the words change width. */
+    settle() {
         this.position();
-        // The controls change width with the mode: once redrawn, keep them inside the window.
         requestAnimationFrame(() => requestAnimationFrame(() => this.position()));
     }
     cancel() {
@@ -160,6 +180,11 @@ export class FieldDictation extends Component {
         if (this.state.mode !== "idle" || !this.target?.isConnected) {
             return;
         }
+        this.origin = this.target;
+        const caret = caretRect(this.target);
+        const box = this.target.getBoundingClientRect();
+        this.pin = { x: caret.left - box.left, y: caret.top - box.top, width: box.width, height: caret.height, host: typeHost(this.target),
+            scrollLeft: this.target.scrollLeft, scrollTop: this.target.scrollTop };
         this.destination = captureTarget(this.target);
         const capture = markRaw(new VoiceCapture());
         this.capture = capture;
@@ -181,8 +206,8 @@ export class FieldDictation extends Component {
         return requestDictation(file, signal, preview);
     }
     /**
-     * Show the last words heard while the writer is still speaking: without it they talk
-     * into silence until the end. One request at a time, on the last seconds only.
+     * Write the last words heard in the field while the writer is still speaking: without it
+     * they talk into silence until the end. One request at a time, on the last seconds only.
      */
     async listen(capture) {
         const listening = new AbortController();
@@ -198,7 +223,7 @@ export class FieldDictation extends Component {
                 const text = await this.transcribe(file, listening.signal, true);
                 if (live() && text) {
                     this.state.preview = text;
-                    this.position();
+                    this.settle();
                 }
             } catch {
                 // The preview is a comfort: the dictation itself is unaffected.

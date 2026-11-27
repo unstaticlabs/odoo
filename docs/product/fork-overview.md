@@ -116,6 +116,16 @@ a file in that output and not on this page is a defect of this page. Where
 the last touch of a file is an upstream catch-up (`9c030166`), the originating
 commit is the one named.
 
+### HTTP access logs
+
+The HTTP and WebSocket workers log the declared route and the public model
+method resolved by Odoo. Document identifiers, link parameters and filenames
+stay out of access logs and the URL field in worker timeout diagnostics.
+Unmatched requests use a fixed label. When integrating a new Odoo server version,
+check the Werkzeug and Gevent formatters and run
+the native `test_http` RPC logging tests. Both servers must retain the status
+and timing needed to diagnose a slow or failed request.
+
 ### Accounting sequences — `account`
 
 - `addons/account/models/account_move.py` and

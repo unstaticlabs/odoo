@@ -10,7 +10,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from operations.runtime import load_target
-from operations.stack import health_command
+from operations.stack import _gate, _safe_error_summary, health_command
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -168,6 +168,28 @@ class HealthContractTests(unittest.TestCase):
                 argparse.Namespace(target="production", targets=TARGETS, json=True),
             )
         return result, json.loads(output.getvalue()), runner
+
+    def test_rejected_gate_retains_operator_codes_without_private_output(self) -> None:
+        target = load_target("staging", TARGETS)
+        for value, expected in [
+            ({"schema": "usl-runtime-health/v1", "failures": ["odoo:websocket", "private:record"]},
+             "usl-runtime-health/v1 failed: odoo:websocket, unclassified"),
+            ({"schema": "usl-runtime-smoke/v1", "failures": ["accounting:unbalanced"]},
+             "usl-runtime-smoke/v1 failed: accounting:unbalanced"),
+            ({"schema": "usl-runtime-health/v1", "failures": ["odoo-staging:unhealthy", {"debug": "private details"}]},
+             "usl-runtime-health/v1 failed: odoo-staging:unhealthy, unclassified"),
+            ({"schema": "private header", "failures": ["private details"]},
+             "runtime gate failed: unclassified"),
+        ]:
+            with self.subTest(expected=expected):
+                def reject(_arguments):
+                    print(json.dumps(value))
+                    return 2
+
+                with self.assertRaises(RuntimeError) as raised:
+                    _gate(reject, target, TARGETS)
+                self.assertEqual(_safe_error_summary(raised.exception), {"error_summary": expected})
+                self.assertNotIn("private", str(raised.exception))
 
     def test_health_proves_proxy_config_https_and_websocket(self) -> None:
         result, report, runner = self.run_health()

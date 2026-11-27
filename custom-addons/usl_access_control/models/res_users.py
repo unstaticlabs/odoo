@@ -9,6 +9,13 @@ _NOTIFICATION_PREFERENCE_TOKEN = object()
 class ResUsers(models.Model):
     _inherit = "res.users"
 
+    @api.model
+    def _usl_agent_company_ceiling(self, allowed_companies):
+        # On a user, company_id is the default company, not where the user
+        # belongs; company_ids is. Same membership test as the native
+        # multi-company rule for users.
+        return Domain("company_ids", "in", sorted(allowed_companies))
+
     usl_access_summary = fields.Char(
         string="Effective Distribution access",
         compute="_compute_usl_access_summary",
