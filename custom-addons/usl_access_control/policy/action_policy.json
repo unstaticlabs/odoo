@@ -198670,7 +198670,7 @@
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1": "cf732f88cdd5717c3f65ffa39faf6454a24f96205d0dead6d38964b666069ad1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1": "4a012a843a756b0506527014b48f8db45fb208b3d2ff691a8846c27ff737ad56",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1": "5413d8b23896cc2b2940f9bb8be0a5737e8816139a6451bf75bf5912a7de0043",
-        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": "a7349e6c74c201187b24683274aeb1499132db837b52529c9e9924ea861b8318",
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": "25b2b924998dc075c5974d888607522571ce2b507a5b87864688df8c5e12831b",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1": "93f0bad2946bcb562c1151fd2d066efa70da84866135ef0387ea280364abab1f",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_documents:1": "952908ff873bba36c9c54e154458032953143b8d38099c551619afb2281e7906",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_partner:1": "d1081892dbef58e5123f205fba7c48dadc80acbccb9f779cc49246673caa6a5a",

@@ -6928,6 +6928,11 @@ msgid "Save rule"
 msgstr "Enregistrer la règle"
 
 #. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
+msgid "Use this rule the next time Paperless classifies a document. Existing tags are kept."
+msgstr "Utiliser cette règle au prochain classement par Paperless. Les étiquettes existantes sont conservées."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Score rule…"
 msgstr "Règle de score…"

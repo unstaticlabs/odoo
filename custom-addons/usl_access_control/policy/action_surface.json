@@ -1763662,7 +1763662,7 @@
       "delegates": [
         "rpc:usl.document.tag.rule.wizard.action_save"
       ],
-      "digest": "a7349e6c74c201187b24683274aeb1499132db837b52529c9e9924ea861b8318",
+      "digest": "25b2b924998dc075c5974d888607522571ce2b507a5b87864688df8c5e12831b",
       "guards": [],
       "key": "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1",
       "kind": "ui",
@@ -1763671,7 +1763671,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a00759d8389f1b9a09064fa23dfddba4271659d147180284077ce6a11abd1202",
+      "runtime_digest": "86b3061eac5ebdbbdff470275cb3374e623bb016689e657e6b92a4272e2610eb",
       "sinks": [],
       "sources": [
         {
@@ -1770546,7 +1770546,7 @@
       "manifest_sha256": "ac5f6370fc1a3328b15f2d5ba4cf61d5332462e8832b4db54ff0620634903778",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "99e855aee68ddee632d3d4de7754b5007cd1b0b66893517f5a6e4e547d999b9b",
+      "source_sha256": "c957f435ada28ad50fadf95720150de5d727bcfb4d4fb539b1c3f5f333cf86e6",
       "version": "saas~19.3.1.11.0"
     },
     {

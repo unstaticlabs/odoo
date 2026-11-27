@@ -91,7 +91,8 @@
                 <p class="text-muted" invisible="not use_score">Paperless will apply this tag only when its local model reaches this score. Check the results on independently reviewed documents before choosing a minimum.</p>
                 <p class="text-muted" invisible="use_score">Paperless uses its standard learned classification for new matches. Previous reviews and manual corrections are kept.</p>
                 <footer>
-                    <button name="action_save" type="object" string="Save rule" class="btn-primary"/>
+                    <button name="action_save" type="object" string="Save rule" class="btn-primary"
+                            help="Use this rule the next time Paperless classifies a document. Existing tags are kept."/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
