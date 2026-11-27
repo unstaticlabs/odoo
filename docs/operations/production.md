@@ -42,7 +42,9 @@ hardening items. Do not expose ports 8069 or 8072 beyond the controlled Docker
 networks while they remain open.
 
 The 4-vCPU/8-GiB VPS uses versioned resource overlays. Production services
-receive higher CPU shares, memory reservations, and lower OOM scores. Staging
+receive higher CPU shares, memory reservations, and lower OOM scores. Production
+Odoo cannot consume swap: under host memory pressure its process memory is never
+swapped and other services are paged out first. Staging
 has lower CPU, memory, and PID ceilings, cannot consume swap, and is selected
 before production if the host reaches memory pressure. Every restored
 generation records the applicable overlay in its Compose provenance. Do not
