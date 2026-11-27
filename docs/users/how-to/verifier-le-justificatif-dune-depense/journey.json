@@ -71,7 +71,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-receipt.png",
-      "sha256": "9a776a9881478e51f771b8f1829d2b86a99d709f0fd67c83e37b8af49a13f60d",
+      "sha256": "f1417ad80c9fe0db2cdc49a717a25568527ec55f86b9b55689dfbe5664cea278",
       "text": "Sous **Fichiers**, ouvrez le justificatif et vérifiez qu’il est lisible et correspond à cette dépense.",
       "trigger": ".o-mail-AttachmentBox:contains('justificatif-repas.pdf')"
     },

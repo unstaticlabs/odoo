@@ -15,7 +15,7 @@ journey: comptabiliser-un-lot-approuve
 tour: usl_expense_batch_accountant_handoff
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-approved_png: 4b453d2e73c3517854f797c86109c4bc195b61fdfac513edab982046c65b8b84
+screenshot_01-approved_png: eeff3464d7836be3545b0137d2c12e13bda2f1e6f8dd7fceb0933a02666ce3a6
 screenshot_02-entries_png: fc34957fd7419364dd23619135f8340f429264a6626bcc91c34a02da6fac8455
 generated: true
 ---
