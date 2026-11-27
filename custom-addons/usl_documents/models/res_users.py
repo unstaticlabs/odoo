@@ -5,13 +5,17 @@ from odoo.exceptions import AccessError, UserError
 class ResUsers(models.Model):
     _inherit = "res.users"
 
+    def _document_permission_reader_env(self):
+        """Evaluate archive permissions as this reader across their native companies."""
+        self.ensure_one()
+        return self.env(user=self.id, su=False, context={})
+
     def _documents_visible_for_permission_sync(self):
         visible = {}
         for user in self:
             try:
                 visible[user.id] = set(
-                    self.env["usl.document"]
-                    .with_user(user)
+                    user._document_permission_reader_env()["usl.document"]
                     .search([])
                     .ids,
                 )
