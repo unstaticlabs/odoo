@@ -9,3 +9,5 @@ from . import task_content_search
 from . import task_swimlane
 
 from . import task_github_reference
+
+from . import task_reactivation

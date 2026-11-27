@@ -1,4 +1,4 @@
-"""Ordinary backup capture owns only the maintenance it created."""
+"""Only a quiesced backup capture owns gateway maintenance; an online one has none."""
 from __future__ import annotations
 
 import copy
@@ -65,6 +65,9 @@ class BackupHost:
 class BackupMaintenanceTests(unittest.TestCase):
     def execute(self, host, *, target_name="production", quiesced=False, fail_capture=False,
                 fail_upload=False, replace_during_capture=None, cas=None, real_lock=False):
+        if not quiesced:
+            # An online capture never closes the gateway.
+            host.require_maintenance = False
         config = copy.deepcopy(load_target(target_name, stack.DEFAULT_TARGETS).value)
         config["state_directory"] = str(host.root / "runtime" / target_name)
         host.marker = host.root / "gateway" / target_name / "maintenance"
@@ -84,7 +87,7 @@ class BackupMaintenanceTests(unittest.TestCase):
                     host.marker.write_bytes(replace_during_capture)
                 if fail_capture:
                     raise RuntimeError("synthetic capture failure")
-                return {"status": "captured"}
+                return {"status": "captured", "completeness": {"odoo_files": 1, "paperless_originals": 1}}
             if action == "push":
                 if fail_upload:
                     raise RuntimeError("synthetic upload failure")
@@ -109,18 +112,30 @@ class BackupMaintenanceTests(unittest.TestCase):
                 scope.enter_context(patch.object(stack, "_runtime_cas_sha256", side_effect=cas))
             return stack.backup_command(arguments)
 
-    def test_ordinary_production_capture_enters_maintenance_before_stopping_writers(self):
-        with tempfile.TemporaryDirectory() as root:
-            host = BackupHost(root)
-            self.assertEqual(self.execute(host), 0)
-            self.assertEqual(host.events, ["stop", "capture", "resume", "push", "qualify"])
-            self.assertFalse(host.marker.exists())
+    def test_online_capture_pauses_only_sign_and_never_touches_the_gateway(self):
+        for target_name in ("production", "staging"):
+            with self.subTest(target=target_name), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root)
+                self.assertEqual(self.execute(host, target_name=target_name), 0)
+                self.assertEqual(
+                    host.events,
+                    ["capture", "stop", "capture", "resume", "capture", "push", "qualify"],
+                )
+                self.assertFalse(host.marker.exists())
+                self.assertFalse(any(command[:2] == ["docker", "ps"] for command in host.commands))
+                config = load_target(target_name, stack.DEFAULT_TARGETS).value["services"]
+                stopped = [c for c in host.commands if c[:2] == ["docker", "compose"] and "stop" in c]
+                self.assertEqual(len(stopped), 1)
+                self.assertEqual(stopped[0][-2:], [config["sign"], config["sign_ca"]])
+                for service in (config["odoo"], config["paperless"], config["mcp"]):
+                    self.assertFalse(any(service in command for command in stopped))
 
-    def test_ordinary_staging_capture_owns_and_removes_only_its_marker(self):
+    def test_quiesced_production_capture_enters_maintenance_before_stopping_writers(self):
         with tempfile.TemporaryDirectory() as root:
             host = BackupHost(root)
-            self.assertEqual(self.execute(host, target_name="staging"), 0)
-            self.assertFalse(host.marker.exists())
+            self.assertEqual(self.execute(host, quiesced=True), 0)
+            self.assertEqual(host.events, ["stop", "capture", "push", "qualify"])
+            self.assertTrue(host.marker.is_file())
 
     def test_preexisting_release_and_legacy_markers_survive_ordinary_and_quiesced_capture(self):
         markers = (b"", b"legacy-maintenance\n", b'{"schema":"usl-maintenance-marker/v1","attempt":"synthetic-release"}\n')
@@ -130,6 +145,8 @@ class BackupMaintenanceTests(unittest.TestCase):
                     host = BackupHost(root); host.marker.write_bytes(marker)
                     self.assertEqual(self.execute(host, quiesced=quiesced), 0)
                     self.assertEqual(host.marker.read_bytes(), marker)
+                    # Online resumes the Sign services it paused; quiesced leaves
+                    # every writer stopped for the caller.
                     self.assertEqual("resume" in host.events, not quiesced)
 
     def test_quiesced_capture_without_existing_marker_keeps_owned_maintenance(self):
@@ -154,7 +171,7 @@ class BackupMaintenanceTests(unittest.TestCase):
             with self.subTest(stop_failure=stop_failure), tempfile.TemporaryDirectory() as root:
                 host = BackupHost(root); host.fail_stop = stop_failure
                 with self.assertRaisesRegex(RuntimeError, "synthetic (stop|capture) failure"):
-                    self.execute(host, fail_capture=not stop_failure)
+                    self.execute(host, quiesced=True, fail_capture=not stop_failure)
                 self.assertIn("resume", host.events)
                 self.assertFalse(host.marker.exists())
 
@@ -162,9 +179,47 @@ class BackupMaintenanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             host = BackupHost(root); host.fail_resume = True
             with self.assertRaisesRegex(RuntimeError, "unhealthy resume"):
-                self.execute(host)
+                self.execute(host, quiesced=True, fail_capture=True)
             self.assertTrue(host.marker.is_file())
             self.assertNotIn("push", host.events)
+
+    def test_online_sign_pause_failures_restart_sign_and_discard_the_workspace(self):
+        for stop_failure in (False, True):
+            with self.subTest(stop_failure=stop_failure), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root); host.fail_stop = stop_failure
+                with self.assertRaisesRegex(RuntimeError, "synthetic (stop|capture) failure"):
+                    self.execute(host, fail_capture=not stop_failure)
+                # Sign is restarted whenever it may have been stopped.
+                self.assertEqual("resume" in host.events, stop_failure)
+                self.assertFalse(host.marker.exists())
+                self.assertEqual(host.events[-1], "capture")  # the abort phase
+                self.assertNotIn("push", host.events)
+
+    def test_online_unhealthy_sign_restart_stops_the_backup(self):
+        with tempfile.TemporaryDirectory() as root:
+            host = BackupHost(root); host.fail_resume = True
+            with self.assertRaisesRegex(RuntimeError, "unhealthy resume"):
+                self.execute(host)
+            self.assertNotIn("push", host.events)
+    def test_older_captures_are_pruned_only_after_the_receipt_of_a_successful_backup(self):
+        outcome = {"status": "completed", "deleted_captures": []}
+        for quiesced in (False, True):
+            with self.subTest(quiesced=quiesced), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root)
+                with patch.object(stack, "_prune_superseded_captures", return_value=outcome) as prune:
+                    self.assertEqual(self.execute(host, quiesced=quiesced), 0)
+                prune.assert_called_once()
+                self.assertEqual(prune.call_args.args[2], "synthetic-backup-run")
+                self.assertEqual(host.events[-2:], ["push", "qualify"])
+
+    def test_a_failed_backup_prunes_nothing(self):
+        for failure in ({"fail_capture": True}, {"fail_upload": True}):
+            with self.subTest(failure=failure), tempfile.TemporaryDirectory() as root:
+                host = BackupHost(root)
+                with patch.object(stack, "_prune_superseded_captures") as prune:
+                    with self.assertRaisesRegex(RuntimeError, "synthetic"):
+                        self.execute(host, quiesced=True, **failure)
+                prune.assert_not_called()
 
     def test_quiesced_upload_failure_reopens_only_after_healthy_unchanged_baseline(self):
         for mismatch in (False, True):
@@ -188,7 +243,7 @@ class BackupMaintenanceTests(unittest.TestCase):
                 host = BackupHost(root); foreign = b"another-operation-owns-maintenance"
                 if before:
                     host.replace_before_claim = foreign
-                self.assertEqual(self.execute(host, replace_during_capture=None if before else foreign), 0)
+                self.assertEqual(self.execute(host, quiesced=True, replace_during_capture=None if before else foreign), 0)
                 self.assertEqual(host.marker.read_bytes(), foreign)
 
     def test_existing_operation_lock_refuses_overlap_before_marker_or_stop(self):
@@ -207,7 +262,7 @@ class BackupMaintenanceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             host = BackupHost(root, gateway="first\nsecond\n")
             with self.assertRaisesRegex(RuntimeError, "gateway identity is ambiguous"):
-                self.execute(host)
+                self.execute(host, quiesced=True)
             self.assertNotIn("stop", host.events)
 
 

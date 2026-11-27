@@ -10,16 +10,16 @@
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
-    "line": 225,
+    "line": 230,
     "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
     "steps": {
-      "check-the-receipt-on-an-expense": 255,
-      "evidence": 228,
-      "history": 240,
-      "no_actions": 234,
-      "post-an-approved-batch": 316,
-      "reconciliation": 246,
-      "review-a-batch-before-submitting": 284
+      "check-the-receipt-on-an-expense": 260,
+      "evidence": 233,
+      "history": 245,
+      "no_actions": 239,
+      "post-an-approved-batch": 321,
+      "reconciliation": 251,
+      "review-a-batch-before-submitting": 289
     }
   },
   "steps": [
@@ -51,7 +51,7 @@
       "screenshot": null,
       "sha256": null,
       "text": "Open the **Accounting and history** tab.",
-      "trigger": ".o_notebook_headers .nav-link:contains('Accounting and history')"
+      "trigger": ".o_notebook_headers .nav-link[name='accounting_history']"
     },
     {
       "assertion": "Accounting reconciliation context is visible but read-only",

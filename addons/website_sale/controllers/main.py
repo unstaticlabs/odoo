@@ -587,13 +587,10 @@ class WebsiteSale(payment_portal.PaymentPortal):
             values.update({"all_tags": all_tags, "tags": tags})
         if category:
             values["main_object"] = category
-            values["markup_data_json"] = json_scriptsafe.dumps(
-                [
-                    website._prepare_ecommerce_store_markup_data(),
-                    self._prepare_breadcrumb_markup_data(website.get_base_url(), category),
-                ],
-                indent=2,
-            )
+            values["markup_data_json"] = self._wrap_jsonld_graph([
+                website._prepare_ecommerce_store_markup_data(),
+                self._prepare_breadcrumb_markup_data(website.get_base_url(), category),
+            ])
         values.update(self._get_additional_shop_values(values, **post))
         return request.render("website_sale.products", values)
 
@@ -967,9 +964,9 @@ class WebsiteSale(payment_portal.PaymentPortal):
                 combination_info["product_id"]
             ),
             "view_track": view_track,
-            "markup_data_json": json_scriptsafe.dumps(markup_data, indent=2),
+            "markup_data_json": self._wrap_jsonld_graph(markup_data),
             "shop_path": SHOP_PATH,
-            "user_email": request.env.user.email
+            "user_email": request.env.user.email_normalized
             or request.session.get("stock_notification_email", ""),
         }
 
@@ -1778,7 +1775,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
         if order_sudo.amount_total and not tx_sudo:
             return request.redirect(self._get_shop_path())
 
-        if not order_sudo.amount_total and not tx_sudo and order_sudo.state != "sale":
+        if not order_sudo.amount_total and order_sudo.state != "sale":
             order_sudo._check_cart_is_ready_to_be_paid()
             # Only confirm the order if it wasn't already confirmed.
             order_sudo._validate_order()
@@ -2217,3 +2214,13 @@ class WebsiteSale(payment_portal.PaymentPortal):
             if value_ids:
                 attribute_value_dict[int(pair[0])] = [int(value_id) for value_id in value_ids]
         return attribute_value_dict
+
+    @staticmethod
+    def _wrap_jsonld_graph(markup_data):
+        return json_scriptsafe.dumps(
+            {
+                "@context": "https://schema.org",
+                "@graph": markup_data,
+            },
+            indent=2,
+        )

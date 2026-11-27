@@ -55,11 +55,18 @@ delegable when available, but identity administration, credentials, secrets
 and Irreversible Actions are never offered—even by the highest-access shortcut.
 A newly installed application never expands an existing Agent silently.
 
-Read access is the intersection of the Agent's delegated applications and
-companies, the owner's current ACLs and record rules in the same company
-context, and the platform safety policy. This includes private, assigned-only,
-employee, Accounting and Documents rules. Losing an owner permission or
-company removes it from the Agent immediately. Restoring the owner's access
+Within its delegated applications and companies, an Agent reaches the union
+of two sets of records: everything its owner can reach under the owner's
+current ACLs and record rules in the same company context, and everything
+shared with the Agent's own identity, such as a project it follows or a task
+assigned to it. Both sets stay under the platform safety policy. The owner's
+set includes private, assigned-only, employee, Accounting and Documents rules,
+so a record visible only to the owner is visible to their Agents too. The
+union also applies to create, write and delete for applications delegated
+with write access. Chatter messages and attachments keep the Agent's own
+identity for author and recipient rules, so an owner's private discussion
+messages stay out of reach. Losing an owner permission or company removes it
+from the Agent immediately. Restoring the owner's access
 does not silently restore the Agent's delegation. Deactivating an owner
 suspends all of their Agents; an owner or administrator must reactivate them
 explicitly.
@@ -272,6 +279,17 @@ own note with its existing audit and edited indication. Its time, size and
 subtype rules apply to that helper. Generic native message writes keep their
 ordinary rules without those additional limits. Owner/current-identity,
 company, read-only delegation and protected deletion controls remain unchanged.
+
+To retract a comment or internal note from an accessible business record, call
+`mail.message.action_retract_from_chatter` with the single message ID and no
+arguments. The author or a native administrator can retract an eligible comment
+regardless of its age. Odoo returns the message ID and its parent model and ID.
+The row and author remain, and Odoo clears the content, subject and mentions.
+Notifications already delivered may still be visible to their recipients.
+An evaluation attached to the message is removed with it, as in Chatter.
+Removing an attached file requires the existing irreversible-action permission.
+If that check fails, the note, evaluation and file stay together. System notifications,
+tracking entries, Discuss channels and polls have their own native behavior.
 
 ### Read-only Accounting reports
 

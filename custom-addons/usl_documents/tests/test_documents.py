@@ -1497,6 +1497,35 @@ class TestDocuments(TransactionCase):
             ],
         )
 
+    def test_optional_tag_scores_only_reach_accessible_proposals_and_never_apply(self):
+        tag = self._tag(505, "Synthetic classifier proposal")
+        rule = self._tag(506, "Synthetic matching rule")
+        document = self._document(497)
+        payload = {
+            "tags": [505, 506, 999999],
+            "tag_scores": {"505": 0.81, "506": True, "999999": 0.99},
+        }
+        with (
+            patch.object(PaperlessClient, "compatibility"),
+            patch.object(PaperlessClient, "get_document_suggestions", return_value=payload) as read,
+        ):
+            proposals = document.document_detail(
+                document.id, check_archive=True, include_tag_scores=True,
+            )["paperless_suggestions"]
+            read.assert_called_once_with(document.paperless_id, include_tag_scores=True)
+            self.assertEqual(
+                {item["record_id"]: item.get("classifier_score") for item in proposals},
+                {tag.id: 0.81, rule.id: None},
+            )
+            ordinary = document.document_detail(document.id, check_archive=True)["paperless_suggestions"]
+            self.assertFalse(any("classifier_score" in item for item in ordinary))
+            payload.pop("tag_scores")
+            compatible = document.document_detail(
+                document.id, check_archive=True, include_tag_scores=True,
+            )["paperless_suggestions"]
+            self.assertEqual(ordinary, compatible)
+        self.assertFalse(document.tag_ids)
+
     def test_suggestion_outage_does_not_hide_available_archive(self):
         document = self._document(406)
         with (
@@ -1916,12 +1945,29 @@ class TestDocuments(TransactionCase):
             )
         self.assertNotEqual(internal_link, evidence_link)
 
+    def test_link_preview_shows_readable_facts_and_open_returns_the_native_action(self):
+        document = self._document(1421)
+        self.partner_a.city = "Lyon"
+        link = document.link_to_record("res.partner", self.partner_a.id)
+        doc = document.with_user(self.user)
+        snapshot = doc.action_open_linked_record(link.id, preview=True)
+        self.assertEqual(snapshot["name"], self.partner_a.display_name)
+        self.assertIn({"label": "City", "value": "Lyon"}, snapshot["fields"])
+        self.assertNotIn("type", snapshot)
+        action = doc.action_open_linked_record(link.id)
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual(action["res_model"], "res.partner")
+        self.assertEqual(action["res_id"], self.partner_a.id)
+        self.assertNotIn("fields", action)
+
     def test_linked_record_metadata_is_hidden_without_target_record_access(self):
         document = self._document(1420)
         employee = self.env["hr.employee"].create(
             {"name": "Restricted Employee", "company_id": self.company_a.id},
         )
-        document.link_to_record("hr.employee", employee.id)
+        link = document.link_to_record("hr.employee", employee.id)
+        with self.assertRaises(AccessError):
+            document.with_user(self.user).action_open_linked_record(link.id, preview=True)
 
         detail = document.with_user(self.user).document_detail(document.id)
         workspace = self.env["usl.document"].with_user(self.user).workspace_data(

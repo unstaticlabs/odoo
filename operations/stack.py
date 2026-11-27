@@ -12,10 +12,11 @@ import io
 import json
 import os
 import re
+import secrets
 import sys
 import textwrap
 import time
-from contextlib import ExitStack, contextmanager, redirect_stdout
+from contextlib import ExitStack, contextmanager, redirect_stdout, suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -170,6 +171,10 @@ RESOURCE_FIELDS = {
     "pids_limit",
 }
 BACKUP_WRITER_SERVICE_ROLES = ("odoo", "paperless", "mcp", "sign", "sign_ca")
+# An online capture pauses only what cannot be copied while it runs: the Step CA
+# Badger database, and Sign, which writes to the material that goes with it.
+BACKUP_ONLINE_PAUSE_SERVICE_ROLES = ("sign", "sign_ca")
+BACKUP_CAPTURE_MODES = ("online", "quiesced")
 GENERATION_NAME = re.compile(r"g[a-z0-9][a-z0-9-]{0,30}\Z")
 # Odoo runs as this fixed unprivileged identity inside the distribution image.
 ODOO_RUNTIME_UID = "1000"
@@ -203,10 +208,12 @@ RESTIC_CACHE_VOLUME_PREFIX = "usl-odoo-restic-cache-"
 # proof restores from Restic, never from this directory, so a qualified
 # capture is a local duplicate of its remote snapshots. Each one is about
 # 2.3 GB on the root filesystem of the Odoo host, which filled it on
-# 2026-11-19. Production keeps the newest qualified capture and the capture
-# of the usable recovery anchor; every other qualified capture goes. The
-# newest one stays because a proof qualifies its capture before it restores,
-# and because it is the local copy if the remote repositories are lost.
+# 2026-11-19. ``cleanup apply`` keeps the newest qualified capture and the
+# capture of the usable recovery anchor; every other qualified capture goes.
+# The newest one stays because a proof qualifies its capture before it
+# restores. Every successful backup then deletes all older captures, the
+# anchor's included, so no local copy survives the loss of the remote
+# repositories.
 PROOF_CAPTURE = re.compile(r"proof-daily-[0-9a-f]{16}\Z")
 PROOF_CAPTURE_KEEP = 1
 UNFINISHED_RELEASE_STATUSES = frozenset({"running", "failed"})
@@ -231,6 +238,11 @@ RECOVERY_PROOF_RUNTIME_ROLES = (
     "odoo", "paperless", "paperless_broker", "paperless_gotenberg",
     "paperless_tika", "mcp", "renderer", "sign", "sign_ca",
 )
+
+
+# The websocket health probe is asked again this many times, this far apart.
+WEBSOCKET_PROBE_ATTEMPTS = 6
+WEBSOCKET_PROBE_PAUSE_SECONDS = 5
 
 
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
@@ -1764,6 +1776,19 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
         def _human(self) -> bool:
             return lifecycle.wake_attempt_allowed(self.headers.get("User-Agent", ""))
 
+        def _admitted(self, person) -> bool:
+            """A person, or the staging review identity from an automated browser."""
+            return lifecycle.wake_attempt_allowed(
+                self.headers.get("User-Agent", ""),
+                subject=person.subject if person else "",
+                review_subject=os.environ.get(STAGING_REVIEW_SUBJECT_VARIABLE, ""),
+            )
+
+        def _may_sign_in(self) -> bool:
+            # Who signs in is known only at the callback, so an automated browser
+            # may start a sign-in wherever a review identity is declared.
+            return self._human() or bool(os.environ.get(STAGING_REVIEW_SUBJECT_VARIABLE))
+
         def do_GET(self):
             parts = split(self.path)
             path = parts.path
@@ -1773,7 +1798,7 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 self._send(200, '{"status":"pass"}', "application/json")
             elif path == "/__usl/login":
                 oidc, _ = self._person()
-                if oidc is None or not self._human():
+                if oidc is None or not self._may_sign_in():
                     self._page("/", "Sign-in is not available.")
                     return
                 try:
@@ -1784,7 +1809,7 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 self._redirect(url, [("Set-Cookie", f"usl_wake_login={cookie}; Max-Age=600{login_flags}")])
             elif path == "/__usl/callback":
                 oidc, _ = self._person()
-                if oidc is None or not self._human():
+                if oidc is None or not self._may_sign_in():
                     self._page("/", "Sign-in is not available.")
                     return
                 cookies = wake_oidc.parse_cookies(self.headers.get("Cookie"))
@@ -1793,6 +1818,10 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
                 except wake_oidc.OidcError as error:
                     sys.stderr.write(f"sign-in refused: {error}\n")
                     self._page("/", str(error))
+                    return
+                if not self._admitted(who):
+                    sys.stderr.write("sign-in refused: automated client\n")
+                    self._page("/", "Sign-in is not available.")
                     return
                 sys.stderr.write(f"sign-in accepted: {who.label}\n")
                 self._redirect("/", [
@@ -1809,7 +1838,8 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
             if path != "/__usl/wake":
                 self._page(path)
                 return
-            if not self._human():
+            _, person = self._person()
+            if not self._admitted(person):
                 self._send(403, '{"error":"automated clients cannot wake staging"}', "application/json")
                 return
             # A cross-site form post would carry the SameSite=Strict session cookie
@@ -1819,7 +1849,6 @@ def lifecycle_server(target, runner, wake, *, http=None) -> "ThreadingHTTPServer
             if origin is not None and origin != expected:
                 self._send(403, '{"error":"cross-site request"}', "application/json")
                 return
-            _, person = self._person()
             if person is None:
                 self._send(401, '{"error":"sign in first"}', "application/json")
                 return
@@ -2480,6 +2509,22 @@ def _operations_image(release: dict) -> str:
     if not re.fullmatch(r"ghcr\.io/unstaticlabs/usl-odoo-backup@sha256:[0-9a-f]{64}", image):
         raise RuntimeError("operations image must be an immutable backup-tool reference")
     return image
+
+
+def _require_prepared_database_tool(runner, image: str) -> None:
+    result = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", image, "capabilities",
+    ], check=False)
+    try:
+        capability = json.loads(result.stdout) if result.returncode == 0 else {}
+    except ValueError:
+        capability = {}
+    if not isinstance(capability, dict) or capability.get("prepared_odoo_database") is not True:
+        raise RuntimeError(
+            "backup tool did not confirm prepared Odoo database support; "
+            "select a qualified immutable backup tool with USL_OPERATIONS_IMAGE"
+        )
 
 
 def _release_images(release: dict, mcp_authority: dict | None = None) -> list[str]:
@@ -3174,6 +3219,7 @@ def _prepare_release_candidate(
     for image in _release_images(release, mcp_authority):
         _ensure_image(runner, image)
     tool_image = _operations_image(release)
+    _require_prepared_database_tool(runner, tool_image)
     candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
     capacity_after_pull = _require_restore_capacity(
         target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
@@ -3382,8 +3428,13 @@ def _backup_run_receipt(
         "runtime_images", "writers_quiesced", "writer_interval_complete",
         "writers_stopped_at", "writers_resumed_at", "quiescence", "status", "sha256",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    # Receipts written before the online capture have no ``capture_mode``; every
+    # one of them was taken with the writers stopped.
+    if not isinstance(value, dict) or set(value) not in (required, required | {"capture_mode"}):
         raise RuntimeError("backup receipt fields differ")
+    capture_mode = value.get("capture_mode", "quiesced")
+    if capture_mode not in BACKUP_CAPTURE_MODES:
+        raise RuntimeError("backup receipt capture mode is invalid")
     if value.get("schema") != "usl-backup-run/v2":
         raise RuntimeError("backup receipt schema differs")
     if value.get("status") != "qualified":
@@ -3494,6 +3545,26 @@ def _backup_run_receipt(
     ).hexdigest():
         raise RuntimeError("backup receipt digest differs")
     return value
+
+
+def _resumed_capture_mode(target, runner, run_id: str) -> str:
+    """The mode a backup run was captured in, from what it left on the host.
+
+    An online capture pauses only the Sign services, which its quiescence
+    artifact names. A run that left none was captured before online captures
+    existed, with every writer stopped.
+    """
+    root = f"{target.value['state_directory']}/backup-runs/{run_id}"
+    online = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
+    for filename in ("quiesced.json", "prepared.json"):
+        result = runner.run(["cat", f"{root}/{filename}"], check=False)
+        if not result.returncode:
+            try:
+                services = json.loads(result.stdout).get("writer_services")
+            except (json.JSONDecodeError, AttributeError) as error:
+                raise RuntimeError("resumed backup quiescence receipt is invalid") from error
+            return "online" if services == online else "quiesced"
+    return "quiesced"
 
 
 def _backup_quiescence_receipt(
@@ -4064,6 +4135,9 @@ def _record_event(target, runner, run_id: str, operation: str, phase: str, statu
 def backup_command(arguments: argparse.Namespace) -> int:
     target = load_target(arguments.target, arguments.targets)
     leave_quiesced = bool(getattr(arguments, "leave_quiesced", False))
+    # The release path stops every writer because its upgrade needs them stopped
+    # anyway. Every other capture is taken online.
+    capture_mode = "quiesced" if leave_quiesced else "online"
     if leave_quiesced and arguments.action != "create":
         raise RuntimeError("--leave-quiesced is valid only for backup create")
     if leave_quiesced and arguments.resume:
@@ -4148,10 +4222,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 )
                 writer_services = [
                     target.value["services"][name]
-                    for name in BACKUP_WRITER_SERVICE_ROLES
+                    for name in (
+                        BACKUP_WRITER_SERVICE_ROLES if capture_mode == "quiesced"
+                        else BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+                    )
                 ]
 
-                def capture_phase():
+                def capture_phase(phase_arguments=(), *, with_release=True):
                     environment = [
                         *_database_environment(target),
                         "--env",
@@ -4178,10 +4255,10 @@ def backup_command(arguments: argparse.Namespace) -> int:
                         runner,
                         image,
                         "capture",
-                        ["--run-id", run_id],
+                        ["--run-id", run_id, *phase_arguments],
                         environment,
                         volumes=runtime["volumes"],
-                        input_text=release_raw,
+                        input_text=release_raw if with_release else None,
                     )
 
                 freeze_started = time.monotonic()
@@ -4202,55 +4279,121 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     json.dumps(prepared_quiescence, indent=2, sort_keys=True) + "\n", "0444",
                 )
                 _record_event(target, runner, run_id, "backup", "capture", "started")
-                capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
-                capture_succeeded = False
-                try:
-                    runner.run(compose_command(
-                        identity, ["stop", "--timeout", "30", *writer_services],
-                    ))
-                    writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                    stopped_quiescence = _backup_quiescence_receipt(
-                        target=target.name,
-                        run_id=run_id,
-                        baseline=baseline_runtime_sha256,
-                        services=writer_services,
-                        status="quiesced",
-                        prepared_at=prepared_at,
-                        stopped_at=writers_stopped_at,
-                    )
-                    _write_remote(
-                        target, runner, f"{quiescence_root}/quiesced.json",
-                        json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
-                    )
-                    captured = capture_phase()
-                    _write_remote(
+                if capture_mode == "online":
+                    pause_seconds = 0.0
+                    try:
+                        begun = capture_phase(
+                            ["--mode", "online", "--phase", "begin"],
+                        )
+                        _record_event(
+                            target, runner, run_id, "backup", "completeness", "completed",
+                            **begun["completeness"],
+                        )
+                        pause_started = time.monotonic()
+                        try:
+                            runner.run(compose_command(
+                                identity, ["stop", "--timeout", "30", *writer_services],
+                            ))
+                            stopped_quiescence = _backup_quiescence_receipt(
+                                target=target.name,
+                                run_id=run_id,
+                                baseline=baseline_runtime_sha256,
+                                services=writer_services,
+                                status="quiesced",
+                                prepared_at=prepared_at,
+                                stopped_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                            )
+                            _write_remote(
+                                target, runner, f"{quiescence_root}/quiesced.json",
+                                json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n",
+                                "0444",
+                            )
+                            capture_phase(
+                                ["--mode", "online", "--phase", "sign"], with_release=False,
+                            )
+                        finally:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            pause_seconds = round(time.monotonic() - pause_started, 3)
+                        captured = capture_phase(
+                            ["--mode", "online", "--phase", "finish"], with_release=False,
+                        )
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                    except Exception:
+                        with suppress(Exception):
+                            capture_phase(
+                                ["--mode", "online", "--phase", "abort"], with_release=False,
+                            )
+                        raise
+                    freeze_seconds = pause_seconds
+                    _record_event(
                         target,
                         runner,
-                        f"{quiescence_root}/capture.json",
-                        json.dumps(captured, indent=2, sort_keys=True) + "\n",
-                        "0444",
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=round(time.monotonic() - freeze_started, 3),
+                        sign_pause_seconds=pause_seconds,
                     )
-                    capture_succeeded = True
-                finally:
-                    if not leave_quiesced or not capture_succeeded:
+                else:
+                    capture_maintenance = backup_maintenance.acquire(target, runner, identity, run_id)
+                    capture_succeeded = False
+                    try:
                         runner.run(compose_command(
-                            identity,
-                            ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            identity, ["stop", "--timeout", "30", *writer_services],
                         ))
-                        writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
-                        backup_maintenance.release(runner, capture_maintenance)
-                if leave_quiesced:
-                    quiescence = stopped_quiescence
-                freeze_seconds = round(time.monotonic() - freeze_started, 3)
-                _record_event(
-                    target,
-                    runner,
-                    run_id,
-                    "backup",
-                    "capture",
-                    "completed",
-                    duration_seconds=freeze_seconds,
-                )
+                        writers_stopped_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                        stopped_quiescence = _backup_quiescence_receipt(
+                            target=target.name,
+                            run_id=run_id,
+                            baseline=baseline_runtime_sha256,
+                            services=writer_services,
+                            status="quiesced",
+                            prepared_at=prepared_at,
+                            stopped_at=writers_stopped_at,
+                        )
+                        _write_remote(
+                            target, runner, f"{quiescence_root}/quiesced.json",
+                            json.dumps(stopped_quiescence, indent=2, sort_keys=True) + "\n", "0444",
+                        )
+                        captured = capture_phase()
+                        _write_remote(
+                            target,
+                            runner,
+                            f"{quiescence_root}/capture.json",
+                            json.dumps(captured, indent=2, sort_keys=True) + "\n",
+                            "0444",
+                        )
+                        capture_succeeded = True
+                    finally:
+                        if not leave_quiesced or not capture_succeeded:
+                            runner.run(compose_command(
+                                identity,
+                                ["up", "--detach", "--wait", "--no-recreate", "--no-deps", *writer_services],
+                            ))
+                            writers_resumed_at = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+                            backup_maintenance.release(runner, capture_maintenance)
+                    if leave_quiesced:
+                        quiescence = stopped_quiescence
+                    freeze_seconds = round(time.monotonic() - freeze_started, 3)
+                    _record_event(
+                        target,
+                        runner,
+                        run_id,
+                        "backup",
+                        "capture",
+                        "completed",
+                        duration_seconds=freeze_seconds,
+                    )
             else:
                 capture_path = (
                     f"{target.value['state_directory']}/backup-runs/{run_id}/capture.json"
@@ -4269,6 +4412,7 @@ def backup_command(arguments: argparse.Namespace) -> int:
                     or captured.get("release", {}).get("manifest_sha256") != release_sha
                 ):
                     raise RuntimeError("resumed backup capture identity differs")
+                capture_mode = _resumed_capture_mode(target, runner, run_id)
 
             def resume_failed_quiescence() -> None:
                 if not leave_quiesced or not writer_services:
@@ -4339,22 +4483,17 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 "qualification": qualified,
                 "performance": {
                     "capture_pause_seconds": freeze_seconds,
-                    "writer_freeze_seconds": (
-                        freeze_seconds if not leave_quiesced and not arguments.resume else None
-                    ),
+                    "writer_freeze_seconds": None,
                     "writer_freeze_sla_seconds": 120,
-                    "writer_freeze_sla_passed": (
-                        freeze_seconds <= 120
-                        if not leave_quiesced and not arguments.resume
-                        else None
-                    ),
+                    "writer_freeze_sla_passed": None,
                     "upload_seconds": upload_seconds,
                     "verification_seconds": verify_seconds,
                     "total_seconds": total_seconds,
                 },
                 "runtime_images": runtime_images,
+                "capture_mode": capture_mode,
                 "writers_quiesced": leave_quiesced,
-                "writer_interval_complete": not leave_quiesced and not arguments.resume,
+                "writer_interval_complete": False,
                 "writers_stopped_at": writers_stopped_at,
                 "writers_resumed_at": writers_resumed_at,
                 "quiescence": quiescence,
@@ -4371,6 +4510,13 @@ def backup_command(arguments: argparse.Namespace) -> int:
                 f"{receipt_root}/receipt.json",
                 json.dumps(result, indent=2, sort_keys=True) + "\n",
                 "0444",
+            )
+            # The new capture is qualified and its receipt is written: every
+            # older local copy is now a duplicate of verified Restic snapshots.
+            pruned = _prune_superseded_captures(target, runner, run_id)
+            _record_event(
+                target, runner, run_id, "backup", "retention", pruned["status"],
+                deleted_captures=len(pruned["deleted_captures"]),
             )
     print(json.dumps(result, indent=None if arguments.json else 2, sort_keys=True))
     return 0
@@ -4851,32 +4997,41 @@ def health_command(arguments: argparse.Namespace) -> int:
     if ingress["websocket"]:
         origin = admission["odoo_websocket"].rstrip("/")
         public_origin = target.value["endpoints"]["odoo"].rstrip("/")
-        websocket_result = runner.run(
-            [
-                "curl",
-                "--silent",
-                "--show-error",
-                "--include",
-                "--no-buffer",
-                "--http1.1",
-                "--max-time",
-                "3",
-                "--header",
-                "Connection: Upgrade",
-                "--header",
-                "Upgrade: websocket",
-                "--header",
-                f"Origin: {public_origin}",
-                "--header",
-                "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
-                "--header",
-                "Sec-WebSocket-Version: 13",
-                origin + "/websocket",
-            ],
-            check=False,
-        )
-        first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
-        websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+        # A release fails and rolls back on this probe. The websocket worker of a stack
+        # started seconds ago can take longer than one short request to answer on a busy
+        # host (production, 2026-11-26), so a refusal is asked again before it counts.
+        websocket_ok = False
+        for attempt in range(WEBSOCKET_PROBE_ATTEMPTS):
+            if attempt:
+                time.sleep(WEBSOCKET_PROBE_PAUSE_SECONDS)
+            websocket_result = runner.run(
+                [
+                    "curl",
+                    "--silent",
+                    "--show-error",
+                    "--include",
+                    "--no-buffer",
+                    "--http1.1",
+                    "--max-time",
+                    "5",
+                    "--header",
+                    "Connection: Upgrade",
+                    "--header",
+                    "Upgrade: websocket",
+                    "--header",
+                    f"Origin: {public_origin}",
+                    "--header",
+                    "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
+                    "--header",
+                    "Sec-WebSocket-Version: 13",
+                    origin + "/websocket",
+                ],
+                check=False,
+            )
+            first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
+            websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+            if websocket_ok:
+                break
         websocket_status = {"required": True, "status_code": 101 if websocket_ok else 0, "ok": websocket_ok}
         if not websocket_ok:
             failures.append("odoo:websocket")
@@ -5176,6 +5331,88 @@ def _runtime_images(runner, identity: dict) -> dict[str, str]:
         raise RuntimeError("Compose image inventory is invalid") from error
 
 
+def _generation_database_entrypoint(database_key: str, database: dict, image: str) -> list[str]:
+    if database_key == "paperless":
+        return [
+            "--env", f"POSTGRES_USER={database['user']}", "--env", "POSTGRES_DB=postgres",
+            "--entrypoint", "/bin/bash", image, "-ceu",
+            f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
+            "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        ]
+    role = database["user"]
+    if database_key != "odoo" or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9-]{0,62}", role) or role == "postgres":
+        raise RuntimeError("Odoo requires a distinct application role")
+    if database["name"] in {"postgres", "template0", "template1"}:
+        raise RuntimeError("Odoo requires a dedicated application database")
+    initializer = Path(__file__).with_name("odoo_generation_init.sh").read_text(encoding="utf-8")
+    return [
+        "--env", "POSTGRES_USER=postgres", "--env", f"POSTGRES_DB={database['name']}",
+        "--env", "POSTGRES_INITDB_ARGS=--auth-local=peer --auth-host=scram-sha-256",
+        "--env", f"USL_PG_APP_USER={role}", "--env", f"USL_PG_APP_PASSWORD_KEY={database['password_key']}",
+        "--entrypoint", "/bin/bash", image, "-ceu",
+        'test ! -e "$PGDATA/PG_VERSION" || { echo "generation database already initialized" >&2; exit 1; }\n'
+        'export POSTGRES_PASSWORD="$(head -c 32 /dev/urandom | base64)"\n'
+        "set -o noclobber\ncat > /docker-entrypoint-initdb.d/90-usl-application.sh <<'USL_INIT'\n"
+        + initializer
+        + "USL_INIT\nchmod 755 /docker-entrypoint-initdb.d/90-usl-application.sh\n"
+        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+    ]
+
+
+def _ready_generation_database(runner, name: str, user: str) -> str:
+    # The image uses a socket-only server for initialization. TCP opens after
+    # the role, password, database and local operator mapping are all ready.
+    for _attempt in range(60):
+        ready = runner.run([
+            "docker", "exec", name, "pg_isready", "--host", "127.0.0.1",
+            "--username", user, "--dbname", "postgres",
+        ], check=False)
+        if ready.returncode == 0:
+            return name
+        time.sleep(1)
+    raise RuntimeError(f"generation database did not become ready: {name}")
+
+
+# Executed on the Docker host. Only the selected env-file line reaches Docker;
+# the controller never transports its value, even when using an SSH runner.
+_DATABASE_PASSWORD_LAUNCH = r"""
+import subprocess
+import sys
+
+source, key = sys.argv[1:3]
+prefix = key.encode("ascii") + b"="
+selected = None
+try:
+    with open(source, "rb") as lines:
+        for number, raw in enumerate(lines):
+            if number == 0:
+                raw = raw.removeprefix(b"\xef\xbb\xbf")
+            line = raw.removesuffix(b"\n").removesuffix(b"\r").lstrip(b" \t")
+            if not line.startswith(prefix):
+                continue
+            if selected is not None or not line[len(prefix):] or b"\x00" in line:
+                sys.exit("database password entry is empty, invalid or duplicated")
+            selected = line
+except OSError:
+    sys.exit("database password file is unreadable")
+if selected is None:
+    sys.exit("database password entry is missing")
+
+# Use Docker's env-file parser, including its literal quotation marks, spaces
+# and dollar signs. The detached container does not inherit the client's stdin.
+try:
+    run = subprocess.run(sys.argv[3:], input=selected + b"\n", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except OSError:
+    sys.exit("Docker could not be executed for the database container")
+if run.returncode:
+    sys.exit(f"Docker could not start the database container (exit {run.returncode}). Check the image, network and volume.")
+"""
+
+
+def _start_database_with_password(runner, environment_file, password_key, command):
+    runner.run(["python3", "-c", _DATABASE_PASSWORD_LAUNCH, environment_file, password_key, *command])
+
+
 def _start_generation_database(
     target,
     runner,
@@ -5188,8 +5425,8 @@ def _start_generation_database(
 ) -> str:
     database = target.value["databases"][database_key]
     name = f"{target.project}-{generation}-{database_key}-db"
-    password_key = database["password_key"]
-    runner.run(
+    _start_database_with_password(
+        runner, target.value["secrets"]["env_file"], database["password_key"],
         [
             "docker",
             "run",
@@ -5204,30 +5441,13 @@ def _start_generation_database(
             network,
             "--network-alias",
             alias,
-            "--env-file",
-            target.value["secrets"]["env_file"],
-            "--env",
-            f"POSTGRES_USER={database['user']}",
-            "--env",
-            "POSTGRES_DB=postgres",
+            "--env-file", "/dev/stdin",
             "--volume",
             f"{volume}:/var/lib/postgresql/data",
-            "--entrypoint",
-            "/bin/bash",
-            image,
-            "-ceu",
-            f'export POSTGRES_PASSWORD="${password_key}"; exec /usr/local/bin/docker-entrypoint.sh postgres',
+            *_generation_database_entrypoint(database_key, database, image),
         ],
     )
-    for _attempt in range(60):
-        ready = runner.run(
-            ["docker", "exec", name, "pg_isready", "--username", database["user"], "--dbname", "postgres"],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"generation database did not become ready: {name}")
+    return _ready_generation_database(runner, name, database["user"])
 
 
 def _materialize_command(
@@ -5264,6 +5484,8 @@ def _materialize_command(
         f"USL_RESTORE_GENERATION_CONFIRMED={generation}",
         "--env",
         f"USL_EXPECTED_RESTORE_CONFIRMATION={generation}",
+        "--env",
+        "USL_RESTORE_ODOO_PREPARED_DATABASE=1",
         *_database_environment(target),
         "--volume",
         f"{generation_root}/work:/cohort",
@@ -7353,7 +7575,7 @@ def _staging_pocketid_command(target, release, network, volumes, candidate_ident
         "--env", "USL_POCKET_ID_ENABLED=1",
         "--env", "USL_POCKET_ID_ISSUER=https://auth.unstaticlabs.com",
         "--env", f"USL_POCKET_ID_ODOO_BASE_URL={target.value['endpoints']['odoo']}",
-        "--env", "USL_POCKET_ID_REQUIRED_GROUP=c_suite",
+        "--env", "USL_POCKET_ID_REQUIRED_GROUP=odoo_staging",
         "--env", "USL_POCKET_ID_SCOPES=openid profile email groups",
         "--volume", f"{volumes['odoo_filestore']}:/var/lib/odoo",
         "--entrypoint", "/bin/sh",
@@ -7496,6 +7718,354 @@ print("USL_POCKET_ID_RUNTIME_ADMISSION=" + json.dumps(evidence, sort_keys=True))
             raise RuntimeError("Pocket ID runtime admission evidence differs")
         return evidence
     raise RuntimeError("Pocket ID runtime admission returned no evidence")
+
+
+STAGING_PAPERLESS_SERVICE_USER = "odoo-integration"
+STAGING_PAPERLESS_CONNECTION_PREFIX = "USL_STAGING_PAPERLESS_CONNECTION="
+
+
+def _staging_paperless_internal_url(target, runner, candidate_identity: dict) -> str:
+    """Return the Paperless URL that the candidate Odoo service is rendered with.
+
+    The URL must name the staging Paperless service or one of its own network
+    aliases, and that Paperless must accept it as a host. A name that another
+    project on the host also uses (``paperless-webserver``) is not enough on a
+    shared network, so the rendered Compose file decides, not a default.
+    """
+    rendered = runner.run(
+        compose_command(candidate_identity, ["config", "--format", "json"]),
+    )
+    try:
+        services = json.loads(rendered.stdout)["services"]
+        odoo = services[target.value["services"]["odoo"]]["environment"]
+        paperless_name = target.value["services"]["paperless"]
+        paperless_service = services[paperless_name]
+        paperless = paperless_service["environment"]
+    except (KeyError, TypeError, json.JSONDecodeError) as error:
+        raise RuntimeError("rendered staging Paperless connection is invalid") from error
+    internal_url = str(odoo.get("PAPERLESS_INTERNAL_URL", "")).rstrip("/")
+    parsed = urlsplit(internal_url)
+    networks = paperless_service.get("networks") or {}
+    aliases = {paperless_name}
+    if isinstance(networks, dict):
+        for network in networks.values():
+            aliases.update((network or {}).get("aliases") or [])
+    allowed_hosts = {
+        host.strip()
+        for host in str(paperless.get("PAPERLESS_ALLOWED_HOSTS", "")).split(",")
+        if host.strip()
+    }
+    if (
+        parsed.scheme != "http"
+        or not parsed.hostname
+        or parsed.username
+        or parsed.password
+        or parsed.path
+        or parsed.query
+        or parsed.fragment
+        or parsed.hostname not in aliases
+        or (allowed_hosts and parsed.hostname not in allowed_hosts)
+    ):
+        raise RuntimeError("staging Paperless internal URL is not the staging Paperless service")
+    return internal_url
+
+
+def _reconnect_staging_paperless(
+    target, runner, release, network, volumes, candidate_identity, paperless_container: str,
+) -> dict:
+    """Connect neutralized staging Odoo to staging Paperless with a fresh token.
+
+    Neutralization deletes every ``usl_documents.paperless_*`` parameter, so a
+    reseeded staging database holds no route to the production archive. This
+    step gives it a route to its own archive. The restored Paperless database is
+    a copy of production, so the service user's token is first replaced with a
+    new random key: the production token stops working in staging, and the new
+    key exists only in the two staging databases. The key travels on stdin,
+    never on a command line, and the evidence holds no key.
+    """
+    if target.value["environment"] != "staging":
+        return {"schema": "usl-staging-paperless-connection/v1", "status": "not-applicable"}
+    internal_url = _staging_paperless_internal_url(target, runner, candidate_identity)
+    public_url = target.value["endpoints"]["paperless"].rstrip("/")
+    token = secrets.token_hex(20)
+    paperless_database = target.value["databases"]["paperless"]
+    rotated = runner.run(
+        [
+            "docker", "exec", "--interactive", paperless_container, "psql",
+            "--username", paperless_database["user"],
+            "--dbname", paperless_database["name"],
+            "--tuples-only", "--no-align", "--quiet",
+            "--set", "ON_ERROR_STOP=1",
+        ],
+        input_text=(
+            "WITH service AS (\n"
+            "    SELECT id FROM auth_user\n"
+            f"     WHERE username = '{STAGING_PAPERLESS_SERVICE_USER}' AND is_active\n"
+            "), rotated AS (\n"
+            "    INSERT INTO authtoken_token (key, created, user_id)\n"
+            f"    SELECT '{token}', now(), id FROM service\n"
+            "    ON CONFLICT (user_id) DO UPDATE\n"
+            "       SET key = EXCLUDED.key, created = EXCLUDED.created\n"
+            "    RETURNING user_id\n"
+            ")\n"
+            "SELECT json_build_object(\n"
+            "    'service_users', (SELECT count(*) FROM service),\n"
+            "    'rotated_user_id', (SELECT min(user_id) FROM rotated)\n"
+            ");\n"
+        ),
+    )
+    try:
+        rotation = json.loads(rotated.stdout.strip().splitlines()[-1])
+        service_user_id = int(rotation["rotated_user_id"])
+    except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError) as error:
+        raise RuntimeError("staging Paperless service token rotation failed") from error
+    if rotation.get("service_users") != 1 or service_user_id < 1:
+        raise RuntimeError("staging Paperless service token rotation failed")
+    settings = {
+        "url": internal_url,
+        "public_url": public_url,
+        "token": token,
+        "service_user_id": service_user_id,
+    }
+    program = f"""import hashlib
+import json
+
+settings = json.loads({json.dumps(json.dumps(settings))})
+params = env["ir.config_parameter"].sudo()
+params.set_str("usl_documents.paperless_url", settings["url"])
+params.set_str("usl_documents.paperless_public_url", settings["public_url"])
+params.set_str("usl_documents.paperless_token", settings["token"])
+params.set_int("usl_documents.paperless_service_user_id", settings["service_user_id"])
+env.registry.clear_cache("stable")
+client = env["usl.document"]._paperless()
+checks = {{
+    "configured": client.configured is True,
+    "url_matches": client.base_url == settings["url"],
+    "public_url_matches": client.public_url == settings["public_url"],
+    "token_matches": client.token == settings["token"],
+    "service_user_matches": client.owner_user_id == settings["service_user_id"],
+}}
+if not all(checks.values()):
+    raise RuntimeError("staging Paperless connection failed: " + ", ".join(
+        key for key, value in checks.items() if not value
+    ))
+env.cr.commit()
+print({json.dumps(STAGING_PAPERLESS_CONNECTION_PREFIX)} + json.dumps({{
+    "schema": "usl-staging-paperless-connection/v1",
+    "status": "connected",
+    "internal_url": settings["url"],
+    "public_url": settings["public_url"],
+    "service_user_id": settings["service_user_id"],
+    "token_sha256": hashlib.sha256(settings["token"].encode()).hexdigest(),
+    **checks,
+}}, sort_keys=True))
+"""
+    database = target.value["databases"]["odoo"]
+    result = runner.run(
+        _staging_pocketid_command(
+            target,
+            release,
+            network,
+            volumes,
+            candidate_identity,
+            [
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={database['name']}", "--no-http", "--max-cron-threads=0",
+            ],
+        ),
+        input_text=program,
+    )
+    expected = {
+        "schema": "usl-staging-paperless-connection/v1",
+        "status": "connected",
+        "internal_url": internal_url,
+        "public_url": public_url,
+        "service_user_id": service_user_id,
+        "token_sha256": hashlib.sha256(token.encode()).hexdigest(),
+        "configured": True,
+        "url_matches": True,
+        "public_url_matches": True,
+        "token_matches": True,
+        "service_user_matches": True,
+    }
+    for line in reversed(result.stdout.splitlines()):
+        if not line.startswith(STAGING_PAPERLESS_CONNECTION_PREFIX):
+            continue
+        try:
+            evidence = json.loads(line.removeprefix(STAGING_PAPERLESS_CONNECTION_PREFIX))
+        except json.JSONDecodeError as error:
+            raise RuntimeError("staging Paperless connection returned invalid evidence") from error
+        if evidence != expected:
+            raise RuntimeError("staging Paperless connection evidence differs")
+        return evidence
+    raise RuntimeError("staging Paperless connection returned no evidence")
+
+
+STAGING_REVIEW_IDENTITY_SCHEMA = "usl-staging-review-identity/v1"
+STAGING_REVIEW_IDENTITY_PREFIX = "USL_STAGING_REVIEW_IDENTITY="
+STAGING_REVIEW_IDENTITY_PROFILE = "accountant_reviewer"
+# The review identity's Pocket ID subject.  The lifecycle daemon reads it from
+# its own environment to admit that identity on the wake page.
+STAGING_REVIEW_SUBJECT_VARIABLE = "USL_STAGING_RECETTE_SUBJECT"
+STAGING_REVIEW_IDENTITY_PROGRAM = r"""import json
+import os
+import secrets
+
+inputs = {
+    key: os.environ.get(name, "").strip()
+    for key, name in (
+        ("login", "USL_STAGING_RECETTE_LOGIN"),
+        ("email", "USL_STAGING_RECETTE_EMAIL"),
+        ("subject", "USL_STAGING_RECETTE_SUBJECT"),
+    )
+}
+evidence = {"schema": "usl-staging-review-identity/v1", "status": "skipped"}
+if all(inputs.values()):
+    summary = env["res.users"].with_context(
+        usl_documents_defer_user_access_sync=True,
+    )._usl_pocketid_apply_user_configuration(
+        [{
+            "login": inputs["login"],
+            "name": "Recette staging",
+            "email": inputs["email"],
+            "subject": inputs["subject"],
+            "profile": "accountant_reviewer",
+            "companies": "all",
+            "create_if_missing": True,
+        }],
+        # Only a break-glass profile reads this value, and none is configured
+        # here: the existing break-glass administrator keeps its password.
+        break_glass_password=secrets.token_urlsafe(48),
+        strict=False,
+    )
+    user = env["res.users"].sudo().search([("login", "=", inputs["login"])])
+    provider = env.ref("usl_pocketid.provider_pocketid").sudo()
+    identity = env["usl.oidc.identity"].sudo().search([
+        ("user_id", "in", user.ids),
+        ("issuer", "=", provider.usl_oidc_issuer),
+        ("subject", "=", inputs["subject"]),
+        ("active", "=", True),
+    ])
+    checks = {
+        "active": len(user) == 1 and user.active is True,
+        "pocketid_access": len(user) == 1 and user.usl_pocketid_access is True,
+        "identity_linked": len(identity) == 1,
+        "not_system_administrator": (
+            len(user) == 1 and not user.has_group("base.group_system")
+        ),
+    }
+    if not all(checks.values()):
+        raise RuntimeError("staging review identity failed: " + ", ".join(
+            key for key, value in checks.items() if not value
+        ))
+    env.cr.commit()
+    evidence = {
+        "schema": "usl-staging-review-identity/v1",
+        "status": "ensured",
+        "profile": "accountant_reviewer",
+        "created": summary["users"][0]["created"] is True,
+        "user_id": user.id,
+        **checks,
+    }
+print("USL_STAGING_REVIEW_IDENTITY=" + json.dumps(evidence, sort_keys=True))
+"""
+
+
+def _ensure_staging_review_identity(target, runner, generation_identity) -> dict:
+    """Give staging the review account that a rebuild from production removes.
+
+    Staging is rebuilt from a production backup, so an Odoo user that exists
+    only on staging disappears at every reset. This step links one staging-only
+    Pocket ID subject to a human user with the accountant reviewer profile,
+    through the governed identity API. That profile works in accounting
+    (unlocked periods, no lock, no permanent deletion, no administration),
+    which a replay of a journey needs; it is not read-only. Its three inputs are not
+    secrets; the staging Compose file declares them on the Odoo service, and a
+    staging without them skips the step.
+
+    It runs in the admitted generation, after the release controls were
+    compared: those controls count users, their groups and their identities
+    against the restored snapshot, so the same write before the comparison
+    would make every staging release refuse itself. The account is a
+    convenience of the staging environment, so a failure is recorded as
+    evidence and never fails a release.
+    """
+    receipt = {"schema": STAGING_REVIEW_IDENTITY_SCHEMA, "status": "not-applicable"}
+    if target.value["environment"] != "staging":
+        return receipt
+    receipt["status"] = "failed"
+    try:
+        container = runner.run(compose_command(
+            generation_identity, ["ps", "--quiet", target.value["services"]["odoo"]],
+        )).stdout.strip()
+        if not container or "\n" in container:
+            raise ValueError("staging review identity requires one running Odoo container")
+        result = runner.run(
+            [
+                "docker", "exec", "--interactive", container,
+                "odoo", "shell", "--config=/etc/odoo/odoo.conf",
+                f"--database={target.value['databases']['odoo']['name']}",
+                "--no-http", "--max-cron-threads=0",
+            ],
+            input_text=STAGING_REVIEW_IDENTITY_PROGRAM,
+        )
+        evidence = None
+        for line in reversed(result.stdout.splitlines()):
+            if line.startswith(STAGING_REVIEW_IDENTITY_PREFIX):
+                evidence = json.loads(line.removeprefix(STAGING_REVIEW_IDENTITY_PREFIX))
+                break
+    except (builtins.RuntimeError, OSError, ValueError, KeyError) as error:
+        receipt["detail"] = type(error).__name__
+        return receipt
+    skipped = {"schema": STAGING_REVIEW_IDENTITY_SCHEMA, "status": "skipped"}
+    if evidence == skipped:
+        return skipped
+    ensured = {
+        "schema": STAGING_REVIEW_IDENTITY_SCHEMA,
+        "status": "ensured",
+        "profile": STAGING_REVIEW_IDENTITY_PROFILE,
+        "active": True,
+        "pocketid_access": True,
+        "identity_linked": True,
+        "not_system_administrator": True,
+    }
+    if (
+        not isinstance(evidence, dict)
+        or set(evidence) != set(ensured) | {"created", "user_id"}
+        or any(evidence[key] != value for key, value in ensured.items())
+        or type(evidence["created"]) is not bool
+        or type(evidence["user_id"]) is not int
+        or evidence["user_id"] < 1
+    ):
+        receipt["detail"] = "evidence differs"
+        return receipt
+    return evidence
+
+
+def _record_staging_review_identity(target, runner, run_id: str, receipt: dict) -> None:
+    """Write the review identity outcome to the run log, without ever raising.
+
+    The generation is already admitted: a run log that cannot be written must
+    not turn an admitted release into a failed restore.
+    """
+    if receipt["status"] == "not-applicable":
+        return
+    try:
+        _record_event(
+            target,
+            runner,
+            run_id,
+            "restore",
+            "review-identity",
+            receipt["status"],
+            **{
+                key: receipt[key]
+                for key in ("created", "user_id", "detail")
+                if key in receipt
+            },
+        )
+    except (builtins.RuntimeError, OSError):
+        return
 
 
 def _apply_generation_cron_policy(target, runner, release, network, volumes) -> dict:
@@ -8040,6 +8610,25 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
                 volumes,
                 candidate_identity,
             )
+            paperless_connection = _reconnect_staging_paperless(
+                target,
+                target_runner,
+                release,
+                network,
+                volumes,
+                candidate_identity,
+                database_containers[1],
+            )
+            _record_event(
+                target,
+                target_runner,
+                generation,
+                "restore",
+                "paperless-connection",
+                paperless_connection["status"],
+                service_user_id=paperless_connection["service_user_id"],
+                token_sha256=paperless_connection["token_sha256"],
+            )
         cron_policy_application = _apply_generation_cron_policy(
             target,
             target_runner,
@@ -8357,6 +8946,12 @@ def _restore_unlocked(arguments: argparse.Namespace) -> int:
     except Exception as error:
         rollback_active_candidate(error)
         raise
+    _record_staging_review_identity(
+        target,
+        target_runner,
+        generation,
+        _ensure_staging_review_identity(target, target_runner, generation_identity),
+    )
     result = {
         "schema": "usl-restore-run/v1",
         "source": source.name,
@@ -9100,29 +9695,12 @@ def _start_recovery_proof_database(
         command.extend(["--label", f"{key}={value}"])
     command.extend([
         "--network", names["network"], "--network-alias", alias,
-        "--env-file", runtime_env,
-        "--env", f"POSTGRES_USER={database['user']}",
-        "--env", "POSTGRES_DB=postgres",
+        "--env-file", "/dev/stdin",
         "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
-        "--entrypoint", "/bin/bash", images[target.value["services"][service_role]],
-        "-ceu",
-        f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
-        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        *_generation_database_entrypoint(database_key, database, images[target.value["services"][service_role]]),
     ])
-    runner.run(command)
-    name = names["containers"][role]
-    for _attempt in range(60):
-        ready = runner.run(
-            [
-                "docker", "exec", name, "pg_isready", "--username", database["user"],
-                "--dbname", "postgres",
-            ],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"recovery proof database did not become ready: {database_key}")
+    _start_database_with_password(runner, runtime_env, database["password_key"], command)
+    return _ready_generation_database(runner, names["containers"][role], database["user"])
 
 
 def _recovery_proof_runtime_config(runner, identity: dict) -> dict:
@@ -9944,7 +10522,14 @@ def _recover_recovery_proof_backup(target, runner, run_id: str, runtime_sha: str
         raise RuntimeError(
             "interrupted recovery proof backup has no quiescence receipt",
         )
+    # An interrupted online capture can have stopped only the Sign services; an
+    # older, fully quiesced one stopped every writer.
     services = [target.value["services"][name] for name in BACKUP_WRITER_SERVICE_ROLES]
+    online_services = [
+        target.value["services"][name] for name in BACKUP_ONLINE_PAUSE_SERVICE_ROLES
+    ]
+    if isinstance(quiescence, dict) and quiescence.get("writer_services") == online_services:
+        services = online_services
     quiescence = _validate_backup_quiescence_receipt(
         quiescence,
         target="production",
@@ -10116,7 +10701,10 @@ def _recovery_proof_command_locked(
     perimeter_sha = None
     failure_armed = False
     try:
+        tool_image = _operations_image(release)
+        _require_prepared_database_tool(runner, tool_image)
         if backup is None:
+            stage = "backup-started"
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
             if arguments.resume_backup:
@@ -10137,7 +10725,7 @@ def _recovery_proof_command_locked(
                     arguments.resume_backup = _recover_recovery_proof_backup(
                         target, runner, backup_run_id, runtime_sha,
                     )
-                write_state("backup-started", None)
+                write_state(stage, None)
                 backup = _run_recovery_proof_backup(arguments, release)
         else:
             backup = _backup_run_receipt(
@@ -10159,7 +10747,6 @@ def _recovery_proof_command_locked(
         )
         rendered = _recovery_proof_runtime_config(runner, identity)
         images = {name: value["image"] for name, value in rendered["services"].items()}
-        tool_image = _operations_image(release)
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
         )
@@ -11071,7 +11658,8 @@ def _cleanup_captures(target, runner) -> dict:
     ``STAGING_CAPTURE_KEEP`` captures.  Both keep captures that are not
     ``qualified`` and captures of attempts whose launcher run is still
     running or resumable.  Entries that are not managed capture runs are
-    ignored.
+    ignored.  ``cleanup apply`` keeps the anchor capture, but every
+    successful backup deletes it (see ``_prune_superseded_captures``).
     """
     captures: dict[str, str] = {}
     proofs: list[str] = []
@@ -11139,6 +11727,8 @@ def _select_proof_captures(target, runner, run_ids: list[str]) -> dict:
     the newest data-qualified capture, even after later service proofs fail.
     If no anchor exists yet, every qualified capture stays and nothing is
     deleted, so a release cleanup does not stop on a missing anchor.
+    ``cleanup apply`` keeps the anchor capture; every successful backup deletes
+    it, and older unqualified captures, through ``_prune_superseded_captures``.
     """
     protected: set[str] = set()
     qualified: dict[str, datetime] = {}
@@ -11222,8 +11812,9 @@ def _usable_anchor_binding(target, runner, candidate: dict) -> dict:
             raise RuntimeError("full usable recovery anchor capture interval differs")
         captured_at = quiesced["prepared_at"]
     else:
-        # Older complete receipts retain their sealed writer-stop boundary.
-        captured_at = bound["writers_stopped_at"]
+        # Older complete receipts retain their sealed writer-stop boundary; an
+        # online capture stops no writer and is dated by its manifest.
+        captured_at = bound["writers_stopped_at"] or bound["capture"]["created_at"]
     _recovery_proof_timestamp(captured_at, "anchor captured_at")
     return {
         "schema": "usl-usable-recovery-anchor/v1", "proof_id": proof_id,
@@ -11294,6 +11885,50 @@ def _publish_usable_recovery_anchor(target, runner, receipt: dict, image: str) -
         if _read_usable_anchor_document(runner, path) != receipt:
             raise RuntimeError("recovery proof anchor read-back differs")
         return {"status": "published", "anchor": candidate}
+
+
+def _prune_superseded_captures(target, runner, keep_run_id: str) -> dict:
+    """Delete every older local capture once a newer backup has qualified.
+
+    Nothing reads a finished capture directory again: restore, rollback and
+    proofs read the Restic snapshots; the anchor reads ``backup-runs/`` receipts
+    and the remote snapshot pair; ``--resume`` and ``push`` read only the run
+    they continue. A capture owned by an unfinished release attempt and any
+    newer capture are kept; older failed (unqualified) captures are deleted. The backup has already
+    succeeded, so a failure here is reported and never fails it. Deletion goes
+    through the same validation as ``cleanup apply``.
+    """
+    if target.value["environment"] not in {"production", "staging"}:
+        return {"status": "skipped", "deleted_captures": []}
+    try:
+        kept = _qualified_capture(target, runner, keep_run_id)
+        if kept is None:
+            raise RuntimeError(f"the new capture is not qualified: {keep_run_id}")
+        unfinished = _unfinished_release_attempts(target, runner)
+        older = []
+        for name, kind in _state_root_entries(target, runner):
+            attempt = _capture_attempt(target, name)
+            if name == keep_run_id or (attempt is None and not _proof_capture(target, name)):
+                continue
+            if kind != "d":
+                raise RuntimeError(f"cleanup capture is not a directory: {name}")
+            capture = _qualified_capture(target, runner, name)
+            # Once a newer backup has qualified, an older failed run can no
+            # longer be resumed; it must be re-run with a new run id.
+            if attempt in unfinished or (
+                capture is not None and capture["created_at"] > kept["created_at"]
+            ):
+                continue
+            older.append(name)
+        paths = _validated_cleanup_captures(
+            target, runner, {"delete_captures": sorted(older)},
+            keep_anchor_capture=False, require_qualified=False,
+        )
+        _delete_cleanup_resources(runner, [], [], [], [], paths)
+    except Exception as error:  # noqa: BLE001 - the backup already succeeded and is recorded
+        print(f"older capture deletion skipped: {error}", file=sys.stderr)
+        return {"status": "skipped", "deleted_captures": []}
+    return {"status": "completed", "deleted_captures": sorted(older)}
 
 
 def _retain_recovery_proof_captures(target) -> dict:
@@ -11640,14 +12275,17 @@ def _validated_cleanup_resources(
     return containers, volumes, networks
 
 
-def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
+def _validated_cleanup_captures(
+    target, runner, inventory: dict, *, keep_anchor_capture: bool = True,
+    require_qualified: bool = True,
+) -> list[str]:
     """Re-check every capture directory immediately before deletion."""
     state_root = target.value["state_directory"]
     paths = []
     for run_id in inventory["delete_captures"]:
         if _capture_attempt(target, run_id) is None and not _proof_capture(target, run_id):
             raise RuntimeError(f"cleanup capture identity is invalid: {run_id}")
-        if target.value["environment"] == "production" and _proof_capture(target, run_id):
+        if keep_anchor_capture and target.value["environment"] == "production" and _proof_capture(target, run_id):
             if _usable_recovery_anchor(target, runner)["run_id"] == run_id:
                 raise RuntimeError("cleanup cannot delete the last full usable recovery anchor capture")
         path = f"{state_root}/{run_id}"
@@ -11657,7 +12295,7 @@ def _validated_cleanup_captures(target, runner, inventory: dict) -> list[str]:
         )
         if probe.returncode or probe.stdout.strip() != "d":
             raise RuntimeError(f"cleanup capture became invalid: {path}")
-        if _qualified_capture(target, runner, run_id) is None:
+        if require_qualified and _qualified_capture(target, runner, run_id) is None:
             raise RuntimeError(f"cleanup capture is not qualified: {run_id}")
         _assert_capture_unmounted(runner, path)
         _assert_capture_not_bound(runner, path)

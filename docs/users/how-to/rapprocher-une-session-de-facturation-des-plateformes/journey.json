@@ -1,0 +1,125 @@
+{
+  "journey": "rapprocher-une-session-de-facturation-des-plateformes",
+  "lang": "fr",
+  "login": "platform_billing_browser_manager",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_platform_billing.tests.test_platform_billing_journeys.TestPlatformBillingJourneys.test_settle_a_platform_billing_session_in_french",
+  "source_test_file": {
+    "line": 65,
+    "path": "custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 198,
+    "path": "custom-addons/usl_platform_billing/static/tests/tours/platform_billing_tours.js",
+    "steps": {
+      "create-a-monthly-platform-billing-session": 516,
+      "documents": 213,
+      "draft": 201,
+      "moves": 243,
+      "no_payment": 248,
+      "open_moves": 237,
+      "paid": 231,
+      "post_documents": 219,
+      "preflight": 207,
+      "reconcile": 225
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Open a prepared platform billing session",
+      "id": "draft",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-draft.png",
+      "sha256": "99925a2558d87eeb404246ce424e57671514cd34392a711348407b0f054bd113",
+      "text": "Dans **Facturation des plateformes > Sessions de facturation**, ouvrez la session en brouillon. Vérifiez que les versements sont saisis et que l’encaissement bancaire est associé.",
+      "trigger": ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)"
+    },
+    {
+      "assertion": "Run the accounting preflight",
+      "id": "preflight",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Contrôle** pour lancer les vérifications comptables.",
+      "trigger": "button[name='action_check']"
+    },
+    {
+      "assertion": "Generate customer invoices and commission bills",
+      "id": "documents",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Générer les brouillons**, puis vérifiez les factures de vente et les factures de commission créées.",
+      "trigger": "button[name='action_generate_documents']"
+    },
+    {
+      "assertion": "Post the documents and compensate commission",
+      "id": "post_documents",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Comptabiliser les pièces**. La commission est compensée avec la recette. Le montant à rapprocher correspond alors au versement net.",
+      "trigger": "button[name='action_post_documents']"
+    },
+    {
+      "assertion": "Reconcile the selected bank receipt through OCA",
+      "id": "reconcile",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur **Rapprocher les transactions bancaires**. L’encaissement associé au versement solde le net.",
+      "trigger": "button[name='action_reconcile_bank']"
+    },
+    {
+      "assertion": "The complete session is paid",
+      "id": "paid",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-paid.png",
+      "sha256": "e921efa80d6378649d9450faed540b23ee514df13dba2d1198c6095eb7286651",
+      "text": "Vérifiez que la session est payée. La facture de vente, la facture de commission et l’encaissement sont rapprochés.",
+      "trigger": ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current"
+    },
+    {
+      "assertion": "Open the generated native accounting documents",
+      "id": "open_moves",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez **Pièces comptables** pour consulter les documents comptabilisés.",
+      "trigger": "button[name='action_open_generated_moves']"
+    },
+    {
+      "assertion": "Native posted accounting documents remain available",
+      "id": "moves",
+      "index": 8,
+      "run": "",
+      "screenshot": "03-moves.png",
+      "sha256": "e541e913d1470c7dd3f24f1725e4bebbac818700a9254596a5d2617d5270f846",
+      "text": "Ouvrez une pièce dans la liste pour retrouver ses lignes et ses références dans les rapports comptables.",
+      "trigger": ".o_list_view .o_data_row td[name='name']"
+    },
+    {
+      "assertion": "Miscellaneous entries clearly require no payment",
+      "id": "no_payment",
+      "index": 9,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "La mention **Aucun paiement requis** identifie la compensation de commission. Elle ne crée pas de paiement à effectuer.",
+      "trigger": ".o_list_view td[name='platform_billing_payment_state']:contains('Aucun paiement requis')"
+    }
+  ],
+  "title": "Comptabiliser et rapprocher une session de facturation",
+  "tour": "usl_platform_billing_manager_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

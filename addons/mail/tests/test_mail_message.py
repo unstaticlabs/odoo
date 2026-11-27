@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+from odoo import models
 from odoo.addons.bus.tests.common import BusResult
 from odoo.addons.mail.models import mail_message as mail_message_module
 from odoo.addons.mail.tests import common
@@ -67,13 +68,37 @@ class TestMailMessage(common.MailCommon, HttpCase):
         self.assertEqual(messages.search(domain, limit=100), accessible)
         self.assertEqual(messages.sudo().search(domain, limit=100), messages)
 
-        Message = self.registry[messages._name]
         with (
             patch.object(mail_message_module, 'PREFETCH_MAX', 3),
-            patch.object(Message, '_search', autospec=True, side_effect=Message._search) as search_func,
+            patch.object(models.BaseModel, '_search', autospec=True, side_effect=models.BaseModel._search) as search_func,
         ):
             self.assertEqual(messages.search(domain, limit=100), accessible)
             self.assertGreaterEqual(search_func.call_count, 4)
+
+    def test_mail_message_read_access_search_with_limit_inaccessible_prefetch(self):
+        """ The batches of a search with limit hold messages the user cannot
+        read. Reading a field on such a batch raises an access error, which is
+        handled by reading the records one by one. Building that error must
+        not fail on a database with a lot of messages. """
+        ids = []
+        for _i in range(5):
+            ids += self._add_messages(self.company_2, "Inaccessible note", subject="Subject").ids
+            ids += self._add_messages(self.env.company, "Accessible note", subject="Subject").ids
+        messages = (self.env["mail.message"]
+            .with_user(self.user_employee)
+            .with_context(allowed_company_ids=[self.env.company.id])
+        ).browse(ids)
+        accessible = messages._filtered_access('read')
+        self.assertEqual(len(accessible), 5)
+        self.env.invalidate_all()
+
+        # simulate a big database: small batches, and a threshold reached by
+        # the existing messages but not by a single batch
+        with (
+            patch.object(mail_message_module, 'PREFETCH_MAX', 4),
+            patch.object(mail_message_module, 'MAX_SEARCH_LIMIT', self.env['mail.message'].sudo().search_count([])),
+        ):
+            self.assertEqual(messages.search([('subject', '=', 'Subject')], limit=100), accessible)
 
     def test_mail_message_read_access_read_group_with_limit(self):
         ids = []

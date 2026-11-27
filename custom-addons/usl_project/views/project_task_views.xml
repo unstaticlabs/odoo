@@ -5,6 +5,7 @@
         <field name="inherit_id" ref="project.view_task_kanban"/>
         <field name="arch" type="xml">
             <xpath expr="//t[@t-name='card']/main/field[@name='name']" position="after">
+                <widget name="usl_task_return_badge" groups="base.group_user"/>
                 <span class="o_usl_task_reference text-muted small" title="Task ID">
                     #<field name="id" options="{'enable_formatting': False}"/>
                 </span>
@@ -39,9 +40,7 @@
         <field name="inherit_id" ref="project.task_type_edit"/>
         <field name="arch" type="xml">
             <field name="fold" position="after">
-                <field name="usl_reactivation_role"
-                       invisible="not user_id"
-                       placeholder="No automatic reactivation role"/>
+                <field name="usl_reactivation_role" placeholder="No automatic reactivation role"/>
             </field>
         </field>
     </record>

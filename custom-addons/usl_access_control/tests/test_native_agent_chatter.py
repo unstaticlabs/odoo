@@ -154,6 +154,108 @@ class TestNativeAgentChatter(TransactionCase):
         with self.assertRaises(UserError):
             self.tasks[0].with_user(self.agents["rw"].user_id).mcp_revise_own_message(message.id, "[QA] Optional repair remains bounded")
 
+    def test_retract_old_note_as_human_and_writable_agent(self):
+        for actor in ("human", "rw"):
+            user = self.owner if actor == "human" else self.agents[actor].user_id
+            values = self._values(
+                subject="[QA] Correction", author_id=user.partner_id.id,
+                partner_ids=[Command.link(self.owner.partner_id.id)],
+            )
+            message = self.env["mail.message"].with_user(user).create(values)
+            self.env.cr.execute(
+                "UPDATE mail_message SET create_date = now() - interval '2 days' WHERE id = %s",
+                [message.id],
+            )
+            message.invalidate_recordset(["create_date"])
+            if actor == "human":
+                result = message.action_retract_from_chatter()
+            else:
+                result = self._call("action_retract_from_chatter", ids=message.ids)
+            self.assertEqual(result, {"message_id": message.id, "model": "project.task", "res_id": self.tasks[0].id})
+            self.assertTrue(message.exists())
+            self.assertEqual(message.author_id, user.partner_id)
+            self.assertTrue(message._filter_empty())
+            self.assertFalse(message.partner_ids)
+            self.assertFalse(message.subject)
+
+    def test_native_administrator_can_retract_another_authors_note(self):
+        message = self.env["mail.message"].with_user(self.owner).create(self._values())
+        admin = self.env.ref("base.user_admin")
+        self.assertNotEqual(message.author_id, admin.partner_id)
+        self.assertTrue(admin._is_admin())
+        message.with_user(admin).action_retract_from_chatter()
+        self.assertTrue(message._filter_empty())
+
+    def test_retract_requires_author_and_visible_parent(self):
+        other = self.env["mail.message"].with_user(self.owner).create(self._values())
+        hidden = self._call("create", vals_list=[self._values(self.tasks[1])])
+        self.agents["rw"].with_user(self.owner).write({"company_ids": [Command.set(self.company.ids)]})
+        self.assertFalse(self.tasks[1].with_user(self.agents["rw"].user_id).has_access("read"))
+        for message in (other, hidden):
+            original = message.sudo().body
+            with self.assertRaises(AccessError), self.env.cr.savepoint():
+                self._call("action_retract_from_chatter", ids=message.ids)
+            self.assertEqual(message.sudo().body, original)
+        with self.assertRaises(AccessError):
+            self._call("action_retract_from_chatter", actor="ro", ids=other.ids)
+
+    def _add_consumed_rating(self, message):
+        return self.env["rating.rating"].create({
+            "res_model_id": self.env["ir.model"]._get_id(message.model), "res_id": message.res_id,
+            "message_id": message.id, "rating": 5, "consumed": True,
+        })
+
+    def test_retract_rating_matches_native_remove(self):
+        native = self.env["mail.message"].with_user(self.owner).create(self._values())
+        delegated = self._call("create", vals_list=[self._values()])
+        for message in (native, delegated):
+            rating = self._add_consumed_rating(message)
+            self.assertEqual(message.sudo().rating_id, rating)
+            if message == native:
+                self.tasks[0].with_user(self.owner)._message_update_content(
+                    native.sudo(), body="", attachment_ids=[], partner_ids=[], subject="", rating_value=False,
+                )
+            else:
+                self._call("action_retract_from_chatter", ids=message.ids)
+            self.assertFalse(rating.exists())
+            self.assertTrue(message.exists())
+            self.assertTrue(message.sudo()._filter_empty())
+
+    def test_retract_attached_file_obeys_native_irreversible_guard(self):
+        for actor in ("human", "rw"):
+            user = self.owner if actor == "human" else self.agents[actor].user_id
+            file = self.env["ir.attachment"].with_user(self.owner).create({
+                "name": "[QA] Example.txt", "raw": ORIGINAL,
+                "res_model": "project.task", "res_id": self.tasks[0].id,
+            })
+            values = self._values(author_id=user.partner_id.id, attachment_ids=[Command.link(file.id)])
+            if actor == "human":
+                message = self.env["mail.message"].with_user(user).create(values)
+            else:
+                message = self._call("create", vals_list=[values])
+            rating = self._add_consumed_rating(message)
+            before = message.body
+            with self.assertRaisesRegex(AccessError, "(?i)irreversible action"), self.env.cr.savepoint():
+                if actor == "human":
+                    message.action_retract_from_chatter()
+                else:
+                    self._call("action_retract_from_chatter", ids=message.ids)
+            self.assertEqual(message.body, before)
+            self.assertEqual(message.attachment_ids, file)
+            self.assertEqual(message.sudo().rating_id, rating)
+            self.assertTrue(rating.consumed)
+            self.assertEqual(bytes(file.raw), ORIGINAL)
+
+    def test_retract_refuses_notifications_and_bulk(self):
+        note, notice = self._call("create", vals_list=[
+            self._values(), self._values(message_type="notification", subtype_id=self.env.ref("mail.mt_note").id),
+        ])
+        with self.assertRaises(UserError):
+            self._call("action_retract_from_chatter", ids=notice.ids)
+        with self.assertRaises(ValueError):
+            self._call("action_retract_from_chatter", ids=(note | notice).ids)
+        self.assertFalse((note | notice)._filter_empty())
+
     def test_native_standalone_recipient_and_reassignment_rules(self):
         agent = self.agents["rw"]
         message = self._call("create", vals_list=[self._values(self.env["project.task"], partner_ids=[Command.link(self.owner.partner_id.id)])])
@@ -239,15 +341,23 @@ class TestNativeAgentChatter(TransactionCase):
         self.assertFalse(self.env["mail.message"].search_count([("subject", "=", subject)]))
         self.assertEqual(bytes(foreign.raw), ORIGINAL)
 
-    def test_native_received_parent_reply_can_use_native_fallback(self):
+    def test_native_received_parent_keeps_reply_on_authorized_task(self):
         agent = self.agents["rw"]
         agent.with_user(self.owner).write({"company_ids": [Command.set(self.company.ids)]})
-        parent = self.env["mail.message"].create({
-            "message_type": "comment", "body": "<p>[QA] Received private parent</p>",
-            "partner_ids": [Command.set((agent.user_id.partner_id | self.owner.partner_id).ids)],
-        })
-        values = self._values(self.tasks[1], parent_id=parent.id)
+        task = self.tasks[0]
+        parent = self.env["mail.message"].create(self._values(
+            task, partner_ids=[Command.set((agent.user_id.partner_id | self.owner.partner_id).ids)],
+        ))
+        values = self._values(task, parent_id=parent.id)
         human = self.env["mail.message"].with_user(self.owner).create(values)
         reply = self._call("create", vals_list=[values])
-        self.assertEqual((reply.model, reply.res_id), (human.model, human.res_id))
-        self.assertEqual(reply.parent_id, parent)
+        for message in (human, reply):
+            self.assertEqual((message.model, message.res_id), (task._name, task.id))
+            self.assertEqual(message.parent_id, parent)
+
+        other_task = self.tasks[1]
+        self.assertFalse(other_task.with_user(agent.user_id).has_access("read"))
+        subject = "[QA] Reply outside delegated company"
+        with self.assertRaises(AccessError), self.env.cr.savepoint():
+            self._call("create", vals_list=[self._values(other_task, parent_id=parent.id, subject=subject)])
+        self.assertFalse(self.env["mail.message"].search_count([("subject", "=", subject)]))

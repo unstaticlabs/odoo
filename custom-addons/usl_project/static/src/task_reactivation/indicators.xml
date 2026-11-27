@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_project.ReactivationKanbanHeader" t-inherit="mail.RottingKanbanHeader" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_column_title')]/span[hasclass('text-truncate')]" position="after">
+            <button t-if="this.reactivationHelp" type="button" class="btn btn-link text-muted p-0 lh-1 flex-shrink-0 o_usl_reactivation_help"
+                    t-att-aria-label="this.reactivationHelpLabel" aria-haspopup="dialog"
+                    t-on-click.stop="this.openReactivationHelp" t-on-keydown="this.activateFromKeyboard">
+                <i class="fa fa-info-circle" aria-hidden="true"/>
+            </button>
+        </xpath>
+    </t>
+
+    <t t-name="usl_project.ReactivationHelp">
+        <section class="o_usl_reactivation_popover p-3" role="dialog" t-att-aria-label="this.summary">
+            <p t-if="this.props.help.kind === 'inbox'" class="m-0" t-out="this.summary"/>
+            <t t-else="">
+                <p class="fw-bold mb-2" t-out="this.summary"/>
+                <ul class="mb-0 ps-3">
+                    <li>Its scheduled start has arrived, or its deadline is overdue or due within three calendar days.</li>
+                    <li>It is reopened or changes to another open status.</li>
+                    <li>Its last blocking dependency is resolved or removed.</li>
+                    <li>All eligible direct subtasks are now done or canceled.</li>
+                    <li t-if="this.props.help.personal">Its project stage is changed manually.</li>
+                </ul>
+            </t>
+        </section>
+    </t>
+
+    <t t-name="usl_project.ReturnBadge">
+        <t t-set="badgeReasons" t-value="this.reasons"/>
+        <div t-if="badgeReasons.length" class="mt-1 mb-1">
+            <t t-set="icon" t-value="'fa fa-reply me-1'"/>
+            <button t-if="badgeReasons.length > 1" type="button" class="o_usl_return_badge badge rounded-pill text-wrap text-start"
+                    aria-haspopup="dialog" t-att-aria-label="this.reasonsLabel + ' · ' + badgeReasons[0]"
+                    t-on-click.stop="this.openReasons" t-on-keydown="this.activateFromKeyboard">
+                <i t-att-class="icon" aria-hidden="true"/>
+                <t t-out="badgeReasons[0]"/> <span class="ms-1" t-out="'+' + (badgeReasons.length - 1)"/>
+            </button>
+            <span t-else="" class="o_usl_return_badge badge rounded-pill text-wrap text-start">
+                <i t-att-class="icon" aria-hidden="true"/>
+                <t t-out="badgeReasons[0]"/>
+            </span>
+        </div>
+    </t>
+
+    <t t-name="usl_project.ReturnReasons">
+        <section class="o_usl_reactivation_popover o_usl_return_reasons_popover px-3 py-2" role="dialog" aria-label="Reasons for return">
+            <div class="fw-bold mb-1">Reasons for return</div>
+            <ul class="mb-0 ps-3">
+                <li t-foreach="this.props.reasons" t-as="reason" t-key="reason" t-out="reason"/>
+            </ul>
+        </section>
+    </t>
+</templates>

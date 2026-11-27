@@ -21,6 +21,28 @@ class TestClosingControlReview(AccountTestInvoicingCommon):
         values = getattr(self.period, f"_control_{code}")()
         return self.env["rebuild.account.closing.control"]._upsert(self.period, code, values)
 
+    def test_saved_findings_keep_original_counts_when_read_in_french(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        cases = [
+            ("document_completeness",
+             "2 draft business document(s); 14 posted document(s) without a main attachment.",
+             ("Factures et avoirs en brouillon : 2", "Comptabilisés sans pièce principale : 14")),
+            ("issues", "7 actionable and 5 informational Hygiene result(s); 3 blocking.",
+             ("À traiter : 7", "Informatifs : 5", "Bloquants : 3")),
+        ]
+        for code, snapshot, expected in cases:
+            with self.subTest(code=code):
+                control = self.result(code)
+                control.summary = snapshot
+                french = control.with_context(lang="fr_FR")
+                for phrase in expected:
+                    self.assertIn(phrase, french.review_finding)
+                self.assertEqual(french.summary, snapshot)
+                control.summary = snapshot + " Additional reviewer detail."
+                self.assertIn(control.summary, french.review_finding)
+                control.write({"summary": snapshot, "status": "technical_error"})
+                self.assertEqual(french.review_finding, snapshot)
+
     def test_export_review_opens_the_original_company_and_period_in_test_mode(self):
         for code, model in [("fec", "l10n_fr.fec.export.wizard"), ("reports", "rebuild.account.report.export.wizard")]:
             with self.subTest(code=code):

@@ -1,3 +1,4 @@
+import csv
 import hashlib
 import io
 import json
@@ -2136,6 +2137,41 @@ class TestMultiCompanyAccountingReports(TransactionCase):
             domain,
         )
 
+    def test_closing_review_exports_only_the_workspace_ledger(self):
+        self._post_revenue(self.first_company, 100)
+        self._post_revenue(self.second_company, 25)
+        start, end = date(2026, 1, 1), date(2026, 12, 31)
+        closing = self.allowed_env["rebuild.account.closing.period"]._upsert_period(
+            self.second_company, "annual", start, end, start, end,
+        )
+        control = self.allowed_env["rebuild.account.closing.control"]._upsert(
+            closing, "reports", closing._control_reports(),
+        )
+        for action in (control.action_open_records(), closing.action_open_closing_package()):
+            with self.subTest(action=action["name"]):
+                # Restoring the web action reapplies the session's selected companies.
+                Wizard = self.allowed_env[action["res_model"]].with_context({
+                    **action["context"], "allowed_company_ids": self.allowed_env.companies.ids,
+                })
+                report = Wizard.create({"report_type": "trial_balance", "export_format": "csv"})
+                self.assertEqual(report.company_id, self.second_company)
+                self.assertEqual(report.company_ids, self.second_company)
+                report.action_generate_export()
+                rows = list(csv.DictReader(io.StringIO(bytes(report.export_file).decode())))
+                self.assertTrue(rows)
+                self.assertEqual(
+                    {row["report_company_name"] for row in rows if row["report_company_name"]},
+                    {self.second_company.name},
+                )
+                self.assertEqual({json.loads(row["metadata"])["company"] for row in rows}, {self.second_company.name})
+                cash = next(row for row in rows if row["account_code"] == "512991")
+                self.assertEqual(Decimal(cash["closing_balance"]), 25)
+
+                # An older saved form may already contain the session's wider filter.
+                report.company_ids = self.first_company | self.second_company
+                with self.assertRaises(UserError):
+                    report.action_generate_export()
+
     def test_trial_balance_combines_real_company_ledgers(self):
         self._post_revenue(self.first_company, 100)
         self._post_revenue(self.second_company, 25)
@@ -2685,6 +2721,39 @@ class TestMultiCompanyAccountingReports(TransactionCase):
         }
         self.assertEqual(interactive_totals["ACTIF_TOTAL"], online_total)
         self.assertEqual(interactive_totals["PASSIF_TOTAL"], online_total)
+
+    def test_asset_register_compares_card_scope_to_the_french_balance_sheet(self):
+        self.first_company.account_fiscal_country_id = self.env.ref("base.fr")
+        wizard = self._wizard(report_type="fixed_assets", target_move="posted",
+                              company_ids=[Command.set(self.first_company.ids)])
+        # The stake balance was carried from the preceding year. Its period
+        # movement is zero, but its closing balance belongs on the balance sheet.
+        ledger = [
+            {"account_code": code, "account_type": account_type, "closing_balance": amount,
+             "balance": "0.00", "move_line_count": "0"}
+            for code, account_type, amount in (
+                ("218300", "asset_fixed", "80.00"), ("261100", "asset_non_current", "30.00"),
+                ("281830", "asset_fixed", "-8.00"), ("512000", "asset_cash", "900.00"),
+            )
+        ]
+        assets = [{"source_asset_id": "4", "account_code": "218300", "original_value": "80.00",
+                   "depreciation_amount": "8.00", "imported_period_net_value": "72.00"}]
+        with patch.object(type(wizard), "_trial_balance_rows", return_value=ledger):
+            comparison = wizard._report_summary_from_rows(assets)["asset_reconciliation"]
+            self.assertEqual([(row["register"], row["ledger"]) for row in comparison["totals"]],
+                             [("80.00", "110.00"), ("8.00", "8.00"), ("72.00", "102.00")])
+            self.assertEqual(comparison["gross_differences"], [
+                {"code": "261100", "difference": "30.00", "participation_without_card": True},
+            ])
+            assets.append({"source_asset_id": "5", "account_code": "261100", "original_value": "25.00",
+                           "depreciation_amount": "0.00", "imported_period_net_value": "25.00"})
+            difference = wizard._report_summary_from_rows(assets)["asset_reconciliation"]["gross_differences"]
+            self.assertEqual(difference, [{"code": "261100", "difference": "5.00", "participation_without_card": False}])
+            wizard.target_move = "all"
+            self.assertEqual(wizard._report_summary_from_rows(assets)["asset_reconciliation"], {})
+            wizard.target_move = "posted"
+            wizard.company_ids = self.first_company | self.second_company
+            self.assertEqual(wizard._report_summary_from_rows(assets)["asset_reconciliation"], {})
 
     def test_asset_register_places_grand_total_after_account_subtotals(self):
         wizard = self._wizard(report_type="fixed_assets", export_format="pdf")

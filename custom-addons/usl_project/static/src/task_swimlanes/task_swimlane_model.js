@@ -1,5 +1,7 @@
+import { user } from '@web/core/user';
 import { _t } from '@web/core/l10n/translation';
 import { ProjectTaskKanbanModel } from '@project/views/project_task_kanban/project_task_kanban_model';
+import { taskBoard } from '../task_reactivation/indicators';
 import { groupKey, groupValue } from './task_swimlane_matrix';
 
 export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
@@ -74,7 +76,20 @@ export class TaskSwimlaneModel extends ProjectTaskKanbanModel {
                 this.matrixMode = false;
             }
         }
-        return super._loadData(config, cache);
+        // The sample server can render the groups from the real load. Keep
+        // their help and let the simulated load use only its native requests.
+        if (this.orm.isSample) {
+            return super._loadData(config, cache);
+        }
+        const board = config.fields.usl_project_return_badge && taskBoard(config.groupBy, config.context);
+        const rows = board ? this.orm.searchRead("project.task.type", [
+            board.personal ? ["user_id", "=", user.userId] : ["project_ids", "in", [board.projectId]],
+        ], ["usl_reactivation_help"], {
+            context: { ...config.context, usl_reactivation_project_id: board.projectId || false },
+        }) : [];
+        const [data, stageHelp] = await Promise.all([super._loadData(config, cache), rows]);
+        this.reactivationColumns = new Map(stageHelp.map((stage) => [stage.id, stage.usl_reactivation_help]));
+        return data;
     }
 
     _webReadGroup(config, cache) {

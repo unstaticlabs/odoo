@@ -1,11 +1,11 @@
-"""Apply the USL personal-AI UI to the exact Paperless v3.4.2 frontend."""
+"""Apply the USL personal-AI UI to the exact Paperless v3.5.1 frontend."""
 
 import sys
 from hashlib import sha256
 from pathlib import Path
 
 SOURCE_ROOT = Path(sys.argv[1]).resolve()
-MISMATCH_MESSAGE = "Paperless v3.4.2 frontend is incompatible with the USL overlay"
+MISMATCH_MESSAGE = "Paperless v3.5.1 frontend is incompatible with the USL overlay"
 
 
 def patch_file(
@@ -205,7 +205,7 @@ patch_file(
 
 patch_file(
     "src/app/components/app-frame/app-frame.component.ts",
-    "a199dac2ddc79614f9ee90a75d72f5dd4568f5c55ec91e588a7cad043a51d61d",
+    "c55c42ae0e0aa19e7283eff3fd933dc78f4be879d716a20597a6740502ccd765",
     (
         (
             """import { OpenDocumentsService } from 'src/app/services/open-documents.service'
@@ -224,11 +224,11 @@ import {
 """,
         ),
         (
-            """  ngOnInit(): void {
-    this.lastScrollY = window.scrollY
+            """    this.lastScrollY = window.scrollY
+    this.detectClassicScrollbars()
 """,
-            """  ngOnInit(): void {
-    this.lastScrollY = window.scrollY
+            """    this.lastScrollY = window.scrollY
+    this.detectClassicScrollbars()
     this.profileService.getPersonalAI().subscribe({ error: () => undefined })
 """,
         ),
@@ -250,7 +250,7 @@ import {
 
 patch_file(
     "src/app/components/document-detail/document-detail.component.ts",
-    "890629537a8792c1c267d579199bdd9c53edc855ade65fc3d24d0fa229eb222b",
+    "9dc87e6fc2de45b7825b9c56ec8258d445f66edab30c0bfd44ba8f2176271dfd",
     (
         (
             """import { OpenDocumentsService } from 'src/app/services/open-documents.service'
@@ -290,7 +290,7 @@ import {
 
 patch_file(
     "src/app/components/common/edit-dialog/workflow-edit-dialog/workflow-edit-dialog.component.ts",
-    "5259bef35b9d5ac2855912df56832d1bca34da9fef9c827dbda31cc8e5e47ca8",
+    "5ce4001fbdee91974b2edfb974931867cedc93ccb205da45bb45cce4d34f36a4",
     (
         (
             """    const aiSuggestionsUsable =
@@ -364,7 +364,7 @@ patch_file(
 
 patch_file(
     "src/locale/messages.fr_FR.xlf",
-    "dfba6ad67d0d841223c59935ac03a7b0df8ae4a67b1bd1354644430baee554dd",
+    "dea4c59ab54b3d697bf0c2e878616f2bd4e751515b8e9ce922eb48db06e9174c",
     (
         (
             """    </body>

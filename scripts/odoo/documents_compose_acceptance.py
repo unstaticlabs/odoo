@@ -44,8 +44,8 @@ marker = os.environ.get("USL_DOCUMENTS_ACCEPTANCE_ID") or "qa-real-service"
 compatibility = client.compatibility()
 check(compatibility["api_version"] == "10", "Paperless API v10 contract")
 check(
-    compatibility["server_version"] == "3.4.2",
-    "Paperless qualified 3.4.2 server",
+    compatibility["server_version"] == "3.5.1",
+    "Paperless qualified 3.5.1 server",
 )
 policy = client.ensure_fail_closed_ingestion_policy()
 check(

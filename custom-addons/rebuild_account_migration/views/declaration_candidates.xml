@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_declaration_candidate_line_des" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.des.list</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" expand="1" default_order="date, id" action="action_open_document" type="object">
+                <field name="date"/>
+                <field name="move_id"/>
+                <field name="move_type" widget="badge" decoration-warning="move_type == 'out_refund'" decoration-info="move_type != 'out_refund'"/>
+                <field name="partner_id"/>
+                <field name="reason" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" string="Amount excl. tax" sum="Total excl. tax"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_declaration_candidate_line_das2" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.das2.list</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" expand="1" default_order="date, id" action="action_open_document" type="object">
+                <field name="date" string="Paid on"/>
+                <field name="move_id"/>
+                <field name="payment_move_id" optional="show"/>
+                <button name="action_open_payment" type="object" icon="fa-external-link" title="Open the payment" invisible="not payment_move_id"/>
+                <field name="partner_id" optional="hide"/>
+                <field name="reason" optional="show"/>
+                <field name="calendar_date" optional="show"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="amount" string="Amount settled" sum="Total settled"/>
+                <field name="amount_622" sum="Total 622 share"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_declaration_candidate_line_search" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.line.search</field>
+        <field name="model">rebuild.account.declaration.candidate.review.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="move_id"/>
+                <field name="partner_id"/>
+                <filter name="fees_622" string="With a 622 share" domain="[('amount_622', '!=', 0)]"/>
+                <filter name="credit_notes" string="Credit notes" domain="[('move_type', 'in', ('out_refund', 'in_refund'))]"/>
+                <group>
+                    <filter name="group_month" string="Month" context="{'group_by': 'date:month'}"/>
+                    <filter name="group_period" string="Declaration period" context="{'group_by': 'period'}"/>
+                    <filter name="group_partner" string="Partner" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_declaration_candidate_review" model="ir.ui.view">
+        <field name="name">rebuild.account.declaration.candidate.review.form</field>
+        <field name="model">rebuild.account.declaration.candidate.review</field>
+        <field name="arch" type="xml">
+            <form string="Review DES and DAS2 documents">
+                <group>
+                    <group><field name="kind" string="Declaration" widget="radio" options="{'horizontal': true}"/>
+                        <field name="company_id" groups="base.group_multi_company" options="{'no_create': true}" domain="[('id', 'in', allowed_company_ids)]"/></group>
+                    <group><field name="date_from" string="From"/><field name="date_to" string="To"/></group>
+                </group>
+                <p class="text-muted" invisible="kind != 'des'">Posted EU customer invoices and credit notes carrying a DES service tax, by invoice month. Confirm which services belong in each month with your accountant.</p>
+                <p class="text-muted" invisible="kind != 'das2'">622 fees and additional 604 services, by payment year and beneficiary. Each settlement appears once. The 622 share uses the calendar’s allocation on the source document.</p>
+                <footer>
+                    <button name="action_show" type="object" string="Show documents" class="btn-primary" data-hotkey="q"/>
+                    <button special="cancel" string="Cancel" class="btn-secondary" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_declaration_candidate_review" model="ir.actions.act_window">
+        <field name="name">Review DES and DAS2 documents</field>
+        <field name="res_model">rebuild.account.declaration.candidate.review</field>
+        <field name="view_mode">form</field><field name="target">new</field>
+    </record>
+</odoo>

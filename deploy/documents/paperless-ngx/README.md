@@ -1,19 +1,19 @@
-# USL Paperless 3.4.2 distribution overlay
+# USL Paperless 3.5.1 distribution overlay
 
 This directory contains the only Paperless source overlay in the USL
-distribution. It applies to upstream Paperless-ngx `v3.4.2`, source commit
-`d939d873e11dd14896d1bfe23f65b1baa6513ba7`, image index digest
-`sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84`.
+distribution. It applies to upstream Paperless-ngx `v3.5.1`, source commit
+`35b0439195bbdb87a6d519152e6782abe0720c3b`, image index digest
+`sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9`.
 The backend and frontend patchers verify the SHA-256 of every changed upstream
 file and reject any source drift before changing the image. The exact source
 archive is pinned at
-`sha256:9359f9f6c9e71d2736d9ac8074c0563d35367fa32dcdbf09ded58482b02fe8ec`;
+`sha256:8416949e59c86befe73b8ac761ca5056a50972ebe9ef7db1d66990745ac7a49a`;
 the frontend builder is pinned at
 `node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4`.
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1` has nine bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -28,7 +28,9 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    permission lifecycle and native Tantivy refresh, but marks ownership/ACL-only
    edits as embedding-invariant. Those edits no longer recompute unchanged
    BGE-M3 vectors or hit the 30-minute task limit. Every other bulk metadata or
-   content edit retains the upstream vector refresh.
+   content edit retains the upstream vector refresh. Since Paperless 3.5, a bulk
+   edit runs as one queued task that refreshes the documents itself
+   (`documents/bulk_operations.py`), so the patch applies the same rule there.
 3. Controlled one-shot archive reconstruction may set
    `PAPERLESS_USL_DEFER_SEMANTIC_INDEX=true` while OCR, metadata, and
    permission truth are materialized. Incremental embedding tasks are then
@@ -65,6 +67,20 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v1+deferred-b
    The exact-source patches hide the action in the workflow editor, make the
    API refuse it, and make the worker refuse any stored instance. Personal
    Gemini generation stays tied to a person's own request.
+10. The optional tag scores expose the native classifier's estimate for a
+    tag the caller can read. The evaluation procedure below measures accuracy.
+11. A semantic index rebuild keeps the last complete SQLite database available
+    while the configured embedding model fills a second file on the same volume.
+    Before publication, SQLite flushes the new index's write-ahead journal
+    and checks the standalone database. Once readers finish, SQLite flushes
+    the previous index’s journal before the atomic switch.
+    A failed checkpoint, an interrupted rebuild or a busy reader leaves the
+    previous index in place. The next update retries. Allow room for both
+    databases and the new index's journal during the build. Incremental edits and semantic
+    queries require the model name recorded in the index. A legacy table without
+    a model name is rebuilt at the next index update. For the interval after a
+    model change, lexical search remains available. The application's model name
+    and deployment's Ollama digest check serve different purposes.
 
 `tests/test_workflow_ai_disabled.py` proves that the workflow action cannot be
 saved and that a stored instance never generates.
@@ -93,6 +109,39 @@ contains only ranked root IDs and a truncation flag by default. MCP callers may
 request a whitespace-normalized OCR excerpt capped at 500 characters; that
 mode is additionally limited to 50 results and still uses the same POST. It is
 read-only and never invokes embedding or generative models.
+
+## Evaluate automatic tag proposals
+
+Request `GET /api/documents/{id}/suggestions/?include_tag_scores=1` to
+receive a `tag_scores` object alongside the usual suggestions. Its keys are
+Paperless tag IDs. Its values are the local model's output for each proposed
+tag the caller can see. Several tags may score highly on the same document.
+A text-matching rule can propose a tag without a model score. A missing
+classifier or a model trained on only one outcome also yields no score.
+
+The scored request recomputes the proposals for the requesting user's access.
+Ordinary requests keep their existing shared suggestion cache. In Odoo,
+call `usl.document.document_detail(id, check_archive=True, include_tag_scores=True)`.
+A readable, unapplied tag proposal with a score carries `classifier_score`.
+An older Paperless server can continue returning its usual suggestions.
+
+To assess a threshold, freeze one model revision and independently label a
+held-out sample, including documents with no applicable automatic tag. Keep
+documents from the same series together when splitting training and evaluation.
+For each document, store its `tag_scores` and reviewed `expected_tag_ids` in
+a private JSON-lines file. Include every reviewed document, including rows
+with an empty score object or empty label list. Use the Paperless IDs for both
+columns. The evaluator only prints aggregate counts and rates.
+
+```sh
+python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85
+```
+
+Precision answers how often the proposed tags above the threshold were right.
+Recall answers how many of the expected tags the threshold recovered.
+With zero proposals precision is undefined. Review both measures and the
+number of examples before selecting an automatic policy. The scored API
+and evaluator perform no tag writes.
 
 ## Semantic API contract
 

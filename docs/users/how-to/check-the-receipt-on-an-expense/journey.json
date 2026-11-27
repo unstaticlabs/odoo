@@ -10,28 +10,28 @@
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
-    "line": 91,
+    "line": 96,
     "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
     "steps": {
-      "analytics": 134,
-      "approved": 200,
-      "attachments": 106,
-      "batch": 128,
-      "context_action": 140,
-      "entries": 218,
-      "evidence": 228,
-      "exception": 146,
-      "history": 240,
-      "no_actions": 234,
-      "no_trash": 152,
-      "open_expense": 99,
-      "payer": 118,
-      "post": 205,
-      "post_entries": 211,
-      "receipt": 113,
-      "reconciliation": 246,
-      "remove": 158,
-      "upload": 94
+      "analytics": 139,
+      "approved": 205,
+      "attachments": 111,
+      "batch": 133,
+      "context_action": 145,
+      "entries": 223,
+      "evidence": 233,
+      "exception": 151,
+      "history": 245,
+      "no_actions": 239,
+      "no_trash": 157,
+      "open_expense": 104,
+      "payer": 123,
+      "post": 210,
+      "post_entries": 216,
+      "receipt": 118,
+      "reconciliation": 251,
+      "remove": 163,
+      "upload": 99
     }
   },
   "steps": [
@@ -63,7 +63,7 @@
       "screenshot": null,
       "sha256": null,
       "text": "The paper-clip counter in the chatter says how many files the expense carries. Choose it.",
-      "trigger": ".o_form_view:has(.o_field_widget[name='product_id']) button[aria-label='Attach files']:contains('1')"
+      "trigger": ".o_form_view:has(.o_field_widget[name='product_id']) .o-mail-Chatter-attachFiles:contains('1')"
     },
     {
       "assertion": "The receipt evidence is inspectable from the expense",

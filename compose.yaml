@@ -56,14 +56,14 @@ services:
 
   paperless-preflight:
     profiles: ["paperless"]
-    image: alpine:3.24.3
+    image: alpine:3.24.4
     restart: "no"
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
-      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84}
-      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+      PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
+      OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
       USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
       PAPERLESS_AI_ENABLED: ${PAPERLESS_AI_ENABLED:-true}
       PAPERLESS_USL_DEFER_SEMANTIC_INDEX: ${PAPERLESS_USL_DEFER_SEMANTIC_INDEX:-false}
@@ -72,7 +72,7 @@ services:
       PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE:-512}
       PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE: ${PAPERLESS_AI_LLM_EMBEDDING_BATCH_SIZE:-32}
       PAPERLESS_POSTGRES_IMAGE: ${PAPERLESS_POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.3-alpine}
+      PAPERLESS_BROKER_IMAGE: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.2.0-alpine}
       PAPERLESS_GOTENBERG_IMAGE: ${PAPERLESS_GOTENBERG_IMAGE:-gotenberg/gotenberg:8.39@sha256:13672f317b443c793e972b1bd2155ec62a3e7b6891b411e8196442cc053ee5f5}
       PAPERLESS_TIKA_IMAGE: ${PAPERLESS_TIKA_IMAGE:-apache/tika:3.3.1.0-full}
       PAPERLESS_DB_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
@@ -90,7 +90,7 @@ services:
       POCKET_ID_CLIENT_ID: ${POCKET_ID_CLIENT_ID:-}
       POCKET_ID_PAPERLESS_CLIENT_ID: ${POCKET_ID_PAPERLESS_CLIENT_ID:-}
       POCKET_ID_PAPERLESS_CLIENT_SECRET: ${POCKET_ID_PAPERLESS_CLIENT_SECRET:-}
-      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.19.2@sha256:3ee23895d6a3adb5dd5de801a4fd31fc31b960e6dfbea9b5200e33cf477695eb}
+      POCKET_ID_IMAGE: ${POCKET_ID_IMAGE:-ghcr.io/pocket-id/pocket-id:v2.19.3@sha256:189e03bb73bb86d7108fe81cbe2237c408cff2176b14cd7a39cc12a2ee8b2762}
       ODOO_IMAGE: ${ODOO_IMAGE:-usl-odoo-saas-19-3-odoo:latest}
       ODOO_MCP_IMAGE: ${ODOO_MCP_IMAGE:-usl-odoo-mcp@sha256:9ea7c1b2ed5a27b7762cc98e83e403757e7dfbd717ce64dfd775484b98fdfc7a}
       ODOO_MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://mcp.localhost:3000}
@@ -169,7 +169,7 @@ services:
               *) echo "Image must include an exact tag or digest: $${image}"; exit 1;;
             esac
           done
-          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84" ] || {
+          [ "$${PAPERLESS_BASE_IMAGE}" = "ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9" ] || {
             echo "Paperless distribution base digest is not qualified"; exit 1;
           }
           [ "$${PAPERLESS_AI_ENABLED}" = "true" ] || { echo "Paperless local AI index must be enabled"; exit 1; }
@@ -216,7 +216,7 @@ services:
 
   paperless-broker:
     profiles: ["paperless"]
-    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.1.3-alpine}
+    image: ${PAPERLESS_BROKER_IMAGE:-valkey/valkey:9.2.0-alpine}
     restart: unless-stopped
     command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
@@ -229,7 +229,7 @@ services:
 
   paperless-ollama:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: unless-stopped
     environment:
       OLLAMA_HOST: 0.0.0.0:11434
@@ -245,7 +245,7 @@ services:
 
   paperless-model-preflight:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: "no"
     depends_on:
       paperless-model-init:
@@ -260,7 +260,7 @@ services:
 
   paperless-model-init:
     profiles: ["paperless"]
-    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.13@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429}
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
     restart: "no"
     depends_on:
       paperless-ollama:
@@ -294,7 +294,7 @@ services:
 
   paperless-trash-init:
     profiles: ["paperless"]
-    image: alpine:3.24.3
+    image: alpine:3.24.4
     restart: "no"
     command: ["chown", "1000:1000", "/trash"]
     volumes:
@@ -302,12 +302,12 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
       args:
-        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84}
+        PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
     restart: unless-stopped
     depends_on:
       paperless-preflight:
@@ -395,7 +395,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -416,7 +416,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.4.2-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
     restart: "no"
     depends_on:
       paperless-webserver:
