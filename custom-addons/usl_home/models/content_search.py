@@ -5,13 +5,13 @@ import re
 from odoo import api, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
-from odoo.tools import SQL, html2plaintext
+from odoo.tools import html2plaintext
 
 from odoo.addons.usl_project.models.content_search import (
     _CREDENTIAL_FIELD, company_domain, readable_content_domain, task_content_execution,
 )
 
-from odoo.addons.usl_project.models.search_words import lexical_words
+from .search_relevance import relevance_order
 
 # Business destinations, not a registry scan of configuration or credentials.
 SEARCH_MODELS = (
@@ -120,18 +120,7 @@ class HomeContentSearch(models.AbstractModel):
             native = model._search(domain)
             if native.is_empty():
                 return model.browse()
-            # TableSQL applies field permissions and the current translation.
-            # The exact native Query already contains model ACLs/record rules.
-            title = self.env.registry.unaccent(SQL("lower(coalesce(%s, ''))", native.table.name))
-            needle = self.env.registry.unaccent(SQL("lower(%s::text)", text))
-            words = lexical_words(needle)
-            native.order = SQL("""
-                CASE WHEN %(title)s = %(needle)s THEN 0
-                     WHEN strpos(%(title)s, %(needle)s) > 0 THEN 1
-                     WHEN cardinality(%(words)s) > 0 AND %(title_words)s @> %(words)s THEN 2
-                     ELSE 3 END, %(id)s DESC
-            """, title=title, needle=needle, words=words,
-                title_words=lexical_words(title), id=native.table.id)
+            native.order = relevance_order(model, native.table, text)
             native.limit = limit
             native.offset = offset
             return model.browse(row[0] for row in self.env.execute_query(native.select()))

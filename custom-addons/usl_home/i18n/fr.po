@@ -1092,3 +1092,16 @@ msgstr "Ce message source n’est plus disponible. Actualisez la recherche et r�
 #: model:ir.actions.server,name:usl_home.ir_cron_usl_index_task_messages_ir_actions_server
 msgid "Task chatter: refresh search index"
 msgstr "Messages des tâches : actualiser l’index de recherche"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/search_relevance.py:0
+msgid "Enter a non-empty search of up to 2,048 characters to order by relevance."
+msgstr "Saisissez une recherche non vide de 2 048 caractères au maximum pour trier par pertinence."
+
+#. module: usl_home
+#: model:ir.model.fields,help:usl_home.field_project_task__usl_search_text
+#: model:ir.model.fields,help:usl_home.field_project_project__usl_search_text
+#: model:ir.model.fields,help:usl_home.field_res_partner__usl_search_text
+msgid "Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged."
+msgstr "Utilisez un domaine de contenu ilike. Pour la pertinence de l’accueil, triez par usl_search_text et renseignez search_relevance_query avec le même texte. Les autres tris natifs restent inchangés."

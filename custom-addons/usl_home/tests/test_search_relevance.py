@@ -101,6 +101,7 @@ class TestSearchRelevance(TransactionCase):
             from odoo.fields import Domain
             records = self.service._search_ranked_records(Task, Domain("usl_search_text", "ilike", "Atelier grenat"), "Atelier grenat", 5, 0)
             self.assertEqual(records.ids, [newer.id, first.id])
+            self.assertEqual([r["id"] for r in self._native_ranked("tasks", "Atelier grenat")], [newer.id, first.id])
 
     def test_native_record_and_message_revocation_precedes_ranking(self):
         exact = self._record("tasks", "Atelier nacre")
@@ -112,11 +113,13 @@ class TestSearchRelevance(TransactionCase):
         rows = self._rows("Atelier nacre", "tasks")["records"]
         self.assertEqual([r["id"] for r in rows], [exact.id, mention.id])
         self.assertEqual(rows[1]["source"]["id"], message.id)
+        self.assertEqual([r["id"] for r in self._native_ranked("tasks", "Atelier nacre")], [exact.id, mention.id])
         message_rule = self.env["ir.rule"].create({
             "name": "Withdraw one readable source", "model_id": self.env["ir.model"]._get_id("mail.message"),
             "domain_force": repr([("id", "!=", message.id)]), "global": True,
         })
         self.assertEqual([r["id"] for r in self._rows("Atelier nacre", "tasks")["records"]], [exact.id])
+        self.assertEqual([r["id"] for r in self._native_ranked("tasks", "Atelier nacre")], [exact.id])
         with self.assertRaises(UserError):
             self.service.get_search_result_action("project.task", mention.id, source_message_id=message.id, source_field="body")
         message_rule.unlink()
@@ -127,6 +130,7 @@ class TestSearchRelevance(TransactionCase):
         rows = self._rows("Atelier nacre", "tasks")["records"]
         self.assertEqual([r["id"] for r in rows], [mention.id])
         self.assertEqual(rows[0]["source"]["id"], message.id)
+        self.assertEqual([r["id"] for r in self._native_ranked("tasks", "Atelier nacre")], [mention.id])
         with self.assertRaises(UserError):
             self.service.get_search_result_action("project.task", exact.id)
 
@@ -144,6 +148,7 @@ class TestSearchRelevance(TransactionCase):
                 scoped = self.service.with_context(allowed_company_ids=self.env.company.ids)
                 group, = scoped.search_records("Atelier azur", categories=[category])["groups"]
                 self.assertEqual([r["id"] for r in group["records"]], [visible.id])
+                self.assertEqual([r["id"] for r in self._native_ranked(category, "Atelier azur", context={"allowed_company_ids": self.env.company.ids})], [visible.id])
                 with self.assertRaises(UserError):
                     scoped.get_search_result_action(hidden._name, hidden.id)
                 if message:
@@ -172,6 +177,7 @@ class TestSearchRelevance(TransactionCase):
         self._index()
         group, = self.service.with_context(lang="fr_FR").search_records("Catalogue amarante", categories=["projects"])["groups"]
         self.assertEqual([row["id"] for row in group["records"]], [exact.id, mention.id])
+        self.assertEqual([r["id"] for r in self._native_ranked("projects", "Catalogue amarante", context={"lang": "fr_FR"})], [exact.id, mention.id])
 
     def test_search_keeps_original_sources_and_pending_projection_unchanged(self):
         task = self._record("tasks", "Atelier topaze")
@@ -194,6 +200,52 @@ class TestSearchRelevance(TransactionCase):
         self.env.cr.execute("SHOW jit")
         previous_jit, = self.env.cr.fetchone()
         self._rows("Atelier topaze", "tasks")
+        self._native_ranked("tasks", "Atelier topaze")
         self.assertEqual(snapshot(), before)
         self.env.cr.execute("SHOW jit")
         self.assertEqual(self.env.cr.fetchone(), (previous_jit,))
+
+    def _native_ranked(self, category, query, *, limit=25, offset=0, order="usl_search_text", context=None):
+        model = {"tasks": "project.task", "projects": "project.project", "contacts": "res.partner"}[category]
+        return self.env[model].with_user(self.actor).with_context(
+            active_test=False, search_relevance_query=query, **(context or {}),
+        ).search_read([("usl_search_text", "ilike", query)], ["id"], limit=limit, offset=offset, order=order)
+
+    def test_native_relevance_matches_home_and_annotated_corpus(self):
+        expected = {}
+        for case in self.corpus["cases"]:
+            if case["expected_order"]:
+                expected[case["id"]] = [self._record(case["category"], case["titles"][kind],
+                    case["mention"] if kind == "mention" else "").id for kind in case["expected_order"]]
+        self._index()
+        for case in self.corpus["cases"]:
+            with self.subTest(search=case["id"]):
+                actual = [row["id"] for row in self._native_ranked(case["category"], case["query"], limit=4)]
+                self.assertEqual(actual, expected.get(case["id"], []))
+                self.assertEqual(actual, [row["id"] for row in self._rows(case["query"], case["category"], limit=4)["records"]])
+
+    def test_native_relevance_paging_and_explicit_ordinary_order(self):
+        for category in ("tasks", "projects", "contacts"):
+            with self.subTest(category=category):
+                query = "Atelier cuivre " + category
+                exact = [self._record(category, query) for _ in range(3)]
+                mentions = [self._record(category, "Carnet", query) for _ in range(3)]
+                self._index()
+                expected = [r.id for r in reversed(exact)] + [r.id for r in reversed(mentions)]
+                pages = [row["id"] for offset in range(0, 6, 2)
+                    for row in self._native_ranked(category, query, limit=2, offset=offset)]
+                self.assertEqual(pages, expected)
+                self.assertEqual([r["id"] for r in self._native_ranked(category, query, order="usl_search_text desc")], list(reversed(expected)))
+                for order, ordinary in (("id asc", exact + mentions), ("id desc", list(reversed(exact + mentions)))):
+                    self.assertEqual([r["id"] for r in self._native_ranked(category, query, order=order)], [r.id for r in ordinary])
+
+    def test_native_relevance_requires_a_bounded_explicit_query(self):
+        self._record("tasks", "Atelier ambre")
+        Task = self.env["project.task"].with_user(self.actor)
+        for query in (None, False, "", " " , "x" * 2049, 12):
+            with self.subTest(query_type=type(query).__name__, query_length=len(query) if isinstance(query, str) else None):
+                with self.assertRaisesRegex(ValueError, "non-empty search"):
+                    Task.with_context(search_relevance_query=query).search_read(
+                        [("usl_search_text", "ilike", "Atelier ambre")], ["id"], order="usl_search_text")
+        self.assertEqual(Task.with_context(search_relevance_query="unrelated").search([], order="id asc").ids,
+            Task.search([], order="id asc").ids)

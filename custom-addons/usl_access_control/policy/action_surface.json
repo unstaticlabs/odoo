@@ -1423805,7 +1423805,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 195,
+          "line": 184,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424395,7 +1424395,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 174,
+          "line": 163,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424518,7 +1424518,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 140,
+          "line": 129,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1769803,11 +1769803,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "0e1b1d082c8cdb10e6c5759f6e61ea3d867f4d01d52dedd332f709113a72d134",
+      "manifest_sha256": "90832f58fe4404c09a1606605a965d41e17c1d3387e914625375859b895fd6ea",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "66f9e6b5c408ccc9a309b64c210756c385509943eb97c20a17f989ac9e5cd98f",
-      "version": "saas~19.3.1.0.16"
+      "source_sha256": "3cceb750333dd09db84fdff3755635809258e70125738213ba06283f193a5793",
+      "version": "saas~19.3.1.0.17"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
