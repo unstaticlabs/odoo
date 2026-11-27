@@ -17,6 +17,15 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         cls.target_data = cls.setup_other_company(name="Amber Workshop")
         cls.target = cls.target_data["company"]
         cls.partner_a.with_company(cls.target).property_account_payable_id = cls.target_data["default_account_payable"]
+        cls.target_same_code = cls._account(cls.target, cls.company_data["default_account_expense"].code)
+
+    @classmethod
+    def _account(cls, company, code):
+        """The company's account with this code, created when it has none."""
+        Account = cls.env["account.account"].with_company(company)
+        found = Account.search([*Account._check_company_domain(company), ("code", "=", code)], limit=1)
+        return found or Account.create({"name": "Synthetic %s" % code, "code": code, "account_type": "expense",
+                                        "company_ids": [Command.link(company.id)]})
 
     def _bill(self, *, taxed=False, kind="in_invoice", product=None):
         line = {
@@ -67,7 +76,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         (line,) = proposal["lines"]
         self.assertEqual([tax["id"] for tax in line["from"]["taxes"]], self.company_data["default_tax_purchase"].ids)
         self.assertEqual([tax["id"] for tax in line["to"]["taxes"]], self.target_data["default_tax_purchase"].ids)
-        self.assertEqual(line["to"]["account"]["id"], self.target_data["default_journal_purchase"].default_account_id.id)
+        self.assertEqual(line["to"]["account"]["id"], self.target_same_code.id)
         destination = preview["destination"]
         self.assertEqual(destination["amount_untaxed"], 85)
         self.assertEqual(destination["amount_tax"], 12.75)
@@ -83,12 +92,16 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                          (self.target, "draft", self.target_data["default_tax_purchase"]))
         self.assertEqual((done["before"]["company"]["id"], done["after"]["company"]["id"]), (source.id, self.target.id))
         self.assertEqual(done["after"]["amount_total"], 97.75)
+        self.assertEqual((done["before"]["payment_state"], done["after"]["payment_state"]), ("not_paid", "not_paid"))
         self.assertEqual(done["after"]["payable_account"]["id"], self.target_data["default_account_payable"].id)
         self.assertEqual([due["date"] for due in done["after"]["due_dates"]], [date.isoformat() for date in old_dates])
         self.assertTrue(done["bill"]["url"].endswith("/odoo/account.move/%s" % bill.id))
         # A repeated confirmation after a lost reply reports the finished move.
         again = bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
         self.assertEqual((again["status"], again["after"]["company"]["id"]), ("already_done", self.target.id))
+        # Without a preview id there is nothing to repeat: a bill already there is not a new request.
+        with self.assertRaises(UserError):
+            bill.change_bill_company(self.target.id, confirm=True)
 
     def test_confirmation_needs_the_matching_preview(self):
         bill = self._bill()
@@ -97,7 +110,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             bill.change_bill_company(self.target.id, confirm=True)
         preview = bill.change_bill_company(self.target.id)
         bill.invoice_line_ids.quantity = 3
-        with self.assertRaisesRegex(UserError, "changed"):
+        with self.assertRaisesRegex(UserError, "differ"):
             bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
         self.assertEqual((bill.company_id, bill.invoice_line_ids.quantity), (source, 3))
 
@@ -165,6 +178,20 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         bill.invoice_cash_rounding_id = rounding
         return rounding
 
+    def _blocked_by_partner(self, bill):
+        self.partner_a.company_id = bill.company_id
+        return self.partner_a
+
+    def _blocked_by_product(self, bill):
+        product = self.env["product.product"].create({"name": "Restricted hour", "company_id": bill.company_id.id})
+        bill.invoice_line_ids.product_id = product
+        return product
+
+    def _blocked_by_reversal(self, bill):
+        original = self._bill()
+        bill.reversed_entry_id = original
+        return original
+
     def test_every_native_blocker_is_named_with_a_link_and_a_next_step(self):
         cases = [
             ("payment_linked", self._blocked_by_payment),
@@ -174,6 +201,9 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             ("recurring_copy", self._blocked_by_recurrence),
             ("posted_before", self._blocked_by_history),
             ("cash_rounding", self._blocked_by_cash_rounding),
+            ("partner_restricted", self._blocked_by_partner),
+            ("product_restricted", self._blocked_by_product),
+            ("reversal", self._blocked_by_reversal),
         ]
         for code, make in cases:
             with self.subTest(code=code):
@@ -188,7 +218,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                 self.assertEqual(preview["status"], "blocked")
                 blocker = next(item for item in preview["blockers"] if item["code"] == code)
                 self.assertTrue(blocker["next_step"])
-                if code != "posted_before":
+                if code not in ("posted_before",):
                     named = blocker["records"][0]
                     self.assertEqual((named["model"], named["id"]), (culprit._name, culprit.id))
                     self.assertIn("/odoo/%s/%s" % (culprit._name, culprit.id), named["url"])
@@ -200,6 +230,15 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                 with self.assertRaises(UserError):
                     wizard.action_prepare_mapping()
                 self.assertEqual(bill.company_id, source)
+
+    def test_an_expense_the_operator_cannot_read_is_found_but_not_named(self):
+        bill = self._bill()
+        self._blocked_by_expense(bill)
+        operator = new_test_user(self.env, login="studio-no-expense-access", groups="base.group_user,account.group_account_invoice",
+                                 company_id=bill.company_id.id, company_ids=[Command.set((bill.company_id | self.target).ids)])
+        blockers = bill.with_user(operator)._company_transfer_blockers(self.target)
+        (expense,) = [item for item in blockers if item["code"] == "expense_linked"]
+        self.assertNotIn("Studio taxi", str(expense))
 
     def test_paid_draft_is_refused_at_the_first_step_with_the_payment_named(self):
         bill = self._bill(kind="in_refund")
@@ -285,10 +324,65 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         none = bill.change_bill_company(self.target.id, {"fiscal_position_id": False})
         self.assertIsNone(none["proposal"]["fiscal_position"])
 
-    def test_account_falls_back_to_the_journal_default_without_a_product(self):
+    def test_same_account_code_in_the_destination_is_proposed_before_any_default(self):
+        source_account = self._account(self.company_data["company"], "601000")
+        target_account = self._account(self.target, "601000")
         bill = self._bill()
-        (line,) = bill.change_bill_company(self.target.id)["proposal"]["lines"]
-        self.assertEqual(line["to"]["account"]["id"], self.target_data["default_journal_purchase"].default_account_id.id)
+        bill.invoice_line_ids.account_id = source_account
+        preview = bill.change_bill_company(self.target.id)
+        (line,) = preview["proposal"]["lines"]
+        self.assertEqual((preview["status"], line["to"]["account"]["id"]), ("ready", target_account.id))
+
+    def test_a_journal_default_account_is_a_guess_the_agent_must_confirm(self):
+        source_account = self._account(self.company_data["company"], "699999")
+        bill = self._bill()
+        bill.invoice_line_ids.account_id = source_account
+        guess = self.target_data["default_journal_purchase"].default_account_id
+        preview = bill.change_bill_company(self.target.id)
+        (line,) = preview["proposal"]["lines"]
+        self.assertEqual((preview["status"], line["to"]["account"]["id"]), ("needs_input", guess.id))
+        self.assertEqual([item["code"] for item in preview["unresolved"]], ["account_guess"])
+        self.assertTrue(preview["destination"], "the totals are still shown for the guess")
+        with self.assertRaisesRegex(UserError, "guess"):
+            bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+        mapping = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": guess.id}]}
+        confirmed = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual(confirmed["status"], "ready")
+        bill.change_bill_company(self.target.id, mapping, confirm=True, preview_id=confirmed["preview_id"])
+        self.assertEqual(bill.company_id, self.target)
+
+    def test_confirmation_must_repeat_the_previewed_choices(self):
+        bill = self._bill(taxed=True)
+        source = bill.company_id
+        other = self._account(self.target, "602000")
+        previewed = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": self.target_same_code.id}]}
+        different = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": other.id}]}
+        preview = bill.change_bill_company(self.target.id, previewed)
+        with self.assertRaisesRegex(UserError, "differ"):
+            bill.change_bill_company(self.target.id, different, confirm=True, preview_id=preview["preview_id"])
+        with self.assertRaisesRegex(UserError, "differ"):
+            bill.change_bill_company(self.target.id, confirm=True, preview_id=bill.change_bill_company(
+                self.target.id, different)["preview_id"])
+        self.assertEqual(bill.company_id, source)
+        bill.change_bill_company(self.target.id, previewed, confirm=True, preview_id=preview["preview_id"])
+        self.assertEqual((bill.company_id, bill.invoice_line_ids.account_id), (self.target, self.target_same_code))
+
+    def test_due_dates_without_payment_terms_are_the_bills_own(self):
+        bill = self._bill()
+        bill.invoice_payment_term_id = False
+        bill.invoice_date_due = "2026-05-20"
+        destination = bill.change_bill_company(self.target.id)["destination"]
+        self.assertEqual([due["date"] for due in destination["due_dates"]], ["2026-05-20"])
+
+    def test_destination_scope_comes_first_so_its_account_codes_show(self):
+        bill = self._bill()
+        wizard = self._mapping(bill)
+        scoped = wizard._in_both_companies()
+        self.assertEqual(scoped.env.context["allowed_company_ids"], [self.target.id, bill.company_id.id])
+        self.assertEqual(wizard.scope_company_ids[0], self.target.id)
+        account = scoped.env["account.account"].browse(self.target_same_code.id)
+        self.assertTrue(account.code)
+        self.assertTrue(account.display_name.startswith(account.code))
 
     # --- the dialog ---------------------------------------------------------------------
 
@@ -315,7 +409,8 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         self.assertEqual(sorted(terms.mapped("date_maturity")), old_dates)
         self.assertEqual(terms.account_id, self.target_data["default_account_payable"])
         self.assertFalse(bill.company_currency_id.round(sum(bill.line_ids.mapped("balance"))))
-        self.assertEqual(wizard.action_apply()["res_id"], bill.id)
+        action = wizard.action_apply()
+        self.assertEqual((action["type"], action["url"]), ("ir.actions.act_url", "/mail/view?model=account.move&res_id=%s" % bill.id))
 
     def test_later_edit_requires_a_new_preview(self):
         bill = self._bill()
@@ -348,7 +443,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                              company_ids=[Command.set(bill.company_id.ids)])
         bill = bill.with_user(user).with_context(allowed_company_ids=bill.company_id.ids)
         wizard = self._wizard(bill)
-        self.assertNotIn(str(self.target.id), dict(wizard._target_company_choices()))
+        self.assertNotIn(self.target.id, wizard.operator_company_ids)
         with self.assertRaises(AccessError):
             wizard.action_prepare_mapping()
         with self.assertRaises(AccessError):
@@ -360,18 +455,27 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                                  groups="base.group_user,account.group_account_invoice", company_id=source.id,
                                  company_ids=[Command.set((source | self.target).ids)])
         bill = self._bill().with_user(operator).with_context(allowed_company_ids=source.ids)
-        wizard = self._wizard(bill)
-        self.assertEqual(set(dict(wizard._target_company_choices())), {str(source.id), str(self.target.id)})
-        wizard.target_company_choice = str(source.id)
+        action = bill.action_change_bill_company()
+        wizard = bill.env[action["res_model"]].browse(action["res_id"])
+        self.assertEqual(set(wizard.operator_company_ids), {source.id, self.target.id})
+        self.assertEqual(wizard.target_company_id, self.target, "one other company needs no choice")
+        wizard.target_company_id = source
         with self.assertRaisesRegex(UserError, "different"):
             wizard.action_prepare_mapping()
-        wizard.target_company_choice = str(self.target.id)
-        self.assertEqual(wizard.target_company_id, self.target)
+        wizard.target_company_id = self.target
         wizard.action_prepare_mapping()
         action = wizard.action_apply()
         self.assertEqual(bill.sudo().company_id, self.target)
-        # The destination is not active in the selector, so say so instead of opening a bill the web client cannot read.
-        self.assertEqual((action["type"], action["tag"]), ("ir.actions.client", "display_notification"))
+        # The native link switches to the bill's company, whatever the selector shows.
+        self.assertEqual(action["type"], "ir.actions.act_url")
+
+    def test_edits_made_in_the_dialog_are_what_gets_applied(self):
+        bill = self._bill(taxed=True)
+        wizard = self._mapping(bill)
+        other = self._account(self.target, "602000")
+        wizard.mapping_ids.target_account_id = other
+        wizard.action_apply()
+        self.assertEqual((bill.company_id, bill.invoice_line_ids.account_id), (self.target, other))
 
     def test_owner_and_delegated_operator_transfer_with_the_same_native_rights(self):
         if "usl.agent" not in self.env:

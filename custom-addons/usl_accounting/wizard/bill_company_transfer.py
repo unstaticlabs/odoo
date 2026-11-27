@@ -3,7 +3,7 @@ from markupsafe import Markup
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
-from odoo.tools import format_date
+from odoo.tools import format_amount, format_date
 
 
 class BillCompanyTransfer(models.TransientModel):
@@ -15,10 +15,9 @@ class BillCompanyTransfer(models.TransientModel):
     source_journal_id = fields.Many2one(related="bill_id.journal_id", string="Current journal", compute_sudo=False)
     stage = fields.Selection([("choose", "Choose company"), ("map", "Review accounts"), ("done", "Transferred")],
                              default="choose", required=True, readonly=True)
-    target_company_id = fields.Many2one("res.company", string="Destination company record")
-    target_company_choice = fields.Selection(selection="_target_company_choices", string="Destination company",
-                                             compute="_compute_target_company_choice",
-                                             inverse="_inverse_target_company_choice")
+    target_company_id = fields.Many2one("res.company", string="Destination company")
+    operator_company_ids = fields.Json(compute="_compute_operator_companies",
+                                       help="Every company the operator can access, active in the selector or not.")
     journal_id = fields.Many2one("account.journal", string="Destination journal")
     fiscal_position_id = fields.Many2one("account.fiscal.position", string="Destination fiscal position")
     source_fiscal_position_id = fields.Many2one(related="bill_id.fiscal_position_id", string="Current fiscal position", compute_sudo=False)
@@ -28,7 +27,6 @@ class BillCompanyTransfer(models.TransientModel):
     mapping_ids = fields.One2many("usl.bill.company.transfer.line", "transfer_id", string="Invoice lines")
     scope_company_ids = fields.Json(compute="_compute_scope_company_ids",
                                     help="Both companies, so the destination's records can be read and chosen.")
-    active_company_ids = fields.Json(readonly=True, help="The companies that were active when the dialog opened.")
     snapshot = fields.Char(readonly=True)
     warning = fields.Text(readonly=True)
     destination_summary = fields.Text(readonly=True)
@@ -40,14 +38,19 @@ class BillCompanyTransfer(models.TransientModel):
     def create(self, vals_list):
         for values in vals_list:
             self.env["account.move"].browse(values.get("bill_id"))._check_draft_company_transfer()
-            values.setdefault("active_company_ids", self.env.companies.ids)
+            # With one other company to choose from, there is nothing to choose.
+            bill = self.env["account.move"].browse(values.get("bill_id"))
+            others = self.env["res.users"].sudo().browse(self.env.uid).company_ids - bill.company_id
+            if len(others) == 1:
+                values.setdefault("target_company_id", others.id)
         return super().create(vals_list)
 
     def _both_companies(self):
         """The bill's company and the destination, when the operator belongs to both."""
         self.ensure_one()
         operator = self.env["res.users"].sudo().browse(self.env.uid)
-        return (self.bill_id.company_id | self.target_company_id) & operator.company_ids
+        # The destination first: its account codes and names show in the first company's context.
+        return (self.target_company_id | self.bill_id.company_id) & operator.company_ids
 
     def _in_both_companies(self):
         """These records, read and written with the current and destination companies in scope.
@@ -77,20 +80,10 @@ class BillCompanyTransfer(models.TransientModel):
         for wizard in self:
             wizard.scope_company_ids = wizard._both_companies().ids
 
-    @api.model
-    def _target_company_choices(self):
-        """Every company of the operator, not only the ones active in the selector."""
-        operator = self.env["res.users"].sudo().browse(self.env.uid)
-        return [(str(company.id), company.display_name) for company in operator.company_ids]
-
-    @api.depends("target_company_id")
-    def _compute_target_company_choice(self):
+    def _compute_operator_companies(self):
+        companies = self.env["res.users"].sudo().browse(self.env.uid).company_ids
         for wizard in self:
-            wizard.target_company_choice = str(wizard.target_company_id.id) if wizard.target_company_id else False
-
-    def _inverse_target_company_choice(self):
-        for wizard in self:
-            wizard.sudo().target_company_id = int(wizard.target_company_choice) if wizard.target_company_choice else False
+            wizard.operator_company_ids = companies.ids
 
     @api.depends_context("lang")
     @api.depends("bill_id", "bill_id.line_ids", "bill_id.matched_payment_ids", "target_company_id")
@@ -115,7 +108,7 @@ class BillCompanyTransfer(models.TransientModel):
             bill = wizard.bill_id
             due_dates = sorted(line.date_maturity for line in bill.line_ids
                                if line.display_type == "payment_term" and line.date_maturity)
-            lines = [_("The bill keeps its reference, currency, quantities and prices. Original files stay with their current company.")]
+            lines = [_("The bill keeps its reference, currency, quantities and prices. Attachments stay on the bill.")]
             if due_dates:
                 lines.append(_("Current due dates: %(dates)s.", dates=", ".join(format_date(self.env, date) for date in due_dates)))
             wizard.consequences = "\n".join(lines)
@@ -148,12 +141,15 @@ class BillCompanyTransfer(models.TransientModel):
         destination = result["destination"] or {}
         summary = []
         if destination:
-            summary.append(_("Destination total: %(total)s %(currency)s, of which taxes %(tax)s.",
-                             total=destination["amount_total"], currency=destination["currency"],
-                             tax=destination["amount_tax"]))
+            currency = bill.currency_id
+            summary.append(_("Destination total: %(total)s, of which taxes %(tax)s.",
+                             total=format_amount(self.env, destination["amount_total"], currency),
+                             tax=format_amount(self.env, destination["amount_tax"], currency)))
             if destination["due_dates"]:
                 summary.append(_("Destination due dates: %(dates)s.", dates=", ".join(
-                    "%s (%s)" % (due["date"], due["amount"]) for due in destination["due_dates"])))
+                    "%s (%s)" % (format_date(self.env, fields.Date.to_date(due["date"])),
+                                 format_amount(self.env, due["amount"], currency))
+                    for due in destination["due_dates"])))
         payable = proposal["payable_account"]
         if payable:
             summary.append(_("Payable account: %(account)s.", account=payable["display_name"]))
@@ -162,7 +158,7 @@ class BillCompanyTransfer(models.TransientModel):
             "fiscal_position_id": proposal["fiscal_position"]["id"] if proposal["fiscal_position"] else False,
             "remove_fiscal_position": False,
             "term_id": proposal["payment_term"]["id"] if proposal["payment_term"] else False,
-            "snapshot": result["preview_id"], "mapping_ids": mapped,
+            "snapshot": bill._vendor_bill_merge_snapshot(), "mapping_ids": mapped,
             "destination_summary": "\n".join(summary),
             "warning": "\n".join(item["message"] for item in result["unresolved"]) or False,
         })
@@ -205,18 +201,9 @@ class BillCompanyTransfer(models.TransientModel):
         return mapping
 
     def _bill_action(self):
-        bill = self.bill_id
-        if bill.company_id.id not in (self.active_company_ids or []):
-            # The form behind this dialog shows a bill the web client can no longer read: go to the bill list.
-            vendor_bills = self.env["ir.actions.act_window"]._for_xml_id("account.action_move_in_invoice_type")
-            return {"type": "ir.actions.client", "tag": "display_notification", "params": {
-                "type": "success", "sticky": True,
-                "message": _("The bill is now in %(company)s. Activate it in the company selector to open it.",
-                             company=bill.sudo().company_id.display_name),
-                "next": {**vendor_bills, "target": "main"}}}
-        bill.check_access("read")
-        return {"type": "ir.actions.act_window", "res_model": "account.move", "res_id": bill.id,
-                "name": bill.display_name, "view_mode": "form", "target": "current"}
+        """Land on the moved bill; the native link switches to its company when it is not active."""
+        return {"type": "ir.actions.act_url", "target": "self",
+                "url": "/mail/view?model=account.move&res_id=%s" % self.bill_id.id}
 
     def action_apply(self):
         self.ensure_one()
@@ -228,8 +215,15 @@ class BillCompanyTransfer(models.TransientModel):
         bill = wizard._scoped_bill()
         if wizard.stage != "map":
             raise UserError(_("Review the destination accounts first."))
-        bill.change_bill_company(wizard.target_company_id.id, wizard._mapping(bill), confirm=True,
-                                 preview_id=wizard.snapshot)
+        if wizard.snapshot != bill._vendor_bill_merge_snapshot():
+            raise UserError(_("The bill changed since this preview. Review the current bill and its accounts again."))
+        # Preview what is on screen, then confirm exactly that: edits made in the dialog are part of the preview.
+        mapping = wizard._mapping(bill)
+        preview = bill.change_bill_company(wizard.target_company_id.id, mapping)
+        if preview["status"] != "ready":
+            raise UserError("\n".join("%s %s" % (item["message"], item.get("next_step", ""))
+                                      for item in preview["blockers"] + preview["unresolved"]))
+        bill.change_bill_company(wizard.target_company_id.id, mapping, confirm=True, preview_id=preview["preview_id"])
         self.write({"stage": "done", "warning": False})
         return self._bill_action()
 

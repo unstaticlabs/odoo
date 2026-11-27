@@ -3,8 +3,8 @@
 ## Move a draft vendor bill to another company
 
 Open the draft vendor bill or credit note and select **Change company**. The
-dialog lists every company you can access, whether or not it is active in the
-company selector. When something prevents the move, the dialog says so at once,
+dialog offers every company you can access, whether or not it is active in the
+company selector, and preselects it when there is only one other. When something prevents the move, the dialog says so at once,
 names each record with a link and gives the next step. Otherwise choose the
 destination and select **Review accounts**.
 
@@ -14,7 +14,9 @@ Odoo then proposes the destination the way a new bill there would get it:
 - the fiscal position Odoo finds for the supplier in the destination company;
 - the current payment terms when they are shared, otherwise the supplier's terms there;
 - for each line, the shared account, otherwise the product's expense account,
-  otherwise the journal's default account;
+  otherwise the account with the same code in the destination company. When
+  none matches, the journal's default account is only a guess: the dialog and
+  the preview say so, and an agent must pass `account_id` to confirm it;
 - for each taxed line, the product's supplier taxes of the destination company
   mapped by the fiscal position, otherwise the destination purchase tax with the
   same rate, type and price-included setting.
@@ -22,8 +24,8 @@ Odoo then proposes the destination the way a new bill there would get it:
 The dialog also shows the destination total, its taxes and the due dates Odoo
 will compute. A line whose tax has no equivalent stays empty and needs
 destination taxes, or an explicit choice to use no tax. Select **Transfer draft**
-to apply the reviewed result in one step. Odoo opens the bill, or confirms the
-move when the destination is not active in the company selector.
+to apply the reviewed result in one step. Odoo then opens the moved bill, switching to its
+company when it is not the active one.
 
 The bill keeps its ID, supplier, reference, document currency, quantities and
 unit prices. Odoo recalculates the tax and installment lines in the destination
@@ -34,7 +36,9 @@ identities. The bill's chatter names the original and destination companies.
 
 A draft cannot change company while it is linked to a payment, a bank
 transaction, another reconciled entry, a purchase order, an expense, a recurring
-bill, or a cash rounding method of its current company. A bill that was posted
+bill, a cash rounding method of its current company, a supplier or product
+restricted to its current company, or, for a credit note, the bill it reverses.
+A bill that was posted
 before also stays where its sequence number was issued. Each blocker is shown
 when the dialog opens, with a link to the record and what to do: for example,
 open the payment, unreconcile it from the bill, then reopen **Change company**.
@@ -59,9 +63,10 @@ agent get the same proposal and the same refusals under the same rights.
    none), `payment_term_id`, and `lines` with `line_id`, `account_id`, `tax_ids`
    (an empty list for no tax) and `analytic_distribution`.
 
-The preview id covers the bill as the preview saw it, the destination and the caller.
-A later edit calls for a new preview. After a lost reply, confirm again: a bill
-already in the destination reports `already_done` and moves nothing.
+The preview id covers the bill as the preview saw it, the destination, the caller
+and every resolved choice. A later edit, or a confirmation with a different
+`mapping`, calls for a new preview. After a lost reply, confirm again with the same
+preview id: a bill already in the destination reports `already_done` and moves nothing.
 
 ## Inspect a company change without opening the transfer
 

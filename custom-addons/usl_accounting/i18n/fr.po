@@ -8279,7 +8279,6 @@ msgstr "Compte de destination"
 #. module: usl_accounting
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__target_company_id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__company_id
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__target_company_choice
 msgid "Destination company"
 msgstr "Société de destination"
 
@@ -8406,12 +8405,6 @@ msgstr "Étape"
 #: code:addons/usl_accounting/models/bill_company_transfer.py
 msgid "The bill is being edited. Try again after the other edit finishes."
 msgstr "La facture est en cours de modification. Réessayez une fois la modification terminée."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
-msgid "The bill keeps its reference, currency, quantities and prices. Original files stay with their current company."
-msgstr "La facture conserve sa référence, sa devise, ses quantités et ses prix. Les fichiers d’origine restent rattachés à leur société actuelle."
 
 #. module: usl_accounting
 #. odoo-python
@@ -8585,22 +8578,10 @@ msgid "Destination Summary"
 msgstr "Résumé de la destination"
 
 #. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__target_company_id
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__company_id
-msgid "Destination company record"
-msgstr "Société de destination (fiche)"
-
-#. module: usl_accounting
 #. odoo-python
 #: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
 msgid "Destination due dates: %(dates)s."
 msgstr "Échéances à destination : %(dates)s."
-
-#. module: usl_accounting
-#. odoo-python
-#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
-msgid "Destination total: %(total)s %(currency)s, of which taxes %(tax)s."
-msgstr "Total à destination : %(total)s %(currency)s, dont taxes %(tax)s."
 
 #. module: usl_accounting
 #. odoo-python
@@ -8866,3 +8847,129 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__analytic_precision
 msgid "Analytic Precision"
 msgstr "Précision analytique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"%(line)s has no matching account over there: the journal's default account "
+"is only a guess."
+msgstr ""
+"%(line)s n’a pas de compte équivalent à destination : le compte par défaut "
+"du journal n’est qu’une hypothèse."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_usl_bill_company_transfer__scope_company_ids
+#: model:ir.model.fields,help:usl_accounting.field_usl_bill_company_transfer_line__scope_company_ids
+msgid "Both companies, so the destination's records can be read and chosen."
+msgstr ""
+"Les deux sociétés, pour lire et choisir les enregistrements de la "
+"destination."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"Create a new credit note in the destination company and cancel this one: a "
+"reversal stays with the entry it reverses."
+msgstr ""
+"Créez un nouvel avoir dans la société de destination et annulez celui-ci : "
+"une extourne reste avec l’écriture qu’elle extourne."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Destination total: %(total)s, of which taxes %(tax)s."
+msgstr "Total à destination : %(total)s, dont taxes %(tax)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_usl_bill_company_transfer__operator_company_ids
+msgid "Every company the operator can access, active in the selector or not."
+msgstr ""
+"Toutes les sociétés auxquelles l’opérateur a accès, actives dans le "
+"sélecteur ou non."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"Open the contact, clear its Company field so every company can use it, then "
+"reopen Change company."
+msgstr ""
+"Ouvrez le contact, videz son champ Société pour que toutes les sociétés "
+"puissent l’utiliser, puis rouvrez Changer de société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"Open the product, clear its Company field so every company can use it, then "
+"reopen Change company."
+msgstr ""
+"Ouvrez l’article, videz son champ Société pour que toutes les sociétés "
+"puissent l’utiliser, puis rouvrez Changer de société."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__operator_company_ids
+msgid "Operator Company"
+msgstr "Société de l’opérateur"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "Pass account_id for this line to confirm the account."
+msgstr "Transmettez account_id pour cette ligne afin de confirmer le compte."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "Product %(name)s is restricted to company %(company)s."
+msgstr "L’article %(name)s est réservé à la société %(company)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__scope_company_ids
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__scope_company_ids
+msgid "Scope Company"
+msgstr "Sociétés dans le périmètre"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "Supplier %(name)s is restricted to company %(company)s."
+msgstr "Le fournisseur %(name)s est réservé à la société %(company)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid ""
+"The bill changed since this preview. Review the current bill and its "
+"accounts again."
+msgstr ""
+"La facture a changé depuis cet aperçu. Vérifiez de nouveau la facture et ses"
+" comptes."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid ""
+"The bill keeps its reference, currency, quantities and prices. Attachments "
+"stay on the bill."
+msgstr ""
+"La facture conserve sa référence, sa devise, ses quantités et ses prix. Les "
+"pièces jointes restent sur la facture."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid ""
+"The bill or the choices differ from the preview, or none was requested. "
+"Preview again, then confirm the same choices."
+msgstr ""
+"La facture ou les choix diffèrent de l’aperçu, ou aucun aperçu n’a été "
+"demandé. Relancez l’aperçu, puis confirmez les mêmes choix."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/bill_company_transfer.py:0
+msgid "This credit note reverses %(name)s."
+msgstr "Cet avoir extourne %(name)s."
