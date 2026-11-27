@@ -4,13 +4,15 @@ import argparse
 import io
 import json
 import subprocess
+import sys
+import tempfile
 import unittest
 from contextlib import redirect_stdout
 from contextlib import contextmanager
 from pathlib import Path
 from unittest.mock import patch
 
-from operations.runtime import load_target
+from operations.runtime import CommandRunner, load_target
 from operations.stack import (
     RECOVERY_PROOF_MAX_SECONDS,
     RECOVERY_PROOF_RUNTIME_ROLES,
@@ -26,6 +28,7 @@ from operations.stack import (
     _recovery_proof_root,
     _run_recovery_proof_container,
     _start_recovery_proof_database,
+    _start_database_with_password,
     _recover_recovery_proof_backup,
     _validate_digested_document,
     _validate_recovery_proof_receipt,
@@ -100,6 +103,8 @@ class ResourceRunner:
 
     def run(self, command: list[str], *, check: bool = True, input_text: str | None = None):
         self.commands.append(command)
+        if command[:2] == ["python3", "-c"] and command[5:8] == ["docker", "run", "--detach"]:
+            command = command[5:]
         if command[0] == "cat":
             value = self.files.get(command[1])
             return self.completed(command, value or "", 0 if value is not None else 1)
@@ -410,6 +415,35 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertEqual(command[command.index("--network") + 1], names["network"])
         self.assertNotIn(self.target.value["secrets"]["env_file"], command)
 
+    def test_database_launch_rejects_bad_passwords_and_redacts_failing_client_output(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "database.env"
+            marker = Path(directory) / "ran"
+            child = [sys.executable, "-c",
+                     "import pathlib,sys; data=sys.stdin.buffer.read(); "
+                     "pathlib.Path(sys.argv[1]).touch(); "
+                     "sys.stderr.buffer.write(data); sys.stdout.buffer.write(data); sys.exit(29)", str(marker)]
+            password = "not-for-logs"
+            for content, reason in [
+                ("OTHER=" + password, "missing"),
+                ("KEY=\nOTHER=" + password, "empty"),
+                ("  KEY=" + password + "\nKEY=second", "duplicated"),
+            ]:
+                with self.subTest(reason=reason):
+                    source.write_text(content)
+                    with self.assertRaises(RuntimeError) as raised:
+                        _start_database_with_password(CommandRunner(), str(source), "KEY", child)
+                    self.assertIn(reason, str(raised.exception).rsplit("): ", 1)[-1])
+                    self.assertNotIn(password, str(raised.exception))
+                    self.assertFalse(marker.exists())
+            source.write_text("KEY=" + password + "\nOTHER=never-transported")
+            with self.assertRaises(RuntimeError) as raised:
+                _start_database_with_password(CommandRunner(), str(source), "KEY", child)
+            self.assertTrue(marker.exists())
+            self.assertIn("Docker could not start the database container (exit 29)", str(raised.exception).rsplit("): ", 1)[-1])
+            self.assertNotIn(password, str(raised.exception))
+            self.assertNotIn("never-transported", str(raised.exception))
+
     def test_database_uses_exact_database_role_name_for_start_and_readiness(self) -> None:
         runner = ResourceRunner()
         names = _recovery_proof_names(self.target, PROOF_ID)
@@ -418,7 +452,10 @@ class RecoveryProofContractTests(unittest.TestCase):
         _start_recovery_proof_database(
             self.target, runner, PROOF_ID, names, images, "odoo", "/proof/database.env",
         )
-        start = next(command for command in runner.commands if command[:3] == ["docker", "run", "--detach"])
+        launch = next(command for command in runner.commands if command[5:8] == ["docker", "run", "--detach"])
+        self.assertEqual(launch[3:5], ["/proof/database.env", "ODOO_DB_PASSWORD"])
+        start = launch[5:]
+        self.assertEqual(start[start.index("--env-file") + 1], "/dev/stdin")
         self.assertEqual(start[start.index("--name") + 1], names["containers"]["odoo_db"])
         ready = next(command for command in runner.commands if command[:2] == ["docker", "exec"])
         self.assertEqual(ready[2], names["containers"]["odoo_db"])
