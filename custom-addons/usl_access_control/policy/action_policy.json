@@ -213663,7 +213663,7 @@
       "id": "voice.dictation",
       "rationale": "The endpoint accepts audio only and fixes its destination. Dictation writes no records.",
       "reviewed_digests": {
-        "route:http:POST:/usl/voice/dictate": "799c97b52088cc1c2399f472e6a5f88829d1f822fb31187292784e8020107c83"
+        "route:http:POST:/usl/voice/dictate": "9abff072ab5479aac47e6e1af1f9a46d3621ca91b08dce6d13f162707f486482"
       }
     },
     {
@@ -213708,7 +213708,7 @@
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.message._usl_transcribe_voice:sudo:1": "d701c5d4e4760cce369a96981163cec8e6f02055c4aae178c9af59a77b7fb755",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:orm_write:1": "a37ddb9ea0b59b65cca2ad85c293337b9dd59a4be002f8f999e1fb3afa721873",
         "sink:usl_voice:custom-addons/usl_voice/models.py:mail.thread._message_post_after_hook:sudo:1": "900e7fa0fdbb9efaca2157e9fa3e86ca29579bef4fad719239b1f5dda42c8b3f",
-        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "6bfaf7783d5b157d58474df241b1c0f0cda3d63dd6c4f4e0d01cbe012624617a"
+        "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1": "d1366556d27b8722d806fd3757a13669ab0dcaa983e83232ecc78f9e9c6fb85a"
       }
     },
     {

@@ -1,8 +1,10 @@
 from unittest.mock import MagicMock, patch
 
 from odoo.exceptions import AccessError
+from odoo.http import Response
 from odoo.tests import TransactionCase, new_test_user, tagged
 
+from ..controllers import VoiceController
 from ..speech import SpeechUnavailable, transcribe
 
 
@@ -140,6 +142,22 @@ class TestVoice(TransactionCase):
                 transcribe(b"audio", "audio/mpeg", patience=90)
             self.assertEqual(post.call_count, 1)
             sleep.assert_not_called()
+
+    def test_browser_can_wait_outside_the_odoo_request(self):
+        busy = MagicMock(status_code=503, headers={"Retry-After": "2"})
+        clip = MagicMock(mimetype="audio/mpeg")
+        clip.read.return_value = b"synthetic"
+        http_request = MagicMock()
+        http_request.make_response.side_effect = Response
+        with patch("odoo.addons.usl_voice.controllers.request", http_request), \
+                patch("odoo.addons.usl_voice.speech.requests.post", return_value=busy) as send, \
+                patch("odoo.addons.usl_voice.speech.time.sleep") as sleep:
+            response = VoiceController().dictate(file=clip, client_retry="1")
+            send.assert_called_once()
+            sleep.assert_not_called()
+            self.assertEqual(response.status_code, 503)
+            self.assertEqual(response.headers["Retry-After"], "2")
+            self.assertEqual(response.headers["Cache-Control"], "no-store")
 
     def test_words_heard_are_kept_when_the_second_hearing_fails(self):
         first = MagicMock(status_code=200, headers={})
