@@ -199956,6 +199956,7 @@
       "action_keys": [
         "client:project:addons/project/static/src/views/components/project_task_template_dropdown.js:if:rpc:1",
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1",
+        "client:usl_project:custom-addons/usl_project/static/src/project_notes/project_notes.js:if:rpc:1",
         "ui:project.action_server_convert_project_to_template",
         "ui:project.action_server_convert_to_subtask",
         "ui:project.action_server_convert_to_template",
@@ -200030,6 +200031,11 @@
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1": {
           "targets": [
             "rpc:mail.activity.todo.create.create"
+          ]
+        },
+        "client:usl_project:custom-addons/usl_project/static/src/project_notes/project_notes.js:if:rpc:1": {
+          "targets": [
+            "rpc:project.project.get_team_notes"
           ]
         },
         "ui:project.action_server_convert_project_to_template": {
@@ -200332,6 +200338,7 @@
       "reviewed_digests": {
         "client:project:addons/project/static/src/views/components/project_task_template_dropdown.js:if:rpc:1": "2d4bcc6b6ed86f3d0c6a93933676b4dcc51832ef6ece71209b4ea09bd5c2be7d",
         "client:project_todo:addons/project_todo/static/src/core/web/activity_menu_patch.js:createActivityTodo:rpc:1": "194b76d20b9ea4278d81d92a97a8483123e5346fa77d5a1cb74edcd10a74ffeb",
+        "client:usl_project:custom-addons/usl_project/static/src/project_notes/project_notes.js:if:rpc:1": "fee84808817d604c1e3e2a5c8aa0179eeadcff0fad5cdf5f330cfcc73fc4965a",
         "ui:project.action_server_convert_project_to_template": "a34e774003052bc633a49e0cffb084e6b1aefc7e55c64f60e7f24cbc1308cfe7",
         "ui:project.action_server_convert_to_subtask": "17ac49d589360275dd08edbe02fb862e2075d7aed6835d3e307217e92d968b77",
         "ui:project.action_server_convert_to_template": "28da51ea279fbf34de0fe5e440b0f70fe9b2d712a113d5df99cc6764ea443ce8",
@@ -221779,6 +221786,20 @@
       "reviewed_digests": {
         "rpc:usl.document.mcp_read_binary": "58a76e7cd1752e2fa133d2759a70af25202608f221aa583b90c98c4403d31f59"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.project.get_team_notes"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads the list and selected Markdown note from the current project’s team folder.",
+      "domain": "projects",
+      "evidence_id": "project-team-notes",
+      "id": "read_only.projects.team_notes",
+      "rationale": "The ordinary project read check precedes filesystem reads. A note request cannot grant project or vault access.",
+      "reviewed_digests": {
+        "rpc:project.project.get_team_notes": "f9470af793273c70cf9f10426fc5e2c5663cf16db676db69d461ba8f5c6c63ee"
+      }
     }
   ],
   "evidence_families": {
@@ -222223,6 +222244,13 @@
         "custom-addons/usl_project/tests/test_task_reactivation.py::TestTaskReactivation.test_shared_source_routes_each_project_to_its_own_inbox",
         "custom-addons/usl_project/tests/test_task_reactivation.py::TestTaskReactivation.test_manual_drop_stays_later_until_a_real_trigger",
         "custom-addons/usl_project/tests/test_task_reactivation.py::TestTaskReactivation.test_project_deadline_follows_local_midnight_after_dst_transition"
+      ]
+    },
+    "project-team-notes": {
+      "contract": "The current project reader sees only notes in that project’s team folder. Every read uses the project’s existing record permissions. No note content or access decision is stored in Odoo.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_project_notes.py::TestProjectNotes.test_current_project_rights_govern_direct_note_reads",
+        "custom-addons/usl_project/tests/test_project_notes.py::TestProjectNotes.test_note_and_links_follow_the_source_without_copying_it"
       ]
     },
     "protected-deny-allow-audit-v1": {

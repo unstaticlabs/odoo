@@ -1,0 +1,20 @@
+.o_usl_project_notes {
+    min-width: 0;
+
+    .form-select { max-width: 100%; }
+    @include media-breakpoint-down(sm) {
+        .form-select { flex: 0 0 100%; }
+    }
+}
+
+.o_usl_project_note_body {
+    max-width: 72ch;
+    overflow-wrap: anywhere;
+
+    pre, table { max-width: 100%; overflow: auto; }
+    table { display: block; }
+    th, td { padding: .3rem .55rem; border: 1px solid var(--border-color, #dee2e6); }
+    blockquote { padding-inline-start: 1rem; border-inline-start: 3px solid var(--border-color, #dee2e6); }
+    h1, h2, h3 { margin-block: 1.2em .45em; }
+    > :first-child { margin-block-start: 0; }
+}

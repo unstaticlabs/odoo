@@ -730,3 +730,98 @@ msgstr "Son étape de projet est changée manuellement."
 #. odoo-javascript
 msgid "Reasons for return"
 msgstr "Motifs du retour"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Project notes"
+msgstr "Notes du projet"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Loading notes…"
+msgstr "Chargement des notes…"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "A team vault has not been connected yet."
+msgstr "Aucun coffre d’équipe n’est encore connecté."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "There are no notes in this project yet."
+msgstr "Ce projet ne contient encore aucune note."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "You no longer have access to this project."
+msgstr "Vous n’avez plus accès à ce projet."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "The team vault is unavailable."
+msgstr "Le coffre d’équipe est indisponible."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Try again"
+msgstr "Réessayer"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Choose a note"
+msgstr "Choisir une note"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Open in Obsidian"
+msgstr "Ouvrir dans Obsidian"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "Refresh notes"
+msgstr "Actualiser les notes"
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "This note has moved or was removed. Choose another note."
+msgstr "Cette note a été déplacée ou supprimée. Choisissez une autre note."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "This note is too large to preview. You can open it in Obsidian."
+msgstr "Cette note est trop volumineuse pour l’aperçu. Vous pouvez l’ouvrir dans Obsidian."
+
+#. module: usl_project
+#. odoo-javascript
+#: code:addons/usl_project/static/src/project_notes/project_notes.xml:0
+msgid "This file is not a UTF-8 Markdown note."
+msgstr "Ce fichier n’est pas une note Markdown en UTF-8."
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_notes.py:0
+msgid "This project is no longer available."
+msgstr "Ce projet n’est plus accessible."
+
+#. module: usl_project
+#. odoo-python
+#: code:addons/usl_project/models/project_notes.py:0
+msgid "Choose a note from this project."
+msgstr "Choisissez une note de ce projet."
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.view_project_team_notes
+msgid "Notes"
+msgstr "Notes"

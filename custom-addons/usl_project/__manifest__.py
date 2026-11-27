@@ -10,12 +10,14 @@
         "data/project_task_cron.xml",
         "views/mail_activity_views.xml",
         "views/project_project_views.xml",
+        "views/project_notes_views.xml",
         "views/project_task_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "usl_project/static/src/favorite_project_navigation.js",
             "usl_project/static/src/project_task_title.js",
+            "usl_project/static/src/project_notes/*",
             "usl_project/static/src/task_github_properties.js",
             "usl_project/static/src/task_github_properties.xml",
             "usl_project/static/src/task_reactivation/indicators.js",
@@ -33,6 +35,7 @@
         "web.assets_unit_tests": [
             "usl_project/static/tests/favorite_project_navigation.test.js",
             "usl_project/static/tests/project_task_title.test.js",
+            "usl_project/static/tests/project_notes.test.js",
             "usl_project/static/tests/task_swimlane.test.js",
             "usl_project/static/tests/task_github_properties.test.js",
         ],

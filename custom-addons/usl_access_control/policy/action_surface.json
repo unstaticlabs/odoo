@@ -3235,6 +3235,24 @@
     },
     {
       "delegates": [
+        "rpc:project.project.get_team_notes"
+      ],
+      "digest": "fee84808817d604c1e3e2a5c8aa0179eeadcff0fad5cdf5f330cfcc73fc4965a",
+      "handler": "if",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/project_notes/project_notes.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 61,
+          "path": "custom-addons/usl_project/static/src/project_notes/project_notes.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:project.task.action_move_kanban_cell"
       ],
       "digest": "fc7a661393977e0e80b5ade10b3f041e426d3d8235689d4c154dd55278c08d0e",
@@ -882209,6 +882227,43 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.project.check_access",
+        "rpc:project.project.ensure_one",
+        "rpc:project.project.exists"
+      ],
+      "digest": "f9470af793273c70cf9f10426fc5e2c5663cf16db676db69d461ba8f5c6c63ee",
+      "guards": [],
+      "key": "rpc:project.project.get_team_notes",
+      "kind": "rpc",
+      "method": "get_team_notes",
+      "model": "project.project",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5c0c6f35d3cd8e49b58231fd36f82a3d02dafa99f9c10aa22b0bf0ec2d13ef81",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "custom-addons/usl_project/models/project_notes.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/project_notes.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.project.check_access",
+        "rpc:project.project.ensure_one",
+        "rpc:project.project.exists"
+      ]
     },
     {
       "abstract": false,
@@ -1768688,10 +1768743,10 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "e5c811ed75de17d013308817dc66a3f8fe4e04fd438ca77ce76638118ac1709a",
+      "manifest_sha256": "2fed392dadc91e97cb848e9dc682e6c0a748e114ac6ca4d4f24a4e4c55fa9fd8",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "608780609079405497e23d245955e041d5f6e952898bb56c382a98e81e08bb29",
+      "source_sha256": "c9e0a148710f1cfa99e2e84847ed0cb34be5fad84ffa634bde3d94262179965f",
       "version": "saas~19.3.1.0.21"
     },
     {

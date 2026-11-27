@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_project.ProjectNotes">
+        <section class="o_usl_project_notes" aria-label="Project notes">
+            <t t-set="data" t-value="state.data"/>
+            <p t-if="data.status === 'loading'" role="status" class="text-muted">Loading notes…</p>
+            <p t-elif="data.status === 'not_configured'" class="text-muted">A team vault has not been connected yet.</p>
+            <p t-elif="data.status === 'empty'" class="text-muted">There are no notes in this project yet.</p>
+            <p t-elif="data.status === 'denied'" class="text-muted" role="status">You no longer have access to this project.</p>
+            <div t-elif="data.status === 'unavailable'" role="status">
+                <p>The team vault is unavailable.</p>
+                <button type="button" class="btn btn-secondary" t-on-click="() => this.load(this.path)">Try again</button>
+            </div>
+            <t t-else="">
+                <div class="o_usl_project_notes_tools d-flex flex-wrap align-items-center gap-2">
+                    <select class="form-select w-auto" aria-label="Choose a note" t-on-change="(event) => this.load(event.target.value)">
+                        <option t-if="!data.path" value="" selected="selected" disabled="disabled">Choose a note</option>
+                        <option t-foreach="data.notes" t-as="note" t-key="note.path" t-att-value="note.path" t-att-selected="note.path === data.path" t-esc="note.title"/>
+                    </select>
+                    <div class="d-flex align-items-center gap-2">
+                        <a t-if="data.obsidian_url" t-att-href="data.obsidian_url" class="btn btn-secondary">Open in Obsidian</a>
+                        <button type="button" class="btn btn-link" t-on-click="() => this.load(this.path)" title="Refresh notes" aria-label="Refresh notes"><i class="fa fa-refresh" aria-hidden="true"/></button>
+                    </div>
+                </div>
+                <article t-if="data.status === 'ready'" class="o_usl_project_note_body mt-4" t-on-click="followLink" t-out="content"/>
+                <p t-elif="data.status === 'missing'" class="text-muted mt-3" role="status">This note has moved or was removed. Choose another note.</p>
+                <p t-elif="data.status === 'too_large'" class="text-muted mt-3">This note is too large to preview. You can open it in Obsidian.</p>
+                <p t-else="" class="text-muted mt-3">This file is not a UTF-8 Markdown note.</p>
+            </t>
+        </section>
+    </t>
+</templates>

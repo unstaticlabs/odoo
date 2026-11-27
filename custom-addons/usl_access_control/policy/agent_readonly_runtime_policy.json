@@ -17311,6 +17311,7 @@
     "rpc:project.project.get_last_update_or_default",
     "rpc:project.project.get_metadata",
     "rpc:project.project.get_property_definition",
+    "rpc:project.project.get_team_notes",
     "rpc:project.project.get_template_tasks",
     "rpc:project.project.has_access",
     "rpc:project.project.has_field_access",
