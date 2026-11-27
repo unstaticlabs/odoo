@@ -44,6 +44,7 @@
     <menuitem id="menu_b2c_mappings" name="Product and SKU Mappings" parent="menu_b2c_operations" action="action_b2c_product_alias" sequence="30"/>
 
     <menuitem id="menu_b2c_accounting" name="Accounting Sessions" parent="menu_b2c_root" sequence="30"/>
+    <menuitem id="menu_b2c_session_review" name="Monthly Review" parent="menu_b2c_accounting" action="action_b2c_session_review" sequence="5"/>
     <menuitem id="menu_b2c_accounting_sessions" name="Monthly Sessions" parent="menu_b2c_accounting" action="action_b2c_accounting_session" sequence="10"/>
     <menuitem id="menu_b2c_accounting_links" name="Accounting and Bank Links" parent="menu_b2c_accounting" action="action_b2c_accounting_link" sequence="20"/>
 
