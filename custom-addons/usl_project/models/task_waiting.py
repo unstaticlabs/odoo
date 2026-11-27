@@ -16,12 +16,6 @@ _TARGET_CHECK_KEY = "usl_task_waiting_target_check"
 _TARGET_CHECK = object()
 
 
-def _primary(method):
-    # Native dataset/JSON2 routing scans inherited method metadata as well.
-    method._readonly = False
-    return method
-
-
 def _require_primary(env):
     if env.cr.readonly:
         # The native HTTP router restarts the whole request on primary. This
@@ -60,7 +54,10 @@ class TaskWaitingReason(models.Model):
 
     @api.model
     def _access_domain(self, operation):
-        _require_primary(self.env)
+        # Empty-model permission metadata must retain native view routing.
+        # Actual cause rows, queries and domain evaluation require freshness.
+        if operation == "read" and self:
+            _require_primary(self.env)
         domain = super()._access_domain(operation)
         if domain.is_false() or self.env.su:
             return domain
@@ -75,6 +72,7 @@ class TaskWaitingReason(models.Model):
         caller = self.sudo(False).with_context(active_test=False)
 
         def readable(record):
+            _require_primary(caller.env)
             # Structural data only, like the native many2one access operator.
             item = record.sudo()
             if item.kind == "external":
@@ -86,6 +84,7 @@ class TaskWaitingReason(models.Model):
             return bool(target and target.has_access("read"))
 
         def optimize(_domain, model):
+            _require_primary(caller.env)
             # Only discriminator metadata for caller-readable Tasks, never
             # names/links or an independent list of allowed people.
             tasks = caller.env["project.task"]._search([])
@@ -109,6 +108,18 @@ class TaskWaitingReason(models.Model):
             return Domain.OR(branches)
 
         return domain & Domain.custom(optimize=optimize, predicate=readable)
+
+    @api.readonly
+    def read(self, fields=None, load="_classic_read"):
+        if self:
+            _require_primary(self.env)
+        return super().read(fields=fields, load=load)
+
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None, *, active_test=True, bypass_access=False):
+        _require_primary(self.env)
+        return super()._search(domain, offset=offset, limit=limit, order=order,
+                               active_test=active_test, bypass_access=bypass_access)
 
     def _waiting_scope(self):
         scope = self.env.context.get(_SCOPE_KEY)
@@ -278,30 +289,6 @@ class TaskWaiting(models.Model):
         for task in self:
             task.usl_waiting_details = details.get(task.id, False)
 
-    @api.model
-    def _access_domain(self, operation):
-        if operation == "read":
-            _require_primary(self.env)
-        return super()._access_domain(operation)
-
-    @_primary
-    def read(self, fields=None, load="_classic_read"):
-        return super().read(fields=fields, load=load)
-
-    @api.model
-    @_primary
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        return super().search_read(domain=domain, fields=fields, offset=offset, limit=limit, order=order)
-
-    @_primary
-    def web_read(self, specification):
-        return super().web_read(specification)
-
-    @api.model
-    @_primary
-    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
-        return super().web_search_read(domain, specification, offset=offset, limit=limit, order=order, count_limit=count_limit)
-
     def _usl_has_open_waiting_causes(self):
         self.ensure_one()
         if not self.id:
@@ -352,6 +339,7 @@ class TaskWaiting(models.Model):
 
     @api.depends("state", "depend_on_ids.state", "usl_waiting_reason_ids", "usl_waiting_reason_ids.lifted")
     def _compute_usl_waiting_is_blocked(self):
+        _require_primary(self.env)
         for task in self:
             task.usl_waiting_is_blocked = bool(task.id and task._usl_has_open_waiting_causes())
 

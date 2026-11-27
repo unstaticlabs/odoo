@@ -895364,7 +895364,7 @@
       ],
       "sources": [
         {
-          "line": 442,
+          "line": 430,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -895636,7 +895636,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 521,
+          "line": 509,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -896028,7 +896028,7 @@
       ],
       "sources": [
         {
-          "line": 414,
+          "line": 402,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -898318,7 +898318,7 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
-          "line": 366,
+          "line": 354,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -899442,7 +899442,7 @@
       ],
       "sources": [
         {
-          "line": 457,
+          "line": 445,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -899480,7 +899480,7 @@
       ],
       "sources": [
         {
-          "line": 552,
+          "line": 540,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -899709,7 +899709,7 @@
       ],
       "sources": [
         {
-          "line": 347,
+          "line": 334,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -901032,31 +901032,23 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "cc8402b745b8e129cc5911d30805ffc47608258767d69388b5a259592d1d15af",
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
       "guards": [],
       "key": "rpc:project.task.read",
       "kind": "rpc",
       "method": "read",
       "model": "project.task",
       "modules": [
-        "base",
-        "usl_project"
+        "base"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "838bf956ed0388bd08421a515b7c35c2aa5b909c660a052f3f87cd84a1a971c5",
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
       "sinks": [],
       "sources": [
         {
           "line": 2733,
           "path": "odoo/orm/models.py"
-        },
-        {
-          "line": 288,
-          "path": "custom-addons/usl_project/models/task_waiting.py"
-        },
-        {
-          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -902915,31 +902907,23 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "aea9552e8cbc46bed4d3934583efa262fd3c8b579cbc1bba866ad035b1d7dcd4",
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
       "guards": [],
       "key": "rpc:project.task.search_read",
       "kind": "rpc",
       "method": "search_read",
       "model": "project.task",
       "modules": [
-        "base",
-        "usl_project"
+        "base"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "ba09015769c54c29b2fba18c06821bb8f06f68262e2cdae6981b4a749ec5e183",
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
       "sinks": [],
       "sources": [
         {
-          "line": 293,
-          "path": "custom-addons/usl_project/models/task_waiting.py"
-        },
-        {
           "line": 5164,
           "path": "odoo/orm/models.py"
-        },
-        {
-          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -902969,7 +902953,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 573,
+          "line": 561,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -908715,7 +908699,7 @@
       ],
       "sources": [
         {
-          "line": 143,
+          "line": 154,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -909548,23 +909532,31 @@
     {
       "abstract": false,
       "archiveable": false,
-      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "digest": "8c470fdd9ecb3ca35337d400638d2065509aa75b33631e871219af4663737339",
       "guards": [],
       "key": "rpc:project.task.waiting.reason.read",
       "kind": "rpc",
       "method": "read",
       "model": "project.task.waiting.reason",
       "modules": [
-        "base"
+        "base",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "runtime_digest": "5070ef1cfd58f4716c6e7f0ec0972cc65dd2c853cfe9614ced2dc01e615059f0",
       "sinks": [],
       "sources": [
         {
+          "line": 113,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "line": 2733,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -909785,7 +909777,7 @@
       ],
       "sources": [
         {
-          "line": 229,
+          "line": 240,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -910221,7 +910213,7 @@
       ],
       "sources": [
         {
-          "line": 195,
+          "line": 206,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -910326,19 +910318,18 @@
       "delegates": [
         "rpc:project.task.read"
       ],
-      "digest": "cf1c09bb96c72d6616c0e5c3c50e645371184f4f0a34d49479c703ee1e5c084e",
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
       "guards": [],
       "key": "rpc:project.task.web_read",
       "kind": "rpc",
       "method": "web_read",
       "model": "project.task",
       "modules": [
-        "usl_project",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "5935b6c39d8e2e2a654ad3bb8316bf54a52030f26e7139849f2e0dc0724d3692",
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
       "sinks": [
         "sudo"
       ],
@@ -910346,13 +910337,6 @@
         {
           "line": 145,
           "path": "addons/web/models/models.py"
-        },
-        {
-          "line": 297,
-          "path": "custom-addons/usl_project/models/task_waiting.py"
-        },
-        {
-          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/addons/web/models/models.py"
@@ -910544,31 +910528,23 @@
         "rpc:project.task.search_count",
         "rpc:project.task.search_fetch"
       ],
-      "digest": "d403132e47b3ae7c050969e8bcdab8114056035e48ceeebd46da169474c1e226",
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
       "guards": [],
       "key": "rpc:project.task.web_search_read",
       "kind": "rpc",
       "method": "web_search_read",
       "model": "project.task",
       "modules": [
-        "usl_project",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "29f8d0234d71cfd78b018d3851d71c24a680b8677a6799df5c2e1ba6a0336811",
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
       "sinks": [],
       "sources": [
         {
-          "line": 302,
-          "path": "custom-addons/usl_project/models/task_waiting.py"
-        },
-        {
           "line": 55,
           "path": "addons/web/models/models.py"
-        },
-        {
-          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/addons/web/models/models.py"
@@ -910662,7 +910638,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 383,
+          "line": 371,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
@@ -1701988,7 +1701964,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 321,
+          "line": 308,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702006,7 +1701982,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 442,
+          "line": 430,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702024,7 +1702000,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 414,
+          "line": 402,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702042,7 +1702018,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 414,
+          "line": 402,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702060,7 +1702036,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 414,
+          "line": 402,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702078,7 +1702054,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 366,
+          "line": 354,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702096,7 +1702072,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 457,
+          "line": 445,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702114,13 +1702090,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 552,
+          "line": 540,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
     },
     {
-      "digest": "eeef22a4955b2434ec248090666d41c49c7e5b9272c37ea794c1d6a15d07522a",
+      "digest": "3a753941abf8969ce73993974d19489c4843fb05537a56204caf3993f2ff8687",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason._access_domain:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1702129,7 +1702105,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 62,
+          "line": 56,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702144,7 +1702120,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 177,
+          "line": 188,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702159,7 +1702135,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 183,
+          "line": 194,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702177,7 +1702153,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 143,
+          "line": 154,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702195,7 +1702171,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 143,
+          "line": 154,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702213,7 +1702189,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 143,
+          "line": 154,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702231,7 +1702207,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 143,
+          "line": 154,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702249,7 +1702225,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 229,
+          "line": 240,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702267,7 +1702243,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 229,
+          "line": 240,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702285,7 +1702261,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 229,
+          "line": 240,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702303,7 +1702279,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 195,
+          "line": 206,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702321,7 +1702297,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 195,
+          "line": 206,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702339,7 +1702315,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 195,
+          "line": 206,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702357,7 +1702333,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 195,
+          "line": 206,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702375,7 +1702351,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 383,
+          "line": 371,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702393,7 +1702369,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 383,
+          "line": 371,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1702411,7 +1702387,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 383,
+          "line": 371,
           "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
@@ -1771220,7 +1771196,7 @@
       "manifest_sha256": "ebb486e25f401e837be16e58ead32407fc761bea847ee72483eaa5e08858d0cf",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "b65f73c19369b6d0b5cd40411c2b0b4a6daa04d10944c31dcd7680495d14721a",
+      "source_sha256": "887bc6b8e0cef38355b13ae93fd5003a7da23d4313a7127ffd5f62fe6989985a",
       "version": "saas~19.3.1.0.24"
     },
     {

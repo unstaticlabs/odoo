@@ -23,15 +23,17 @@ also requires current native read access to the referenced record. A reference
 never shares a record or expands a person's company or delegated Agent access.
 Readonly collaborators can inspect only the causes they may read.
 
-After access is withdrawn, the next Task/reason read, export or context projection
+After access is withdrawn, the next cause read, export or context projection
 omits the inaccessible reference's model, ID, name and link. A generic unavailable
 message and an opaque task-owned cause handle let the task writer lift the cause
 without rediscovering the private record. Opening a link checks access again.
 Fetched record names are not stored in cause rows.
 
-Task/reason authority is checked on the primary database. An outer replica-eligible
-native request that encounters this boundary is retried by Odoo on primary. This
-protects the Waiting journey; it does not change replica routing for other models
+Cause reads and cause-based search domains are checked on the primary database.
+An outer replica-eligible native request, including a nested read, is retried by
+Odoo on primary when it encounters this boundary. Task title-only reads and
+searches keep their native routing, including delegated reads. This protects the
+Waiting journey; it does not change replica routing for unrelated task fields
 or recall information a client has already received. An already-running database
 transaction retains its native snapshot semantics.
 

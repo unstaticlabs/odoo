@@ -1,4 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import PropertyMock, patch
+
+from psycopg2.errors import ReadOnlySqlTransaction
 
 from odoo import Command
 from odoo.exceptions import AccessError, ValidationError
@@ -471,3 +473,46 @@ class TestTaskWaiting(TransactionCase):
                 actor.action_set_waiting(references=[{"model": "project.project", "id": self.project.id}])
             self.assertEqual(task.get_waiting_details()["tasks"][0]["causes"][0]["reference"]["id"], self.project.id)
         self.assertEqual(actor.get_waiting_details()["tasks"][0]["causes"][0]["reference"]["id"], self.project.id)
+
+    def test_replica_eligible_task_titles_keep_native_reads(self):
+        task = self._task()
+        task.action_set_waiting(reason="Synthetic routing control")
+        with patch.object(type(self.cr), "readonly", new_callable=PropertyMock, return_value=True):
+            self.assertEqual(task.read(["name"])[0]["name"], task.name)
+            self.assertEqual(task.search_read([("id", "=", task.id)], ["name"])[0]["name"], task.name)
+            self.assertEqual(task.web_read({"name": {}})[0]["name"], task.name)
+            nested = self.project.with_user(self.writer).web_read({
+                "task_ids": {"fields": {"name": {}}},
+            })
+            self.assertIn(task.name, [item["name"] for item in nested[0]["task_ids"]])
+
+    def test_waiting_fields_still_require_primary_in_nested_reads(self):
+        task = self._task()
+        task.action_set_waiting(reason="Synthetic current authority")
+        for name in ("usl_waiting_reason_ids", "usl_waiting_details", "usl_waiting_is_blocked"):
+            self.env.invalidate_all()
+            with self.subTest(field=name), patch.object(type(self.cr), "readonly", new_callable=PropertyMock, return_value=True):
+                with self.assertRaises(ReadOnlySqlTransaction):
+                    task.read([name])
+            self.env.invalidate_all()
+            with self.subTest(nested=name), patch.object(type(self.cr), "readonly", new_callable=PropertyMock, return_value=True):
+                with self.assertRaises(ReadOnlySqlTransaction):
+                    self.project.with_user(self.writer).web_read({"task_ids": {"fields": {name: {}}}})
+
+        self.env.invalidate_all()
+        with patch.object(type(self.cr), "readonly", new_callable=PropertyMock, return_value=True):
+            with self.assertRaises(ReadOnlySqlTransaction):
+                task.search_read([("usl_waiting_reason_ids.reason", "=", "Synthetic current authority")], ["name"])
+
+    def test_permission_metadata_and_views_keep_native_replica_routing(self):
+        model = self.env["project.task.waiting.reason"].with_user(self.writer)
+        Task = self.env["project.task"].with_user(self.writer)
+        view = self.env.ref("project.view_task_form2")
+        expected = Task.get_views([(view.id, "form")])
+        with patch.object(type(self.cr), "readonly", new_callable=PropertyMock, return_value=True):
+            self.assertTrue(model.has_access("read"))
+            self.assertTrue(model.has_access("create"))
+            self.assertTrue(model.has_access("write"))
+            actual = Task.get_views([(view.id, "form")])
+        self.assertEqual(actual["models"], expected["models"])
+        self.assertEqual(actual["views"], expected["views"])
