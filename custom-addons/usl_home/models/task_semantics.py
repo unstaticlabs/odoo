@@ -17,7 +17,7 @@ from .content_search import _excerpt
 
 DIMENSIONS = 1024
 TEXT_LIMIT = 2048
-BATCH_SIZE = 16
+BATCH_SIZE = 48
 # Calibrated with French/English task paraphrases for BGE-M3. A high limit should
 # not fill the screen with unrelated tasks after one clear answer.
 MIN_SIMILARITY = 0.40
@@ -75,7 +75,7 @@ def _embeddings(model, texts, *, interactive=False):
                     return None
                 _ATTESTED[model] = time.monotonic() + ATTESTATION_SECONDS
             response = client.post(endpoint + '/api/embed', json={'model': name, 'input': texts, 'truncate': False},
-                                   timeout=(left(1), left(5)), allow_redirects=False)
+                                   timeout=(left(1), left(30)), allow_redirects=False)
             if response.status_code != 200:
                 return None
             payload = response.json()
@@ -189,23 +189,39 @@ class ProjectTask(models.Model):
         # Rank *after* filtering by native record rules, company, source and freshness.
         # An inaccessible near neighbour must never displace a reader's own matches.
         allowed = Task._search(domain).select(SQL.identifier(Task._table, 'id'))
+        # The distance is computed where the vector is read, so the materialized
+        # set holds one number per task, never the 1,024-dimension vectors.
         ids = self.env.execute_query(SQL('''
-            WITH eligible AS MATERIALIZED (
-                SELECT f.task_id, f.embedding FROM usl_task_search_fragment f
+            WITH query AS MATERIALIZED (SELECT %s::vector AS vector),
+            eligible AS MATERIALIZED (
+                SELECT f.task_id, f.embedding <=> query.vector AS distance
+                  FROM usl_task_search_fragment f, query
                  WHERE f.field_name = 'name' AND f.embedding_model = %s AND f.embedding IS NOT NULL
                    AND f.task_id IN (%s)
                    AND NOT EXISTS (SELECT 1 FROM usl_task_search_queue q WHERE q.task_id = f.task_id)
             ), nearest AS MATERIALIZED (
-                SELECT task_id, embedding <=> %s::vector AS distance FROM eligible
+                SELECT task_id, distance FROM eligible
                 ORDER BY distance, task_id LIMIT %s
             )
             SELECT task_id FROM nearest
              WHERE distance <= %s AND distance <= (SELECT min(distance) FROM nearest) + %s
              ORDER BY distance, task_id
-        ''', model[2], allowed, str(vectors[0]), limit, 1 - MIN_SIMILARITY, NEAR_BEST_GAP))
+        ''', str(vectors[0]), model[2], allowed, limit, 1 - MIN_SIMILARITY, NEAR_BEST_GAP))
         for record in Task.browse([record_id for record_id, in ids]):
             group['records'].append({'model': Task._name, 'id': record.id, 'title': record.display_name,
                                      'excerpt': _excerpt(record.description, query), 'context_label': home._search_context_label(record)})
         if group['records']:
             result['status'] = 'ok'
+        return result
+
+
+class HomeServiceMeaning(models.AbstractModel):
+    _inherit = 'usl.home.service'
+
+    @api.model
+    def get_configuration(self):
+        result = super().get_configuration()
+        # Sent once with the Home configuration, so a deployment without the
+        # feature costs no request and no loading row on any search.
+        result['task_meaning_search'] = _configured_model() is not None
         return result
