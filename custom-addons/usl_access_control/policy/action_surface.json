@@ -1586597,13 +1586597,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 34,
+          "line": 71,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "b46b40af8d806da74340ead0aac4122b1b8814e889eaf7454700a173c66153a1",
+      "digest": "6971c1a5446cbc05dc7c4bb327999eb5151d2b9f9da4d01eab71b9434b7f9088",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1586612,13 +1586612,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "f2a3d83617646230b5dd3310204d0c816c5c9b78ceb125b1bac6a4d515454a0c",
+      "digest": "cd264d76e2afb75d7517a5310ff6d347cae235a4d1c76deaabfc162fc91c3cf4",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1586627,13 +1586627,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "227cf72db5296db3216785ded8664f96ceb79625cac80194282a6454bfb28e22",
+      "digest": "f0601822f073777c6f403aaef7932f339de6fba9753f88f9ec417a1b9ac0c673",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1586642,13 +1586642,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "5c92664e6b97fc979e89d98cbe81b4114953477bd32711d4a5c7ee5409e68d67",
+      "digest": "da15c7ed7f4c9751e1610713675b7a6ff27e609dc48e7b0a1ad288877251249a",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1586657,7 +1586657,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
@@ -1586672,7 +1586672,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 341,
+          "line": 390,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
@@ -1586687,13 +1586687,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 269,
+          "line": 318,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "cf8866376c7906e7968a686a66825619ab16c44a47053f23edd14aafbd775a86",
+      "digest": "cfdefb26d8f7680e4e18f66eecf918be9844488722e34a03d4bde456757f8c6e",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/ir_actions_report.py:ir.actions.report._render_qweb_pdf_prepare_streams:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1767565,7 +1767565,7 @@
       "manifest_sha256": "8acd0ea5b88aff3eaa1579bb8daa97d7f5d38211f2410884e254bbc765292f83",
       "name": "account_edi_ubl_cii",
       "origin": "native",
-      "source_sha256": "31c59d34ef1bc98de8f785a2c50b032252ecbdf8ca7d241abcc5427d0ce3fbc2",
+      "source_sha256": "9130f01e20a681b560b334728ec1992793197942ae2323569d1a4020f887102e",
       "version": ""
     },
     {
