@@ -1053,6 +1053,7 @@ msgstr "Lien copié"
 msgid "Close"
 msgstr "Fermer"
 
+#. module: usl_home
 #: model:ir.cron,cron_name:usl_home.ir_cron_usl_index_project_content
 msgid "Projects: refresh search index"
 msgstr "Projets : actualiser l’index de recherche"
