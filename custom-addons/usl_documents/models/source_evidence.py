@@ -99,16 +99,27 @@ class SourceEvidence(models.Model):
                         "url": False,
                     })
                 except AccessError as error:
-                    if record._name == "hr.expense" and record.state == "approved" and not record.account_move_id:
+                    if record._name != "hr.expense" or record.state in {"draft", "submitted"}:
+                        raise
+                    if record.account_move_id:
+                        raise AccessError(_(
+                            "Odoo no longer allows attachments on this approved expense. "
+                            "Keep its original receipt; attach supplementary evidence to its accounting entry instead."
+                        )) from error
+                    if record.payment_mode == "company_account" and record.existing_bill_id:
+                        raise AccessError(_(
+                            "This expense is linked to a vendor bill. Open the linked bill to attach the additional receipt."
+                        )) from error
+                    if record.state == "approved":
                         raise AccessError(_(
                             "This approved expense has no accounting entry yet. Select a receipt already attached to it. "
                             "To add a new receipt, a user with permission must return it to draft, attach the receipt "
                             "and submit the expense again."
                         )) from error
-                    if record._name == "hr.expense" and record.account_move_id and record.state not in {"draft", "submitted"}:
+                    if record.state == "refused":
                         raise AccessError(_(
-                            "Odoo no longer allows attachments on this approved expense. "
-                            "Keep its original receipt; attach supplementary evidence to its accounting entry instead."
+                            "This expense was refused. To add a new receipt, a user with permission can return it "
+                            "to draft, attach the receipt and submit the expense again."
                         )) from error
                     raise
             stored = attachment.raw

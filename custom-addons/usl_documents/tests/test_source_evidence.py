@@ -221,6 +221,63 @@ class TestSourceEvidence(TestExpenseCommon):
         self.assertFalse(attachment.url)
         self.assertEqual((attachment.res_model, attachment.res_id), ("hr.expense", expense.id))
 
+    def test_new_receipt_on_company_expense_with_linked_vendor_bill(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        for posted in (False, True):
+            with self.subTest(posted=posted):
+                bill = self.env["account.move"].create({
+                    "move_type": "in_invoice", "partner_id": self.partner_a.id,
+                    "invoice_date": "2026-10-14",
+                    "invoice_line_ids": [Command.create({"name": "Sample purchase", "price_unit": 54})],
+                })
+                if posted:
+                    bill.action_post()
+                expense = self._expense().with_user(self.expense_user_manager)
+                expense.write({"payment_mode": "company_account", "has_existing_bill": True, "existing_bill_id": bill.id})
+                expense.attach_source_evidence(**self._payload(
+                    b"%PDF-1.4\n[QA] Initial purchase receipt\n%%EOF", set_main_attachment=True,
+                ))
+                expense.action_submit()
+                expense._do_approve()
+                self.assertFalse(expense.account_move_id)
+                original = expense.attachment_ids
+                with self.assertRaisesRegex(AccessError, "linked to a vendor bill"):
+                    expense.attach_source_evidence(**self._payload())
+                with self.assertRaisesRegex(AccessError, "liée à une facture fournisseur"):
+                    expense.with_context(lang="fr_FR").attach_source_evidence(**self._payload())
+                self.assertEqual(expense.attachment_ids, original)
+                self.assertEqual(expense.state, "approved")
+                self.assertEqual(expense.existing_bill_id, bill)
+                totals = bill.read(["amount_total", "amount_residual"])
+                added = bill.attach_source_evidence(**self._payload())
+                attachment = self.env["ir.attachment"].browse(added["attachment_id"])
+                self.assertEqual((attachment.res_model, attachment.res_id), ("account.move", bill.id))
+                self.assertEqual(expense.attachment_ids, original)
+                self.assertEqual(bill.read(["amount_total", "amount_residual"]), totals)
+                self.assertEqual(bill.state, "posted" if posted else "draft")
+
+    def test_refused_expense_can_gain_a_corrected_receipt_after_reset(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        expense = self._expense().with_user(self.expense_user_manager)
+        expense.attach_source_evidence(**self._payload(
+            b"%PDF-1.4\n[QA] Initial expense receipt\n%%EOF", set_main_attachment=True,
+        ))
+        expense.action_submit()
+        expense._do_refuse("Synthetic reviewer requested an itemized receipt.")
+        original = expense.attachment_ids
+        with self.assertRaisesRegex(AccessError, "This expense was refused"):
+            expense.attach_source_evidence(**self._payload())
+        with self.assertRaisesRegex(AccessError, "note de frais a été refusée"):
+            expense.with_context(lang="fr_FR").attach_source_evidence(**self._payload())
+        self.assertEqual(expense.state, "refused")
+        self.assertFalse(expense.account_move_id)
+        self.assertEqual(expense.attachment_ids, original)
+        expense.action_reset()
+        result = expense.attach_source_evidence(**self._payload())
+        self.assertIn(result["attachment_id"], expense.attachment_ids.ids)
+        expense.action_submit()
+        self.assertEqual(expense.state, "submitted")
+
     def test_approved_unposted_expense_can_select_or_correct_its_receipt(self):
         for mode in ("own_account", "company_account"):
             with self.subTest(payment_mode=mode):

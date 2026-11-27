@@ -6777,3 +6777,15 @@ msgstr "La réception complète du document ne peut pas être confirmée. Aucun 
 #: code:addons/usl_documents/models/document_mcp.py:0
 msgid "The archive returned a transformed file encoding. No file was returned. Retry when the archive serves the original bytes."
 msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit les octets d’origine."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense is linked to a vendor bill. Open the linked bill to attach the additional receipt."
+msgstr "Cette note de frais est liée à une facture fournisseur. Ouvrez la facture pour y joindre le justificatif supplémentaire."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense was refused. To add a new receipt, a user with permission can return it to draft, attach the receipt and submit the expense again."
+msgstr "Cette note de frais a été refusée. Une personne autorisée peut la remettre en brouillon, joindre le nouveau justificatif et la soumettre à nouveau."
