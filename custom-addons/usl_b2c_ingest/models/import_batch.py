@@ -18,6 +18,9 @@ from odoo.addons.usl_b2c_ingest import parsers
 RECONCILED_VALUES = frozenset(
     {
         "currency",
+        "internal_order_id",
+        "source_payment_state",
+        "source_fulfilment_state",
         "discount_amount",
         "external_listing_id",
         "fee_amount",
@@ -227,6 +230,44 @@ class B2cImportBatch(models.Model):
         self.ensure_one()
         best = {}
         conflicts = defaultdict(list)
+        native_orders = defaultdict(set)
+        display_orders = defaultdict(set)
+        layouts = defaultdict(set)
+        snapshots = defaultdict(list)
+        for _fmt, source_rows in parsed.values():
+            native_lines = defaultdict(set)
+            for row in source_rows:
+                if row.provider != "medusa":
+                    continue
+                native_order = row.values.get("internal_order_id")
+                if native_order:
+                    native_orders[native_order].add(row.external_order_id)
+                    display_orders[row.external_order_id].add(native_order)
+                if row.grain == "line":
+                    identified = row.format_id == "medusa_identified_items"
+                    layouts[row.external_order_id].add("native" if identified else "historical")
+                    if identified:
+                        native_lines[row.external_order_id].add(row.external_line_id)
+            for order, identities in native_lines.items():
+                snapshots[order].append(identities)
+        if any(len(ids) > 1 for ids in (*native_orders.values(), *display_orders.values())):
+            raise UserError(self.env._(
+                "These Medusa files disagree about native and display order IDs. Import one source snapshot at a time."
+            ))
+        for order, kinds in layouts.items():
+            if len(kinds) > 1:
+                raise UserError(self.env._(
+                    "Order %(order)s has both historical and native item layouts. Keep one item snapshot for this order in this batch. "
+                    "Read the other layout in a separate batch to confirm that the sale is already known before applying anything.",
+                    order=order,
+                ))
+        for order, versions in snapshots.items():
+            if any(identities != versions[0] for identities in versions[1:]):
+                raise UserError(self.env._(
+                    "Native item snapshots disagree for order %(order)s. Keep one complete snapshot for this order in this batch. "
+                    "Read later snapshots in a separate batch to confirm the existing sale before applying anything.",
+                    order=order,
+                ))
         for source in self.file_ids:
             entry = parsed.get(source.id)
             if entry is None:
@@ -296,7 +337,10 @@ class B2cImportBatch(models.Model):
         """Mark every row against the commerce Odoo already holds."""
         self.ensure_one()
         channels = self._channels()
-        matches = self._known_orders({row.external_order_id for row in rows})
+        matches = self._known_orders(
+            {row.external_order_id for row in rows}
+            | {(row.values or {}).get("internal_order_id") for row in rows}
+        )
         headers = {
             (row.provider, row.external_order_id)
             for row in rows
@@ -309,7 +353,8 @@ class B2cImportBatch(models.Model):
                 # still one order.
                 row.resolution = "statement"
                 continue
-            found = matches.get(row.external_order_id)
+            found = (matches.get(row.external_order_id, self.env["b2c.order"])
+                | matches.get((row.values or {}).get("internal_order_id"), self.env["b2c.order"]))
             if not found:
                 if row.grain == "line" and (row.provider, row.external_order_id) not in headers:
                     row.resolution = "orphan_line"
@@ -320,7 +365,11 @@ class B2cImportBatch(models.Model):
                 row.write({"resolution": "conflicting", "order_id": found[0].id})
                 continue
             channel = channels.get(row.provider)
-            if channel and found.channel_id and found.channel_id != channel:
+            native_id = (row.values or {}).get("internal_order_id")
+            if (channel and found.channel_id and found.channel_id != channel) or (
+                native_id and found.external_order_id
+                and found.external_order_id not in (native_id, row.external_order_id)
+            ):
                 row.write({"resolution": "conflicting", "order_id": found.id})
                 continue
             row.write({"resolution": "known", "order_id": found.id})
@@ -368,7 +417,7 @@ class B2cImportBatch(models.Model):
         for order in orders:
             if order.external_order_id in references:
                 found[order.external_order_id] |= order
-            elif order.external_display_id in references:
+            if order.external_display_id in references:
                 found[order.external_display_id] |= order
         return found
 
@@ -407,16 +456,27 @@ class B2cImportBatch(models.Model):
                     ),
                 )
                 continue
-            self._raise_issue(
-                "identity_conflict",
-                self.env._(
+            native_id = (row.values or {}).get("internal_order_id")
+            if native_id:
+                name = self.env._("Order %(order)s has conflicting source identities", order=row.external_order_id)
+                note = self.env._(
+                    "File: %(read)s (%(provider)s). Odoo: %(held)s (%(channel)s). Review the source identity before applying.",
+                    read=native_id, provider=row.provider,
+                    held=held[:1].external_order_id or row.external_order_id,
+                    channel=held[:1].channel_id.display_name or held[:1].source_provider,
+                )
+            else:
+                name = self.env._(
                     "Order %(order)s belongs to %(held)s, not to %(read)s",
                     order=row.external_order_id,
                     held=held[:1].channel_id.display_name or held[:1].source_provider,
                     read=row.provider,
-                ),
+                )
+                note = False
+            self._raise_issue(
+                "identity_conflict", name,
                 external_order_id=row.external_order_id,
-                row=row,
+                row=row, note=note,
             )
 
     def _check_order_money(self, rows):

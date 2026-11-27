@@ -48,7 +48,7 @@ class B2cImportFile(models.Model):
 
     @api.model
     def _selection_format(self):
-        return [(fmt.format_id, fmt.label) for fmt in parsers.CSV_FORMATS]
+        return [(fmt.format_id, self.env._(fmt.label)) for fmt in parsers.CSV_FORMATS]
 
     def _raw_content(self):
         """Return the bytes of the uploaded file."""
@@ -74,7 +74,7 @@ class B2cImportFile(models.Model):
                 fmt = parsers.detect(content)
                 rows, document = parsers.parse(fmt, record.name, content)
             except parsers.SchemaError as error:
-                record.write(values | {"state": "unreadable", "note": str(error)})
+                record.write(values | {"state": "unreadable", "note": self.env._(str(error))})
                 continue
             parsed[record.id] = (fmt, rows)
             record.write(

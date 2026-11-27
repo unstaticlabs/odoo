@@ -65,6 +65,15 @@ class CsvFormat:
 #: outranks an item file on order money, and both outrank the supplier.
 CSV_FORMATS = (
     CsvFormat(
+        "medusa_identified_items",
+        "Medusa — items with native IDs",
+        medusa.PROVIDER,
+        medusa.IDENTIFIED_ITEMS_HEADER,
+        medusa.parse_identified_order_items,
+        precedence=8,
+        delimiter=medusa.DELIMITER,
+    ),
+    CsvFormat(
         "etsy_orders",
         "Etsy — sold orders",
         etsy.PROVIDER,

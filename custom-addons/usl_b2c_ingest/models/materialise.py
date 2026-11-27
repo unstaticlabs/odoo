@@ -308,6 +308,14 @@ class B2cImportBatchMaterialise(models.Model):
     def _materialise_order(self, row):
         """Return the native sale for one order this drop is adding."""
         self.ensure_one()
+        # A different batch may have imported this source since preview.
+        self._resolve(row)
+        if row.resolution == "conflicting":
+            raise UserError(self.env._(
+                "The order identity changed after this batch was read. Read the files again before applying."
+            ))
+        if row.resolution == "known":
+            return row.order_id.sale_order_id
         existing = self.env["b2c.order"].search(
             [
                 ("company_id", "=", self.company_id.id),
@@ -343,7 +351,7 @@ class B2cImportBatchMaterialise(models.Model):
                 "source_provider": row.provider,
                 "origin": "imported",
                 "business_purpose": "sale",
-                "external_order_id": row.external_order_id,
+                "external_order_id": values.get("internal_order_id") or row.external_order_id,
                 "external_display_id": row.external_order_id,
                 "original_provider_state": values.get("original_provider_state") or False,
                 "state": "fulfilled",

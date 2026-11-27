@@ -1,0 +1,75 @@
+# Translation of USL B2C Ingestion.
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server saas~19.3\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_file.py:0
+msgid "Medusa — items with native IDs"
+msgstr "Medusa — articles avec identifiants natifs"
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "These Medusa files disagree about native and display order IDs. Import one source snapshot at a time."
+msgstr "Ces fichiers Medusa ne concordent pas sur les identifiants natifs et les numéros affichés des commandes. Importez un seul instantané source à la fois."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/materialise.py:0
+msgid "The order identity changed after this batch was read. Read the files again before applying."
+msgstr "L’identité de la commande a changé depuis la lecture de ce lot. Relisez les fichiers avant de les appliquer."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_file.py:0
+msgid "Each Medusa item must state a nonempty order_id and unique line_id."
+msgstr "Chaque article Medusa doit indiquer un order_id non vide et un line_id unique."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_file.py:0
+msgid "Medusa order_id and order_number disagree within this export."
+msgstr "Les champs Medusa order_id et order_number ne concordent pas dans cet export."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_file.py:0
+msgid "Medusa rows disagree about one order's date, currency or source states."
+msgstr "Les lignes Medusa ne concordent pas sur la date, la devise ou les états source d’une même commande."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_file.py:0
+msgid "A native Medusa line must state a SKU or product."
+msgstr "Une ligne Medusa native doit indiquer un SKU ou un produit."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "Order %(order)s has both historical and native item layouts. Keep one item snapshot for this order in this batch. Read the other layout in a separate batch to confirm that the sale is already known before applying anything."
+msgstr "La commande %(order)s figure à la fois dans des articles historiques et des articles avec identifiants natifs. Gardez un seul instantané d’articles pour cette commande dans ce lot. Lisez l’autre format dans un lot séparé pour confirmer que la vente est déjà connue avant toute application."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "Native item snapshots disagree for order %(order)s. Keep one complete snapshot for this order in this batch. Read later snapshots in a separate batch to confirm the existing sale before applying anything."
+msgstr "Les instantanés d’articles natifs ne concordent pas pour la commande %(order)s. Gardez un seul instantané complet pour cette commande dans ce lot. Lisez les instantanés ultérieurs dans un lot séparé pour confirmer la vente existante avant toute application."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "Order %(order)s has conflicting source identities"
+msgstr "Les identités source de la commande %(order)s sont en conflit"
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "File: %(read)s (%(provider)s). Odoo: %(held)s (%(channel)s). Review the source identity before applying."
+msgstr "Fichier : %(read)s (%(provider)s). Odoo : %(held)s (%(channel)s). Vérifiez l’identité source avant toute application."
