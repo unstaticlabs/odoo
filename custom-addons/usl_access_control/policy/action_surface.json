@@ -1770422,7 +1770422,7 @@
       "manifest_sha256": "f8532068ae6bba571b257022ef2c3071b17654397f14a775345d8ad91dfbb08d",
       "name": "usl_access_control",
       "origin": "custom",
-      "source_sha256": "d82fd3956dc3b62734e20f02d31edbe42f9e9e506cc64a581d1b4e49fc79a36c",
+      "source_sha256": "0b45ad324e6bb2417c87794e6e00d643176d9be706c834f9efb072298cccfef1",
       "version": "saas~19.3.1.8.18"
     },
     {

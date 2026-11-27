@@ -69,7 +69,12 @@
                             <span>
                                 <span class="fw-bold" t-out="agent.name"/>
                                 <span t-if="agent.state != 'active'" class="badge text-bg-secondary ms-1">Suspended</span>
-                                <span class="d-block small text-muted" t-out="agent.access_summary"/>
+                                <span class="d-block small text-muted">
+                                    <t t-if="not agent.delegated_group_ids and agent.settings_access == 'no_access'">No application access</t>
+                                    <t t-elif="agent.access_mode == 'read_only'">Can read delegated apps</t>
+                                    <t t-elif="agent.access_mode == 'read_write'">Can read and edit delegated apps</t>
+                                    <t t-else="">Access varies by application</t>
+                                </span>
                                 <span class="d-block small text-muted" t-out="', '.join(agent.company_ids.mapped('name'))"/>
                             </span>
                         </label>

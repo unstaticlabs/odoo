@@ -445,3 +445,23 @@ msgid ""
 "asks for access through one of your Agents.\n"
 "                Sign in to Odoo to select the Agent."
 msgstr "demande à se connecter avec l’un de vos agents. Connectez-vous à Odoo pour le choisir."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "No application access"
+msgstr "Aucun accès aux applications"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Can read delegated apps"
+msgstr "Consultation des applications déléguées"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Can read and edit delegated apps"
+msgstr "Consultation et modification des applications déléguées"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Access varies by application"
+msgstr "Droits différents selon l’application"
