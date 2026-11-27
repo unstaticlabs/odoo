@@ -240,6 +240,11 @@ RECOVERY_PROOF_RUNTIME_ROLES = (
 )
 
 
+# The websocket health probe is asked again this many times, this far apart.
+WEBSOCKET_PROBE_ATTEMPTS = 6
+WEBSOCKET_PROBE_PAUSE_SECONDS = 5
+
+
 def _report(operation: str, phase: str, status: str, detail: str = "") -> None:
     """Write concise operator progress without contaminating JSON stdout."""
     suffix = f": {detail}" if detail else ""
@@ -2506,6 +2511,22 @@ def _operations_image(release: dict) -> str:
     return image
 
 
+def _require_prepared_database_tool(runner, image: str) -> None:
+    result = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", image, "capabilities",
+    ], check=False)
+    try:
+        capability = json.loads(result.stdout) if result.returncode == 0 else {}
+    except ValueError:
+        capability = {}
+    if not isinstance(capability, dict) or capability.get("prepared_odoo_database") is not True:
+        raise RuntimeError(
+            "backup tool did not confirm prepared Odoo database support; "
+            "select a qualified immutable backup tool with USL_OPERATIONS_IMAGE"
+        )
+
+
 def _release_images(release: dict, mcp_authority: dict | None = None) -> list[str]:
     """Return Odoo-cohort images needed before a restore can start.
 
@@ -3198,6 +3219,7 @@ def _prepare_release_candidate(
     for image in _release_images(release, mcp_authority):
         _ensure_image(runner, image)
     tool_image = _operations_image(release)
+    _require_prepared_database_tool(runner, tool_image)
     candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
     capacity_after_pull = _require_restore_capacity(
         target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
@@ -4975,32 +4997,41 @@ def health_command(arguments: argparse.Namespace) -> int:
     if ingress["websocket"]:
         origin = admission["odoo_websocket"].rstrip("/")
         public_origin = target.value["endpoints"]["odoo"].rstrip("/")
-        websocket_result = runner.run(
-            [
-                "curl",
-                "--silent",
-                "--show-error",
-                "--include",
-                "--no-buffer",
-                "--http1.1",
-                "--max-time",
-                "3",
-                "--header",
-                "Connection: Upgrade",
-                "--header",
-                "Upgrade: websocket",
-                "--header",
-                f"Origin: {public_origin}",
-                "--header",
-                "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
-                "--header",
-                "Sec-WebSocket-Version: 13",
-                origin + "/websocket",
-            ],
-            check=False,
-        )
-        first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
-        websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+        # A release fails and rolls back on this probe. The websocket worker of a stack
+        # started seconds ago can take longer than one short request to answer on a busy
+        # host (production, 2026-11-26), so a refusal is asked again before it counts.
+        websocket_ok = False
+        for attempt in range(WEBSOCKET_PROBE_ATTEMPTS):
+            if attempt:
+                time.sleep(WEBSOCKET_PROBE_PAUSE_SECONDS)
+            websocket_result = runner.run(
+                [
+                    "curl",
+                    "--silent",
+                    "--show-error",
+                    "--include",
+                    "--no-buffer",
+                    "--http1.1",
+                    "--max-time",
+                    "5",
+                    "--header",
+                    "Connection: Upgrade",
+                    "--header",
+                    "Upgrade: websocket",
+                    "--header",
+                    f"Origin: {public_origin}",
+                    "--header",
+                    "Sec-WebSocket-Key: MDEyMzQ1Njc4OWFiY2RlZg==",
+                    "--header",
+                    "Sec-WebSocket-Version: 13",
+                    origin + "/websocket",
+                ],
+                check=False,
+            )
+            first_line = websocket_result.stdout.splitlines()[0] if websocket_result.stdout else ""
+            websocket_ok = first_line.startswith("HTTP/") and " 101 " in first_line
+            if websocket_ok:
+                break
         websocket_status = {"required": True, "status_code": 101 if websocket_ok else 0, "ok": websocket_ok}
         if not websocket_ok:
             failures.append("odoo:websocket")
@@ -5300,6 +5331,88 @@ def _runtime_images(runner, identity: dict) -> dict[str, str]:
         raise RuntimeError("Compose image inventory is invalid") from error
 
 
+def _generation_database_entrypoint(database_key: str, database: dict, image: str) -> list[str]:
+    if database_key == "paperless":
+        return [
+            "--env", f"POSTGRES_USER={database['user']}", "--env", "POSTGRES_DB=postgres",
+            "--entrypoint", "/bin/bash", image, "-ceu",
+            f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
+            "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        ]
+    role = database["user"]
+    if database_key != "odoo" or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9-]{0,62}", role) or role == "postgres":
+        raise RuntimeError("Odoo requires a distinct application role")
+    if database["name"] in {"postgres", "template0", "template1"}:
+        raise RuntimeError("Odoo requires a dedicated application database")
+    initializer = Path(__file__).with_name("odoo_generation_init.sh").read_text(encoding="utf-8")
+    return [
+        "--env", "POSTGRES_USER=postgres", "--env", f"POSTGRES_DB={database['name']}",
+        "--env", "POSTGRES_INITDB_ARGS=--auth-local=peer --auth-host=scram-sha-256",
+        "--env", f"USL_PG_APP_USER={role}", "--env", f"USL_PG_APP_PASSWORD_KEY={database['password_key']}",
+        "--entrypoint", "/bin/bash", image, "-ceu",
+        'test ! -e "$PGDATA/PG_VERSION" || { echo "generation database already initialized" >&2; exit 1; }\n'
+        'export POSTGRES_PASSWORD="$(head -c 32 /dev/urandom | base64)"\n'
+        "set -o noclobber\ncat > /docker-entrypoint-initdb.d/90-usl-application.sh <<'USL_INIT'\n"
+        + initializer
+        + "USL_INIT\nchmod 755 /docker-entrypoint-initdb.d/90-usl-application.sh\n"
+        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+    ]
+
+
+def _ready_generation_database(runner, name: str, user: str) -> str:
+    # The image uses a socket-only server for initialization. TCP opens after
+    # the role, password, database and local operator mapping are all ready.
+    for _attempt in range(60):
+        ready = runner.run([
+            "docker", "exec", name, "pg_isready", "--host", "127.0.0.1",
+            "--username", user, "--dbname", "postgres",
+        ], check=False)
+        if ready.returncode == 0:
+            return name
+        time.sleep(1)
+    raise RuntimeError(f"generation database did not become ready: {name}")
+
+
+# Executed on the Docker host. Only the selected env-file line reaches Docker;
+# the controller never transports its value, even when using an SSH runner.
+_DATABASE_PASSWORD_LAUNCH = r"""
+import subprocess
+import sys
+
+source, key = sys.argv[1:3]
+prefix = key.encode("ascii") + b"="
+selected = None
+try:
+    with open(source, "rb") as lines:
+        for number, raw in enumerate(lines):
+            if number == 0:
+                raw = raw.removeprefix(b"\xef\xbb\xbf")
+            line = raw.removesuffix(b"\n").removesuffix(b"\r").lstrip(b" \t")
+            if not line.startswith(prefix):
+                continue
+            if selected is not None or not line[len(prefix):] or b"\x00" in line:
+                sys.exit("database password entry is empty, invalid or duplicated")
+            selected = line
+except OSError:
+    sys.exit("database password file is unreadable")
+if selected is None:
+    sys.exit("database password entry is missing")
+
+# Use Docker's env-file parser, including its literal quotation marks, spaces
+# and dollar signs. The detached container does not inherit the client's stdin.
+try:
+    run = subprocess.run(sys.argv[3:], input=selected + b"\n", stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+except OSError:
+    sys.exit("Docker could not be executed for the database container")
+if run.returncode:
+    sys.exit(f"Docker could not start the database container (exit {run.returncode}). Check the image, network and volume.")
+"""
+
+
+def _start_database_with_password(runner, environment_file, password_key, command):
+    runner.run(["python3", "-c", _DATABASE_PASSWORD_LAUNCH, environment_file, password_key, *command])
+
+
 def _start_generation_database(
     target,
     runner,
@@ -5312,8 +5425,8 @@ def _start_generation_database(
 ) -> str:
     database = target.value["databases"][database_key]
     name = f"{target.project}-{generation}-{database_key}-db"
-    password_key = database["password_key"]
-    runner.run(
+    _start_database_with_password(
+        runner, target.value["secrets"]["env_file"], database["password_key"],
         [
             "docker",
             "run",
@@ -5328,30 +5441,13 @@ def _start_generation_database(
             network,
             "--network-alias",
             alias,
-            "--env-file",
-            target.value["secrets"]["env_file"],
-            "--env",
-            f"POSTGRES_USER={database['user']}",
-            "--env",
-            "POSTGRES_DB=postgres",
+            "--env-file", "/dev/stdin",
             "--volume",
             f"{volume}:/var/lib/postgresql/data",
-            "--entrypoint",
-            "/bin/bash",
-            image,
-            "-ceu",
-            f'export POSTGRES_PASSWORD="${password_key}"; exec /usr/local/bin/docker-entrypoint.sh postgres',
+            *_generation_database_entrypoint(database_key, database, image),
         ],
     )
-    for _attempt in range(60):
-        ready = runner.run(
-            ["docker", "exec", name, "pg_isready", "--username", database["user"], "--dbname", "postgres"],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"generation database did not become ready: {name}")
+    return _ready_generation_database(runner, name, database["user"])
 
 
 def _materialize_command(
@@ -5388,6 +5484,8 @@ def _materialize_command(
         f"USL_RESTORE_GENERATION_CONFIRMED={generation}",
         "--env",
         f"USL_EXPECTED_RESTORE_CONFIRMATION={generation}",
+        "--env",
+        "USL_RESTORE_ODOO_PREPARED_DATABASE=1",
         *_database_environment(target),
         "--volume",
         f"{generation_root}/work:/cohort",
@@ -6420,6 +6518,39 @@ def _release_runtime_evidence(
     return value
 
 
+class _AdmissionCheckFailure(RuntimeError):
+    """Only predeclared diagnostic codes can enter the durable operations receipt."""
+
+    safe_summary = True
+
+    def __init__(self, report: dict, target) -> None:
+        schema = report.get("schema")
+        if schema not in ("usl-runtime-health/v1", "usl-runtime-smoke/v1"):
+            schema = "runtime gate"
+        public_codes = {
+            "odoo:http", "paperless:http", "mcp:http", "odoo:websocket",
+            "odoo:config-unreadable", "odoo:config-invalid", "odoo:config-mismatch",
+            "odoo:receipt-worker-capacity", "odoo:queue-job-not-loaded", "odoo:receipt-channel-capacity",
+            "receipt-fetcher:mtls", "receipt-fetcher:mtls-invalid",
+            "receipt-fetcher:containment", "receipt-fetcher:containment-invalid",
+            "ollama:identity", "cohort:readiness-evidence", "odoo:cron-policy",
+            "accounting:unbalanced", "odoo:empty-control", "odoo:failed-queue", "odoo:cron-failures",
+            "odoo:filestore-coverage", "paperless:empty-control", "paperless:missing-filename",
+            "paperless:original-coverage", "paperless:archive-missing", "paperless:thumbnails-missing",
+            "paperless:tantivy-missing", "paperless:vectors-missing", "release:admission-receipt",
+        }
+        public_codes.update(
+            f"{service}:{state}" for service in target.value["services"].values()
+            for state in ("not-running", "starting", "unhealthy", "network-boundary")
+        )
+        failures = report.get("failures")
+        reasons = sorted({
+            code if isinstance(code, str) and code in public_codes else "unclassified"
+            for code in failures
+        }) if isinstance(failures, list) else []
+        super().__init__(f"{schema} failed: {', '.join(reasons) or 'unclassified'}")
+
+
 def _gate(handler, target, targets: Path) -> dict:
     output = io.StringIO()
     arguments = argparse.Namespace(target=target.name, targets=targets, json=True)
@@ -6428,7 +6559,7 @@ def _gate(handler, target, targets: Path) -> dict:
     lines = [line for line in output.getvalue().splitlines() if line.strip()]
     value = json.loads(lines[-1]) if lines else {"status": "failed"}
     if status:
-        raise RuntimeError(f"{value.get('schema', 'runtime gate')} failed: {value.get('failures', [])}")
+        raise _AdmissionCheckFailure(value, target)
     return value
 
 
@@ -9597,29 +9728,12 @@ def _start_recovery_proof_database(
         command.extend(["--label", f"{key}={value}"])
     command.extend([
         "--network", names["network"], "--network-alias", alias,
-        "--env-file", runtime_env,
-        "--env", f"POSTGRES_USER={database['user']}",
-        "--env", "POSTGRES_DB=postgres",
+        "--env-file", "/dev/stdin",
         "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
-        "--entrypoint", "/bin/bash", images[target.value["services"][service_role]],
-        "-ceu",
-        f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
-        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        *_generation_database_entrypoint(database_key, database, images[target.value["services"][service_role]]),
     ])
-    runner.run(command)
-    name = names["containers"][role]
-    for _attempt in range(60):
-        ready = runner.run(
-            [
-                "docker", "exec", name, "pg_isready", "--username", database["user"],
-                "--dbname", "postgres",
-            ],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"recovery proof database did not become ready: {database_key}")
+    _start_database_with_password(runner, runtime_env, database["password_key"], command)
+    return _ready_generation_database(runner, names["containers"][role], database["user"])
 
 
 def _recovery_proof_runtime_config(runner, identity: dict) -> dict:
@@ -10620,7 +10734,10 @@ def _recovery_proof_command_locked(
     perimeter_sha = None
     failure_armed = False
     try:
+        tool_image = _operations_image(release)
+        _require_prepared_database_tool(runner, tool_image)
         if backup is None:
+            stage = "backup-started"
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
             if arguments.resume_backup:
@@ -10641,7 +10758,7 @@ def _recovery_proof_command_locked(
                     arguments.resume_backup = _recover_recovery_proof_backup(
                         target, runner, backup_run_id, runtime_sha,
                     )
-                write_state("backup-started", None)
+                write_state(stage, None)
                 backup = _run_recovery_proof_backup(arguments, release)
         else:
             backup = _backup_run_receipt(
@@ -10663,7 +10780,6 @@ def _recovery_proof_command_locked(
         )
         rendered = _recovery_proof_runtime_config(runner, identity)
         images = {name: value["image"] for name, value in rendered["services"].items()}
-        tool_image = _operations_image(release)
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
         )

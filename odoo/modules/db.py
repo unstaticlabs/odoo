@@ -716,6 +716,14 @@ def list_dbs(*, force=False):
         # use the value of --database as comma seperated list of exposed databases.
         return sorted(odoo.tools.config['db_name'])
 
+    # In a private single-database deployment the runtime can own its tables
+    # while PostgreSQL owns the database. A first visit still needs to discover
+    # that one explicitly selected database, subject to its normal CONNECT grant.
+    configured = config['db_name']
+    pinned_database = None
+    if not config['list_db'] and len(configured) == 1 and config['dbfilter'] == f'^{re.escape(configured[0])}$':
+        pinned_database = configured[0]
+
     chosen_template = odoo.tools.config['db_template']
     ignore_templates_list = tuple({'postgres', chosen_template})
     db = odoo.sql_db.db_connect(config['db_system'])
@@ -724,16 +732,13 @@ def list_dbs(*, force=False):
             cr.execute("""
                 SELECT datname
                   FROM pg_database
-                 WHERE datdba = (
-                      SELECT usesysid
-                        FROM pg_user
-                       WHERE usename = current_user
-                   )
+                 WHERE (datdba = (SELECT usesysid FROM pg_user WHERE usename = current_user)
+                        OR (datname = %s AND has_database_privilege(oid, 'CONNECT')))
                    AND NOT datistemplate
                    AND datallowconn
                    AND datname NOT IN %s
               ORDER BY datname
-            """, (ignore_templates_list,))
+            """, (pinned_database, ignore_templates_list))
             return [name for (name,) in cr.fetchall()]
         except psycopg2.Error:
             _logger.exception("Listing databases failed:")

@@ -17133,7 +17133,7 @@
         "rpc:rebuild.account.bank.reconciliation.line.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:rebuild.account.bank.reconciliation.line.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:rebuild.account.closing.control.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
-        "rpc:rebuild.account.closing.control.action_open_records": "04f06c413cc7135d6650acf02346b05e605174680a80cf6be545af721bc8ca3e",
+        "rpc:rebuild.account.closing.control.action_open_records": "5adc4cd75b0eb08b87f571d0b48744ed00d80ffda9d32da7e7f839a9714ee3bc",
         "rpc:rebuild.account.closing.control.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:rebuild.account.closing.control.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
         "rpc:rebuild.account.closing.control.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
@@ -17204,7 +17204,7 @@
         "rpc:rebuild.account.closing.control.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:rebuild.account.closing.control.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:rebuild.account.closing.period.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
-        "rpc:rebuild.account.closing.period.action_open_closing_package": "62db48ef96f3b38b2f15e9f73bef9767e8c32bbb1d277e67df187ff2dd7af44e",
+        "rpc:rebuild.account.closing.period.action_open_closing_package": "b6468994777440bd84f23028e484d7c998ecb25b00f9269c64c5b9d68c563857",
         "rpc:rebuild.account.closing.period.action_open_declarations": "766c036e9530a12489d25b2c12567aa9bed4d641a3bed0253521c4a5798bb3d7",
         "rpc:rebuild.account.closing.period.action_open_snapshots": "9911754b691c4ea8edd0d914fa313ebb6199a5d3cf8e0b1f39a9a65cf41d02ac",
         "rpc:rebuild.account.closing.period.action_record_review_decision": "1a74d5bb98c0d8ceaf018c6358d617d33224b1b946448df17e9bd7001dfab1ce",
@@ -38536,7 +38536,7 @@
         "rpc:usl.document.mcp_get": "e6e605a0a4e29d79cdfb69555f77e1d99074802d13f795f86b69f0754b838477",
         "rpc:usl.document.mcp_get_content": "ef8818964722402ea8dfe96a012899dc354d87470611bcff1d1ad88104c0a554",
         "rpc:usl.document.mcp_get_links": "2725ad69f4a2397f38a3bfc194a1d7a1714ba124047b47b789b9b0b568fb0b71",
-        "rpc:usl.document.mcp_get_versions": "95006575d5629456b4a83ff5f7c29edc9f310ef1a9b0c61217beb04fc3bb4c6c",
+        "rpc:usl.document.mcp_get_versions": "2224fcc05f4bacfa0746425c3575d98fe5d4738bc778a8e76781b95859428a70",
         "rpc:usl.document.mcp_list_correspondents": "ed281cc6b3ccd47ff7609acbddb8a1e6cf119fe89c077c922b26e1d61194db59",
         "rpc:usl.document.mcp_list_saved_views": "7bcc97fd56389e92db3234c787fc8dc829501a88255577a51436431401edc6ea",
         "rpc:usl.document.mcp_list_tags": "4895650ff2bdb4c0d71e246d93ffe8219aaf738da34087afb0f8252e760dc367",
@@ -60637,10 +60637,10 @@
         "route:jsonrpc:ANY:/web/action/load": "2b9447c9182b27a9641502961924bc4eb74340e23e33c3dc904ac58736b11e9f",
         "route:jsonrpc:ANY:/web/cloc": "3512704620043b83f4049d2e37c6907dc8d13031c7e9ad8a2387b6e8f1319461",
         "route:jsonrpc:ANY:/web/database/list": "063493e3760320657a494084ca2b80945deb7da65ffaa99c688044512a542a24",
-        "route:jsonrpc:ANY:/web/dataset/call_button": "ff64328645cae134ede7f26fc455956ca8385cca7dcc2a236279d6f8adfe2f04",
-        "route:jsonrpc:ANY:/web/dataset/call_button/<path:path>": "86fbe6db0752260f4f68fbbb10553579b7609f0dbd6f5c2f4291d230c1b9e7a6",
-        "route:jsonrpc:ANY:/web/dataset/call_kw": "fa71687568beac3b483c30e88bc3a154120972924de1a86a951571c603e7e9d0",
-        "route:jsonrpc:ANY:/web/dataset/call_kw/<path:path>": "b9d13d24c74b97d4927959c958016bbad3f5da7792e03b5e6354ab050eb413b0",
+        "route:jsonrpc:ANY:/web/dataset/call_button": "47383c5855c80f4ca8ffe4e7d2863271700c406d5c9bb37f8984bbd44271ade1",
+        "route:jsonrpc:ANY:/web/dataset/call_button/<path:path>": "12b39ebe4f5a174b39145880c48f92d44f385635e1a3af7bddae42c4fc60181d",
+        "route:jsonrpc:ANY:/web/dataset/call_kw": "eb78a5dffcfe64d81867d969e76feaff03c165c2ec85160339e6939aa06eb67d",
+        "route:jsonrpc:ANY:/web/dataset/call_kw/<path:path>": "6df39a38ada377b58003e6ebc45051bdc0b4c83f4721921e6f0b739a98917474",
         "route:jsonrpc:ANY:/web/domain/validate": "7267966cf49edbbf342101f2963e4db6accbdf6f031c4be3fd0bff01a9fc3241",
         "route:jsonrpc:ANY:/web/export/formats": "68f435327b5ca7ee786480a988b0d46461389d7782a7e0512fe8a5b3dfbe91f8",
         "route:jsonrpc:ANY:/web/export/get_fields": "4b28868e19eadc9196d5a174b4554fe5d8b17aaf51baf7da97cee48604ccafa9",
@@ -157579,13 +157579,13 @@
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_edi_xml_ubl_xrechnung.py:account.edi.xml.ubl_de._ubl_add_tax_currency_code_node:orm_write:1": "ff4e9acec3ee5e46756c71f099a76cdf1f0585d2726b8c6c8289c27caf3ce4bb",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move.py:account.move._get_line_vals_group_by_tax:orm_create:1": "baf9191c09109e9be1622c67ae825ab15589995a513570c223d25f70d368f385",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._get_alerts:sudo:1": "61b562ce3f98fcc44d7a91d98778617dcc8570786b47d4209a5864485f3ae370",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_create:1": "b46b40af8d806da74340ead0aac4122b1b8814e889eaf7454700a173c66153a1",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:1": "f2a3d83617646230b5dd3310204d0c816c5c9b78ceb125b1bac6a4d515454a0c",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:2": "227cf72db5296db3216785ded8664f96ceb79625cac80194282a6454bfb28e22",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:sudo:1": "5c92664e6b97fc979e89d98cbe81b4114953477bd32711d4a5c7ee5409e68d67",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_create:1": "6971c1a5446cbc05dc7c4bb327999eb5151d2b9f9da4d01eab71b9434b7f9088",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:1": "cd264d76e2afb75d7517a5310ff6d347cae235a4d1c76deaabfc162fc91c3cf4",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:2": "f0601822f073777c6f403aaef7932f339de6fba9753f88f9ec417a1b9ac0c673",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:sudo:1": "da15c7ed7f4c9751e1610713675b7a6ff27e609dc48e7b0a1ad288877251249a",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._link_invoice_documents:orm_create:1": "a0c275c3986b167a51f4152f88e20b7c7e835c69fe62f01d45fb3fb130df59b9",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._postprocess_invoice_ubl_xml:orm_write:1": "e52aee6ea63af4d0c7b35dcf9e78157c1968e788e335fb3bda20d56d85ac9c04",
-        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/ir_actions_report.py:ir.actions.report._render_qweb_pdf_prepare_streams:sudo:1": "cf8866376c7906e7968a686a66825619ab16c44a47053f23edd14aafbd775a86",
+        "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/ir_actions_report.py:ir.actions.report._render_qweb_pdf_prepare_streams:sudo:1": "cfdefb26d8f7680e4e18f66eecf918be9844488722e34a03d4bde456757f8c6e",
         "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/res_partner.py:res.partner._get_peppol_endpoint_value:orm_write:1": "85a6b2725f32e29617966eac697302366109e045249679451c9fa52a9270c91b",
         "sink:account_financial_report:oca-addons/account_financial_report/models/account_move_line.py:account.move.line.init:raw_sql_mutation:1": "dadae6a8282e0f8e614e36c0aa678d0b17365751014b207ad0d1bb1575d6ec37",
         "sink:account_financial_report:oca-addons/account_financial_report/models/res_config_settings.py:res.config.settings.get_values:sudo:1": "2d2e0e39a2b1170809e98b88b6f639ec90bcca19f909194a27c4cfe9675e6a6f",
@@ -207094,7 +207094,7 @@
       "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative. Reviewed 2026-11-26: the owner domain is now OR-ed with the Agent's own native access domain (Valentin: \"il faut que la permission s'étende, que ce soit l'union de ce à quoi l'agent a accès et de ce que moi j'ai accès\"). The added branch is native core _access_domain for the Agent UID without sudo, in the same owner-permitted companies, after the unchanged delegation, hidden-model and read-only gates.",
       "reachability_proof": "Private Base._access_domain is called by native ORM access checks, not an ordinary public RPC/controller/UI/scheduled action. Its sudo recordset is confined to native domain optimization and never used for returned Agent records.",
       "reviewed_digests": {
-        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "814ca671bd6cb4a5f440867bada669de1a6510651549ace91fae7695b78876cb"
+        "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "9246535c7846e7f567127cd6cc153af3f82d1b9fb4be6db343b13dd2f79b5d5f"
       }
     },
     {
@@ -221765,6 +221765,20 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:orm_write:1": "4c977c0e7f38cf5dce6281f4ef507e0b207f6c0c97b0c3bbb9be9c8b41a0a958",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:sudo:1": "9a9e1c1252aaef58b99afb9cef21a9845e73389757fab0302a132a56af97ac4d"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.mcp_read_binary"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns at most 4 MiB of the exact authorized file without creating a grant or changing Odoo, financial history or an external system.",
+      "domain": "documents_and_communications",
+      "evidence_id": "documents-direct-binary-3751",
+      "id": "read_only.documents.direct_binary_read",
+      "rationale": "Reviewed in docs/operations/document-binary-action-risk-review.md. Reuses primary-database native document/version/company/linked-record authority, identity-only bounded archive streaming and actual byte integrity; safe incomplete-transfer errors, no sudo, actor switch, arbitrary URL, mutation or generic grant.",
+      "reviewed_digests": {
+        "rpc:usl.document.mcp_read_binary": "58a76e7cd1752e2fa133d2759a70af25202608f221aa583b90c98c4403d31f59"
+      }
     }
   ],
   "evidence_families": {
@@ -221884,6 +221898,17 @@
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_managed_agent_write_and_readonly_scope_use_the_same_native_boundaries",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_satisfied_change_does_not_rebind_binary_or_lifecycle_cache",
         "custom-addons/usl_documents/tests/test_document_batch.py::TestDocumentBatch.test_workspace_reports_native_metadata_write_access_for_review_and_edit"
+      ]
+    },
+    "documents-direct-binary-3751": {
+      "contract": "Native read-only file authority and exact version/bytes; bounded stream with no local or external mutation; fresh access denial after share/company withdrawal.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_returns_exact_bytes_without_creating_a_grant",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_and_integrity_metadata_stop_after_explicit_share_withdrawal",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_direct_binary_keeps_the_selected_old_version_after_replacement",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_checks_access_before_fetching_any_bytes",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_checks_actual_bytes_not_only_upstream_etag",
+        "custom-addons/usl_documents/tests/test_download_grants.py::TestDocumentDownloadGrants.test_binary_read_refuses_oversize_stream_before_returning_partial_content"
       ]
     },
     "documents-local-attachment-removal-20261014": {

@@ -586,6 +586,7 @@ class RebuildAccountClosingControl(models.Model):
             if self.code == "reports":
                 action["context"].update(
                     default_company_id=closing.company_id.id,
+                    default_company_ids=closing.company_id.ids,
                     default_closing_period_id=closing.id,
                 )
             else:

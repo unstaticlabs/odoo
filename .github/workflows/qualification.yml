@@ -141,6 +141,8 @@ jobs:
           tags: ${{ env.ODOO_TEST_IMAGE }}
           cache-from: type=gha,scope=usl-odoo-test
           cache-to: type=gha,scope=usl-odoo-test,mode=max
+      - name: Check permissions on new and existing Odoo configuration files
+        run: USL_ODOO_CONFIG_QA_IMAGE="$ODOO_TEST_IMAGE" python3 -m unittest discover -s scripts/tests -p test_runtime_config_file.py
       - name: Qualify the canonical product database with the loaded image
         run: |
           if [ "$GITHUB_EVENT_NAME" = pull_request ]; then
@@ -152,6 +154,10 @@ jobs:
             USL_TEST_MODULES="$test_modules" \
             ODOO_TEST_IMAGE="$ODOO_TEST_IMAGE" \
             scripts/ci-product-database
+      - name: Verify database credentials stay scoped during backup and restore
+        env:
+          USL_GENERATION_DATABASE_QA: "1"
+        run: python3 -m unittest scripts.tests.test_generation_database_docker.GenerationDatabaseTests.test_release_and_recovery_each_database_receives_only_its_own_password
       - name: Retain the docs evidence and journey captures
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

@@ -1,7 +1,7 @@
 ---
-title: Match a foreign bill to a company-currency bank transaction
+title: Choose how to match a foreign-currency bill
 type: how-to
-description: Settle a foreign-currency bill paid by card from the EUR debit the bank reports.
+description: Decide whether to accept the suggested bank match, settle at the original valuation or correct an erroneous rate.
 lang: en
 persona: accountant
 app: Accounting
@@ -13,7 +13,9 @@ source:
 generated: false
 ---
 
-# Match a foreign bill to a company-currency bank transaction
+# Choose how to match a foreign-currency bill
+
+For the steps in Odoo, see [Settle a foreign-currency bill at the payment rate](settle-a-foreign-bill-at-the-payment-rate.md).
 
 When the bank reports only an EUR card debit, Odoo estimates its foreign
 amount. The invoice payment row can offer three actions:
@@ -30,14 +32,9 @@ Example:
 Odoo estimate $5.03     [Add] [Settle] [Correct original rate]
 ```
 
-All available actions remain on the same compact row. The recommended action
-is highlighted; alternatives use secondary styling. Hover or focus an action
-to see its accounting consequence. Light chips below each candidate summarize
-the useful matching facts, such as **Best match**, **Bank transaction**,
-**Reference match**, **Exact amount**, and the date gap. Hover or focus those
-chips for the complete matching evidence and any source warning.
-The amount column stays uncluttered; the **Add** helper explains when its amount
-is Odoo's estimated foreign value.
+Check the bank amount and any estimated foreign amount in the payment row.
+Hover over the row of matching cues, or focus it with Tab, to read why Odoo
+suggests that transaction. The recommended action is highlighted.
 
 ## Choose the action
 

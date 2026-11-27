@@ -553,6 +553,23 @@ class TestAccountMoveInInvoiceOnchanges(AccountTestInvoicingCommon):
             'amount_total': 208.0,
         })
 
+    def test_change_supplier_recomputes_payable_on_all_installments(self):
+        bill = self.invoice
+        bill.invoice_payment_term_id = self.env.ref('account.account_payment_term_advance_60days')
+        payable = self.company_data['default_account_payable'].copy({'name': 'Alternate supplier payable'})
+        self.partner_b.with_company(bill.company_id).property_account_payable_id = payable
+        self.env.flush_all()
+        terms = bill.line_ids.filtered(lambda line: line.display_type == 'payment_term')
+        self.assertEqual(len(terms), 2)
+        self.assertNotIn(payable, terms.account_id)
+
+        bill.partner_id = self.partner_b
+        self.env.flush_all()
+
+        terms = bill.line_ids.filtered(lambda line: line.display_type == 'payment_term')
+        self.assertEqual(len(terms), 2)
+        self.assertEqual(terms.account_id, payable)
+
     def test_in_invoice_line_onchange_partner_1(self):
         move_form = Form(self.invoice)
         move_form.partner_id = self.partner_b

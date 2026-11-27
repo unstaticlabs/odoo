@@ -4006,9 +4006,9 @@
                     </div>
                     <group>
                         <group string="Scope">
-                            <field name="company_id"/>
+                            <field name="company_id" readonly="closing_period_id"/>
                             <field name="closing_period_id" invisible="report_type != 'closing_package'"/>
-                            <field name="company_ids" widget="many2many_tags"/>
+                            <field name="company_ids" widget="many2many_tags" invisible="closing_period_id"/>
                             <field name="target_move"/>
                         </group>
                         <group string="Period">
