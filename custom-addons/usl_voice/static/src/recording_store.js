@@ -15,8 +15,36 @@ const STORE = "recordings";
 
 /** Tells the screen that shows unused recordings to read them again. */
 export const keptBus = new EventBus();
-/** Recordings a live screen is already handling: they are not "unused". */
+/** Recordings a live screen of this tab is already handling: they are not "unused". */
 const owned = new Set();
+/**
+ * Another tab handles a recording too: it holds a Web Lock for as long as it does (a closed or
+ * crashed tab releases it by itself), and tells the others when something changed.
+ */
+const lockName = (id) => `usl-voice-${id}`;
+const releases = new Map();
+const CHANNEL = "usl_voice";
+function changed() {
+    keptBus.trigger("change");
+    try {
+        const channel = new BroadcastChannel(CHANNEL);
+        channel.postMessage("change");
+        channel.close();
+    } catch {
+        // No BroadcastChannel: the other tabs read the storage when they next start.
+    }
+}
+
+/** Call back when another tab of this browser changed the kept recordings. Returns a function to stop. */
+export function listenOtherTabs(callback) {
+    try {
+        const channel = new BroadcastChannel(CHANNEL);
+        channel.onmessage = callback;
+        return () => channel.close();
+    } catch {
+        return () => {};
+    }
+}
 
 function open() {
     return new Promise((resolve) => {
@@ -63,22 +91,39 @@ export function newRecordingId() {
 /** @returns {Promise<boolean>} whether the recording is now safe in this browser */
 export async function keepRecording(entry) {
     const { ok } = await transact("readwrite", (store) => store.put(entry));
-    keptBus.trigger("change");
+    changed();
     return ok;
 }
 
 export async function forgetRecording(id) {
-    owned.delete(id);
+    letGo(id);
     const { ok } = await transact("readwrite", (store) => store.delete(id));
-    keptBus.trigger("change");
+    changed();
     return ok;
+}
+
+function letGo(id) {
+    owned.delete(id);
+    releases.get(id)?.();
+    releases.delete(id);
+}
+
+/** The ids another tab (or this one) holds a lock on. */
+async function lockedIds() {
+    try {
+        const { held } = await navigator.locks.query();
+        return new Set(held.map(({ name }) => name));
+    } catch {
+        return new Set();
+    }
 }
 
 /** The writer's own recordings no screen is handling, the latest first. */
 export async function keptRecordings(userId) {
     const { ok, result } = await transact("readonly", (store) => store.getAll());
+    const locked = await lockedIds();
     return (ok ? result : [])
-        .filter((entry) => entry.userId === userId && !owned.has(entry.id))
+        .filter((entry) => entry.userId === userId && !owned.has(entry.id) && !locked.has(lockName(entry.id)))
         .map((entry) => ({ ...entry, blob: new File([entry.blob], "Voice.mp3", { type: "audio/mpeg" }) }))
         .sort((a, b) => b.createdAt - a.createdAt);
 }
@@ -86,12 +131,43 @@ export async function keptRecordings(userId) {
 /** A screen takes charge of a recording: it is not offered as unused while it handles it. */
 export function ownRecording(id) {
     owned.add(id);
+    if (navigator.locks && !releases.has(id)) {
+        const held = new Promise((release) => releases.set(id, release));
+        navigator.locks.request(lockName(id), () => held).catch(() => {});
+    }
+}
+
+/**
+ * Take charge of a recording that was offered as unused. False when another tab got there first:
+ * the writer then does not start a second transcription of the same audio.
+ */
+export async function claimRecording(id) {
+    if (owned.has(id)) {
+        return false;
+    }
+    if (navigator.locks) {
+        let release;
+        const held = new Promise((resolve) => (release = resolve));
+        const granted = await new Promise((resolve) =>
+            navigator.locks.request(lockName(id), { ifAvailable: true }, (lock) => {
+                resolve(Boolean(lock));
+                return lock ? held : undefined;
+            }).catch(() => resolve(false))
+        );
+        if (!granted) {
+            return false;
+        }
+        releases.set(id, release);
+    }
+    owned.add(id);
+    return true;
 }
 
 /** The screen lets go without deleting: the recording is offered as unused again. */
 export function disownRecording(id) {
-    if (owned.delete(id)) {
-        keptBus.trigger("change");
+    if (owned.has(id)) {
+        letGo(id);
+        changed();
     }
 }
 

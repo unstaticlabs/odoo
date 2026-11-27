@@ -1,4 +1,4 @@
-import { markRaw, onWillUnmount } from "@odoo/owl";
+import { markRaw, onWillUnmount, useEffect } from "@odoo/owl";
 import { useRef, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";
@@ -24,6 +24,7 @@ patch(Composer.prototype, {
         this.uslVoice = useState({ mode: "idle" });
         this.uslVoiceNotify = useService("notification");
         this.uslVoiceBar = useRef("usl-voice-bar");
+        useEffect(() => this.watchUslPending(), () => [this.props.composer.attachments.length]);
         onWillUnmount(() => this.suspendUslVoice());
     },
     /** The record button disappears on click, so Escape is handled where focus goes next. */
@@ -143,18 +144,29 @@ patch(Composer.prototype, {
             this.uslVoice.mode = "uploading";
         }
         let saved = false;
+        let attachment;
         try {
-            saved = here
-                ? Boolean(await this.attachmentUploader.uploadFile(kept.file, { voice: true, thread: this.thread }))
-                : await uploadVoiceNote(this.env, kept.destination, kept.file);
+            if (here) {
+                attachment = await this.attachmentUploader.uploadFile(kept.file, { voice: true, thread: this.thread });
+                saved = Boolean(attachment);
+            } else {
+                saved = await uploadVoiceNote(this.env, kept.destination, kept.file);
+            }
         } catch {
             saved = false;
         }
-        if (saved) {
-            await forgetRecording(kept.id);
-            if (!here) {
-                this.uslVoiceNotify.add(_t("Voice note attached to %s.", kept.destination.name || _t("the record")), { type: "success" });
+        if (saved && here) {
+            // The server holds a pending attachment of this composer, which Odoo deletes a day later
+            // if no message carries it: the browser keeps its copy until the message is posted or
+            // the writer removes the attachment. A composer that is gone leaves it for the next page.
+            if (this.uslGone) {
+                disownRecording(kept.id);
+            } else {
+                this.uslPending = { kept, attachmentId: attachment.id, seen: this.uslAttached(attachment.id) };
             }
+        } else if (saved) {
+            await forgetRecording(kept.id);
+            this.uslVoiceNotify.add(_t("Voice note attached to %s.", kept.destination.name || _t("the record")), { type: "success" });
         } else if (this.uslGone) {
             disownRecording(kept.id); // offered again at the start of the next page
             this.uslVoiceNotify.add(_t("The voice note could not be uploaded. Your recording is kept."), { type: "warning" });
@@ -164,6 +176,22 @@ patch(Composer.prototype, {
                 this.uslKept = null;
             }
             this.uslVoice.mode = saved ? "idle" : "failed";
+        }
+    },
+    uslAttached(id) {
+        return this.props.composer.attachments.some((attachment) => attachment.id === id);
+    },
+    /** The pending voice note left the composer: posted with the message, or removed on purpose. */
+    watchUslPending() {
+        const pending = this.uslPending;
+        if (!pending) {
+            return;
+        }
+        if (this.uslAttached(pending.attachmentId)) {
+            pending.seen = true;
+        } else if (pending.seen) {
+            this.uslPending = null;
+            forgetRecording(pending.kept.id);
         }
     },
     retryUslVoice() {
@@ -189,6 +217,16 @@ patch(Composer.prototype, {
             }
         } else if (this.uslKept && this.uslVoice.mode === "failed") {
             disownRecording(this.uslKept.id);
+        }
+        const pending = this.uslPending;
+        if (pending) {
+            // Still waiting in the composer: not sent, so it is offered again. Already out: it was sent.
+            this.uslPending = null;
+            if (this.uslAttached(pending.attachmentId)) {
+                disownRecording(pending.kept.id);
+            } else {
+                forgetRecording(pending.kept.id);
+            }
         }
     },
 });

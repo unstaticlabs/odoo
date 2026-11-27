@@ -256,14 +256,14 @@ msgstr "Annuler"
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/dictation.js:0
-msgid "Unused dictation from %s"
-msgstr "Dictée non utilisée de %s"
+msgid "Unused dictation (%s)"
+msgstr "Dictée non utilisée (%s)"
 
 #. module: usl_voice
 #. odoo-javascript
 #: code:addons/usl_voice/static/src/dictation.js:0
-msgid "Unused voice note from %s"
-msgstr "Note vocale non utilisée de %s"
+msgid "Unused voice note (%s)"
+msgstr "Note vocale non utilisée (%s)"
 
 #. module: usl_voice
 #. odoo-javascript

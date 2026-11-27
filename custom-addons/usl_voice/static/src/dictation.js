@@ -9,7 +9,7 @@ import { captionBox, captureTarget, caretRect, dictationTarget, typeHost, wantsM
 import { requestDictation } from "./dictation_request";
 import { VoiceMeter } from "./meter";
 import {
-    disownRecording, downloadRecording, forgetRecording, keepRecording, keptBus, keptRecordings, newRecordingId,
+    claimRecording, disownRecording, downloadRecording, forgetRecording, keepRecording, keptBus, keptRecordings, listenOtherTabs, newRecordingId,
     offerUndo, ownRecording, recordingTime,
 } from "./recording_store";
 import { uploadVoiceNote } from "./voice_note_upload";
@@ -28,7 +28,7 @@ for (const type of ["pointerdown", "mousedown", "touchstart", "pointerup", "mous
             return;
         }
         ev.stopImmediatePropagation();
-        if (type === "mousedown" && ev.target.closest(".o-usl-dictation-controls")) {
+        if (type === "mousedown" && ev.target.closest(".o-usl-dictation-controls, .o-usl-stored button")) {
             ev.preventDefault(); // the field keeps the focus and its selection
         }
         const action = type === "click" && ev.target.closest("[data-usl-action]")?.dataset.uslAction;
@@ -57,6 +57,7 @@ export class FieldDictation extends Component {
             reason: "busy", stored: [] });
         this.refreshStored = () => this.loadStored();
         keptBus.addEventListener("change", this.refreshStored);
+        this.stopListening = listenOtherTabs(this.refreshStored);
         useExternalListener(document, "focusin", (ev) => {
             if (ev.target.closest?.(".o-usl-dictation")) {
                 return;
@@ -128,6 +129,7 @@ export class FieldDictation extends Component {
             mounted = mounted === this ? null : mounted;
             clearTimeout(this.typingTimer);
             keptBus.removeEventListener("change", this.refreshStored);
+            this.stopListening();
             const id = this.recordingId;
             this.suspend();
             if (id) {
@@ -399,17 +401,23 @@ export class FieldDictation extends Component {
                 return;
             }
             this.state.stored = this.state.stored.filter((stored) => stored !== entry);
+            // Another tab may have taken this recording since the list was drawn.
+            if (!(await claimRecording(entry.id)) || this.state.mode !== "idle" || this.pendingAudio) {
+                return;
+            }
             if (entry.kind === "voice_note") {
                 await this.attach(entry);
                 return;
             }
-            ownRecording(entry.id);
             this.recordingId = entry.id;
             this.pendingAudio = entry.blob;
             this.recordedAt = entry.createdAt;
             this.persisted = true;
-            this.destination = null;
+            // Into the field the writer is in, at its selection; else the text is offered for copying.
+            const field = this.target?.isConnected ? this.target : null;
+            this.destination = field ? captureTarget(field) : null;
             this.pin = null;
+            field?.focus({ preventScroll: true });
         }
         if (!this.pendingAudio || this.request) {
             return;
@@ -460,7 +468,6 @@ export class FieldDictation extends Component {
     }
     /** An unused voice note goes where it was recorded: the attachments of its record. */
     async attach(entry) {
-        ownRecording(entry.id);
         if (await uploadVoiceNote(this.env, entry.destination, entry.blob)) {
             await forgetRecording(entry.id);
             this.notify.add(_t("Voice note attached to %s.", entry.destination.name), { type: "success" });
@@ -483,8 +490,8 @@ export class FieldDictation extends Component {
         }
         const time = recordingTime(entry.createdAt);
         return entry.kind === "voice_note"
-            ? _t("Unused voice note from %s", time)
-            : _t("Unused dictation from %s", time);
+            ? _t("Unused voice note (%s)", time)
+            : _t("Unused dictation (%s)", time);
     }
     async copyText() {
         try {

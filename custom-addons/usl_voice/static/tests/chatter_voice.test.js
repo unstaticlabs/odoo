@@ -17,6 +17,7 @@ defineMailModels();
 const clip = () => new File(["synthetic-voice-note"], "Voice.mp3", { type: "audio/mpeg" });
 
 /** No microphone in the tests: the recorder starts at once and stops with a file. */
+const composers = [];
 function fakeMicrophone() {
     patchWithCleanup(VoiceCapture.prototype, {
         async start() {},
@@ -35,23 +36,40 @@ function fakeUploads(answers) {
     patchWithCleanup(AttachmentUploadService.prototype, {
         async upload(thread, composer, file, options) {
             uploads.push({ model: thread.model, id: thread.id, composer: Boolean(composer), file, voice: options?.voice });
-            return answers.shift() ? { id: 1 } : undefined;
+            if (!answers.shift()) {
+                return undefined;
+            }
+            // As the native upload does: the pending attachment joins the composer.
+            const attachment = (composer || thread).store["ir.attachment"].insert({ id: 9001, name: "Voice.mp3", mimetype: "audio/mpeg" });
+            composer?.attachments.push(attachment);
+            return attachment;
         },
     });
     return uploads;
 }
 
+/** Start from, and leave, an empty browser storage: the tests share one. */
+function wipeStorage() {
+    return new Promise((resolve) => {
+        const request = indexedDB.deleteDatabase("usl_voice");
+        request.onsuccess = request.onerror = request.onblocked = () => resolve();
+    });
+}
+
 async function openNote() {
+    await wipeStorage();
+    after(wipeStorage);
+    patchWithCleanup(Composer.prototype, {
+        setup() {
+            super.setup();
+            composers.push(this);
+        },
+    });
     const pyEnv = await startServer();
     const partnerId = pyEnv["res.partner"].create({ name: "Jane Roe" });
     await start();
     await openFormView("res.partner", partnerId);
     await click("button:text('Log note')");
-    after(async () => {
-        for (const entry of await keptRecordings(user.userId)) {
-            await forgetRecording(entry.id);
-        }
-    });
     return partnerId;
 }
 
@@ -81,23 +99,56 @@ test("a failed upload keeps the voice note, with Retry and Download", async () =
     await contains(".o-usl-voice-bar", { count: 0 });
     expect(uploads.length).toBe(2);
     expect(uploads[1].file).toBe(uploads[0].file);
-    // The server holds it now: nothing is left to offer again.
+    // The server only holds a pending attachment of the composer: the browser keeps its copy
+    // (handled by the composer) until the message is posted.
     await animationFrame();
+    expect(Boolean(composers.at(-1).uslPending.kept.id)).toBe(true);
+});
+
+test("an uploaded voice note stays kept when the composer closes before Send", async () => {
+    // The pending attachment is deleted by Odoo a day later if no message carries it, and a reload
+    // loses the composer: the recording must still be offered at the next page.
+    fakeMicrophone();
+    const uploads = fakeUploads([true]);
+    await openNote();
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    expect(uploads.length).toBe(1);
+    expect(await keptRecordings(user.userId)).toEqual([]); // the composer handles it
+    await click("button:text('Log note')"); // closed without sending
+    await contains(".o-mail-Composer", { count: 0 });
+    await animationFrame();
+    const entries = await keptRecordings(user.userId);
+    expect(entries.length).toBe(1);
+    expect(entries[0].kind).toBe("voice_note");
+});
+
+test("a voice note that left the composer with its message, or was removed, is forgotten", async () => {
+    fakeMicrophone();
+    fakeUploads([true]);
+    await openNote();
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    const composer = composers.at(-1);
+    expect(composer.uslPending).not.toBe(null);
+    // Posting a message (or removing the attachment) empties the composer's attachments.
+    composer.props.composer.attachments.length = 0;
+    await animationFrame();
+    await animationFrame();
+    expect(composer.uslPending).toBe(null);
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
     expect(await keptRecordings(user.userId)).toEqual([]);
 });
 
 test("a voice note recorded for a record is uploaded to it after the writer moved on", async () => {
     fakeMicrophone();
     const uploads = fakeUploads([true]);
-    let composer;
-    patchWithCleanup(Composer.prototype, {
-        setup() {
-            super.setup();
-            composer = this;
-        },
-    });
     const partnerId = await openNote();
     await record();
+    const composer = composers.at(-1);
     // The recording was made for another record than the one the composer shows when it stops:
     // what the composer saved when it started is where the voice note goes.
     expect(composer.uslVoiceDestination).toMatchObject({ model: "res.partner", id: partnerId });

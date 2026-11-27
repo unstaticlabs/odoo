@@ -1,5 +1,5 @@
 import { after, expect, test } from "@odoo/hoot";
-import { click, press } from "@odoo/hoot-dom";
+import { click, press, waitFor, waitUntil } from "@odoo/hoot-dom";
 import { advanceTime, animationFrame } from "@odoo/hoot-mock";
 import { mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
@@ -16,7 +16,41 @@ defineMailModels();
 /** A voice recording that never was one: the tests need a file, not a microphone. */
 const clip = (name = "Voice.mp3") => new File(["synthetic-audio"], name, { type: "audio/mpeg" });
 
-async function mountDictation() {
+/** The tests share one browser storage: each starts from, and leaves, an empty one. */
+function wipeStorage() {
+    return new Promise((resolve) => {
+        const request = indexedDB.deleteDatabase("usl_voice");
+        request.onsuccess = request.onerror = request.onblocked = () => resolve();
+    });
+}
+
+/** A recording kept by an earlier page, at a fixed time so that its own time can be checked. */
+const EARLIER = 1_700_000_000_000;
+const earlier = (extra = {}) => ({ id: "earlier", kind: "dictation", blob: clip(), createdAt: EARLIER, userId: user.userId, ...extra });
+
+/**
+ * Hoot replaces navigator.locks with a stub that grants and holds nothing. The ownership between
+ * tabs is the point of these tests, so they use the browser's own lock manager (an iframe's
+ * navigator reaches it unmocked; locks are shared by every page of the origin).
+ */
+function realLocks() {
+    const frame = document.createElement("iframe");
+    document.body.append(frame);
+    after(() => frame.remove());
+    patchWithCleanup(navigator, { locks: frame.contentWindow.navigator.locks });
+}
+
+async function mountDictation(seed = []) {
+    realLocks();
+    // What an earlier test left handled in this page (a real reload would start clean).
+    for (const id of ["earlier", "free", "other"]) {
+        disownRecording(id);
+    }
+    await wipeStorage();
+    for (const entry of seed) {
+        await keepRecording(entry);
+    }
+    after(wipeStorage);
     let dictation;
     const ids = [];
     patchWithCleanup(FieldDictation.prototype, {
@@ -31,14 +65,7 @@ async function mountDictation() {
         },
     });
     await mountWithCleanup(MainComponentsContainer, { noMainContainer: true });
-    after(async () => {
-        for (const entry of await keptRecordings(user.userId)) {
-            await forgetRecording(entry.id);
-        }
-        for (const id of ids) {
-            await forgetRecording(id);
-        }
-    });
+    await dictation.loadStored(); // what onMounted started: wait for it, not for frames
     dictation.ids = ids;
     return dictation;
 }
@@ -327,38 +354,89 @@ test("closing the page while recording stops and keeps the recording", async () 
 });
 
 test("an unused recording is offered when the page starts, and can be retried", async () => {
-    await keepRecording({ id: "earlier", kind: "dictation", blob: clip(), createdAt: Date.now(), userId: user.userId });
-    // Somebody else's recording on the same browser is not offered.
-    await keepRecording({ id: "other", kind: "dictation", blob: clip(), createdAt: Date.now(), userId: user.userId + 1000 });
-    after(() => forgetRecording("other"));
     patchWithCleanup(FieldDictation.prototype, {
         async transcribe() {
             return "Said earlier";
         },
     });
-    const dictation = await mountDictation();
-    await animationFrame();
-    await animationFrame();
+    // Somebody else's recording on the same browser is not offered.
+    const dictation = await mountDictation([earlier(), earlier({ id: "other", userId: user.userId + 1000 })]);
+    await waitFor(".o-usl-stored");
     expect(".o-usl-stored").toHaveCount(1);
-    expect(".o-usl-stored .fw-bold").toHaveText(`Unused dictation from ${recordingTime(Date.now())}`);
+    expect(".o-usl-stored .fw-bold").toHaveText(`Unused dictation (${recordingTime(EARLIER)})`);
     expect('.o-usl-stored [data-usl-action="retry"]').toHaveCount(1);
     expect('.o-usl-stored [data-usl-action="download"]').toHaveCount(1);
     expect('.o-usl-stored [data-usl-action="discard"]').toHaveCount(1);
 
     await click('.o-usl-stored [data-usl-action="retry"]');
-    await animationFrame();
-    await animationFrame();
-    // There is no field to insert in any more: the text is offered for copying.
+    await waitFor(".o-usl-recovered-text");
+    // There is no field to insert in: the text is offered for copying.
     expect(dictation.state.recovered).toBe("Said earlier");
     expect(".o-usl-stored").toHaveCount(0);
     expect(".o-usl-recovered-text").toHaveText("Said earlier");
 });
 
-test("an unused recording can be downloaded and discarded with Undo from the recovery panel", async () => {
-    await keepRecording({ id: "earlier", kind: "dictation", blob: clip(), createdAt: Date.now(), userId: user.userId });
+test("an unused recording is retried into the field the writer is in", async () => {
+    patchWithCleanup(FieldDictation.prototype, {
+        async transcribe() {
+            return "Said earlier";
+        },
+    });
+    const dictation = await mountDictation([earlier()]);
+    const input = field();
+    input.value = "Before ";
+    input.focus();
+    input.setSelectionRange(7, 7);
+    await waitFor(".o-usl-stored");
+    await click('.o-usl-stored [data-usl-action="retry"]');
+    await waitUntil(() => input.value !== "Before ");
+    expect(input.value).toBe("Before Said earlier");
+    expect(dictation.state.recovered).toBe("");
+    // The text is where it belongs: the audio is no longer kept.
+    disownRecording("earlier");
+    expect(await kept()).toEqual([]);
+});
+
+test("a recording another tab is handling is not offered", async () => {
+    // A tab that handles a recording holds a Web Lock on it for as long as it lives.
+    realLocks();
+    let release;
+    const held = new Promise((resolve) => (release = resolve));
+    const locked = new Promise((resolve) => navigator.locks.request("usl-voice-earlier", () => (resolve(), held)));
+    await locked;
+    after(() => release());
+    const dictation = await mountDictation([earlier(), earlier({ id: "free", createdAt: EARLIER + 1000 })]);
+    expect(dictation.state.stored.map((entry) => entry.id)).toEqual(["free"]);
+    // A stale list cannot take it either.
+    dictation.state.stored = [earlier()];
+    await dictation.retry("earlier");
+    expect(Boolean(dictation.pendingAudio)).toBe(false);
+    expect(dictation.state.mode).toBe("idle");
+    // Once that tab is gone the recording is offered again.
+    release();
+    let ids = [];
+    for (let turn = 0; turn < 20 && ids.length < 2; turn++) {
+        await advanceTime(50);
+        ids = (await kept()).map((entry) => entry.id).sort();
+    }
+    expect(ids).toEqual(["earlier", "free"]);
+});
+
+test("another tab's change refreshes the list", async () => {
     const dictation = await mountDictation();
-    await animationFrame();
-    await animationFrame();
+    const refreshed = new Promise((resolve) => {
+        dictation.loadStored = () => resolve("refreshed");
+    });
+    // What another tab does after it keeps, forgets or lets go of a recording.
+    const other = new BroadcastChannel("usl_voice");
+    other.postMessage("change");
+    other.close();
+    expect(await refreshed).toBe("refreshed");
+});
+
+test("an unused recording can be downloaded and discarded with Undo from the recovery panel", async () => {
+    const dictation = await mountDictation([earlier()]);
+    await waitFor(".o-usl-stored");
     const downloads = [];
     patchWithCleanup(URL, { createObjectURL: () => "blob:x" });
     patchWithCleanup(HTMLAnchorElement.prototype, {
@@ -367,22 +445,20 @@ test("an unused recording can be downloaded and discarded with Undo from the rec
         },
     });
     await click('.o-usl-stored [data-usl-action="download"]');
-    expect(downloads).toEqual([recordingFileName(Date.now())]);
+    expect(downloads).toEqual([recordingFileName(EARLIER)]);
 
     await click('.o-usl-stored [data-usl-action="discard"]');
-    await animationFrame();
+    await waitFor(".o_notification");
     expect(".o-usl-stored").toHaveCount(0);
     // Undo: it is offered again, still kept.
     await click(".o_notification button:contains(Undo)");
-    await animationFrame();
-    await animationFrame();
-    expect(".o-usl-stored").toHaveCount(1);
+    await waitFor(".o-usl-stored");
     expect(dictation.state.stored.map((entry) => entry.id)).toEqual(["earlier"]);
 
     // Discard and wait: gone for good.
     await click('.o-usl-stored [data-usl-action="discard"]');
-    await animationFrame();
+    await waitFor(".o_notification");
     await advanceTime(11_000);
-    await animationFrame();
+    await waitUntil(() => !document.querySelector(".o_notification"));
     expect(await kept()).toEqual([]);
 });
