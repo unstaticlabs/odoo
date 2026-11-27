@@ -1,13 +1,12 @@
 {
     "name": "USL Project",
     "summary": "Focused project workflow compatibility for Community Odoo",
-    "version": "saas~19.3.1.0.24",
+    "version": "saas~19.3.1.0.21",
     "category": "Services/Project",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
     "depends": ["mail_tracking", "project"],
     "data": [
-        "security/ir.model.access.csv",
         "data/project_task_cron.xml",
         "views/mail_activity_views.xml",
         "views/project_project_views.xml",
@@ -16,9 +15,6 @@
     "assets": {
         "web.assets_backend": [
             "usl_project/static/src/favorite_project_navigation.js",
-            "usl_project/static/src/task_waiting/*.js",
-            "usl_project/static/src/task_waiting/*.xml",
-            "usl_project/static/src/task_waiting/*.scss",
             "usl_project/static/src/project_task_title.js",
             "usl_project/static/src/task_github_properties.js",
             "usl_project/static/src/task_github_properties.xml",
@@ -36,7 +32,6 @@
         ],
         "web.assets_unit_tests": [
             "usl_project/static/tests/favorite_project_navigation.test.js",
-            "usl_project/static/tests/task_waiting.test.js",
             "usl_project/static/tests/project_task_title.test.js",
             "usl_project/static/tests/task_swimlane.test.js",
             "usl_project/static/tests/task_github_properties.test.js",

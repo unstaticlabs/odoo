@@ -15,6 +15,7 @@ from .common import (
     LINE_GRAIN,
     ORDER_GRAIN,
     ParsedRow,
+    SchemaError,
     digest,
     money,
     parsed_datetime,
@@ -22,6 +23,8 @@ from .common import (
     reference,
     text,
 )
+
+from .medusa_exchange import IDENTIFIED_ITEMS_HEADER
 
 PROVIDER = "medusa"
 
@@ -43,6 +46,7 @@ ORDERS_HEADER = _HEADER_COLUMNS + tuple(
     for column in _ITEM_COLUMNS
 )
 ITEMS_HEADER = _HEADER_COLUMNS + _ITEM_COLUMNS
+
 
 #: What the wide layout must state to be that export at all: the order, and a
 #: first item to hang on it.  Medusa widens the layout as orders grow — a file
@@ -146,16 +150,14 @@ def _line_identity(order_id, item, seen):
 
 
 def _item_values(item, currency):
-    unit_price = item["unit_price"]
-    qty = item["quantity"]
     return {
         "currency": currency,
         "original_sku": item["sku"],
         "original_name": item["product"],
         "original_variation": item["variant"],
-        "quantity": qty,
-        "unit_price": unit_price,
-        "subtotal_amount": item["total"] if item["total"] is not None else unit_price * qty,
+        "quantity": item["quantity"],
+        "unit_price": item["unit_price"],
+        "subtotal_amount": item["total"],
     }
 
 
@@ -172,13 +174,16 @@ def _read_item(row, prefix=""):
     product = text(row.get(f"{prefix}product"))
     if not sku and not product:
         return None
+    qty = quantity(row.get(f"{prefix}qty"))
+    unit_price = money(row.get(f"{prefix}unit_price"), default=Decimal("0"))
+    stated_total = money(row.get(f"{prefix}total"))
     return {
         "sku": sku,
         "product": product,
         "variant": text(row.get(f"{prefix}variant")),
-        "quantity": quantity(row.get(f"{prefix}qty")),
-        "unit_price": money(row.get(f"{prefix}unit_price"), default=Decimal("0")),
-        "total": money(row.get(f"{prefix}total")),
+        "quantity": qty,
+        "unit_price": unit_price,
+        "total": stated_total if stated_total is not None else unit_price * qty,
     }
 
 
@@ -220,10 +225,7 @@ def parse_orders(document):
             occurred_at=occurred_at,
             values=_header_values(row)
             | {
-                "subtotal_amount": sum(
-                    (item["total"] or item["unit_price"] * item["quantity"] for item in items),
-                    Decimal("0"),
-                ),
+                "subtotal_amount": sum((item["total"] for item in items), Decimal("0")),
                 "line_count": Decimal(len(items)),
             },
         )
@@ -242,42 +244,78 @@ def parse_orders(document):
             )
 
 
-def parse_order_items(document):
+def parse_order_items(document, *, identified=False):
     """Yield the lines, and one order header per order, from the item layout."""
     seen_by_order = {}
     announced = set()
+    if identified:
+        line_ids = set()
+        native_orders = {}
+        display_orders = {}
+        order_facts = {}
+        for row in document.rows:
+            native = reference(row["order_id"])
+            display = reference(row["order_number"]) or native
+            line = reference(row["line_id"])
+            if not native or not line or (native, line) in line_ids:
+                raise SchemaError("Each Medusa item must state a nonempty order_id and unique line_id.")
+            if native_orders.setdefault(native, display) != display or display_orders.setdefault(display, native) != native:
+                raise SchemaError("Medusa order_id and order_number disagree within this export.")
+            facts = tuple(text(row[name]) for name in ("date", "currency", "order_status", "payment_status", "fulfillment_status"))
+            if order_facts.setdefault(native, facts) != facts:
+                raise SchemaError("Medusa rows disagree about one order's date, currency or source states.")
+            line_ids.add((native, line))
     for row in document.rows:
-        order_id = reference(row["order_number"])
+        order_id = reference(row["order_number"]) or (reference(row["order_id"]) if identified else "")
         occurred_at = parsed_datetime(row["date"])
         payload = _payload(row)
         currency = text(row["currency"]).upper() or "EUR"
+        header_values = _header_values(row) if not identified else {
+            "currency": currency,
+            "internal_order_id": reference(row["order_id"]),
+            "original_provider_state": text(row["order_status"]),
+            "source_payment_state": text(row["payment_status"]),
+            "source_fulfilment_state": text(row["fulfillment_status"]),
+        }
+        format_id = "medusa_identified_items" if identified else "medusa_order_items"
         if order_id not in announced:
             announced.add(order_id)
             yield ParsedRow(
-                format_id="medusa_order_items",
+                format_id=format_id,
                 provider=PROVIDER,
                 grain=ORDER_GRAIN,
                 external_order_id=order_id,
                 row_number=row["_row_number"],
                 payload=payload,
                 occurred_at=occurred_at,
-                values=_header_values(row),
+                values=header_values,
             )
         item = _read_item(row)
         if item is None:
+            if identified:
+                raise SchemaError("A native Medusa line must state a SKU or product.")
             continue
         seen = seen_by_order.setdefault(order_id, Counter())
+        line_id = reference(row["line_id"]) if identified else _line_identity(order_id, item, seen)
+        values = _item_values(item, currency)
+        if identified:
+            values["internal_order_id"] = reference(row["order_id"])
         yield ParsedRow(
-            format_id="medusa_order_items",
+            format_id=format_id,
             provider=PROVIDER,
             grain=LINE_GRAIN,
             external_order_id=order_id,
-            external_line_id=_line_identity(order_id, item, seen),
+            external_line_id=line_id,
             row_number=row["_row_number"],
             payload=payload,
             occurred_at=occurred_at,
-            values=_item_values(item, currency),
+            values=values,
         )
+
+
+def parse_identified_order_items(document):
+    """Read explicit native IDs without treating product content as identity."""
+    return parse_order_items(document, identified=True)
 
 
 def _payload(row):

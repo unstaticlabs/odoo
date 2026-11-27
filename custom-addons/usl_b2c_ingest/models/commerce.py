@@ -8,10 +8,32 @@ answering for it.
 
 from odoo import api, fields, models
 from odoo.exceptions import ValidationError
+from odoo.addons.usl_b2c.models.native_history import B2cOrderProvenance
 
 
 class B2cOrderSupersession(models.Model):
     _inherit = "b2c.order"
+
+    _usl_materialization_fields = (
+        B2cOrderProvenance._usl_materialization_fields | {"medusa_native_order_id"}
+    )
+
+    medusa_native_order_id = fields.Char(
+        string="Native Medusa order ID", readonly=True, copy=False, index=True,
+        help="Retained native identity for new Medusa imports. Historical orders are left unchanged.",
+    )
+    _medusa_native_order_unique = models.Constraint(
+        "UNIQUE(company_id, medusa_native_order_id)",
+        "This native Medusa order is already imported in this company. Read the batch again to reuse the existing sale.",
+    )
+
+    @api.constrains("medusa_native_order_id", "external_order_id", "source_provider")
+    def _check_medusa_native_identity(self):
+        for order in self:
+            if order.medusa_native_order_id and (
+                order.source_provider != "medusa" or order.external_order_id != order.medusa_native_order_id
+            ):
+                raise ValidationError(self.env._("The retained Medusa identity must match the native source order ID."))
 
     superseded_by_id = fields.Many2one(
         "b2c.order",
