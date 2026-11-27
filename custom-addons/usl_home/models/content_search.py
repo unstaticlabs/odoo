@@ -8,8 +8,10 @@ from odoo.fields import Domain
 from odoo.tools import html2plaintext
 
 from odoo.addons.usl_project.models.content_search import (
-    _CREDENTIAL_FIELD, company_domain, readable_content_domain,
+    _CREDENTIAL_FIELD, company_domain, readable_content_domain, task_content_execution,
 )
+
+from .search_relevance import relevance_order
 
 # Business destinations, not a registry scan of configuration or credentials.
 SEARCH_MODELS = (
@@ -105,6 +107,24 @@ class HomeContentSearch(models.AbstractModel):
                 labels.append(company.display_name)
         return " · ".join(labels)
 
+    def _search_ranked_records(self, model, domain, text, limit, offset):
+        """Order the native authorized match set before applying its page window.
+
+        Only a readable own title affects rank. The content domain, source access
+        and all native rules remain responsible for membership; no fragments or
+        related labels are read to compute a title score.
+        """
+        if model._name not in {"project.task", "project.project", "res.partner"} or not model.has_field_access(model._fields["name"], "read"):
+            return model.search(domain, limit=limit, offset=offset, order="id desc")
+        with task_content_execution(model, domain):
+            native = model._search(domain)
+            if native.is_empty():
+                return model.browse()
+            native.order = relevance_order(model, native.table, text)
+            native.limit = limit
+            native.offset = offset
+            return model.browse(row[0] for row in self.env.execute_query(native.select()))
+
     @api.model
     def search_records(self, query, categories=None, limit=5, offset=0, exclude_categories=None):
         catalog = self._search_catalog()
@@ -125,7 +145,7 @@ class HomeContentSearch(models.AbstractModel):
             model_name, label = catalog[key]
             model = self.env[model_name].with_context(active_test=False)
             domain = Domain("usl_search_text", "ilike", query) if model_name in {"project.task", "project.project", "res.partner"} else readable_content_domain(model, query)
-            records = model.search(domain, limit=limit + 1, offset=offset, order="id desc")
+            records = self._search_ranked_records(model, domain, query, limit + 1, offset)
             rows = []
             sources = records[:limit]._usl_matching_message_sources(query) if model_name == "project.task" else {}
             for record in records[:limit]:

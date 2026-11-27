@@ -1423805,7 +1423805,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 164,
+          "line": 184,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424395,7 +1424395,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 143,
+          "line": 163,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424503,7 +1424503,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "d72b5713e1ffd0e3518adb5cca6c6f1cfbfd506137bb4e78f3acaef014b51111",
+      "digest": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1424514,11 +1424514,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "12b833d3ea2ae5d72a08395fa683478ed90f172d77f75b2bf00ad344a8a186ec",
+      "runtime_digest": "a7e4adfc1f9447de16e29ffaa2feb139fd65adb7ba134788c85087b9f9269944",
       "sinks": [],
       "sources": [
         {
-          "line": 109,
+          "line": 129,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1769803,11 +1769803,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "c46506cf68fb7feae313fd5e7acbf88839a49c82972ea92791218a36ef3ffd3f",
+      "manifest_sha256": "90832f58fe4404c09a1606605a965d41e17c1d3387e914625375859b895fd6ea",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "1875888e7d4881be31cdaa8f3708d25535e60c89f300bd68b4005acc40bc1c60",
-      "version": "saas~19.3.1.0.15"
+      "source_sha256": "3cceb750333dd09db84fdff3755635809258e70125738213ba06283f193a5793",
+      "version": "saas~19.3.1.0.17"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
