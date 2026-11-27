@@ -44,6 +44,12 @@ class RuntimeResourceTests(unittest.TestCase):
             self.assertEqual(here["mem_swappiness"], 0, role)
             self.assertEqual(here["mem_limit"], here["memswap_limit"], role)
 
+    def test_production_odoo_is_never_paged_out(self) -> None:
+        # With a swap allowance the kernel used all of it under host pressure:
+        # 984 MB of Odoo sat on disk on 2026-11-27 and requests waited for it.
+        odoo = self.policy("production")["odoo"]
+        self.assertEqual(odoo["mem_limit"], odoo["memswap_limit"])
+
     def test_local_runtime_does_not_inherit_vps_limits(self) -> None:
         target = load_target("local", TARGETS)
         self.assertIsNone(_resource_overlay(target))
