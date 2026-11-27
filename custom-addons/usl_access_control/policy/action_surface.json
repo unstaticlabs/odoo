@@ -973215,7 +973215,7 @@
       "delegates": [
         "rpc:rebuild.account.declaration.candidate.review.ensure_one"
       ],
-      "digest": "bbc2e2b052cc7cc65c0107707df8b65245533fb4879e85dd798b65de320c2663",
+      "digest": "72239c268836ffcd9e5406c63afbe4a0a4651fa08a4ed81218b5a30b6868c6b3",
       "guards": [],
       "key": "rpc:rebuild.account.declaration.candidate.review.action_show",
       "kind": "rpc",
@@ -973226,7 +973226,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6ed75bf6cb2dc9bef93a78bd9e540246ed35f001ffdf371552e22ebf660dd571",
+      "runtime_digest": "a351be0bcea1a4d855b9ec9dd3c47a6265c7318f02c1c7c9356ad036f6b33abb",
       "sinks": [
         "orm_create"
       ],
@@ -974062,7 +974062,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 231,
+          "line": 233,
           "path": "custom-addons/rebuild_account_migration/models/declaration_candidates.py"
         },
         {
@@ -974095,7 +974095,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 235,
+          "line": 237,
           "path": "custom-addons/rebuild_account_migration/models/declaration_candidates.py"
         },
         {
@@ -1650714,7 +1650714,7 @@
       ]
     },
     {
-      "digest": "6b9c10a4c4287c349271a99fa3e9505ceecbce6a8d4462a4717f76a51bbe3bc3",
+      "digest": "7f0da0b67d12cbd2036d5275592271b9e2f674e376125fda2488e0753e87e399",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_candidates.py:rebuild.account.declaration.candidate.review.action_show:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1770348,7 +1770348,7 @@
       "manifest_sha256": "ea95c46343f35e1f7defc3c191c69d35d885c1723ff28ab65e9210a7583d51b4",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "ead0470b69e5dc7fe5cd04eeedf3a648c079888dde061a78b9875d6e5c02d99e",
+      "source_sha256": "2e017eea83412c88d61e8dbc1ebe321c959cc48caa10202e9b94addc9aeb270b",
       "version": "saas~19.3.1.13.58"
     },
     {

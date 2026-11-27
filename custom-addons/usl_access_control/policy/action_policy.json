@@ -158103,7 +158103,7 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.action_review_documents:orm_create:1": "f3db4c6c0720fe6cecfe34542a5521c2eb866998633d172224155e522bb60939",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_create:1": "04a716dcdd332763225787b576f2296e422490dcc0c3e75b50ceab81eb2e3b90",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration.py:rebuild.account.declaration.field._upsert:orm_write:1": "b4d6e8116242d1c58bac33deb83fc5d24af1686b75c36e841ea6b2f843ed6b15",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_candidates.py:rebuild.account.declaration.candidate.review.action_show:orm_create:1": "6b9c10a4c4287c349271a99fa3e9505ceecbce6a8d4462a4717f76a51bbe3bc3",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_candidates.py:rebuild.account.declaration.candidate.review.action_show:orm_create:1": "7f0da0b67d12cbd2036d5275592271b9e2f674e376125fda2488e0753e87e399",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:1": "52b9f75db37c05d4cba7193a800c924a8cdae1f96626a058d45f18fc20a5f0cf",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule._ensure_governance_metadata:orm_write:2": "0192b51b7600fe8c955e009c6793fc6dbb0ebf66bb78486530922656f59efb2e",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/declaration_rules.py:rebuild.account.declaration.rule.create:orm_create:1": "224b3e177cbdc6ace5d8efd8be5040e3e33135095fb60231ab84d837e3533073",
@@ -221721,7 +221721,7 @@
       "rationale": "The native transient models have no filing, posting or payment action. Showing the documents writes only temporary review lines computed on demand.",
       "reviewed_digests": {
         "rpc:rebuild.account.declaration.action_review_documents": "3ad22960b87b323061ac8f9fb4bb79c4e86f70235bef991674e184c2c823a3bb",
-        "rpc:rebuild.account.declaration.candidate.review.action_show": "bbc2e2b052cc7cc65c0107707df8b65245533fb4879e85dd798b65de320c2663",
+        "rpc:rebuild.account.declaration.candidate.review.action_show": "72239c268836ffcd9e5406c63afbe4a0a4651fa08a4ed81218b5a30b6868c6b3",
         "rpc:rebuild.account.declaration.candidate.review.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:rebuild.account.declaration.candidate.review.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:rebuild.account.declaration.candidate.review.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",

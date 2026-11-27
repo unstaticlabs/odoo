@@ -169,7 +169,7 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
                     self.assertIn("invoice or credit note", proposal.applicability_reason)
                     self.assertIn("facture ou un avoir", proposal.with_context(lang="fr_FR").applicability_summary)
                     self.assertIn("invoice or credit note", proposal.with_context(lang="en_US").applicability_summary)
-        # A reason the accountant typed is never replaced by generated wording.
+        # Reading a reason the accountant typed shows it as written, whatever the reader's language.
         proposal.with_context(lang="fr_FR").applicability_summary = "Confirmed with the accountant."
         self.assertEqual(proposal.applicability_reason, "Confirmed with the accountant.")
         self.assertEqual(proposal.with_context(lang="fr_FR").applicability_summary, "Confirmed with the accountant.")
@@ -198,6 +198,8 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
             self.env[action["res_model"]]._read_group(action["domain"], ["partner_id"], ["amount:sum"])
         }
         self.assertEqual(totals, {"Example design studio": 70, "Example atelier": 70})
+        # A review over several months adds up per month first, as each month is its own return.
+        self.assertEqual(self._listed("des", "2026-01-01", "2026-12-31")[0]["context"]["group_by"], ["period", "partner_id"])
         arch = self.env[action["res_model"]].get_views([action["views"][0]])["views"]["list"]["arch"]
         self.assertIn('name="partner_vat"', arch)
 

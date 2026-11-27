@@ -66,6 +66,7 @@ class DeclarationCandidateReview(models.TransientModel):
         des = self.kind == "des"
         # One year is the usual DAS2 review: a second, folded level would only add a click.
         one_year = self.date_from.year == self.date_to.year
+        one_period = (self.date_from.year, self.date_from.month) == (self.date_to.year, self.date_to.month) if des else one_year
         self.line_ids = [Command.clear()] + [Command.create({
             "date": row["date"], "period": row["period"], "partner_id": row["partner_id"] or False,
             "move_id": row["source_id"], "payment_move_id": row["payment_id"] or False, "reason": row["reason"],
@@ -84,8 +85,9 @@ class DeclarationCandidateReview(models.TransientModel):
             "views": [(self.env.ref(f"rebuild_account_migration.{view}").id, "list")],
             "search_view_id": [self.env.ref("rebuild_account_migration.view_declaration_candidate_line_search").id],
             "domain": [("review_id", "=", self.id)],
-            # A DES return has one line per customer VAT number, so the list adds up per customer.
-            "context": {"group_by": ["partner_id"] if des or one_year else ["period", "partner_id"]},
+            # A DES return covers one month and has one line per customer VAT number:
+            # add up per customer, and per month first when the range spans several.
+            "context": {"group_by": ["partner_id"] if one_period else ["period", "partner_id"]},
             "help": self.env._("No source documents listed. If you opened this list more than an hour ago, show the documents again from the declaration calendar."),
             "target": "current",
         }
