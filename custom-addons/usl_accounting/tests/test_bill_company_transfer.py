@@ -1,7 +1,7 @@
 from types import MethodType, SimpleNamespace
 from unittest.mock import patch
 
-from odoo import Command
+from odoo import Command, api
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
@@ -132,12 +132,9 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
     def test_scheduled_archive_retry_recovers_after_a_second_outage(self):
         self._assert_archive_recovery(recover_immediately=False)
 
-    def _assert_archive_recovery(self, *, recover_immediately):
+    def _linked_archive(self, bill):
         if "usl.document" not in self.env:
             self.skipTest("The optional Documents archive is not installed.")
-        from odoo.addons.usl_documents.models.paperless_client import PaperlessClient, PaperlessUnavailable
-
-        bill = self._bill()
         source = bill.company_id
         reader = new_test_user(self.env, login="studio-source-reader",
                                groups="usl_documents.group_documents_accountant,account.group_account_invoice",
@@ -155,6 +152,14 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             "user_id": reader.id, "paperless_user_id": 927, "paperless_username": "studio-source-reader",
             "sync_state": "synchronized",
         })
+        return document
+
+    def _assert_archive_recovery(self, *, recover_immediately):
+        bill = self._bill()
+        document = self._linked_archive(bill)
+        from odoo.addons.usl_documents.models.paperless_client import PaperlessClient, PaperlessUnavailable
+
+        source = bill.company_id
         provider_acl = {}
         attempts = []
         def set_permissions(_client, ids, *, view_users, change_users):
@@ -190,6 +195,66 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
             wizard.action_apply()
             self.assertEqual(bill.company_id, self.target)
             self.assertNotIn(927, provider_acl[document.paperless_id][0])
+
+    def test_archive_matches_committed_bill_after_outer_batch_cancels_transfer(self):
+        self._assert_archive_at_commit(cancel_transfer=True)
+
+    def test_archive_matches_committed_bill_after_outer_batch_accepts_transfer(self):
+        self._assert_archive_at_commit(cancel_transfer=False)
+
+    def test_archive_retry_restores_committed_policy_after_postcommit_outage(self):
+        self._assert_archive_at_commit(cancel_transfer=True, fail_confirmation=True)
+
+    def _assert_archive_at_commit(self, *, cancel_transfer, fail_confirmation=False):
+        bill = self._bill()
+        document = self._linked_archive(bill)
+        from odoo.addons.usl_documents.models.paperless_client import PaperlessClient, PaperlessUnavailable
+        from odoo.sql_db import Cursor
+
+        source = bill.company_id
+        archive = {}
+        attempts = []
+
+        def record_permissions(_client, ids, *, view_users, change_users):
+            attempts.append(tuple(ids))
+            if fail_confirmation and len(attempts) == 3:
+                raise PaperlessUnavailable("Synthetic maintenance during final permission synchronization.")
+            archive.update({paperless_id: (tuple(view_users), tuple(change_users)) for paperless_id in ids})
+
+        self.env.cr.flush()
+        self.registry_enter_test_mode()
+        with patch.object(PaperlessClient, "set_documents_permissions", record_permissions):
+            document.with_user(self.env.ref("base.user_root")).action_sync_permissions()
+            self.env.cr.flush()
+            before = archive[document.paperless_id]
+            self.assertIn(927, before[0])
+            with self.registry.cursor() as cr:
+                env = api.Environment(cr, self.env.uid, self.env.context)
+                batch_bill = bill.with_env(env)
+                with cr.savepoint() as batch:
+                    self._mapping(batch_bill).action_apply()
+                    self.assertEqual(batch_bill.company_id.id, self.target.id)
+                    self.assertNotIn(927, archive[document.paperless_id][0])
+                    if cancel_transfer:
+                        batch.rollback()
+                unrelated = env["res.partner"].create({"name": "Synthetic rehearsal schedule"})
+                # Exercise Odoo's real commit callbacks. TestCursor normally skips them,
+                # and its connection still keeps every write inside the test transaction.
+                Cursor.commit(cr)
+            with self.registry.cursor() as cr:
+                env = api.Environment(cr, self.env.uid, self.env.context)
+                self.assertTrue(env["res.partner"].browse(unrelated.id).exists())
+                self.assertEqual(bill.with_env(env).company_id.id, source.id if cancel_transfer else self.target.id)
+                observed = document.with_env(env).sudo()
+                if fail_confirmation:
+                    self.assertEqual(observed.permission_sync_state, "failed")
+                    self.assertNotEqual(archive[document.paperless_id], before)
+                    self.assertGreaterEqual(observed._retry_failed_permission_syncs(), 1)
+                self.assertEqual(observed.permission_sync_state, "synchronized")
+            if cancel_transfer:
+                self.assertEqual(archive[document.paperless_id], before)
+            else:
+                self.assertNotIn(927, archive[document.paperless_id][0])
 
     def test_owner_and_delegated_operator_transfer_with_the_same_native_rights(self):
         if "usl.agent" not in self.env:

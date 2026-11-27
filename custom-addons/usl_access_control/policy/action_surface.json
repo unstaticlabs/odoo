@@ -1367325,7 +1367325,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1444,
+          "line": 1453,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1367360,7 +1367360,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1435,
+          "line": 1444,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1367440,7 +1367440,7 @@
       ],
       "sources": [
         {
-          "line": 1465,
+          "line": 1474,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1367548,7 +1367548,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1453,
+          "line": 1462,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1367666,7 +1367666,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1426,
+          "line": 1435,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1367889,7 +1367889,7 @@
       ],
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1690149,6 +1690149,21 @@
       ]
     },
     {
+      "digest": "210cae1a9eee2f33188ae90679262a974ddf7b9bf43f4be024b0f99fc3166b80",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._reconcile_paperless_permissions_at_transaction_end:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 1318,
+          "path": "custom-addons/usl_documents/models/document.py"
+        }
+      ]
+    },
+    {
       "digest": "852879b4cd2dd517d16ea4a060166322db81ae08178ab886f33f1f8585bf87ba",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._search_linked_employee:sudo:1",
       "kind": "sink",
@@ -1690254,21 +1690269,6 @@
       ]
     },
     {
-      "digest": "eb92048a65ead731772d877c7156b3367ae34f2b2816de3623073a8281ad8865",
-      "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._track_paperless_permission_writes:orm_write:1",
-      "kind": "sink",
-      "modules": [
-        "usl_documents"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 1307,
-          "path": "custom-addons/usl_documents/models/document.py"
-        }
-      ]
-    },
-    {
       "digest": "5550b5b0464ade422c08262da9963ff9aedd41ed80ee0fc6bd8379814476b64b",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_mark_opened:orm_create:1",
       "kind": "sink",
@@ -1690335,7 +1690335,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1465,
+          "line": 1474,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690533,7 +1690533,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690551,7 +1690551,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690569,7 +1690569,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690587,7 +1690587,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690605,7 +1690605,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690623,7 +1690623,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1690641,7 +1690641,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1335,
+          "line": 1344,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1772465,7 +1772465,7 @@
       "manifest_sha256": "21fed61ac2d71992a260214853fd91c9d8bb6e04bcbe03d416754e146ca5416a",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "76c5d6a273a436fd0df3d9390414a941981344248493bccf2dfd80be336fd7f4",
+      "source_sha256": "23d75e076563977919b425f541b9e95222c984d02af932298bfa5e804ac49756",
       "version": "saas~19.3.1.10.9"
     },
     {

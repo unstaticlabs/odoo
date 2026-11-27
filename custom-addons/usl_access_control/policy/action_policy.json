@@ -221999,7 +221999,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_write:1",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:orm_create:1",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.write:orm_write:1",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._track_paperless_permission_writes:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._reconcile_paperless_permissions_at_transaction_end:orm_write:1",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_choose_company:1",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1",
@@ -222063,7 +222063,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_write:1": "42ec4097e8f9fa1663db46792755699720356d2aa0822269d29a5fd0388ec812",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:orm_create:1": "1a8ed4262374c2dd0e3fbc7c7b52e22bbdcabf3c247e478f1e50f158913f8c99",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.write:orm_write:1": "3fc09319caddd287b63c0d6aeb6df9d285abf8f194478ad2d423d9d490eb33f4",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._track_paperless_permission_writes:orm_write:1": "eb92048a65ead731772d877c7156b3367ae34f2b2816de3623073a8281ad8865",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._reconcile_paperless_permissions_at_transaction_end:orm_write:1": "210cae1a9eee2f33188ae90679262a974ddf7b9bf43f4be024b0f99fc3166b80",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1": "705ac542744ef24df9f8f52cc479c8d1fea1fe719d8408fcc9a49258fe065c20",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_choose_company:1": "6c6ef9ee8bf61d54cde09eeb44fa494bab48be174a518aa95877a5d7c9e6cefc",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1": "6e7790880284ed52387a8cfc7d6afb3717bd25840902fb49317d1156f8bb146b",
@@ -222217,7 +222217,7 @@
       ]
     },
     "draft-bill-company-transfer-20261127": {
-      "contract": "An authorized billing operator previews the destination chart, retains the original draft, files and commercial values, and changes company with a native balanced write. Actual payment relationships and stale rows are preserved. Attempted archive permissions are restored to the original policy after a late document failure and queued for native retry if the archive is unavailable. Human and delegated operations share the same accounting action and source rights.",
+      "contract": "An authorized billing operator previews the destination chart, retains the original draft, files and commercial values, and changes company with a native balanced write. Actual payment relationships and stale rows are preserved. Attempted archive permissions are restored to the original policy after a late document failure and queued for native retry if the archive is unavailable. Human and delegated operations share the same accounting action and source rights. After a surrounding batch commits or rolls back, the archive receives the committed document policy. A late archive outage is handled by native synchronization retries.",
       "tests": [
         "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_transfer_keeps_original_evidence_installments_and_line_identity",
         "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_foreign_payment_is_preserved_and_explained",
@@ -222226,7 +222226,10 @@
         "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_selected_company_must_be_available_to_the_operator",
         "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_owner_and_delegated_operator_transfer_with_the_same_native_rights",
         "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_archive_timeout_after_permission_write_restores_original_access",
-        "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_scheduled_archive_retry_recovers_after_a_second_outage"
+        "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_scheduled_archive_retry_recovers_after_a_second_outage",
+        "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_archive_matches_committed_bill_after_outer_batch_cancels_transfer",
+        "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_archive_matches_committed_bill_after_outer_batch_accepts_transfer",
+        "custom-addons/usl_accounting/tests/test_bill_company_transfer.py::TestDraftBillCompanyTransfer.test_archive_retry_restores_committed_policy_after_postcommit_outage"
       ]
     },
     "draft-expense-correction-20261014": {

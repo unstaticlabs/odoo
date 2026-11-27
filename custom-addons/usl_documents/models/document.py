@@ -1313,17 +1313,26 @@ class UslDocument(models.Model):
         finally:
             _permission_write_receipt.reset(token)
             if touched:
-                registry = self.env.registry
-                document_ids = tuple(touched)
+                self._reconcile_paperless_permissions_at_transaction_end(touched)
 
-                def restore_committed_access():
-                    # PostgreSQL already rolled back. Derive the provider ACL
-                    # from the committed archive, using the native synchronizer.
-                    with registry.cursor() as cr:
-                        env = api.Environment(cr, SUPERUSER_ID, {})
-                        env["usl.document"]._restore_paperless_permission_writes(document_ids)
+    def _reconcile_paperless_permissions_at_transaction_end(self, touched):
+        cursor = self.env.cr
+        key = "usl_documents.transferred_bill_permissions"
+        pending = cursor.postcommit.data.get(key)
+        if pending is None:
+            registry = self.env.registry
+            pending = cursor.postcommit.data[key] = set()
 
-                self.env.cr.postrollback.add(restore_committed_access)
+            def reconcile():
+                # An outer savepoint can undo a successful transfer and still commit.
+                # Read the final policy from a new transaction for either outcome.
+                with registry.cursor() as cr:
+                    env = api.Environment(cr, SUPERUSER_ID, {})
+                    env["usl.document"]._restore_paperless_permission_writes(pending)
+
+            cursor.postcommit.add(reconcile)
+            cursor.postrollback.add(reconcile)
+        pending.update(touched)
 
     def _restore_paperless_permission_writes(self, touched):
         """Provider writes survive SQL rollback. Push the restored policy again."""

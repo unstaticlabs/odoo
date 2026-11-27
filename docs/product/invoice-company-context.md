@@ -29,8 +29,10 @@ If an archive permission change fails during transfer, Odoo rolls back the
 bill and sends the original policy back to the affected archive records.
 The dialog reports whether access was restored immediately. When the archive
 is still unavailable, Documents retains the failed permission state and its
-normal synchronization retries it. A later rollback of the outer Odoo
-transaction also reapplies the policy from committed records.
+normal synchronization retries it. When the surrounding transaction ends,
+Odoo reads the final permissions and reapplies them once to each affected
+archive record. This also covers a caller that cancels a batch containing
+the transfer, then commits the rest of its work.
 
 ## Inspect a company change without opening the transfer
 
