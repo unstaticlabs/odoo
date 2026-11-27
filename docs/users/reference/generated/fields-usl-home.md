@@ -15,6 +15,39 @@ generated: true
 
 Every field `usl_home` defines or adds to Odoo, by model, with its label, type and meaning.
 
+## Project
+
+`project.project`, extended by this module (defined by `usl_documents`).
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Project content** (`usl_search_text`) | char |  | Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged. |
+
+## Task
+
+`project.task`, extended by this module (defined by `usl_access_control`).
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Search sources** (`usl_search_sources`) | json |  | Readable chatter evidence for the explicit search_source_query context. |
+| **Task content** (`usl_search_text`) | char |  | Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged. |
+
+## Contact
+
+`res.partner`, extended by this module (defined by `rebuild_account_migration`).
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Contact content** (`usl_search_text`) | char |  | Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged. |
+
+## User
+
+`res.users`, extended by this module (defined by `rebuild_account_migration`).
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Contact content** (`usl_search_text`) | char |  | Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged. |
+
 ## User Settings
 
 `res.users.settings`, defined by this module.
