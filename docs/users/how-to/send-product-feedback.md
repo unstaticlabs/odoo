@@ -23,10 +23,11 @@ include before sending.
 
 ## Review what you are about to send
 
-- **Include page preview** shares the image shown in the form. Review it and
-  clear the option if it includes information the team does not need. The preview
-  stays on your device until you send it. Messages, chats, alerts and password
-  fields stay out of the preview.
+- **Include page preview** shares the image shown in the form. Check any record
+  details or chatter visible in the image. Clear the option if the team only
+  needs your description. Odoo leaves chat pop-ups, the messaging menu,
+  notifications and password fields out of the image. The preview stays on
+  your device until you send it.
 - **Page details** shares context such as the action you opened, a record you can
   read, the company and the release. Clear it if the current page is unrelated.
   Odoo excludes inaccessible records, URLs, access tokens and form values.
