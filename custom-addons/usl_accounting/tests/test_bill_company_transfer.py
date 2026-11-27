@@ -1,7 +1,8 @@
+import json
 from types import MethodType, SimpleNamespace
 from unittest.mock import patch
 
-from odoo import Command, api
+from odoo import Command
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import tagged
@@ -17,31 +18,279 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         cls.target = cls.target_data["company"]
         cls.partner_a.with_company(cls.target).property_account_payable_id = cls.target_data["default_account_payable"]
 
-    def _bill(self, *, taxed=False, kind="in_invoice"):
+    def _bill(self, *, taxed=False, kind="in_invoice", product=None):
+        line = {
+            "name": "Studio rehearsal",
+            "account_id": self.company_data["default_account_expense"].id,
+            "quantity": 2, "price_unit": 42.50,
+            "tax_ids": [Command.set(self.company_data["default_tax_purchase"].ids if taxed else [])],
+        }
+        if product:
+            line["product_id"] = product.id
         return self.env["account.move"].create({
             "move_type": kind,
             "partner_id": self.partner_a.id,
             "invoice_date": "2026-04-07",
             "journal_id": self.company_data["default_journal_purchase"].id,
             "invoice_payment_term_id": self.env.ref("account.account_payment_term_advance_60days").id,
-            "invoice_line_ids": [Command.create({
-                "name": "Studio rehearsal",
-                "account_id": self.company_data["default_account_expense"].id,
-                "quantity": 2, "price_unit": 42.50,
-                "tax_ids": [Command.set(self.company_data["default_tax_purchase"].ids if taxed else [])],
-            })],
+            "invoice_line_ids": [Command.create(line)],
         })
 
-    def _mapping(self, bill, *, taxed=False):
+    def _wizard(self, bill):
         action = bill.action_change_bill_company()
         wizard = bill.env[action["res_model"]].browse(action["res_id"])
         wizard.target_company_id = self.target
-        wizard.action_prepare_mapping()
-        wizard.journal_id = self.target_data["default_journal_purchase"]
-        wizard.mapping_ids.target_account_id = self.target_data["default_account_expense"]
-        if taxed:
-            wizard.mapping_ids.target_tax_ids = self.target_data["default_tax_purchase"]
         return wizard
+
+    def _mapping(self, bill):
+        """The dialog path: the proposal arrives pre-filled, the operator only reviews it."""
+        wizard = self._wizard(bill)
+        wizard.action_prepare_mapping()
+        return wizard
+
+    # --- one method for the dialog and for agents -----------------------------------
+
+    def test_agent_moves_a_taxed_two_installment_bill_in_two_calls(self):
+        bill = self._bill(taxed=True)
+        source = bill.company_id
+        old_dates = sorted(bill.line_ids.filtered(lambda ln: ln.display_type == "payment_term").mapped("date_maturity"))
+        self.assertEqual(len(old_dates), 2)
+
+        preview = bill.change_bill_company(self.target.id)
+
+        json.dumps(preview)  # an agent receives exactly this
+        self.assertEqual((preview["status"], preview["blockers"], preview["unresolved"]), ("ready", [], []))
+        self.assertEqual(bill.company_id, source, "a preview writes nothing")
+        proposal = preview["proposal"]
+        self.assertEqual(proposal["journal"]["id"], self.target_data["default_journal_purchase"].id)
+        self.assertEqual(proposal["payable_account"]["id"], self.target_data["default_account_payable"].id)
+        (line,) = proposal["lines"]
+        self.assertEqual([tax["id"] for tax in line["from"]["taxes"]], self.company_data["default_tax_purchase"].ids)
+        self.assertEqual([tax["id"] for tax in line["to"]["taxes"]], self.target_data["default_tax_purchase"].ids)
+        self.assertEqual(line["to"]["account"]["id"], self.target_data["default_journal_purchase"].default_account_id.id)
+        destination = preview["destination"]
+        self.assertEqual(destination["amount_untaxed"], 85)
+        self.assertEqual(destination["amount_tax"], 12.75)
+        self.assertEqual(destination["amount_total"], 97.75)
+        self.assertEqual([due["date"] for due in destination["due_dates"]], [date.isoformat() for date in old_dates])
+        self.assertEqual(round(sum(due["amount"] for due in destination["due_dates"]), 2), 97.75)
+        self.assertEqual(preview["current"]["company"]["id"], source.id)
+
+        done = bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+
+        self.assertEqual(done["status"], "done")
+        self.assertEqual((bill.company_id, bill.state, bill.invoice_line_ids.tax_ids),
+                         (self.target, "draft", self.target_data["default_tax_purchase"]))
+        self.assertEqual((done["before"]["company"]["id"], done["after"]["company"]["id"]), (source.id, self.target.id))
+        self.assertEqual(done["after"]["amount_total"], 97.75)
+        self.assertEqual(done["after"]["payable_account"]["id"], self.target_data["default_account_payable"].id)
+        self.assertEqual([due["date"] for due in done["after"]["due_dates"]], [date.isoformat() for date in old_dates])
+        self.assertTrue(done["bill"]["url"].endswith("/odoo/account.move/%s" % bill.id))
+        # A repeated confirmation after a lost reply reports the finished move.
+        again = bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+        self.assertEqual((again["status"], again["after"]["company"]["id"]), ("already_done", self.target.id))
+
+    def test_confirmation_needs_the_matching_preview(self):
+        bill = self._bill()
+        source = bill.company_id
+        with self.assertRaisesRegex(UserError, "Preview"):
+            bill.change_bill_company(self.target.id, confirm=True)
+        preview = bill.change_bill_company(self.target.id)
+        bill.invoice_line_ids.quantity = 3
+        with self.assertRaisesRegex(UserError, "changed"):
+            bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+        self.assertEqual((bill.company_id, bill.invoice_line_ids.quantity), (source, 3))
+
+    def test_dialog_and_method_apply_the_same_result(self):
+        bill = self._bill(taxed=True)
+        wizard = self._mapping(bill)
+        self.assertEqual(wizard.mapping_ids.target_tax_ids, self.target_data["default_tax_purchase"])
+        self.assertIn("97.75", wizard.destination_summary)
+        wizard.action_apply()
+        self.assertEqual((bill.company_id, bill.amount_total), (self.target, 97.75))
+
+    # --- blockers ---------------------------------------------------------------------
+
+    def _blocked_by_payment(self, bill):
+        payment = self.env["account.payment"].create({
+            "payment_type": "outbound", "partner_type": "supplier", "partner_id": self.partner_a.id,
+            "amount": 85, "journal_id": self.company_data["default_journal_bank"].id,
+        })
+        bill.matched_payment_ids = [Command.link(payment.id)]
+        return payment
+
+    def _blocked_by_statement_line(self, bill):
+        statement_line = self.env["account.bank.statement.line"].create({
+            "journal_id": self.company_data["default_journal_bank"].id, "amount": -85,
+            "payment_ref": "Studio rehearsal", "partner_id": self.partner_a.id,
+        })
+        bill.statement_line_id = statement_line
+        return statement_line
+
+    def _blocked_by_purchase_order(self, bill):
+        if "purchase_line_id" not in self.env["account.move.line"]._fields:
+            self.skipTest("Purchase is not installed.")
+        product = self.env["product.product"].create({"name": "Rehearsal hour"})
+        order = self.env["purchase.order"].create({
+            "partner_id": self.partner_a.id,
+            "order_line": [Command.create({"product_id": product.id, "product_qty": 2, "price_unit": 42.5})],
+        })
+        bill.invoice_line_ids.purchase_line_id = order.order_line
+        return order
+
+    def _blocked_by_expense(self, bill):
+        employee = self.env["hr.employee"].sudo().create({"name": "Synthetic employee", "company_id": bill.company_id.id})
+        expense = self.env["hr.expense"].sudo().create({
+            "name": "Studio taxi", "employee_id": employee.id, "total_amount_currency": 85,
+            "company_id": bill.company_id.id,
+        })
+        expense.existing_bill_id = bill
+        return expense
+
+    def _blocked_by_recurrence(self, bill):
+        origin = self._bill()
+        bill.auto_post_origin_id = origin
+        return origin
+
+    def _blocked_by_history(self, bill):
+        bill.posted_before = True
+        return bill
+
+    def _blocked_by_cash_rounding(self, bill):
+        rounding = self.env["account.cash.rounding"].create({
+            "name": "Synthetic rounding", "rounding": 0.05, "strategy": "add_invoice_line",
+            "profit_account_id": self.company_data["default_account_revenue"].id,
+            "loss_account_id": self.company_data["default_account_expense"].id,
+        })
+        bill.invoice_cash_rounding_id = rounding
+        return rounding
+
+    def test_every_native_blocker_is_named_with_a_link_and_a_next_step(self):
+        cases = [
+            ("payment_linked", self._blocked_by_payment),
+            ("statement_line_linked", self._blocked_by_statement_line),
+            ("purchase_order_linked", self._blocked_by_purchase_order),
+            ("expense_linked", self._blocked_by_expense),
+            ("recurring_copy", self._blocked_by_recurrence),
+            ("posted_before", self._blocked_by_history),
+            ("cash_rounding", self._blocked_by_cash_rounding),
+        ]
+        for code, make in cases:
+            with self.subTest(code=code):
+                bill = self._bill()
+                culprit = make(bill)
+                source = bill.company_id
+                # The first step shows it, before any mapping exists.
+                wizard = self._wizard(bill)
+                self.assertTrue(wizard.has_blockers)
+                # The preview reports it, and a confirmation refuses it.
+                preview = bill.change_bill_company(self.target.id)
+                self.assertEqual(preview["status"], "blocked")
+                blocker = next(item for item in preview["blockers"] if item["code"] == code)
+                self.assertTrue(blocker["next_step"])
+                if code != "posted_before":
+                    named = blocker["records"][0]
+                    self.assertEqual((named["model"], named["id"]), (culprit._name, culprit.id))
+                    self.assertIn("/odoo/%s/%s" % (culprit._name, culprit.id), named["url"])
+                    self.assertIn(culprit.display_name, blocker["message"] + named["display_name"])
+                    self.assertIn(named["url"], wizard.blockers_html)
+                self.assertIn(blocker["message"], str(wizard.blockers_html))
+                with self.assertRaises(UserError):
+                    bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+                with self.assertRaises(UserError):
+                    wizard.action_prepare_mapping()
+                self.assertEqual(bill.company_id, source)
+
+    def test_paid_draft_is_refused_at_the_first_step_with_the_payment_named(self):
+        bill = self._bill(kind="in_refund")
+        payment = self._blocked_by_payment(bill)
+        source = bill.company_id
+        wizard = self._wizard(bill)
+        self.assertTrue(wizard.has_blockers)
+        self.assertIn(payment.display_name, wizard.blockers_html)
+        self.assertIn("unreconcile", wizard.blockers_html)
+        with self.assertRaisesRegex(UserError, payment.display_name):
+            wizard.action_prepare_mapping()
+        self.assertEqual((payment.company_id, bill.company_id, bill.matched_payment_ids), (source, source, payment))
+
+    # --- native proposals -------------------------------------------------------------
+
+    def test_destination_taxes_come_from_the_product_when_no_equivalent_exists(self):
+        target_tax = self.target_data["default_tax_purchase"]
+        target_tax.amount = 21
+        product = self.env["product.product"].create({
+            "name": "Rehearsal hour",
+            "supplier_taxes_id": [Command.set((self.company_data["default_tax_purchase"] | target_tax).ids)],
+        })
+        product.product_tmpl_id.with_company(self.target).property_account_expense_id = self.target_data["default_account_expense"]
+        bill = self._bill(taxed=True, product=product)
+        (line,) = bill.change_bill_company(self.target.id)["proposal"]["lines"]
+        self.assertEqual([tax["id"] for tax in line["to"]["taxes"]], target_tax.ids)
+        self.assertEqual(line["unresolved"], [])
+
+    def test_a_tax_without_an_equivalent_is_left_for_the_operator(self):
+        self.target_data["default_tax_purchase"].amount = 21
+        bill = self._bill(taxed=True)
+        source = bill.company_id
+        preview = bill.change_bill_company(self.target.id)
+        self.assertEqual(preview["status"], "needs_input")
+        self.assertEqual([item["code"] for item in preview["unresolved"]], ["tax"])
+        with self.assertRaisesRegex(UserError, "tax"):
+            bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
+        mapping = {"lines": [{"line_id": bill.invoice_line_ids.id, "account_id": self.target_data["default_account_expense"].id,
+                              "tax_ids": []}]}
+        preview = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual(preview["status"], "ready")
+        bill.change_bill_company(self.target.id, mapping, confirm=True, preview_id=preview["preview_id"])
+        self.assertEqual((bill.company_id, bill.amount_tax, bill.amount_total), (self.target, 0, 85))
+        self.assertNotEqual(source, bill.company_id)
+
+    def test_dialog_needs_an_explicit_choice_to_remove_taxes(self):
+        self.target_data["default_tax_purchase"].amount = 21
+        bill = self._bill(taxed=True)
+        wizard = self._mapping(bill)
+        self.assertFalse(wizard.mapping_ids.target_tax_ids)
+        with self.assertRaisesRegex(UserError, "explicitly"):
+            wizard.action_apply()
+        self.assertEqual(bill.invoice_line_ids.tax_ids, self.company_data["default_tax_purchase"])
+        wizard.mapping_ids.remove_taxes = True
+        wizard.action_apply()
+        self.assertFalse(bill.invoice_line_ids.tax_ids)
+        self.assertEqual((bill.amount_total, bill.amount_tax), (85, 0))
+
+    def test_journal_is_active_and_fits_the_bill_currency(self):
+        Journal = self.env["account.journal"]
+        foreign = self.setup_other_currency("CHF", rates=[("2026-01-01", 1.2)])
+        common = {"type": "purchase", "company_id": self.target.id, "sequence": -10}
+        Journal.create({**common, "name": "Closed journal", "code": "CLS", "active": False})
+        Journal.create({**common, "name": "Swiss journal", "code": "CHF", "currency_id": foreign.id})
+        bill = self._bill()
+        proposed = bill.change_bill_company(self.target.id)["proposal"]["journal"]
+        self.assertEqual(proposed["id"], self.target_data["default_journal_purchase"].id)
+        mapping = {"journal_id": Journal.search([("code", "=", "CHF")]).id}
+        preview = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual(preview["status"], "needs_input")
+        self.assertEqual(preview["unresolved"][0]["code"], "invalid_choice")
+
+    def test_fiscal_position_is_the_one_the_destination_finds_for_the_supplier(self):
+        country = self.env.ref("base.be")
+        self.partner_a.country_id = country
+        position = self.env["account.fiscal.position"].create({
+            "name": "Belgian suppliers", "company_id": self.target.id, "auto_apply": True,
+            "country_id": country.id,
+        })
+        bill = self._bill()
+        preview = bill.change_bill_company(self.target.id)
+        self.assertEqual(preview["proposal"]["fiscal_position"]["id"], position.id)
+        none = bill.change_bill_company(self.target.id, {"fiscal_position_id": False})
+        self.assertIsNone(none["proposal"]["fiscal_position"])
+
+    def test_account_falls_back_to_the_journal_default_without_a_product(self):
+        bill = self._bill()
+        (line,) = bill.change_bill_company(self.target.id)["proposal"]["lines"]
+        self.assertEqual(line["to"]["account"]["id"], self.target_data["default_journal_purchase"].default_account_id.id)
+
+    # --- the dialog ---------------------------------------------------------------------
 
     def test_transfer_keeps_original_evidence_installments_and_line_identity(self):
         bill = self._bill(taxed=True)
@@ -52,7 +301,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         })
         line = bill.invoice_line_ids
         old_dates = sorted(bill.line_ids.filtered(lambda ln: ln.display_type == "payment_term").mapped("date_maturity"))
-        wizard = self._mapping(bill, taxed=True)
+        wizard = self._mapping(bill)
         self.assertEqual(bill.company_id, source)
         self.assertEqual(wizard.mapping_ids.source_account_id, self.company_data["default_account_expense"])
         self.assertEqual(wizard.mapping_ids.source_tax_ids, self.company_data["default_tax_purchase"])
@@ -67,19 +316,6 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         self.assertEqual(terms.account_id, self.target_data["default_account_payable"])
         self.assertFalse(bill.company_currency_id.round(sum(bill.line_ids.mapped("balance"))))
         self.assertEqual(wizard.action_apply()["res_id"], bill.id)
-
-    def test_foreign_payment_is_preserved_and_explained(self):
-        bill = self._bill(kind="in_refund")
-        source = bill.company_id
-        payment = self.env["account.payment"].create({
-            "payment_type": "outbound", "partner_type": "supplier", "partner_id": self.partner_a.id,
-            "amount": 85, "journal_id": self.company_data["default_journal_bank"].id,
-        })
-        bill.matched_payment_ids = [Command.link(payment.id)]
-        wizard = self._mapping(bill)
-        with self.assertRaisesRegex(UserError, "payment"):
-            wizard.action_apply()
-        self.assertEqual((payment.company_id, bill.company_id, bill.matched_payment_ids), (source, source, payment))
 
     def test_later_edit_requires_a_new_preview(self):
         bill = self._bill()
@@ -103,158 +339,39 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                                                    if line.display_type == "payment_term"))
         self.assertFalse(bill.company_currency_id.round(sum(bill.line_ids.mapped("balance"))))
 
-    def test_taxed_line_needs_an_explicit_choice_to_remove_its_taxes(self):
-        bill = self._bill(taxed=True)
-        wizard = self._mapping(bill)
-        with self.assertRaisesRegex(UserError, "explicitly"):
-            wizard.action_apply()
-        self.assertEqual(bill.invoice_line_ids.tax_ids, self.company_data["default_tax_purchase"])
-        wizard.mapping_ids.remove_taxes = True
-        wizard.action_apply()
-        self.assertFalse(bill.invoice_line_ids.tax_ids)
-        self.assertEqual((bill.amount_total, bill.amount_tax), (85, 0))
+    # --- companies ----------------------------------------------------------------------
 
-    def test_selected_company_must_be_available_to_the_operator(self):
+    def test_operator_needs_access_to_both_companies(self):
         bill = self._bill()
         user = new_test_user(self.env, login="studio-billing-only",
                              groups="account.group_account_invoice", company_id=bill.company_id.id,
                              company_ids=[Command.set(bill.company_id.ids)])
         bill = bill.with_user(user).with_context(allowed_company_ids=bill.company_id.ids)
-        action = bill.action_change_bill_company()
-        wizard = bill.env[action["res_model"]].browse(action["res_id"])
-        wizard.target_company_id = self.target.id
+        wizard = self._wizard(bill)
+        self.assertNotIn(str(self.target.id), dict(wizard._target_company_choices()))
         with self.assertRaises(AccessError):
             wizard.action_prepare_mapping()
+        with self.assertRaises(AccessError):
+            bill.change_bill_company(self.target.id)
 
-    def test_archive_timeout_after_permission_write_restores_original_access(self):
-        self._assert_archive_recovery(recover_immediately=True)
-
-    def test_scheduled_archive_retry_recovers_after_a_second_outage(self):
-        self._assert_archive_recovery(recover_immediately=False)
-
-    def _linked_archive(self, bill):
-        if "usl.document" not in self.env:
-            self.skipTest("The optional Documents archive is not installed.")
-        source = bill.company_id
-        reader = new_test_user(self.env, login="studio-source-reader",
-                               groups="usl_documents.group_documents_accountant,account.group_account_invoice",
-                               company_id=source.id, company_ids=[Command.set(source.ids)])
-        self.env.ref("usl_pocketid.provider_pocketid").sudo()._usl_pocketid_environment_write({"enabled": False})
-        document = self.env["usl.document"].sudo().create({
-            "name": "Studio booking receipt", "paperless_id": 87431, "company_id": source.id,
-            "review_state": "classified", "confidentiality": "accounting", "access_scope": "linked_record",
-            "accounting_evidence": True,
-        })
-        document.with_context(usl_documents_defer_access_sync=True).link_to_record("account.move", bill.id)
-        document._recompute_linked_record_access(sync_permissions=False)
-        self.assertIn(reader, document.permitted_user_ids)
-        self.env["usl.paperless.user.mapping"].sudo().with_context(usl_documents_mapping_no_sync=True).create({
-            "user_id": reader.id, "paperless_user_id": 927, "paperless_username": "studio-source-reader",
-            "sync_state": "synchronized",
-        })
-        return document
-
-    def _assert_archive_recovery(self, *, recover_immediately):
-        bill = self._bill()
-        document = self._linked_archive(bill)
-        from odoo.addons.usl_documents.models.paperless_client import PaperlessClient, PaperlessUnavailable
-
-        source = bill.company_id
-        provider_acl = {}
-        attempts = []
-        def set_permissions(_client, ids, *, view_users, change_users):
-            if not recover_immediately and len(attempts) == 2:
-                attempts.append(dict(provider_acl))
-                raise PaperlessUnavailable("The synthetic archive is still offline.")
-            for doc_id in ids:
-                provider_acl[doc_id] = (tuple(view_users), tuple(change_users))
-            attempts.append(dict(provider_acl))
-            if len(attempts) == 2:
-                raise PaperlessUnavailable("The acknowledgement was lost.")
-
-        with patch.object(PaperlessClient, "set_documents_permissions", set_permissions):
-            document.with_user(self.env.ref("base.user_root")).action_sync_permissions()
-            original = dict(provider_acl)
-            self.assertIn(927, original[document.paperless_id][0])
-            wizard = self._mapping(bill)
-            action = wizard.action_apply()
-            self.assertEqual(action["res_model"], wizard._name)
-            self.assertEqual(bill.company_id, source)
-            self.assertNotEqual(attempts[1], original)
-            if recover_immediately:
-                self.assertIn("restored", wizard.warning)
-            else:
-                self.assertIn("retry", wizard.warning)
-                self.assertEqual(document.permission_sync_state, "failed")
-                self.assertNotEqual(provider_acl, original)
-                self.assertGreaterEqual(document._retry_failed_permission_syncs(), 1)
-            self.assertEqual(provider_acl, original)
-            self.assertEqual(document.permission_sync_state, "synchronized")
-            self.assertEqual(document.link_ids.res_id, bill.id)
-            self.assertEqual(document.company_id, source)
-            wizard.action_apply()
-            self.assertEqual(bill.company_id, self.target)
-            self.assertNotIn(927, provider_acl[document.paperless_id][0])
-
-    def test_archive_matches_committed_bill_after_outer_batch_cancels_transfer(self):
-        self._assert_archive_at_commit(cancel_transfer=True)
-
-    def test_archive_matches_committed_bill_after_outer_batch_accepts_transfer(self):
-        self._assert_archive_at_commit(cancel_transfer=False)
-
-    def test_archive_retry_restores_committed_policy_after_postcommit_outage(self):
-        self._assert_archive_at_commit(cancel_transfer=True, fail_confirmation=True)
-
-    def _assert_archive_at_commit(self, *, cancel_transfer, fail_confirmation=False):
-        bill = self._bill()
-        document = self._linked_archive(bill)
-        from odoo.addons.usl_documents.models.paperless_client import PaperlessClient, PaperlessUnavailable
-        from odoo.sql_db import Cursor
-
-        source = bill.company_id
-        archive = {}
-        attempts = []
-
-        def record_permissions(_client, ids, *, view_users, change_users):
-            attempts.append(tuple(ids))
-            if fail_confirmation and len(attempts) == 3:
-                raise PaperlessUnavailable("Synthetic maintenance during final permission synchronization.")
-            archive.update({paperless_id: (tuple(view_users), tuple(change_users)) for paperless_id in ids})
-
-        self.env.cr.flush()
-        self.registry_enter_test_mode()
-        with patch.object(PaperlessClient, "set_documents_permissions", record_permissions):
-            document.with_user(self.env.ref("base.user_root")).action_sync_permissions()
-            self.env.cr.flush()
-            before = archive[document.paperless_id]
-            self.assertIn(927, before[0])
-            with self.registry.cursor() as cr:
-                env = api.Environment(cr, self.env.uid, self.env.context)
-                batch_bill = bill.with_env(env)
-                with cr.savepoint() as batch:
-                    self._mapping(batch_bill).action_apply()
-                    self.assertEqual(batch_bill.company_id.id, self.target.id)
-                    self.assertNotIn(927, archive[document.paperless_id][0])
-                    if cancel_transfer:
-                        batch.rollback()
-                unrelated = env["res.partner"].create({"name": "Synthetic rehearsal schedule"})
-                # Exercise Odoo's real commit callbacks. TestCursor normally skips them,
-                # and its connection still keeps every write inside the test transaction.
-                Cursor.commit(cr)
-            with self.registry.cursor() as cr:
-                env = api.Environment(cr, self.env.uid, self.env.context)
-                self.assertTrue(env["res.partner"].browse(unrelated.id).exists())
-                self.assertEqual(bill.with_env(env).company_id.id, source.id if cancel_transfer else self.target.id)
-                observed = document.with_env(env).sudo()
-                if fail_confirmation:
-                    self.assertEqual(observed.permission_sync_state, "failed")
-                    self.assertNotEqual(archive[document.paperless_id], before)
-                    self.assertGreaterEqual(observed._retry_failed_permission_syncs(), 1)
-                self.assertEqual(observed.permission_sync_state, "synchronized")
-            if cancel_transfer:
-                self.assertEqual(archive[document.paperless_id], before)
-            else:
-                self.assertNotIn(927, archive[document.paperless_id][0])
+    def test_destination_only_needs_to_be_a_company_of_the_operator_not_an_active_one(self):
+        source = self.company_data["company"]
+        operator = new_test_user(self.env, login="studio-billing-two-companies",
+                                 groups="base.group_user,account.group_account_invoice", company_id=source.id,
+                                 company_ids=[Command.set((source | self.target).ids)])
+        bill = self._bill().with_user(operator).with_context(allowed_company_ids=source.ids)
+        wizard = self._wizard(bill)
+        self.assertEqual(set(dict(wizard._target_company_choices())), {str(source.id), str(self.target.id)})
+        wizard.target_company_choice = str(source.id)
+        with self.assertRaisesRegex(UserError, "different"):
+            wizard.action_prepare_mapping()
+        wizard.target_company_choice = str(self.target.id)
+        self.assertEqual(wizard.target_company_id, self.target)
+        wizard.action_prepare_mapping()
+        action = wizard.action_apply()
+        self.assertEqual(bill.sudo().company_id, self.target)
+        # The destination is not active in the selector, so say so instead of opening a bill the web client cannot read.
+        self.assertEqual((action["type"], action["tag"]), ("ir.actions.client", "display_notification"))
 
     def test_owner_and_delegated_operator_transfer_with_the_same_native_rights(self):
         if "usl.agent" not in self.env:
@@ -270,10 +387,10 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                   "delegated_group_ids": [Command.set(self.env.ref("account.group_account_invoice").ids)]}
         delegated = grants.create({**values, "access_mode": "read_write"})
         for actor in (operator, delegated.user_id):
-            bill = self._bill(kind="in_refund").with_user(actor).with_context(allowed_company_ids=companies.ids)
-            wizard = self._mapping(bill)
+            bill = self._bill(kind="in_refund", taxed=True).with_user(actor).with_context(allowed_company_ids=companies.ids)
             if actor == operator:
-                wizard.action_apply()
+                preview = bill.change_bill_company(self.target.id)
+                bill.change_bill_company(self.target.id, confirm=True, preview_id=preview["preview_id"])
             else:
                 from odoo.addons.usl_access_control.controllers.json2 import UslAgentJson2Controller
                 from odoo.http.requestlib import Request, _request_stack
@@ -288,9 +405,14 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
                 try:
                     # The audit connection cannot see this fixture's uncommitted grant.
                     with patch.object(controller, "_record_agent_api_call") as audit:
-                        controller.web_json_2_rpc.__wrapped__(
-                            controller, wizard._name, "action_apply", ids=wizard.ids,
-                            context={"allowed_company_ids": companies.ids})
+                        def call(**kwargs):
+                            return controller.web_json_2_rpc.__wrapped__(
+                                controller, "account.move", "change_bill_company", ids=bill.ids,
+                                context={"allowed_company_ids": source.ids}, target_company_id=self.target.id, **kwargs)
+                        preview = call()
+                        self.assertEqual(preview["status"], "ready")
+                        done = call(confirm=True, preview_id=preview["preview_id"])
+                    self.assertEqual(done["status"], "done")
                     self.assertEqual(audit.call_args.kwargs["outcome"], "succeeded")
                 finally:
                     _request_stack.pop()
@@ -300,6 +422,8 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         bill = self._bill().with_user(readonly).with_context(allowed_company_ids=companies.ids)
         with self.assertRaises(AccessError):
             bill.action_change_bill_company()
+        with self.assertRaises(AccessError):
+            bill.change_bill_company(self.target.id)
 
     def test_posted_bill_keeps_its_native_reconciliation(self):
         bill = self._bill()
@@ -309,5 +433,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         self.assertTrue(matches)
         with self.assertRaisesRegex(UserError, "draft"):
             bill.action_change_bill_company()
+        with self.assertRaisesRegex(UserError, "draft"):
+            bill.change_bill_company(self.target.id)
         self.assertEqual((bill.company_id, bill.state, payment.company_id), (self.company_data["company"], "posted", bill.company_id))
         self.assertEqual(bill.line_ids.matched_debit_ids | bill.line_ids.matched_credit_ids, matches)
