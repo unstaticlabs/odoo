@@ -2,6 +2,7 @@ from . import (
     test_accounting,
     test_chart,
     test_import_batch,
+    test_import_operator_read,
     test_lifecycle,
     test_mapping,
     test_medusa_identity,

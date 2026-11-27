@@ -9,6 +9,7 @@ from decimal import Decimal
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import clean_context
 
 from odoo.addons.usl_b2c_ingest import parsers
 
@@ -42,6 +43,8 @@ SHOWN = 20
 #: What a row's identity was judged to be. Superseding a duplicate settles one
 #: of these, so they are re-judged rather than left standing.
 IDENTITY_KINDS = ("duplicate_order", "identity_conflict")
+
+_PARSE_OUTPUT = object()
 
 BATCH_STATES = [
     ("draft", "Draft"),
@@ -147,20 +150,40 @@ class B2cImportBatch(models.Model):
 
     def action_parse(self):
         """Read every file, resolve what it describes, and report. Idempotent."""
-        for batch in self:
-            if not batch.file_ids:
-                raise UserError(self.env._("Add at least one export file to read."))
-            batch.row_ids.unlink()
-            batch.issue_ids.unlink()
-            parsed = batch.file_ids._recognise()
-            batch._report_unreadable_files()
-            rows = batch._store_rows(parsed)
-            batch._resolve(rows)
-            batch._check_conflicts(rows)
-            batch._check_order_money(rows)
-            batch.write(batch._period(rows))
-            batch.write({"state": "parsed", "report": batch._build_report()})
+        self.check_access("write")
+        with self.env.cr.savepoint():
+            self.lock_for_update()
+            for batch in self:
+                batch._read_files()
         return True
+
+    def _read_files(self):
+        files = self.file_ids
+        if not files:
+            raise UserError(self.env._("Add at least one export file to read."))
+        # Read the originals and update their recognition status as the operator.
+        parsed = files._recognise()
+        batch = self
+        if self.state in {"draft", "parsed", "resolved"} and self.env.user.has_group("usl_b2c.group_b2c_operator"):
+            batch = self.with_context(b2c_parse_output=(_PARSE_OUTPUT, self.id))
+        batch._parse_output(batch.row_ids).unlink()
+        batch._parse_output(batch.issue_ids).unlink()
+        batch._report_unreadable_files()
+        rows = batch._store_rows(parsed)
+        batch._resolve(rows)
+        batch._check_conflicts(rows)
+        batch._check_order_money(rows)
+        batch.write(batch._period(rows))
+        batch.write({"state": "parsed", "report": batch._build_report()})
+
+    def _parse_output(self, records):
+        """Write only generated rows and findings inside this batch's native read."""
+        if (self.env.context.get("b2c_parse_output") == (_PARSE_OUTPUT, self.id)
+                and records._name in {"b2c.import.row", "b2c.import.issue"}):
+            return records.sudo().with_context(
+                clean_context(records.env.context), allowed_company_ids=[self.company_id.id],
+            )
+        return records
 
     def action_resolve_identities(self):
         """Judge again which order each row is, and report what conflicts.
@@ -301,7 +324,7 @@ class B2cImportBatch(models.Model):
                     conflicts[key].append((held[2].format_id, row.format_id, disagreement))
                 if candidate[0] < held[0]:
                     best[key] = candidate
-        created = self.env["b2c.import.row"].create(
+        created = self._parse_output(self.env["b2c.import.row"]).create(
             [
                 {
                     "batch_id": self.id,
@@ -320,6 +343,7 @@ class B2cImportBatch(models.Model):
                 for _precedence, source, row, values in best.values()
             ],
         )
+        created = created.with_env(self.env)
         self._report_payload_conflicts(created, conflicts)
         return created
 
@@ -366,22 +390,23 @@ class B2cImportBatch(models.Model):
             if row.grain == "order"
         }
         for row in rows:
+            output = self._parse_output(row)
             if row.grain == "charge":
                 # A statement entry answers to a month, not to an order, even
                 # when it names one: two hundred fee entries for one order are
                 # still one order.
-                row.resolution = "statement"
+                output.resolution = "statement"
                 continue
             found = (matches.get(row.external_order_id, self.env["b2c.order"])
                 | matches.get((row.values or {}).get("internal_order_id"), self.env["b2c.order"]))
             if not found:
                 if row.grain == "line" and (row.provider, row.external_order_id) not in headers:
-                    row.resolution = "orphan_line"
+                    output.resolution = "orphan_line"
                     continue
-                row.resolution = "new"
+                output.resolution = "new"
                 continue
             if len(found) > 1:
-                row.write({"resolution": "conflicting", "order_id": found[0].id})
+                output.write({"resolution": "conflicting", "order_id": found[0].id})
                 continue
             channel = channels.get(row.provider)
             native_id = (row.values or {}).get("internal_order_id")
@@ -395,9 +420,9 @@ class B2cImportBatch(models.Model):
             if (channel and found.channel_id and found.channel_id != channel) or (
                 native_id and retained_native_id and native_id != retained_native_id
             ):
-                row.write({"resolution": "conflicting", "order_id": found.id})
+                output.write({"resolution": "conflicting", "order_id": found.id})
                 continue
-            row.write({"resolution": "known", "order_id": found.id})
+            output.write({"resolution": "known", "order_id": found.id})
 
     def _channels(self):
         """Return the configured channel each export's provider sells through.
@@ -780,7 +805,7 @@ class B2cImportBatch(models.Model):
     def _raise_issue(self, kind, name, *, note=None, external_order_id=None, row=None,
                      severity="blocking", proposal=None):
         self.ensure_one()
-        return self.env["b2c.import.issue"].create(
+        return self._parse_output(self.env["b2c.import.issue"]).create(
             {
                 "batch_id": self.id,
                 "row_id": row.id if row else False,
@@ -791,7 +816,7 @@ class B2cImportBatch(models.Model):
                 "note": note or False,
                 "proposal": proposal or False,
             },
-        )
+        ).with_env(self.env)
 
     def _country(self, values):
         name = (values.get("original_country") or "").strip()
