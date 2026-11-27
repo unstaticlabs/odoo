@@ -2,11 +2,14 @@
 <templates xml:space="preserve">
     <t t-name="usl_home.ContentSearch">
         <section class="o_usl_content_search" aria-label="Search your work">
-            <label for="usl-home-content-search" class="form-label fw-semibold">Search your work</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fa fa-search" aria-hidden="true"/></span>
-                <input id="usl-home-content-search" class="form-control" type="text" maxlength="2048" placeholder="Tasks, projects, documents, contacts…" t-ref="input" t-att-value="state.query" t-on-input="inputChanged" t-on-keydown="keydown" role="combobox" aria-autocomplete="list" aria-controls="usl-home-search-results" t-att-aria-expanded="state.query.trim() ? 'true' : 'false'" t-att-aria-activedescendant="this.selectedRecord ? this.resultDomId(this.selectedRecord) : undefined"/>
-                <button t-if="state.query" class="btn btn-outline-secondary" type="button" aria-label="Clear search" t-on-click="clear"><i class="fa fa-times" aria-hidden="true"/></button>
+            <div class="o_usl_search_fields">
+                <label for="usl-home-content-search" class="form-label fw-semibold mb-0">Search your work</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fa fa-search" aria-hidden="true"/></span>
+                    <input id="usl-home-content-search" data-usl-dictation-slot="usl-home-search-voice" class="form-control" type="text" maxlength="2048" placeholder="Tasks, projects, documents, contacts…" t-ref="input" t-att-value="state.query" t-on-input="inputChanged" t-on-keydown="keydown" role="combobox" aria-autocomplete="list" aria-controls="usl-home-search-results" t-att-aria-expanded="state.query.trim() ? 'true' : 'false'" t-att-aria-activedescendant="this.selectedRecord ? this.resultDomId(this.selectedRecord) : undefined"/>
+                    <button t-if="state.query" class="btn btn-outline-secondary" type="button" aria-label="Clear search" t-on-click="clear"><i class="fa fa-times" aria-hidden="true"/></button>
+                </div>
+                <span id="usl-home-search-voice" class="o_usl_search_voice"/>
             </div>
             <p t-if="!state.query.trim()" class="text-muted small mt-2 mb-0">Search text and field values in the records you can access. Documents also search their contents.</p>
             <div t-if="state.query.trim()" id="usl-home-search-results" class="o_usl_content_results" role="listbox" aria-label="Search results">

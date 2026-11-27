@@ -2,6 +2,12 @@
     <!-- No t-on-click here: dictation.js handles data-usl-action itself, before the event
          reaches any Odoo component that closes a field on an outside click. -->
     <t t-name="usl_voice.FieldDictation">
+        <t t-if="this.state.slot" t-key="this.state.slot" t-custom-portal="this.state.slot">
+            <t t-call="usl_voice.FieldDictationControls"/>
+        </t>
+        <t t-else="" t-call="usl_voice.FieldDictationControls"/>
+    </t>
+    <t t-name="usl_voice.FieldDictationControls">
         <div t-if="this.state.recovered" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow p-3" role="status">
             <div class="fw-bold mb-1">Your dictation is ready</div>
             <div class="text-muted small mb-2">The field changed while Odoo was transcribing, so nothing was inserted. Copy the text and paste it where you need it.</div>

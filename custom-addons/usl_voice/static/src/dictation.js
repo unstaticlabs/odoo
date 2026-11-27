@@ -121,6 +121,8 @@ export class FieldDictation extends Component {
             this.target = active?.closest?.(".o-usl-dictation") ? null : dictationTarget(active);
         }
         const target = this.target?.isConnected ? this.target : null;
+        const slotId = target?.dataset.uslDictationSlot;
+        this.state.slot = slotId && document.getElementById(slotId) ? `#${CSS.escape(slotId)}` : null;
         const caret = target ? caretRect(target) : this.anchor;
         const box = target?.getBoundingClientRect();
         const shown = Boolean(caret && box && box.width && box.height && caret.top < innerHeight &&

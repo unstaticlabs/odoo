@@ -33,3 +33,26 @@ test("a click on the microphone reaches no other listener and keeps the field fo
         input.remove();
     }
 });
+
+test("a field can keep the microphone beside its label and release it on focus change", async () => {
+    const form = document.createElement("form");
+    const search = document.createElement("input");
+    const slot = document.createElement("span");
+    const other = document.createElement("input");
+    slot.id = "dictation-slot-fixture";
+    search.dataset.uslDictationSlot = slot.id;
+    form.append(search, slot, other);
+    document.body.append(form);
+    try {
+        await mountWithCleanup(FieldDictation);
+        search.focus();
+        await animationFrame();
+        expect(slot.querySelector("[data-usl-action=record]")).not.toBe(null);
+        other.focus();
+        await animationFrame();
+        expect(slot.childElementCount).toBe(0);
+        expect(other).toBeFocused();
+    } finally {
+        form.remove();
+    }
+});

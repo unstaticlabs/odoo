@@ -1,6 +1,32 @@
 .o_usl_content_search {
     margin-bottom: 1.5rem;
-    .input-group { max-width: 60rem; }
+    .o_usl_search_fields {
+        display: grid;
+        max-width: 60rem;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "label voice" "query query";
+        grid-template-rows: minmax(2rem, auto) auto;
+        align-items: center;
+        gap: .25rem .5rem;
+
+        @media (pointer: coarse) { grid-template-rows: minmax(44px, auto) auto; }
+
+        > label { grid-area: label; }
+        > .input-group { grid-area: query; }
+    }
+    .o_usl_search_voice {
+        grid-area: voice;
+        justify-self: end;
+
+        .o-usl-dictation-controls { position: static; transform: none; }
+        &:has(.o-usl-dictation-pill) {
+            grid-area: 3 / 1 / 4 / -1;
+            justify-self: start;
+        }
+        @media (pointer: coarse) {
+            .o-usl-dictation-controls button { min-width: 44px; min-height: 44px; }
+        }
+    }
     .o_usl_content_results { margin-top: 1rem; }
     .o_usl_search_group { margin: 1rem 0; }
     .o_usl_search_result {
