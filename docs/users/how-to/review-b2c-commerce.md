@@ -87,8 +87,12 @@ separate and must not be used for B2C commerce.
 
 ## Protect sensitive evidence
 
-Raw provider payloads may contain customer personal data. Normal B2C roles use
-the structured records. Open **Restricted Provider Evidence** only when the
+Readers can review the file name, import results and structured rows for their
+selected companies. Import operators and members of **Sensitive Evidence** can
+also download the original CSV from the batch.
+
+Raw provider payloads may contain customer personal data. Open
+**Restricted Provider Evidence** only when the
 separate sensitive-evidence role has been granted for a documented
 investigation. Do not copy raw payloads into shared spreadsheets or reports.
 

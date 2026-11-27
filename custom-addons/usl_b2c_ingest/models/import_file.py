@@ -26,7 +26,11 @@ class B2cImportFile(models.Model):
         index=True,
     )
     name = fields.Char(required=True)
-    content = fields.Binary(required=True, attachment=True)
+    content = fields.Binary(
+        required=True,
+        attachment=True,
+        groups="usl_b2c.group_b2c_operator,usl_b2c.group_b2c_sensitive_evidence",
+    )
     checksum = fields.Char(readonly=True, index=True, copy=False)
     schema_digest = fields.Char(readonly=True, copy=False)
     format_id = fields.Selection(

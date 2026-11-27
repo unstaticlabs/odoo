@@ -1,6 +1,6 @@
 """Reading a drop of channel exports, end to end."""
 
-from odoo.exceptions import ValidationError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools.binary import BinaryBytes
 
@@ -79,6 +79,65 @@ class TestImportBatch(TransactionCase):
 
     def _issue_kinds(self, batch):
         return {issue.kind for issue in batch.issue_ids}
+
+    def test_original_csv_and_structured_rows_follow_the_reviewers_role(self):
+        content = fixtures.medusa_order_items()
+        batch = self._batch(**{"synthetic-items.csv": content})
+        batch.action_parse()
+        attachment = self.env["ir.attachment"].search([
+            ("res_model", "=", "b2c.import.file"), ("res_id", "=", batch.file_ids.id),
+            ("res_field", "=", "content"),
+        ])
+        self.assertEqual(len(attachment), 1)
+        for role, original, payload in (
+            ("reader", False, False),
+            ("operator", True, False),
+            ("sensitive_evidence", True, True),
+        ):
+            with self.subTest(role=role):
+                user = new_test_user(
+                    self.env, login=f"synthetic-csv-{role}",
+                    groups=f"usl_b2c.group_b2c_{role}",
+                    company_id=self.company.id, company_ids=[(6, 0, self.company.ids)],
+                )
+                source = batch.file_ids.with_user(user)
+                row = batch.row_ids[:1].with_user(user)
+                self.assertEqual(source.read(["name", "row_count"])[0]["name"], "synthetic-items.csv")
+                self.assertTrue(row.read(["values"])[0]["values"])
+                self.assertEqual("payload" in row.fields_get(["payload"]), payload)
+                self.assertEqual("content" in source.fields_get(["content"]), original)
+                self.assertEqual(attachment.with_user(user).has_access("read"), original)
+                binary = source.env["ir.binary"]
+                if original:
+                    self.assertEqual(binary._get_stream_from(source, "content").read(), content)
+                else:
+                    with self.assertRaises(AccessError):
+                        binary._get_stream_from(source, "content")
+
+    def test_operator_can_upload_and_access_tracks_company_and_role_changes(self):
+        other = self.env["res.company"].create({"name": "Second synthetic CSV shop"})
+        operator = new_test_user(
+            self.env, login="synthetic-csv-uploader", groups="usl_b2c.group_b2c_operator",
+            company_id=self.company.id, company_ids=[(6, 0, (self.company | other).ids)],
+        )
+        batches = self.env["b2c.import.batch"].with_user(operator).with_context(
+            allowed_company_ids=self.company.ids,
+        )
+        batch = batches.create({"name": "Synthetic upload", "company_id": self.company.id})
+        content = fixtures.medusa_order_items()
+        source = batches.env["b2c.import.file"].create({
+            "batch_id": batch.id, "name": "synthetic-items.csv", "content": BinaryBytes(content),
+        })
+        self.assertEqual(source.env["ir.binary"]._get_stream_from(source, "content").read(), content)
+        other_binary = source.with_context(allowed_company_ids=other.ids).env["ir.binary"]
+        with self.assertRaises(AccessError):
+            other_binary._find_record(res_model=source._name, res_id=source.id, field="content")
+
+        operator.group_ids = [(3, self.env.ref("usl_b2c.group_b2c_operator").id),
+                              (4, self.env.ref("usl_b2c.group_b2c_reader").id)]
+        self.assertEqual(source.read(["name"])[0]["name"], "synthetic-items.csv")
+        with self.assertRaises(AccessError):
+            source.env["ir.binary"]._get_stream_from(source, "content")
 
     def test_import_details_follow_the_batch_company_selection(self):
         other = self.env["res.company"].create({"name": "Second synthetic shop"})
