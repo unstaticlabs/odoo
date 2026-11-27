@@ -7,10 +7,47 @@ from lxml import etree
 from odoo import _, api, fields, models, tools, SUPERUSER_ID
 from odoo.addons.account_edi_ubl_cii.models.account_edi_common import SUPPORTED_FILE_TYPES
 from odoo.tools import cleanup_xml_node
-from odoo.tools.pdf import OdooPdfFileReader, OdooPdfFileWriter
+from odoo.tools.pdf import OdooPdfFileReader, OdooPdfFileWriter, RDF_NAMESPACE
 from odoo.addons.account.tools import dict_to_xml
 
 _logger = logging.getLogger(__name__)
+
+_FACTURX_NAMESPACE = "urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#"
+
+
+def _merge_facturx_xmp(existing, generated):
+    """Insert the invoice metadata without replacing an existing PDF/A-3 XMP packet."""
+    rdf = etree.QName(RDF_NAMESPACE, 'RDF').text
+    description = etree.QName(RDF_NAMESPACE, 'Description').text
+    bag = etree.QName(RDF_NAMESPACE, 'Bag').text
+    schemas = '{http://www.aiim.org/pdfa/ns/extension/}schemas'
+    namespace_uri = '{http://www.aiim.org/pdfa/ns/schema#}namespaceURI'
+    source_rdf = next(etree.fromstring(generated).iter(rdf))
+    target_rdf = next(existing.iter(rdf))
+
+    for node in target_rdf.iter(description):
+        for name in list(node.attrib):
+            if etree.QName(name).namespace == _FACTURX_NAMESPACE:
+                del node.attrib[name]
+        for child in list(node):
+            if isinstance(child.tag, str) and etree.QName(child).namespace == _FACTURX_NAMESPACE:
+                node.remove(child)
+
+    # Replace the Factur-X schema definition while keeping any other extensions.
+    schema_bags = target_rdf.findall(f'.//{schemas}/{bag}')
+    for schema_bag in schema_bags:
+        for entry in list(schema_bag):
+            if entry.findtext(namespace_uri) == _FACTURX_NAMESPACE:
+                schema_bag.remove(entry)
+    source_bag = source_rdf.find(f'.//{schemas}/{bag}')
+    if schema_bags:
+        schema_bags[0].extend(list(source_bag))
+    else:
+        target_rdf.append(source_bag.getparent().getparent())
+    target_rdf.append(next(
+        node for node in source_rdf.iter(description) if _FACTURX_NAMESPACE in node.nsmap.values()
+    ))
+    return etree.tostring(existing, encoding='UTF-8')
 
 
 class AccountMoveSend(models.AbstractModel):
@@ -157,6 +194,16 @@ class AccountMoveSend(models.AbstractModel):
     # BUSINESS ACTIONS
     # -------------------------------------------------------------------------
 
+    def _prepare_invoice_pdf_report(self, invoices_data):
+        return super(AccountMoveSend, self.with_context(facturx_embed_after_render=True))._prepare_invoice_pdf_report(
+            invoices_data,
+        )
+
+    def _prepare_invoice_proforma_pdf_report(self, invoice, invoice_data):
+        return super(AccountMoveSend, self.with_context(facturx_embed_after_render=True))._prepare_invoice_proforma_pdf_report(
+            invoice, invoice_data,
+        )
+
     def _hook_invoice_document_before_pdf_report_render(self, invoice, invoice_data):
         # EXTENDS 'account'
         super()._hook_invoice_document_before_pdf_report_render(invoice, invoice_data)
@@ -235,12 +282,13 @@ class AccountMoveSend(models.AbstractModel):
                     and invoice.commercial_partner_id.peppol_eas != '0204'
                     and invoice.country_code in ('FR', 'DE')
                 ))
-                and not writer.is_pdfa
             ):
-            try:
-                writer.convert_to_pdfa()
-            except Exception:
-                _logger.exception("Error while converting to PDF/A")
+            existing_xmp = writer.get_xmp_metadata() if writer.pdfa_part == 3 else None
+            if existing_xmp is None:
+                try:
+                    writer.convert_to_pdfa()
+                except Exception:
+                    _logger.exception("Error while converting to PDF/A")
 
             # Extra metadata to be Factur-x PDF-A compliant.
             content = self.env['ir.qweb']._render(
@@ -250,9 +298,10 @@ class AccountMoveSend(models.AbstractModel):
                     'date': fields.Date.context_today(self),
                 },
             )
-            if "<pdfaid:conformance>B</pdfaid:conformance>" in content:
-                content.replace("<pdfaid:conformance>B</pdfaid:conformance>", "<pdfaid:conformance>A</pdfaid:conformance>")
-            writer.add_file_metadata(content.encode())
+            metadata = content.encode()
+            if existing_xmp is not None:
+                metadata = _merge_facturx_xmp(existing_xmp, metadata)
+            writer.add_file_metadata(metadata)
 
         # Replace the current content.
         writer_buffer = io.BytesIO()
