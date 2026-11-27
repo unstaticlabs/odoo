@@ -113038,7 +113038,6 @@
         "rpc:project.project.web_resequence",
         "rpc:project.project.web_save",
         "rpc:project.project.web_save_multi",
-        "rpc:project.project.web_search_read",
         "rpc:project.role.copy",
         "rpc:project.role.copy_data",
         "rpc:project.role.get_views",
@@ -113179,7 +113178,6 @@
         "rpc:project.task.web_resequence",
         "rpc:project.task.web_save",
         "rpc:project.task.web_save_multi",
-        "rpc:project.task.web_search_read",
         "rpc:project.template.create.wizard.action_create_project_from_so",
         "rpc:project.template.create.wizard.copy",
         "rpc:project.template.create.wizard.copy_data",
@@ -113490,9 +113488,6 @@
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.project.web_save_multi": {
-          "reversal_action": "rpc:project.project.write"
-        },
-        "rpc:project.project.web_search_read": {
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.role.copy": {
@@ -113925,9 +113920,6 @@
         "rpc:project.task.web_save_multi": {
           "reversal_action": "rpc:project.task.write"
         },
-        "rpc:project.task.web_search_read": {
-          "reversal_action": "rpc:project.task.write"
-        },
         "rpc:project.template.create.wizard.action_create_project_from_so": {
           "reversal_action": "rpc:project.template.create.wizard.write"
         },
@@ -114228,7 +114220,6 @@
         "rpc:project.project.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:project.project.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:project.project.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:project.project.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.role.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:project.role.copy_data": "ab555b887ee9f28ce0f87642e68f8dc07b50cdb06fcd43d5dabae51319374007",
         "rpc:project.role.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -114369,7 +114360,6 @@
         "rpc:project.task.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:project.task.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:project.task.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:project.task.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.template.create.wizard.action_create_project_from_so": "b81c85f0c29ac4813ac9fd849c89e48a90137624f865004793b90c3b30f185ed",
         "rpc:project.template.create.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:project.template.create.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -129418,7 +129408,6 @@
         "rpc:res.partner.web_resequence",
         "rpc:res.partner.web_save",
         "rpc:res.partner.web_save_multi",
-        "rpc:res.partner.web_search_read",
         "rpc:res.role.copy",
         "rpc:res.role.copy_data",
         "rpc:res.role.get_views",
@@ -139152,9 +139141,6 @@
         "rpc:res.partner.web_save_multi": {
           "reversal_action": "rpc:res.partner.write"
         },
-        "rpc:res.partner.web_search_read": {
-          "reversal_action": "rpc:res.partner.write"
-        },
         "rpc:res.role.copy": {
           "reversal_action": "rpc:res.role.unlink"
         },
@@ -146079,7 +146065,6 @@
         "rpc:res.partner.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:res.partner.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:res.partner.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:res.partner.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:res.role.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:res.role.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:res.role.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -221780,6 +221765,36 @@
       "reviewed_digests": {
         "rpc:usl.document.mcp_read_binary": "58a76e7cd1752e2fa133d2759a70af25202608f221aa583b90c98c4403d31f59"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.project.web_search_read",
+        "rpc:project.task.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns only the native authorized record selection, requested readable fields and bounded pagination/count metadata. No persistent mutation is performed by the reviewed native routine.",
+      "domain": "projects",
+      "evidence_id": "native-structured-query-readonly-v1",
+      "id": "read-only.projects.native-structured-queries",
+      "rationale": "Exact inherited addons/web/models/models.py web_search_read body declared @api.readonly. It delegates native search_fetch, web_read and result formatting; its reviewed digest is pinned individually. This decision does not apply to other models, changed overrides or any mutation.",
+      "reviewed_digests": {
+        "rpc:project.project.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:project.task.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:res.partner.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns only the native authorized record selection, requested readable fields and bounded pagination/count metadata. No persistent mutation is performed by the reviewed native routine.",
+      "domain": "system_framework",
+      "evidence_id": "native-structured-query-readonly-v1",
+      "id": "read-only.system_framework.native-structured-queries",
+      "rationale": "Exact inherited addons/web/models/models.py web_search_read body declared @api.readonly. It delegates native search_fetch, web_read and result formatting; its reviewed digest is pinned individually. This decision does not apply to other models, changed overrides or any mutation.",
+      "reviewed_digests": {
+        "rpc:res.partner.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
     }
   ],
   "evidence_families": {
@@ -222181,6 +222196,13 @@
         "scripts/tests/test_action_risk_inventory.py::TestGroupingRuntimeFingerprint",
         "custom-addons/usl_access_control/tests/test_native_grouping_reads.py::TestNativeGroupingReads",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch"
+      ]
+    },
+    "native-structured-query-readonly-v1": {
+      "contract": "The three exact inherited native web_search_read methods declared @api.readonly select records through native search_fetch, read the requested specification through web_read, and format/count the authorized result. Model, field, record, owner and company checks remain native. A changed override needs a fresh digest review; the method name grants nothing. Synthetic HTTP tests cover normal RO/RW reads, company and private-record scope, hidden fields, missing application and unchanged mutation rejection.",
+      "tests": [
+        "scripts/tests/test_native_structured_read_policy.py",
+        "custom-addons/usl_access_control/tests/test_native_structured_reads.py"
       ]
     },
     "notification-productivity-20261014": {
