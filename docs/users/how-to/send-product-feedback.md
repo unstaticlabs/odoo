@@ -39,7 +39,9 @@ feedback conversation, your language and company, and any page details you
 include. Gemini can also receive up to three images from the report, including
 the selected preview and eligible PNG or JPEG attachments. To help find related
 reports, Odoo sends a summary of the shared feedback board with recent task
-titles. In local mode, Odoo generates the replies itself.
+titles. If the Odoo Projects connection is configured, Gemini can also read
+related feedback cards. Odoo asks Gemini to store the conversation so later
+replies can use it. In local mode, Odoo generates the replies itself.
 
 Workspace members can read and discuss feedback and its files. Feedback
 maintainers manage task fields and stages. Sharing a link in feedback keeps the
