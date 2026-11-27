@@ -115,6 +115,13 @@ test("the words heard so far appear in the field being dictated, where the text 
             line.scrollLeft = 0;
             await hear(dictation);
             expect(".o-usl-dictation-caption").toHaveCount(0);
+            // A field that changes width lays its text out again: the saved place no longer holds.
+            line.scrollLeft = line.scrollWidth;
+            await hear(dictation);
+            expect(".o-usl-dictation-caption").toHaveCount(1);
+            line.style.width = "200px";
+            await hear(dictation);
+            expect(".o-usl-dictation-caption").toHaveCount(0);
             dictation.cancel();
             await animationFrame();
         } finally {
