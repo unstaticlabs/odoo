@@ -1776200,11 +1776200,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "ca724d7ede5c5f055a8b6d6a63eada0cb03c676ed56e90252c15779f8fa6142f",
+      "manifest_sha256": "f87983cbe090d109e66ac4b2d74f9bd6090dcaac06f2b620a8a8cd54707f4b72",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "f9cb0fe33503eb6b967f85ddd8774b5207c8783372b577a638f849747e9f0f02",
-      "version": "saas~19.3.1.0.18"
+      "source_sha256": "5da2a0417f401f907142144be45d2fc2a543dd0b5ab582d579c79d0f0774581a",
+      "version": "saas~19.3.1.0.19"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",

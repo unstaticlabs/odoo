@@ -127,6 +127,12 @@ class GenerationDatabaseTests(unittest.TestCase):
             "USL_RESTORE_GENERATION_CONFIRMED": "gfixture", "USL_EXPECTED_RESTORE_CONFIRMATION": "gfixture",
         }
         def in_container(command, *, environment, capture=False):
+            if "--use-list" in command:
+                # The restore list is written beside the caller, not the database.
+                listing = Path(command[command.index("--use-list") + 1])
+                subprocess.run(["docker", "exec", "-i", container, "sh", "-c",
+                                f"mkdir -p '{listing.parent}' && cat >'{listing}'"],
+                               input=listing.read_bytes(), check=True)
             return subprocess.run(["docker", "exec", "-e", "PGPASSWORD", container, *command],
                                   env=environment, check=True, text=True, capture_output=True)
         with patch.dict(os.environ, environment), patch.object(cohort, "run", in_container):
@@ -156,11 +162,35 @@ class GenerationDatabaseTests(unittest.TestCase):
         self.materialize(restored, archive)
         self.assertEqual(self.sql(restored, "SELECT id,verified FROM fixture"), "7|t")
         self.assertEqual(self.sql(restored, "SELECT tableowner FROM pg_tables WHERE tablename='fixture'"), self.role)
+        # The generation init adds pgvector only when the image ships it.
+        has_vector = self.sql(restored, "SELECT count(*) FROM pg_available_extensions WHERE name='vector'") != "0"
         self.assertEqual(self.sql(restored, "SELECT string_agg(extname,',' ORDER BY extname) FROM pg_extension"),
-                         "pg_trgm,plpgsql,unaccent")
+                         "pg_trgm,plpgsql,unaccent" + (",vector" if has_vector else ""))
         with self.assertRaisesRegex(cohort.CohortError, "empty"):
             self.materialize(restored, archive)
         self.assertEqual(self.sql(restored, "SELECT count(*) FROM fixture"), "1")
+
+    def test_restore_of_a_dump_holding_a_vector_column(self):
+        original = self.new_generation()
+        restored = self.new_generation()
+        available = self.sql(original, "SELECT count(*) FROM pg_available_extensions WHERE name='vector'")
+        if available == "0":
+            self.skipTest("the database image does not ship pgvector")
+        # The application role cannot create pgvector; the superuser does.
+        subprocess.run(["docker", "exec", "--user", "postgres", original, "psql", "-XAtq", "-d", self.db,
+                        "-v", "ON_ERROR_STOP=1", "-c", "CREATE EXTENSION IF NOT EXISTS vector"], check=True)
+        self.sql(original, "CREATE TABLE embedded (id integer PRIMARY KEY, embedding vector(3)); "
+                 "INSERT INTO embedded VALUES (1, '[1,2,3]'); "
+                 "CREATE INDEX embedded_cosine ON embedded USING hnsw (embedding vector_cosine_ops)")
+        archive = subprocess.check_output(["docker", "exec", original, "pg_dump", "-U", self.role, "-Fc", self.db])
+        listing = subprocess.run(["docker", "exec", "-i", original, "pg_restore", "--list"], input=archive,
+                                 check=True, capture_output=True).stdout.decode()
+        self.assertIn("COMMENT - EXTENSION vector", listing)
+        self.materialize(restored, archive)
+        self.assertEqual(self.sql(restored, "SELECT id, embedding FROM embedded"), "1|[1,2,3]")
+        self.assertEqual(self.sql(restored, "SELECT pg_get_userbyid(extowner) FROM pg_extension WHERE extname='vector'"),
+                         "postgres")
+        self.assertEqual(self.sql(restored, "SELECT tableowner FROM pg_tables WHERE tablename='embedded'"), self.role)
 
     def test_keeps_image_initializers_before_and_after_ordinary_role_creation(self):
         with tempfile.TemporaryDirectory() as directory:
