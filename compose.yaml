@@ -33,7 +33,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -51,7 +51,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     volumes:
       - accounting-source-postgres-data:/var/lib/postgresql/data
@@ -212,7 +212,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     volumes:
       - paperless-postgres-data:/var/lib/postgresql/data
@@ -227,7 +227,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     volumes:
       - paperless-broker-data:/data
@@ -532,7 +532,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     volumes:
       - ${USL_SIGN_STEP_CA_DIR:-./.secrets/sign/step-ca}:/home/step
@@ -609,7 +609,7 @@ services:
       timeout: 5s
       interval: 60s
       retries: 3
-      start_period: 60s
+      start_period: 120s
       start_interval: 5s
     networks:
       - receipt-proxy
