@@ -27,8 +27,12 @@ class ProjectTask(models.Model, ContentIndexMixin):
         return records
 
     def write(self, vals):
+        # Decide before native code runs: for a portal user it moves the
+        # description into a separate sudo write that never reaches this
+        # override, so the keys left in vals afterwards are not the edit.
+        touched = any(name in vals for name in INDEXED_FIELDS)
         result = super().write(vals)
-        if any(name in vals for name in INDEXED_FIELDS):
+        if touched:
             self._usl_queue_task_content()
         return result
 
