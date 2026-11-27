@@ -35,9 +35,11 @@ include before sending.
   the team understand the report.
 
 Check the assistant named in the form. In Gemini mode, Google receives the
-feedback conversation, the page details and preview you include, and a summary
-of the shared feedback board with recent task titles. In local mode, Odoo
-generates the replies itself.
+feedback conversation, your language and company, and any page details you
+include. Gemini can also receive up to three images from the report, including
+the selected preview and eligible PNG or JPEG attachments. To help find related
+reports, Odoo sends a summary of the shared feedback board with recent task
+titles. In local mode, Odoo generates the replies itself.
 
 Workspace members can read and discuss feedback and its files. Feedback
 maintainers manage task fields and stages. Sharing a link in feedback keeps the
