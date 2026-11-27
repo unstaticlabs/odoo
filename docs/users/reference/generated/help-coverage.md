@@ -40,7 +40,7 @@ documentation work done in the code.
 | --- | --- | --- | --- |
 | `rebuild_account_migration` | 83 | 907 | 9 % |
 | `usl_access_control` | 2 | 47 | 4 % |
-| `usl_accounting` | 26 | 345 | 8 % |
+| `usl_accounting` | 26 | 360 | 7 % |
 | `usl_b2c` | 22 | 343 | 6 % |
 | `usl_b2c_ingest` | 38 | 134 | 28 % |
 | `usl_documents` | 43 | 262 | 16 % |
