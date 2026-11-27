@@ -132,7 +132,14 @@ rendered = rendered.replace(
     "${ODOO_DB_NAME_CONFIG}",
     f"db_name = {database_name}" if database_name else "",
 )
-Path(os.environ.get("ODOO_CONFIG", "/etc/odoo/odoo.conf")).write_text(rendered)
+config_path = os.environ["ODOO_CONFIG"]
+# Open new configurations privately and tighten existing files before writing
+# credentials. Using the existing file also supports a bind-mounted config.
+fd = os.open(config_path, os.O_WRONLY | os.O_CREAT, 0o600)
+with os.fdopen(fd, "w", encoding="utf-8") as config:
+    os.fchmod(config.fileno(), 0o600)
+    config.write(rendered)
+    config.truncate()
 PY
 
 if [ "${1:-}" = "odoo" ] || [ "${1:-}" = "odoo-bin" ] || [ "${1:-}" = "python" ]; then

@@ -17,6 +17,8 @@ generated: false
 
 This tutorial introduces the complete Accounting application without changing posted accounting.
 
+To practise posting on training data, follow [From your first sign-in to your first posted expense batch](tutorial/post-your-first-expense-batch.md).
+
 ## 1. Read Overview
 
 Open **Accounting > Overview**.

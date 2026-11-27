@@ -10,17 +10,17 @@
     "path": "custom-addons/usl_accounting/tests/test_accounting_journeys.py"
   },
   "source_tour_file": {
-    "line": 3,
+    "line": 8,
     "path": "custom-addons/usl_accounting/static/tests/tours/immediate_settlement_tour.js",
     "steps": {
-      "actions": 6,
-      "best_match": 12,
-      "detail": 38,
-      "open_detail": 31,
-      "restored": 51,
-      "trace": 25,
-      "unreconcile": 44,
-      "use_rate": 18
+      "actions": 11,
+      "best_match": 17,
+      "detail": 43,
+      "open_detail": 36,
+      "restored": 56,
+      "trace": 30,
+      "unreconcile": 49,
+      "use_rate": 23
     }
   },
   "steps": [
@@ -30,8 +30,8 @@
       "index": 1,
       "run": "",
       "screenshot": "01-actions.png",
-      "sha256": "7792f5af16285474a140b59520dbd5aff08699bd8e6a3d22ce88665fc9b3d272",
-      "text": "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
+      "sha256": "aeb4f0b9316c2ccf69f5cbbc1e3ee1b2f8b62726cbf02216e94cf9f47abdac6c",
+      "text": "Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },
     {
@@ -41,7 +41,7 @@
       "run": "",
       "screenshot": null,
       "sha256": null,
-      "text": "**Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.",
+      "text": "Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.",
       "trigger": ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Best match')"
     },
     {
@@ -51,7 +51,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.",
+      "text": "Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.",
       "trigger": ".o_form_view .payment_rate_assign:not([disabled])"
     },
     {
@@ -60,7 +60,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-trace.png",
-      "sha256": "08f8321d27a2b8d03490563dfee3500d568d758bf000187d621c9fee85fb3870",
+      "sha256": "77f6a2910c8187fc1e0b234e83f841f9a897e2bb5b11ee9798af40284eeb2979",
       "text": "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
       "trigger": ".o_form_view .o_payment_label:contains('Payment rate ·'):contains('no FX')"
     },
@@ -80,7 +80,7 @@
       "index": 6,
       "run": "",
       "screenshot": "03-detail.png",
-      "sha256": "4dc99dfa4dec6993f0b8725482546f69419c878c2a608f227d1b6bf7adf62706",
+      "sha256": "f6407771a6ba6af61ecbbcb154edd7c7a4492d9dbe32b2a72c09e825fc1e3929",
       "text": "The detail keeps the facts: what Odoo had estimated and discarded, the original value of the document, its value at the payment rate, and the entries involved.",
       "trigger": ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Original document value'):contains('Payment-rate document value')"
     },
@@ -92,7 +92,7 @@
       "screenshot": null,
       "sha256": null,
       "text": "**Unreconcile** reverses the whole settlement in one step when the match was wrong.",
-      "trigger": ".account_payment_popover button:contains('Unreconcile')"
+      "trigger": ".account_payment_popover button.js_unreconcile_payment"
     },
     {
       "assertion": "Reversal restores the open document and all actions",

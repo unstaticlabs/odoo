@@ -2,6 +2,7 @@ from markupsafe import Markup
 from unittest.mock import patch
 
 from odoo import SUPERUSER_ID
+from odoo.addons.mail.models import mail_message as mail_message_module
 from odoo.addons.mail.tests.common import mail_new_test_user, MailCommon
 from odoo.addons.test_mail.models.mail_test_access import MailTestAccess
 from odoo.addons.test_mail.models.test_mail_models import MailTestSimple
@@ -174,6 +175,9 @@ class TestMailMessageAccess(MessageAccessCommon):
             (self.record_admin, {  # note: force reply_to normally computed by message_post avoiding ACLs issues
                 'parent_id': admin_msg.id,
             }, False, 'No access on record but reply to notified parent'),
+            (self.record_internal_ro, {
+                'parent_id': admin_msg.id,
+            }, True, 'Notified parent is on another record'),
         ]:
             with self.subTest(record=record, msg_vals=msg_vals, reason=reason):
                 final_vals = dict(
@@ -311,6 +315,9 @@ class TestMailMessageAccess(MessageAccessCommon):
             (self.record_admin, {
                 'parent_id': admin_msg.id,
             }, False, 'No access on record but reply to notified parent'),
+            (self.record_internal, {
+                'parent_id': admin_msg.id,
+            }, True, 'Notified parent is on another record'),
             # internal = forbidden (internal users only)
             (self.record_portal, {'is_internal': True}, True, 'Internal subtype always forbidden'),
             (self.record_portal, {'is_internal': True, 'message_type': 'notification'}, True, 'Automatic log not accepted'),
@@ -853,7 +860,11 @@ class TestMailMessageAccess(MessageAccessCommon):
         ]):
             with self.subTest(test_user=test_user.name, add_domain=add_domain):
                 self.env.invalidate_all()
-                domain = [('subject', 'like', '_ZTest')] + add_domain
+                domain = [
+                    ("model", "in", [False, "mail.test.access"]),
+                    ("subject", "like", "_ZTest"),
+                    *add_domain,
+                ]
                 self.assertEqual(self.env['mail.message'].with_user(test_user).search(domain), exp_messages)
 
     def test_search_customized(self):
@@ -873,11 +884,13 @@ class TestMailMessageAccess(MessageAccessCommon):
                 messages_all += new.sudo()
 
         found_emp = self.env['mail.message'].with_user(self.user_employee).search([
-            ('body', 'ilike', 'AnchorForSearch')
+            ('model', '=', 'mail.test.access.custo'),
+            ('body', 'ilike', 'AnchorForSearch'),
         ])
         self.assertEqual(found_emp, messages_all)
         found_por = self.env['mail.message'].with_user(self.user_portal).search([
-            ('body', 'ilike', 'AnchorForSearch')
+            ('model', '=', 'mail.test.access.custo'),
+            ('body', 'ilike', 'AnchorForSearch'),
         ])
         self.assertEqual(found_por, messages_all)
 
@@ -887,15 +900,28 @@ class TestMailMessageAccess(MessageAccessCommon):
         records[2].flush_recordset()
         self.env.transaction.invalidate_access_cache()
         found_emp = self.env['mail.message'].with_user(self.user_employee).search([
-            ('body', 'ilike', 'AnchorForSearch')
+            ('model', '=', 'mail.test.access.custo'),
+            ('body', 'ilike', 'AnchorForSearch'),
         ])
         self.assertEqual(found_emp, messages_all.filtered(lambda m: m.res_id != records[2].id), 'Should filter like read')
         found_emp.read(['subject'])
         found_por = self.env['mail.message'].with_user(self.user_portal).search([
-            ('body', 'ilike', 'AnchorForSearch')
+            ('model', '=', 'mail.test.access.custo'),
+            ('body', 'ilike', 'AnchorForSearch'),
         ])
         self.assertEqual(found_por, messages_all.filtered(lambda m: m.res_id != records[2].id), 'Should filter like read')
         found_por.read(['subject'])
+
+    def test_search_needaction(self):
+        message = self.record_internal.message_post(
+            body="Test Notified",
+            message_type="comment",
+            partner_ids=self.user_employee.partner_id.ids,
+            subtype_id=self.env.ref("mail.mt_comment").id,
+        )
+        self.patch(mail_message_module, "MAX_SEARCH_LIMIT", 2)
+        messages = self.env["mail.message"].with_user(self.user_employee)
+        self.assertEqual(messages.search([("needaction", "=", True)]), message)
 
 
 @tagged('mail_message', 'security', 'post_install', '-at_install')

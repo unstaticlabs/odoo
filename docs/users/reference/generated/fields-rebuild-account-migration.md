@@ -150,6 +150,9 @@ false
 | --- | --- | --- | --- |
 | **Rebuild Can Generate Official Fec** (`rebuild_can_generate_official_fec`) | boolean |  |  |
 | **Closing Company** (`rebuild_closing_company_id`) | many2one → `res.company` |  |  |
+| **Entries omitted** (`rebuild_empty_entry_count`) | integer |  |  |
+| **Entries to export** (`rebuild_included_entry_count`) | integer |  |  |
+| **Entries in the selected period** (`rebuild_period_entry_count`) | integer |  |  |
 
 ## Product Variant
 
@@ -512,6 +515,43 @@ false
 | **Unresolved Information** (`unresolved_information`) | text |  |  |
 | **Validation Status** (`validation_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warning**, **Blocked**. |
 | **Validation Summary** (`validation_summary`) | text |  |  |
+
+## DES and DAS2 documents to review
+
+`rebuild.account.declaration.candidate.review`, defined by this module. Transient: the record lives only while its dialog is open.
+
+Use the source dates and linked accounting documents to decide which items need a declaration review.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Company** (`company_id`) | many2one → `res.company` | yes | Active company whose accounting documents you want to review. |
+| **From** (`date_from`) | date | yes | First invoice or payment date to include. |
+| **To** (`date_to`) | date | yes | Last invoice or payment date to include. |
+| **Declaration** (`kind`) | selection | yes | Review DES by invoice month or DAS2 by payment year and beneficiary. Values: **DES**, **DAS2**. |
+| **Documents to review** (`line_ids`) | one2many → `rebuild.account.declaration.candidate.review.line` |  | One line per source document, listed when you show the documents. |
+| **Source documents** (`source_rows`) | json |  | Source move IDs, dates, periods and reasons. DAS2 rows also give the settlement, the 622 share in company currency and the date used by the calendar. |
+
+## DES or DAS2 document to review
+
+`rebuild.account.declaration.candidate.review.line`, defined by this module. Transient: the record lives only while its dialog is open.
+
+One source document behind a potential DES or DAS2 declaration, with the reason it needs a review.
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Amount** (`amount`) | monetary |  | Signed amount excluding tax for DES, amount settled for DAS2, in company currency. |
+| **622 share** (`amount_622`) | monetary |  | Part of the settlement the declaration calendar allocates to 622 fees. |
+| **Calendar date (622)** (`calendar_date`) | date |  | Date used by the declaration calendar for the 622 share, when it differs from the payment date. |
+| **Company** (`company_id`) | many2one → `res.company` |  | Company whose accounting holds the document. |
+| **Currency** (`currency_id`) | many2one → `res.currency` |  | Company currency of the amounts. |
+| **Date** (`date`) | date |  | Invoice date for DES, payment date for DAS2. |
+| **Document** (`move_id`) | many2one → `account.move` |  | Posted invoice, bill or payment entry to review. |
+| **Type** (`move_type`) | selection |  | Tells an invoice from a credit note. |
+| **Partner** (`partner_id`) | many2one → `res.partner` |  | Customer of the invoice or beneficiary of the payment. |
+| **Payment** (`payment_move_id`) | many2one → `account.move` |  | Payment entry that settled the bill, when the document is a bill. |
+| **Period** (`period`) | char |  | Declaration period the document belongs to: a month for DES, a year for DAS2. |
+| **Reason for review** (`reason`) | char |  | Why this document may belong in the declaration. |
+| **Source review** (`review_id`) | many2one → `rebuild.account.declaration.candidate.review` | yes | Review that listed this document. |
 
 ## USL French Declaration Prefilled Field
 
@@ -998,6 +1038,7 @@ false
 | **Archived Journals Used in the Annual Close** (`annual_archived_journal_count`) | integer |  |  |
 | **Journals Used in the Annual Close** (`annual_journal_count`) | integer |  |  |
 | **Posted Entries in the Annual Close** (`annual_posted_move_count`) | integer |  |  |
+| **Approved Expenses** (`approved_expense_count`) | integer |  |  |
 | **Balance** (`balance`) | monetary |  |  |
 | **Bank and Cash Balance** (`bank_balance`) | monetary |  |  |
 | **Bank Checkpoint Config** (`bank_checkpoint_config_id`) | many2one → `account.bank.ingestion.config` |  |  |
@@ -1043,7 +1084,8 @@ false
 | **Currency** (`currency_id`) | many2one → `res.currency` |  |  |
 | **Debit** (`debit`) | monetary |  |  |
 | **Draft Customer Document Count** (`draft_customer_document_count`) | integer |  |  |
-| **Expenses to Process** (`draft_expense_count`) | integer |  |  |
+| **Expenses to Process** (`draft_expense_count`) | integer |  | Draft, submitted and approved expenses awaiting further processing. This legacy count does not mean editable drafts. |
+| **Draft Expenses Only** (`draft_only_expense_count`) | integer |  |  |
 | **Draft Vendor Document Count** (`draft_vendor_document_count`) | integer |  |  |
 | **Evidence Status** (`evidence_status`) | selection |  | Values: **Ready**, **Attention Required**. |
 | **Expected payments** (`expected_payment_amount`) | monetary |  |  |
@@ -1083,6 +1125,7 @@ false
 | **Review Decision Count** (`review_decision_count`) | integer |  |  |
 | **Stale Draft Documents** (`stale_draft_document_count`) | integer |  |  |
 | **Stale Expense Work** (`stale_draft_expense_count`) | integer |  |  |
+| **Submitted Expenses** (`submitted_expense_count`) | integer |  |  |
 | **Unmatched Bank Transaction Count** (`unmatched_bank_transaction_count`) | integer |  |  |
 | **Unusual Balance Review Amount** (`unusual_balance_amount`) | monetary |  |  |
 | **Unusual Account Balances** (`unusual_balance_count`) | integer |  |  |

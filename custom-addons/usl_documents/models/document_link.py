@@ -8,6 +8,8 @@ from odoo import (
 )
 from odoo.exceptions import AccessError, UserError, ValidationError
 
+from odoo.tools import format_date
+
 from .document import ARCHIVE_MODES, ATTACHMENT_ORIGINS, DOCUMENT_ROLES
 
 
@@ -259,13 +261,20 @@ class UslDocumentLink(models.Model):
         self.ensure_one()
         return self._record_action()
 
-    def _record_action(self, user_env=None):
+    def _record_action(self, user_env=None, *, preview=False):
         self.ensure_one()
         user_env = user_env or self.env
         record = user_env[self.res_model].browse(self.res_id).exists()
         if not record:
             raise UserError(_("The linked Odoo record no longer exists."))
         record.check_access("read")
+        if preview:
+            return {
+                "res_model": self.res_model,
+                "res_id": self.res_id,
+                "name": record.display_name,
+                "fields": self._preview_fields(record),
+            }
         return {
             "type": "ir.actions.act_window",
             "name": record.display_name,
@@ -274,6 +283,36 @@ class UslDocumentLink(models.Model):
             "view_mode": "form",
             "views": [(False, "form")],
         }
+
+    @api.model
+    def _preview_fields(self, record):
+        # Use native translated metadata and the target user's field access.
+        # Render a few identifying facts as text, never a business form widget.
+        candidates = (
+            "stage_id", "state", "project_id", "partner_id", "user_id",
+            "department_id", "invoice_date", "date_deadline", "date",
+            "city", "country_id", "company_id",
+        )
+        metadata = record.fields_get(candidates, ["type", "string", "selection"])
+        result = []
+        for name in candidates:
+            field = metadata.get(name)
+            if not field or field["type"] not in ("char", "selection", "many2one", "date"):
+                continue
+            value = record[name]
+            if not value:
+                continue
+            if field["type"] == "many2one":
+                if not value.has_access("read"):
+                    continue
+                value = value.display_name
+            elif field["type"] == "selection":
+                value = dict(field["selection"]).get(value)
+            elif field["type"] == "date":
+                value = format_date(record.env, value)
+            if value:
+                result.append({"label": field["string"], "value": value})
+        return result
 
     def unlink(self):
         if self.env.su:

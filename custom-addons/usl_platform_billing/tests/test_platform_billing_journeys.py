@@ -57,3 +57,11 @@ class TestPlatformBillingJourneys(TestPlatformBillingBrowser, JourneyCase):
         )
         self.assertEqual(self.billing_session.state, "paid")
         self.assertTrue(self.bank_line.is_reconciled)
+
+    def test_create_a_monthly_platform_billing_session_in_french(self):
+        self.journey_language = "fr"
+        self.test_create_a_monthly_platform_billing_session()
+
+    def test_settle_a_platform_billing_session_in_french(self):
+        self.journey_language = "fr"
+        self.test_settle_a_platform_billing_session()

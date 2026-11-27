@@ -3,21 +3,26 @@ from __future__ import annotations
 import argparse
 import contextlib
 import hashlib
+import inspect
 import io
 import json
 import os
 import re
 import subprocess
 import tempfile
+import threading
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest import mock
 
 from operations import cohort
+from operations import stack as stack_module
 from operations.runtime import RuntimeError as OperationsError
 from operations.runtime import compose_command, load_target
 from operations.stack import (
+    BACKUP_ONLINE_PAUSE_SERVICE_ROLES,
     BACKUP_WRITER_SERVICE_ROLES,
     _compose_services,
     VOLUME_LOGICAL_NAMES,
@@ -72,7 +77,11 @@ from operations.stack import (
     _require_same_preparation,
     _previous_generation_record,
     _previous_generation_identity,
+    STAGING_REVIEW_IDENTITY_PROGRAM,
+    _ensure_staging_review_identity,
+    _record_staging_review_identity,
     _reconcile_staging_pocketid,
+    _reconnect_staging_paperless,
     _release_images,
     _remove_materialization_workspace,
     _resource_overlay,
@@ -311,6 +320,19 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_database_client_preserves_the_literal_password(self):
+        from operations.cohort import database_environment
+
+        for prefix in ("ODOO", "PAPERLESS"):
+            with self.subTest(prefix=prefix), mock.patch.dict(os.environ, {
+                f"{prefix}_DB_HOST": "fixture-db", f"{prefix}_DB_PORT": "5432",
+                f"{prefix}_DB_NAME": "fixture", f"{prefix}_DB_USER": "fixture",
+                f"{prefix}_DB_PASSWORD": "  fixture $value # literal  ",
+            }):
+                command, environment = database_environment(prefix)
+                self.assertEqual(environment["PGPASSWORD"], "  fixture $value # literal  ")
+                self.assertNotIn(environment["PGPASSWORD"], command)
+
     def test_production_reconcile_requires_stopped_writer_receipt(self):
         arguments = build_parser().parse_args([
             "--targets", str(ROOT / "operations/targets-host"),
@@ -1280,6 +1302,8 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
+                if command[-1] == "capabilities":
+                    return subprocess.CompletedProcess(command, 0, '{"prepared_odoo_database":true}', "")
                 if command[:2] == ["mktemp", "-d"]:
                     return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
                 if command[-2:] == ["config", "--services"]:
@@ -2439,6 +2463,7 @@ class CohortContractTests(unittest.TestCase):
         self.assertIn("USL_EINVOICE_LIVE_ENABLED=0", command)
         self.assertIn("USL_EREPORTING_LIVE_ENABLED=0", command)
         self.assertIn("USL_POCKET_ID_ENABLED=1", command)
+        self.assertIn("USL_POCKET_ID_REQUIRED_GROUP=odoo_staging", command)
         shell = command[command.index("-c") + 1]
         self.assertIn("${POCKET_ID_CLIENT_SECRET:?}", shell)
         self.assertIn('exec /usr/local/bin/odoo-entrypoint "$@"', shell)
@@ -2529,6 +2554,365 @@ class CohortContractTests(unittest.TestCase):
             candidate,
         )
         self.assertEqual(result, internal_evidence)
+
+    def _staging_paperless_fixture(self):
+        target = load_target("staging", HOST_TARGETS)
+        candidate = {
+            "working_directory": "/gitops/staging",
+            "compose_files": ["/gitops/staging/compose.yaml"],
+            "environment_file": target.value["compose"]["adoption"]["candidate"]["environment_file"],
+            "profiles": [],
+            "project": target.project,
+            "anchor_service": target.value["services"]["odoo"],
+        }
+        release = {
+            "components": {
+                "distribution": {
+                    "digest_reference": "ghcr.io/unstaticlabs/usl-odoo@sha256:" + "b" * 64,
+                },
+            },
+        }
+        rendered = {"services": {
+            target.value["services"]["odoo"]: {"environment": {
+                "PAPERLESS_INTERNAL_URL": "http://paperless-staging-app:8000",
+            }},
+            target.value["services"]["paperless"]: {
+                "environment": {
+                    "PAPERLESS_ALLOWED_HOSTS": (
+                        "localhost,127.0.0.1,paperless-webserver,paperless-staging-app"
+                    ),
+                },
+                "networks": {"default": {"aliases": ["paperless-staging-app"]}},
+            },
+        }}
+        return target, candidate, release, rendered
+
+    def _staging_paperless_runner(self, rendered, *, rotation=None, evidence=None):
+        state = {}
+
+        def run(command, **kwargs):
+            if "config" in command:
+                return subprocess.CompletedProcess(command, 0, json.dumps(rendered), "")
+            if "psql" in command:
+                state["sql"] = kwargs["input_text"]
+                token = state["sql"].split("SELECT '", 1)[1].split("'", 1)[0]
+                state["token"] = token
+                value = rotation or {"service_users": 1, "rotated_user_id": 2}
+                return subprocess.CompletedProcess(command, 0, json.dumps(value) + "\n", "")
+            state["program"] = kwargs["input_text"]
+            value = evidence(state) if evidence else {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": hashlib.sha256(state["token"].encode()).hexdigest(),
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+            return subprocess.CompletedProcess(
+                command, 0, "USL_STAGING_PAPERLESS_CONNECTION=" + json.dumps(value) + "\n", "",
+            )
+
+        runner = mock.Mock()
+        runner.run.side_effect = run
+        return runner, state
+
+    def test_staging_paperless_reconnect_rotates_token_and_keeps_it_off_argv(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        runner, state = self._staging_paperless_runner(rendered)
+        result = _reconnect_staging_paperless(
+            target, runner, release, "candidate-network",
+            {"odoo_filestore": "candidate-filestore"}, candidate, "candidate-paperless-db",
+        )
+        self.assertEqual(result["status"], "connected")
+        self.assertEqual(result["internal_url"], "http://paperless-staging-app:8000")
+        self.assertEqual(result["service_user_id"], 2)
+        self.assertRegex(state["token"], r"^[0-9a-f]{40}$")
+        self.assertNotIn(state["token"], json.dumps(result))
+        for call in runner.run.call_args_list:
+            self.assertNotIn(state["token"], " ".join(call.args[0]))
+        psql = runner.run.call_args_list[1].args[0]
+        self.assertIn("candidate-paperless-db", psql)
+        self.assertIn("paperless_staging", psql)
+        self.assertIn("username = 'odoo-integration'", state["sql"])
+        self.assertIn("ON CONFLICT (user_id) DO UPDATE", state["sql"])
+        program = state["program"]
+        self.assertIn(state["token"], program)
+        self.assertIn('env.registry.clear_cache("stable")', program)
+        self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
+        compile(program, "<staging-paperless-connection>", "exec")
+
+    def test_staging_paperless_reconnect_is_staging_only(self) -> None:
+        target = load_target("production", HOST_TARGETS)
+        runner = mock.Mock()
+        result = _reconnect_staging_paperless(
+            target, runner, {}, "network", {}, {}, "paperless-db",
+        )
+        self.assertEqual(result["status"], "not-applicable")
+        runner.run.assert_not_called()
+
+    def test_staging_paperless_reconnect_rejects_unsafe_url_and_bad_rotation(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+        odoo_service = target.value["services"]["odoo"]
+        for url in (
+            "http://paperless-webserver.example:8000",
+            "https://paperless-staging-app:8000",
+            "http://user:pw@paperless-staging-app:8000",
+            "http://paperless-staging-app:8000/api",
+            "",
+        ):
+            broken = json.loads(json.dumps(rendered))
+            broken["services"][odoo_service]["environment"]["PAPERLESS_INTERNAL_URL"] = url
+            runner, _state = self._staging_paperless_runner(broken)
+            with self.assertRaisesRegex(RuntimeError, "internal URL"):
+                _reconnect_staging_paperless(
+                    target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+                )
+        not_allowed = json.loads(json.dumps(rendered))
+        not_allowed["services"][target.value["services"]["paperless"]]["environment"][
+            "PAPERLESS_ALLOWED_HOSTS"
+        ] = "localhost,127.0.0.1"
+        runner, _state = self._staging_paperless_runner(not_allowed)
+        with self.assertRaisesRegex(RuntimeError, "internal URL"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+        runner, _state = self._staging_paperless_runner(
+            rendered, rotation={"service_users": 0, "rotated_user_id": None},
+        )
+        with self.assertRaisesRegex(RuntimeError, "token rotation failed"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+
+    def test_staging_paperless_reconnect_rejects_mismatched_evidence(self) -> None:
+        target, candidate, release, rendered = self._staging_paperless_fixture()
+
+        def evidence(state):
+            return {
+                "schema": "usl-staging-paperless-connection/v1",
+                "status": "connected",
+                "internal_url": "http://paperless-staging-app:8000",
+                "public_url": "http://127.0.0.1:19010",
+                "service_user_id": 2,
+                "token_sha256": "0" * 64,
+                "configured": True,
+                "url_matches": True,
+                "public_url_matches": True,
+                "token_matches": True,
+                "service_user_matches": True,
+            }
+
+        runner, _state = self._staging_paperless_runner(rendered, evidence=evidence)
+        with self.assertRaisesRegex(RuntimeError, "evidence differs"):
+            _reconnect_staging_paperless(
+                target, runner, release, "n", {"odoo_filestore": "f"}, candidate, "db",
+            )
+
+    def _staging_review_identity_runner(self, stdout, *, containers="odoo-container\n"):
+        state = {}
+
+        def run(command, **kwargs):
+            if "ps" in command:
+                return subprocess.CompletedProcess(command, 0, containers, "")
+            state["command"] = command
+            state["program"] = kwargs["input_text"]
+            if isinstance(stdout, Exception):
+                raise stdout
+            return subprocess.CompletedProcess(command, 0, stdout, "")
+
+        runner = mock.Mock()
+        runner.run.side_effect = run
+        return runner, state
+
+    def _staging_review_identity_evidence(self, **changes):
+        return {
+            "schema": "usl-staging-review-identity/v1",
+            "status": "ensured",
+            "profile": "accountant_reviewer",
+            "created": True,
+            "user_id": 42,
+            "active": True,
+            "pocketid_access": True,
+            "identity_linked": True,
+            "not_system_administrator": True,
+            **changes,
+        }
+
+    def test_staging_review_identity_is_ensured_in_the_admitted_generation(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        for created in (True, False):
+            evidence = self._staging_review_identity_evidence(created=created)
+            runner, state = self._staging_review_identity_runner(
+                "noise\nUSL_STAGING_REVIEW_IDENTITY=" + json.dumps(evidence) + "\n",
+            )
+            result = _ensure_staging_review_identity(target, runner, candidate)
+            self.assertEqual(result, evidence)
+        command = state["command"]
+        self.assertEqual(command[:4], ["docker", "exec", "--interactive", "odoo-container"])
+        self.assertIn("--database=odoo_staging", command)
+        program = state["program"]
+        for name in (
+            "USL_STAGING_RECETTE_LOGIN", "USL_STAGING_RECETTE_EMAIL",
+            "USL_STAGING_RECETTE_SUBJECT",
+        ):
+            self.assertIn(f'"{name}"', program)
+            self.assertNotIn(name, " ".join(command))
+        self.assertIn("_usl_pocketid_apply_user_configuration", program)
+        self.assertIn('"profile": "accountant_reviewer"', program)
+        self.assertIn("strict=False", program)
+        self.assertNotIn("administrator\"", program.replace("not_system_administrator", ""))
+        self.assertLess(program.index("if not all(checks.values()):"), program.index("env.cr.commit()"))
+        compile(program, "<staging-review-identity>", "exec")
+
+    def test_staging_review_identity_runs_after_the_release_controls(self) -> None:
+        # The controls count users, groups and identities against the restored
+        # snapshot: a user written before they are compared refuses the release.
+        source = inspect.getsource(stack_module._restore_unlocked)
+        step = source.index("_record_staging_review_identity(")
+        self.assertIn("_ensure_staging_review_identity(", source[step:])
+        self.assertLess(source.index("validate_restore("), step)
+        self.assertLess(source.index("upgrade_preservation.verify("), step)
+        self.assertLess(source.index('"usl-release-admission/v2"'), step)
+        self.assertLess(step, source.index('"schema": "usl-restore-run/v1"'))
+
+    def test_staging_review_identity_event_never_fails_the_admitted_release(self) -> None:
+        target = load_target("staging", HOST_TARGETS)
+        runner = mock.Mock()
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "not-applicable"},
+        )
+        runner.run.assert_not_called()
+        with contextlib.redirect_stdout(io.StringIO()):
+            _record_staging_review_identity(
+                target, runner, "grelease-1", self._staging_review_identity_evidence(),
+            )
+        event = json.loads(runner.run.call_args.kwargs["input_text"])
+        self.assertEqual(
+            (event["phase"], event["status"], event["created"], event["user_id"]),
+            ("review-identity", "ensured", True, 42),
+        )
+        self.assertNotIn("profile", event)
+        runner.run.side_effect = OperationsError("host unreachable")
+        _record_staging_review_identity(
+            target, runner, "grelease-1",
+            {"schema": "usl-staging-review-identity/v1", "status": "failed", "detail": "ValueError"},
+        )
+
+    def test_staging_review_identity_is_staging_only(self) -> None:
+        for name in ("production", "local"):
+            runner = mock.Mock()
+            result = _ensure_staging_review_identity(
+                load_target(name, HOST_TARGETS if name == "production" else TARGETS),
+                runner,
+                {},
+            )
+            self.assertEqual(result["status"], "not-applicable")
+            runner.run.assert_not_called()
+
+    def test_staging_review_identity_skips_without_its_variables(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        skipped = {"schema": "usl-staging-review-identity/v1", "status": "skipped"}
+        runner, _state = self._staging_review_identity_runner(
+            "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(skipped) + "\n",
+        )
+        self.assertEqual(_ensure_staging_review_identity(target, runner, candidate), skipped)
+
+    def test_staging_review_identity_program_skips_and_ensures(self) -> None:
+        def execute(environment, *, created):
+            calls = []
+            user = mock.Mock(id=42, ids=[42], active=True, usl_pocketid_access=True)
+            user.__len__ = lambda self: 1
+            user.has_group.return_value = False
+            identity = mock.Mock()
+            identity.__len__ = lambda self: 1
+            users = mock.Mock()
+            users.with_context.return_value = users
+
+            def apply(configurations, **kwargs):
+                calls.append((configurations, kwargs))
+                return {"users": [{"created": created}]}
+
+            users._usl_pocketid_apply_user_configuration.side_effect = apply
+            users.sudo.return_value.search.return_value = user
+            identities = mock.Mock()
+            identities.sudo.return_value.search.return_value = identity
+            env = mock.MagicMock()
+            env.__getitem__.side_effect = {
+                "res.users": users, "usl.oidc.identity": identities,
+            }.__getitem__
+            output = io.StringIO()
+            with mock.patch.dict(os.environ, environment, clear=True), contextlib.redirect_stdout(output):
+                exec(STAGING_REVIEW_IDENTITY_PROGRAM, {"env": env})  # noqa: S102
+            line = output.getvalue().strip().splitlines()[-1]
+            return json.loads(line.removeprefix("USL_STAGING_REVIEW_IDENTITY=")), calls, env
+
+        complete = {
+            "USL_STAGING_RECETTE_LOGIN": "review@example.test",
+            "USL_STAGING_RECETTE_EMAIL": "review@example.test",
+            "USL_STAGING_RECETTE_SUBJECT": "subject-1",
+        }
+        for missing in complete:
+            partial = {key: value for key, value in complete.items() if key != missing}
+            evidence, calls, env = execute(partial, created=True)
+            self.assertEqual(
+                evidence, {"schema": "usl-staging-review-identity/v1", "status": "skipped"},
+            )
+            self.assertEqual(calls, [])
+            env.cr.commit.assert_not_called()
+        for created in (True, False):
+            evidence, calls, env = execute(complete, created=created)
+            self.assertEqual(evidence, self._staging_review_identity_evidence(created=created))
+            (configurations, kwargs), = calls
+            self.assertEqual(configurations, [{
+                "login": "review@example.test",
+                "name": "Recette staging",
+                "email": "review@example.test",
+                "subject": "subject-1",
+                "profile": "accountant_reviewer",
+                "companies": "all",
+                "create_if_missing": True,
+            }])
+            self.assertIs(kwargs["strict"], False)
+            env.cr.commit.assert_called_once_with()
+
+    def test_staging_review_identity_failure_is_evidence_not_an_error(self) -> None:
+        target, candidate, _release, _rendered = self._staging_paperless_fixture()
+        ensured = self._staging_review_identity_evidence()
+        cases = {
+            "no evidence": "odoo shell said nothing\n",
+            "invalid json": "USL_STAGING_REVIEW_IDENTITY={\n",
+            "command failed": RuntimeError("docker exec failed"),
+            "system administrator": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "not_system_administrator": False},
+            ) + "\n",
+            "other profile": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "profile": "administrator"},
+            ) + "\n",
+            "extra key": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "password": "x"},
+            ) + "\n",
+            "bad user": "USL_STAGING_REVIEW_IDENTITY=" + json.dumps(
+                {**ensured, "user_id": 0},
+            ) + "\n",
+        }
+        for label, stdout in cases.items():
+            with self.subTest(label):
+                runner, _state = self._staging_review_identity_runner(stdout)
+                result = _ensure_staging_review_identity(target, runner, candidate)
+                self.assertEqual(result["status"], "failed")
+                self.assertEqual(set(result), {"schema", "status", "detail"})
+                self.assertNotIn("docker exec failed", json.dumps(result))
+        for containers in ("", "one\ntwo\n"):
+            runner, state = self._staging_review_identity_runner("", containers=containers)
+            result = _ensure_staging_review_identity(target, runner, candidate)
+            self.assertEqual(result["status"], "failed")
+            self.assertNotIn("program", state)
 
     def test_staging_pocket_id_reconcile_rejects_unapproved_environment_and_failed_check(self) -> None:
         target = load_target("staging", HOST_TARGETS)
@@ -2974,6 +3358,55 @@ class CohortContractTests(unittest.TestCase):
         ):
             cohort.qualify(argparse.Namespace(root="/cohort", durable_snapshot="1" * 64))
 
+    def test_two_verifications_of_one_snapshot_at_once_both_pass(self) -> None:
+        identity = {"files": 1, "bytes": 1, "sha256": "d" * 64}
+        value = manifest(identity, identity)
+        value["schema"] = cohort.LEGACY_SCHEMA
+        value["cache_snapshot_id"] = "c" * 64
+        both_restored = threading.Barrier(2, timeout=10)
+        work_directories = []
+
+        def restore(snapshot, destination, _environment):
+            if destination.exists():
+                raise cohort.CohortError(f"restore destination already exists: {destination}")
+            destination.mkdir(parents=True)
+            if destination.name == "durable-snapshot":
+                work_directories.append(destination.parent)
+                cohort_root = destination / "cohort"
+                (cohort_root / "durable/databases").mkdir(parents=True)
+                (cohort_root / "manifest.json").write_text(json.dumps(value))
+                for name in ("odoo", "paperless"):
+                    (cohort_root / f"durable/databases/{name}.dump").write_bytes(b"x")
+                # Both runs hold their restored snapshot before either goes on.
+                both_restored.wait()
+            else:
+                (destination / "payload/cache").mkdir(parents=True)
+            return snapshot
+
+        def read_dump(command, **_options):
+            if not Path(command[-1]).is_file():
+                raise cohort.CohortError(f"command failed ({' '.join(command)})")
+
+        with tempfile.TemporaryDirectory() as directory:
+            arguments = argparse.Namespace(root=directory, durable_snapshot="b" * 64)
+            with (
+                mock.patch.object(cohort, "restic_environment", return_value={}),
+                mock.patch.object(cohort, "restore_snapshot", side_effect=restore),
+                mock.patch.object(cohort, "verify_embedded_release"),
+                mock.patch.object(cohort, "tree_identity", return_value=identity),
+                mock.patch.object(
+                    cohort, "sha256_file",
+                    side_effect=lambda path: value["databases"][path.stem]["sha256"],
+                ),
+                mock.patch.object(cohort, "run", side_effect=read_dump),
+                ThreadPoolExecutor(max_workers=2) as executor,
+            ):
+                runs = [executor.submit(cohort.verify, arguments) for _ in range(2)]
+                results = [run.result(timeout=30) for run in runs]
+            self.assertEqual([result["status"] for result in results], ["verified", "verified"])
+            self.assertEqual(len(set(work_directories)), 2)
+            self.assertEqual(list(Path(directory).iterdir()), [])
+
     def test_push_uploads_cache_first_and_excludes_it_from_durable_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
@@ -3386,12 +3819,13 @@ class CohortContractTests(unittest.TestCase):
         target.project = configured.project
         return runner, target
 
-    def test_production_backup_writer_restart_skips_stale_one_shot_dependencies(self) -> None:
+    def test_production_online_backup_restart_skips_stale_one_shot_dependencies(self) -> None:
         # The captured Compose identity may point at a stale checkout whose
         # one-shot services (odoo-upgrade, odoo-mcp-oauth-init) already exited.
-        # The writer restart must start only the writers it stopped.
+        # The restart must start only the services it stopped: with an online
+        # capture, only Sign and its certificate authority.
         runner, target = self._backup_runner_and_target("production")
-        writer_services = [target.value["services"][role] for role in BACKUP_WRITER_SERVICE_ROLES]
+        writer_services = [target.value["services"][role] for role in BACKUP_ONLINE_PAUSE_SERVICE_ROLES]
         identity = {
             "project": "usl-odoo-production-main",
             "working_directory": "/etc/komodo/stacks/usl-odoo-production-main",
@@ -3406,14 +3840,19 @@ class CohortContractTests(unittest.TestCase):
         }
         release_raw = json.dumps(release) + " " * (2 * 1024 * 1024)
         cohort_results = {
-            "capture": {"status": "captured"},
+            "capture": {"status": "captured", "completeness": {"odoo_files": 1, "paperless_originals": 1}},
             "push": {"durable_snapshot_id": "d" * 64},
             "qualify": {"status": "verified"},
         }
 
+        phases = []
+
         def run_cohort(_target, _runner, _image, action, *_args, **_kwargs):
             if action == "capture":
-                self.assertEqual(_kwargs["input_text"], release_raw)
+                phase = _args[0][_args[0].index("--phase") + 1]
+                phases.append(phase)
+                # Only the first phase reads the release manifest, from stdin.
+                self.assertEqual(_kwargs["input_text"], release_raw if phase == "begin" else None)
                 environment = _args[1]
                 self.assertIn("USL_RELEASE_MANIFEST_STDIN=1", environment)
                 self.assertFalse(any(value.startswith("USL_RELEASE_MANIFEST_JSON=") for value in environment))
@@ -3441,6 +3880,7 @@ class CohortContractTests(unittest.TestCase):
             mock.patch("builtins.print"),
         ):
             self.assertEqual(backup_command(arguments), 0)
+        self.assertEqual(phases, ["begin", "sign", "finish"])
         commands = [call.args[0] for call in runner.run.call_args_list]
         stops = [command for command in commands if "stop" in command]
         ups = [command for command in commands if "up" in command]
@@ -3602,6 +4042,26 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": "mutable:latest"}):
             with self.assertRaisesRegex(RuntimeError, "immutable"):
                 _operations_image(release)
+
+    def test_recovery_requires_a_capable_operations_image_without_database_access(self):
+        old = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "a" * 64
+        qualified = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "b" * 64
+        release = {"components": {"backup-tool": {"digest_reference": old}}}
+        runner = mock.Mock()
+        for rc, output in ((2, ""), (0, "{}"), (0, "unknown"), (0, '{"prepared_odoo_database":1}')):
+            runner.run.return_value = subprocess.CompletedProcess([], rc, output, "")
+            with self.subTest(rc=rc, output=output), mock.patch.dict(os.environ, {}, clear=True):
+                with self.assertRaisesRegex(OperationsError, "USL_OPERATIONS_IMAGE"):
+                    stack_module._require_prepared_database_tool(runner, _operations_image(release))
+                args = runner.run.call_args.args[0]
+                self.assertEqual(args[-2:], [old, "capabilities"])
+                self.assertEqual(args[args.index("--network") + 1], "none")
+                self.assertNotIn("--volume", args)
+                self.assertNotIn("--env-file", args)
+        runner.run.return_value = subprocess.CompletedProcess([], 0, '{"prepared_odoo_database":true}', "")
+        with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": qualified}):
+            stack_module._require_prepared_database_tool(runner, _operations_image(release))
+        self.assertEqual(runner.run.call_args.args[0][-2:], [qualified, "capabilities"])
 
     def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3869,20 +4329,20 @@ class CohortContractTests(unittest.TestCase):
                 )
 
         gib = 1024**3
-        with self.assertRaisesRegex(RuntimeError, "2.0 GiB deficit"):
+        with self.assertRaisesRegex(RuntimeError, "3.0 GiB deficit"):
             _require_restore_capacity(
                 target,
-                CapacityRunner(17 * gib),
+                CapacityRunner(7 * gib),
                 "preflight",
                 candidate_bytes={"bulk": 4 * gib},
             )
         admitted = _require_restore_capacity(
             target,
-            CapacityRunner(19 * gib),
+            CapacityRunner(10 * gib),
             "preflight",
             candidate_bytes={"bulk": 4 * gib},
         )
-        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 19 * gib)
+        self.assertEqual(admitted["filesystems"]["/dev/root"]["required_bytes"], 10 * gib)
 
     def test_restore_capacity_groups_tiers_on_their_actual_filesystems(self) -> None:
         target = load_target("staging", TARGETS)
@@ -3903,7 +4363,7 @@ class CohortContractTests(unittest.TestCase):
             "preflight",
             candidate_bytes={"bulk": 3 * gib, "database": 2 * gib, "local": 1 * gib},
         )
-        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 18 * gib)
+        self.assertEqual(result["filesystems"]["/dev/volume"]["required_bytes"], 9 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["candidate_bytes"], 3 * gib)
         self.assertEqual(result["filesystems"]["/dev/root"]["reserve_bytes"], 2 * gib)
 
@@ -4711,6 +5171,121 @@ class CohortContractTests(unittest.TestCase):
         )
         _delete_cleanup_resources(runner, [], [], [], [], paths)
         self.assertEqual(runner.removed, paths)
+
+    def _prune(self, target, runner, keep: str):
+        from operations.stack import _prune_superseded_captures
+        return _prune_superseded_captures(target, runner, keep)
+
+    def test_a_successful_production_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("production", TARGETS)
+        attempt, running = ("intent-" + digit * 48 for digit in "12")
+        newest, anchor, older, failed, newer = (
+            "proof-daily-" + digit * 16 for digit in "abcde"
+        )
+        entries = {"generations": "d", "backup-runs": "d", "runs": "d", "operation.lock": "d",
+                   "runs/release-" + "a" * 64 + ".json": "f"}
+        files = {"runs/release-" + "a" * 64 + ".json": json.dumps({"attempt": running, "status": "running"})}
+        captures = {
+            newest: "2026-09-05T04:00:00Z",
+            anchor: "2026-09-04T04:00:00Z",   # the last passed proof: its snapshots, not this copy, anchor it
+            older: "2026-09-03T04:00:00Z",
+            newer: "2026-09-06T04:00:00Z",    # never older than the capture that just succeeded
+            f"release-pre-{attempt}": "2026-09-02T04:00:00Z",
+            f"release-pre-{running}": "2026-09-01T04:00:00Z",
+        }
+        for run_id, created_at in captures.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[failed] = "d"
+        files.update(self._capture_files(target, failed, created_at="2026-09-02T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        root = target.value["state_directory"]
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            result = self._prune(target, runner, newest)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(
+            sorted(runner.removed),
+            sorted(f"{root}/{name}" for name in (anchor, older, failed, f"release-pre-{attempt}")),
+        )
+        # Kept: the new capture, a newer one, an unfinished release attempt, and
+        # everything that is not a capture. The older failed capture goes.
+        self.assertIn(f"{root}/{failed}", runner.removed)
+        for kept in (newest, newer, f"release-pre-{running}", "backup-runs", "generations"):
+            self.assertNotIn(f"{root}/{kept}", runner.removed)
+
+    def test_a_successful_staging_backup_deletes_every_older_capture(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, older, oldest, unqualified = ("intent-" + digit * 48 for digit in "abcd")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d"}
+        files = {}
+        for run_id, created_at in {
+            newest: "2026-09-05T04:00:00Z", older: "2026-09-04T04:00:00Z", oldest: "2026-09-03T04:00:00Z",
+        }.items():
+            entries[run_id] = "d"
+            files.update(self._capture_files(target, run_id, created_at=created_at))
+        entries[unqualified] = "d"
+        files.update(self._capture_files(target, unqualified, created_at="2026-09-01T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        root = target.value["state_directory"]
+        self.assertEqual(
+            sorted(runner.removed), sorted([f"{root}/{older}", f"{root}/{oldest}", f"{root}/{unqualified}"]),
+        )
+
+    def test_nothing_is_deleted_when_the_new_capture_did_not_qualify(self) -> None:
+        target = load_target("staging", TARGETS)
+        failed, older = ("intent-" + digit * 48 for digit in "ab")
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", failed: "d", older: "d"}
+        files = self._capture_files(target, older, created_at="2026-09-04T04:00:00Z")
+        files.update(self._capture_files(target, failed, created_at="2026-09-05T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        with contextlib.redirect_stderr(io.StringIO()) as errors:
+            result = self._prune(target, runner, failed)
+        self.assertEqual((result["status"], runner.removed), ("skipped", []))
+        self.assertIn("not qualified", errors.getvalue())
+
+    def test_an_unfinished_release_attempts_failed_capture_is_kept(self) -> None:
+        target = load_target("staging", TARGETS)
+        newest, resumable, finished = ("intent-" + digit * 48 for digit in "abc")
+        run_state = "runs/release-" + "a" * 64 + ".json"
+        entries = {"generations": "d", "runs": "d", "backup-runs": "d", run_state: "f",
+                   newest: "d", resumable: "d", finished: "d"}
+        files = {run_state: json.dumps({"attempt": resumable, "status": "running"})}
+        files.update(self._capture_files(target, newest, created_at="2026-09-05T04:00:00Z"))
+        for run_id in (resumable, finished):
+            files.update(self._capture_files(target, run_id, created_at="2026-09-04T04:00:00Z", status="uploaded"))
+        runner = self._capture_state_root(target, entries, files)
+        self._prune(target, runner, newest)
+        self.assertEqual(runner.removed, [f"{target.value['state_directory']}/{finished}"])
+
+    def test_pruning_refuses_names_outside_the_managed_captures(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        runner = self._capture_state_root(target, {"generations": "d"}, {})
+        for name in ("../escape", "generations", "backup-runs", "/etc"):
+            with self.subTest(name=name), self.assertRaisesRegex(RuntimeError, "identity is invalid"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [name]}, keep_anchor_capture=False)
+        self.assertEqual(runner.removed, [])
+
+    def test_cleanup_apply_still_refuses_an_unqualified_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("staging", TARGETS)
+        failed = "intent-" + "a" * 48
+        runner = self._capture_state_root(
+            target, {failed: "d"}, self._capture_files(target, failed, created_at="2026-09-04T04:00:00Z", status="uploaded"),
+        )
+        with self.assertRaisesRegex(RuntimeError, "not qualified"):
+            _validated_cleanup_captures(target, runner, {"delete_captures": [failed]})
+
+    def test_the_default_deletion_path_still_protects_the_anchor_capture(self) -> None:
+        from operations.stack import _validated_cleanup_captures
+        target = load_target("production", TARGETS)
+        anchor = "proof-daily-" + "a" * 16
+        entries = {anchor: "d"}
+        runner = self._capture_state_root(target, entries, self._capture_files(target, anchor, created_at="2026-09-04T04:00:00Z"))
+        with mock.patch("operations.stack._usable_recovery_anchor", return_value={"run_id": anchor}):
+            with self.assertRaisesRegex(RuntimeError, "last full usable recovery anchor"):
+                _validated_cleanup_captures(target, runner, {"delete_captures": [anchor]})
 
     def test_capture_retention_keeps_newest_staging_captures(self) -> None:
         target = load_target("staging", TARGETS)

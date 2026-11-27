@@ -1,7 +1,9 @@
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
+import { _t } from "@web/core/l10n/translation";
 
 
-const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {}) => [
+const journey = (message, { foldWindow = false, verifyDrawerTabs = false, sendToTeam = false } = {}) => [
     {
         id: "open_drawer",
         content: "Open the native notifications drawer",
@@ -13,7 +15,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
               {
                   content: "Feedback is beside New Message in Notifications",
                   trigger:
-                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+                      `.o-mail-MessagingMenu-header button:contains('${_t("New Message")}') + .o-usl-FeedbackButton`,
               },
               {
                   content: "Choose Chats",
@@ -23,17 +25,17 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
               {
                   content: "Feedback remains beside New Message in Chats",
                   trigger:
-                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+                      `.o-mail-MessagingMenu-header button:contains('${_t("New Message")}') + .o-usl-FeedbackButton`,
               },
               {
                   content: "Choose Channels",
-                  trigger: ".o-mail-MessagingMenu-headerFilter:contains('Channels')",
+                  trigger: `.o-mail-MessagingMenu-headerFilter:contains('${_t("Channels")}')`,
                   run: "click",
               },
               {
                   content: "Feedback remains beside New Message in Channels",
                   trigger:
-                      ".o-mail-MessagingMenu-header button:contains('New Message') + .o-usl-FeedbackButton",
+                      `.o-mail-MessagingMenu-header button:contains('${_t("New Message")}') + .o-usl-FeedbackButton`,
               },
           ]
         : []),
@@ -67,12 +69,12 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
         ? [
               {
                   content: "Fold the feedback conversation into the ChatHub",
-                  trigger: ".o-usl-FeedbackChatWindow button[aria-label='Fold feedback']",
+                  trigger: ".o-usl-FeedbackChatWindow .o-usl-FeedbackPanel-fold",
                   run: "click",
               },
               {
                   content: "The folded feedback conversation uses a native chat bubble",
-                  trigger: ".o-usl-FeedbackChatBubble button[aria-label='Open feedback']",
+                  trigger: ".o-usl-FeedbackChatBubble .o-usl-FeedbackChatBubble-button",
                   run: "click",
               },
               {
@@ -94,7 +96,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
     {
         id: "send",
         content: "Send the saved feedback",
-        trigger: ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)",
+        trigger: `.o-usl-FeedbackPanel button:contains('${_t("Send feedback")}'):not(:disabled)`,
         run: "click",
     },
     {
@@ -102,16 +104,31 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
         content: "The task chatter replaces the initial prompt",
         trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter",
     },
+    ...(sendToTeam
+        ? [
+              {
+                  id: "confirm_draft",
+                  content: "Confirm the prepared draft for the product team",
+                  trigger: ".o-usl-FeedbackPanel-readyBar footer button.btn-primary:not(:disabled)",
+                  run: "click",
+              },
+              {
+                  id: "team_received",
+                  content: "The conversation confirms handoff to the product team",
+                  trigger: ".o-usl-FeedbackPanel-sentBar",
+              },
+          ]
+        : []),
     {
         id: "new_conversation",
         content: "Start another conversation without losing the saved card",
-        trigger: ".o-usl-FeedbackPanel-nav button:contains('New')",
+        trigger: `.o-usl-FeedbackPanel-nav button:contains('${_t("New")}')`,
         run: "click",
     },
     {
         id: "tracker",
         content: "Open the clear feedback tracker",
-        trigger: ".o-usl-FeedbackPanel-nav button:contains('My feedback')",
+        trigger: `.o-usl-FeedbackPanel-nav button:contains('${_t("My feedback")}')`,
         run: "click",
     },
     {
@@ -126,7 +143,7 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
     },
     {
         content: "Saved feedback is an explicit conversation control",
-        trigger: ".o-usl-FeedbackPanel-nav button:contains('My feedback')",
+        trigger: `.o-usl-FeedbackPanel-nav button:contains('${_t("My feedback")}')`,
         run: "click",
     },
     {
@@ -138,10 +155,24 @@ const journey = (message, { foldWindow = false, verifyDrawerTabs = false } = {})
 
 registry.category("web_tour.tours").add("usl_feedback_desktop_journey", {
     steps: () =>
-        journey("The desktop status is unclear after reload.", {
+        journey(user.lang.startsWith("fr") ? "Le statut est difficile à comprendre après le rechargement." : "After I reload the page, the status is unclear.", {
             foldWindow: true,
             verifyDrawerTabs: true,
+            sendToTeam: true,
         }),
+});
+
+registry.category("web_tour.tours").add("usl_feedback_omit_current_record", {
+    steps: () => [
+        { trigger: ".o_form_view .o_field_widget[name='name']" },
+        { trigger: ".o_menu_systray i[aria-label='Messages']", run: "click" },
+        { trigger: ".o-usl-FeedbackButton", run: "click" },
+        { trigger: "#usl_feedback_context:checked", run: "click" },
+        { trigger: "#usl_feedback_context:not(:checked)" },
+        { trigger: ".o-usl-FeedbackPanel textarea", run: "edit Keep page details out of this report." },
+        { trigger: ".o-usl-FeedbackPanel button:contains('Send feedback'):not(:disabled)", run: "click" },
+        { trigger: ".o-usl-FeedbackPanel-conversation .o-mail-Chatter" },
+    ],
 });
 
 registry.category("usl_docs.journeys").add("usl_feedback_desktop_journey", {
@@ -169,11 +200,13 @@ registry.category("usl_docs.journeys").add("usl_feedback_desktop_journey", {
         context_off: {
             text: "**Page details** is ticked when the screen you are on gives useful context: the action, the record you can read, the company and the release, never the address, form values or passwords. Untick it when the page does not matter.",
         },
-        send: { text: "Choose **Send feedback**." },
+        send: { text: "Choose **Send feedback** to start the conversation. The assistant prepares a draft for your review." },
         chatter: {
-            text: "Your message becomes a card for the product team, and the conversation turns into its chatter: answers and status changes appear here.",
+            text: "Read the draft in the conversation. You can add a clarification or edit it before sharing it with the product team.",
             screenshot: true,
         },
+        confirm_draft: { text: "When the draft describes what you meant, choose **Send feedback** on the draft." },
+        team_received: { text: "The conversation confirms that the product team has received your feedback. Further replies appear here.", screenshot: true },
         new_conversation: { text: "**New** starts another conversation. The card you just sent is kept." },
         tracker: { text: "**My feedback** lists every card you sent with its current status." },
         resume: { text: "Choose a card to reopen its conversation and reply." },
@@ -259,4 +292,26 @@ registry.category("web_tour.tours").add("usl_feedback_maintainer_quick_journey",
             trigger: ".o_kanban_view .o_kanban_record:contains('Keyboard shortcut for triage')",
         },
     ],
+});
+
+registry.category("usl_docs.journey_translations").add("usl_feedback_desktop_journey.fr", {
+    id: "envoyer-un-retour-depuis-une-page",
+    title: "Envoyer un retour depuis une page Odoo",
+    description: "Signalez une difficulté, proposez une amélioration ou posez une question depuis la page concernée, puis retrouvez les réponses de l’équipe produit.",
+    app: "Retours",
+    steps: {
+        open_drawer: "Ouvrez **Messages** dans la barre du haut. Le bouton de retour se trouve à côté de **Nouveau message**, dans chaque onglet.",
+        open_feedback: "Cliquez sur le bouton de retour.",
+        conversation: "Une conversation s’ouvre. Odoo prépare un aperçu de la page. Il reste sur votre appareil jusqu’à ce que vous choisissiez de l’envoyer.",
+        describe: "Décrivez ce que vous vouliez faire, puis ce que vous avez observé.",
+        context_off: "Vérifiez **Détails de la page**. Cette option joint la page de travail, la fiche accessible, la société et la version. Décochez-la si la page n’aide pas à comprendre le retour.",
+        send: "Cliquez sur **Envoyer un retour** pour démarrer la conversation. L’assistant prépare un brouillon à relire.",
+        chatter: "Relisez le brouillon dans la conversation. Vous pouvez ajouter une précision ou modifier le texte avant de le transmettre à l’équipe produit.",
+        confirm_draft: "Lorsque le brouillon exprime bien votre demande, cliquez sur **Envoyer un retour** sur la fiche du brouillon.",
+        team_received: "Le bandeau confirme la transmission à l’équipe produit. Retrouvez ses réponses dans cette conversation.",
+        new_conversation: "Cliquez sur **Nouveau** pour préparer un autre retour. Le premier reste accessible.",
+        tracker: "Dans **Mes retours**, retrouvez vos demandes et leur statut.",
+        resume: "Choisissez une demande pour reprendre la conversation ou ajouter une précision.",
+        recent_list: "Revenez dans **Mes retours** pour consulter l’avancement depuis n’importe quelle page.",
+    },
 });

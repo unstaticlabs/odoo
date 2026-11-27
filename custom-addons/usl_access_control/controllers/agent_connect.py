@@ -14,6 +14,7 @@ from odoo.http import Controller, request, route
 CONNECT_PATH = "/usl/agent-access/connect"
 TOKEN_PATH = "/usl/agent-access/token"
 MCP_ORIGIN_VARIABLE = "USL_MCP_PUBLIC_ORIGIN"
+HANDOFF_VARIABLE = "USL_MCP_OAUTH_ODOO_HANDOFF"
 MCP_CALLBACK_PATH = "/oauth/enroll/callback"
 # The same window as ``check_identity`` in ``base``, which protects the wizard
 # that creates an Agent API key in the backend.
@@ -33,9 +34,11 @@ _PAGE_HEADERS = {
 def mcp_return_url():
     """The only URL that can receive a connection code, or ``None``.
 
-    The deployment names the public origin of its MCP server. Without it the
-    page and the token endpoint do not exist.
+    The deployment enables the handoff on both services and names the public
+    origin of its MCP server.
     """
+    if os.getenv(HANDOFF_VARIABLE, "").lower() not in {"1", "true"}:
+        return None
     origin = os.getenv(MCP_ORIGIN_VARIABLE, "").strip().rstrip("/")
     parsed = urlsplit(origin)
     if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.path or parsed.query:

@@ -13,9 +13,9 @@ journey: settle-a-foreign-bill-at-the-payment-rate
 tour: usl_immediate_settlement
 source:
   - custom-addons/usl_accounting/tests/test_accounting_journeys.py
-screenshot_01-actions_png: 7792f5af16285474a140b59520dbd5aff08699bd8e6a3d22ce88665fc9b3d272
-screenshot_02-trace_png: 08f8321d27a2b8d03490563dfee3500d568d758bf000187d621c9fee85fb3870
-screenshot_03-detail_png: 4dc99dfa4dec6993f0b8725482546f69419c878c2a608f227d1b6bf7adf62706
+screenshot_01-actions_png: aeb4f0b9316c2ccf69f5cbbc1e3ee1b2f8b62726cbf02216e94cf9f47abdac6c
+screenshot_02-trace_png: 77f6a2910c8187fc1e0b234e83f841f9a897e2bb5b11ee9798af40284eeb2979
+screenshot_03-detail_png: f6407771a6ba6af61ecbbcb154edd7c7a4492d9dbe32b2a72c09e825fc1e3929
 generated: true
 ---
 
@@ -25,13 +25,13 @@ generated: true
 
 Match a bill in a foreign currency to the company-currency debit the bank reports, value the bill at the rate the payment implies, and undo it if needed.
 
-1. Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.
+1. Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.
 
    ![Open the posted bill from Accounting Vendors Bills](settle-a-foreign-bill-at-the-payment-rate/01-actions.png)
 
-2. **Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.
+2. Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.
 
-3. Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.
+3. Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.
 
 4. The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.
 

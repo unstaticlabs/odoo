@@ -557,6 +557,10 @@ class UslAgent(models.Model):
             access = load_agent_readonly_policy().access_for(model_name, method_name)
         except ActionPolicyConfigurationError:
             return None
+        if model_name == "usl.agent" and method_name == "current_identity" and access == "read_only":
+            # This method derives the caller from the authenticated key. A
+            # client needs its own identity even when it has no application roles.
+            return access if self.state == "active" else None
         # Native actions can use an immutable carrier and check business writes
         # themselves. Their application delegation must still permit mutation.
         is_crud = method_name in {"read", "create", "write", "unlink"}

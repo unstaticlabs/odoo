@@ -36,8 +36,8 @@ from .safe_eval import safe_eval, time
 _logger = logging.getLogger(__name__)
 
 # USL distribution compatibility: native reloads must not reapply seeded
-# authority or rewrite an existing generated report asset. Review these exact
-# XML IDs and the native asset-loader behavior at the next upstream sync.
+# authority or rewrite attachments backing existing records. Review these
+# exact XML IDs and their native loader behavior at the next upstream sync.
 _USL_NATIVE_SEED_GROUPS = frozenset({
     'account.group_account_manager',
     'hr.group_hr_manager',
@@ -49,6 +49,7 @@ _USL_NATIVE_SEED_GROUPS = frozenset({
     'stock.group_stock_manager',
 })
 _USL_REPORT_STYLE = 'web.asset_styles_company_report'
+_USL_INVOICING_DASHBOARD = 'spreadsheet_dashboard_account.dashboard_invoicing'
 _USL_REPORT_STYLE_METADATA = {
     'type': 'binary',
     'name': 'res.company.scss',
@@ -389,6 +390,12 @@ form: module.record_id""" % (xml_id,)
                 # Other native fields, fresh groups and explicit custom-module
                 # migrations continue through the ordinary loader unchanged.
                 values.pop('user_ids', None)
+        if model._name == 'spreadsheet.dashboard' and xid == _USL_INVOICING_DASHBOARD:
+            existing = model.env.ref(xid, raise_if_not_found=False)
+            if existing is not None and existing._name == model._name and existing.exists():
+                # A workbook can be edited in place, and its attachment is protected
+                # during upgrades. Load new seed bytes only when creating the dashboard.
+                values.pop('spreadsheet_binary_data', None)
         if xid != _USL_REPORT_STYLE:
             return model._load_records([data], True)
 

@@ -7,6 +7,12 @@ drop in a file without choosing a folder, find text inside it, understand its
 business context, preview or download the received file, and link one archived
 document to several Odoo records. Advanced bulk work remains in Paperless.
 
+In **Linked records**, select a record name to read its native form inside Documents.
+The arrow opens the full record. The visible preview rechecks the document, its
+link and the target through the existing Open action every four seconds. The
+form clears if a request remains unanswered for eight seconds. Returning to a
+hidden tab requires a fresh check before the form appears again.
+
 The workspace is deliberately about documents, not integration health:
 
 - cards show title, date, correspondent, type, useful Odoo context, and
@@ -463,6 +469,16 @@ and its `linked_id` to `documents_search` without a text query. The list uses
 Odoo's links and each reader's document access. It does not search file content.
 Use `documents_get_context` to inspect the versions and linked records of a result.
 
+For an import audit, set `include_integrity: true` in `documents_get_context`.
+A reader with access to the file receives each version’s stored original and
+archive digests, labeled SHA-256 or legacy MD5. Compare the digest of the
+corresponding file locally. A null variant means its digest is unavailable.
+For the current version, Odoo requests headers for each known variant and
+reports the byte count only when the archive identifies the same file by its
+strong ETag. Historical sizes, unconfirmed lengths and counts beyond JSON clients’ safe
+integer range are null. The default
+read omits integrity details. This operation creates no download URL.
+
 An Agent can attach a client-provided file, copy a readable `ir.attachment`, or
 copy the current original of an accessible archived document onto an expense or
 accounting entry. Use `documents_attach_source_evidence` in the companion MCP,
@@ -495,3 +511,25 @@ For connector `fileParams`, supported local stdio roots, expired references and
 unknown-outcome recovery, see the companion MCP's `docs/source-evidence-handoff.md`.
 Local test data must be synthetic; never use an accounting source document from
 production to demonstrate the upload.
+
+
+### Direct file reads for Agents
+
+When extracted text is incomplete, `documents_get_content` can request a
+`binary` selection. Native `usl.document.mcp_read_binary` rechecks document,
+version, linked-record and company access, then streams at most 4 MiB into the
+authenticated response. It creates no download grant and changes no original,
+accounting record or history. Explicit historical versions remain identifiable
+after a replacement; the default selects the current version.
+
+The response includes the actual size and SHA-256. Recognized archive checksums
+are verified against the complete received bytes, including historical MD5;
+unrecognized checksums are reported as unverified. Oversize, truncated and
+mismatched responses return no partial file. Larger files retain the existing
+download-URL workflow. Common images use MCP image content; PDF resource viewing
+depends on the client and must be qualified separately from receipt of bytes.
+
+Removing a native share or company access blocks subsequent file and integrity
+reads under the same rules as the archive. Already downloaded bytes cannot be
+recalled from a client. Bearer-grant expiry and revocation continue to apply to
+the separate public download route.

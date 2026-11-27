@@ -48,6 +48,36 @@
                 </p>
             </div>
 
+            <section t-if="state.data.report_type === 'fixed_assets'" class="mx-3 my-2 o_usl_asset_scope">
+                <p class="mb-1">Le registre inclut les fiches d’immobilisations en brouillon. Le rapprochement avec le bilan utilise les écritures comptabilisées, y compris les participations sans fiche.</p>
+                <t t-set="bridge" t-value="state.data.summary.asset_reconciliation"/>
+                <details t-if="bridge?.totals">
+                    <summary class="fw-semibold">Rapprochement avec le bilan</summary>
+                    <div class="o_usl_asset_bridge pt-2">
+                        <table class="table table-sm mb-2">
+                            <caption class="visually-hidden">Registre et bilan à la date de fin du rapport</caption>
+                            <thead><tr><th scope="col">Valeur (<t t-esc="state.data.display_unit.short_label"/>)</th><th scope="col" class="text-end">Registre</th><th scope="col" class="text-end">Bilan</th></tr></thead>
+                            <tbody><tr t-foreach="bridge.totals" t-as="item" t-key="item.label">
+                                <th scope="row" class="fw-normal" t-esc="item.label"/>
+                                <td class="text-end text-nowrap" t-esc="formatAmount(item.register)"/>
+                                <td class="text-end text-nowrap" t-esc="formatAmount(item.ledger)"/>
+                            </tr></tbody>
+                        </table>
+                        <t t-if="bridge.gross_differences.length">
+                            <p class="mb-1 fw-semibold">Écarts bruts par compte (bilan moins registre)</p>
+                            <ul class="list-unstyled mb-0">
+                                <li t-foreach="bridge.gross_differences" t-as="entry" t-key="entry.code" class="d-flex gap-2 justify-content-between">
+                                    <span><t t-esc="entry.code"/><t t-if="entry.participation_without_card"> · Participation sans fiche</t></span>
+                                    <span class="text-nowrap"><t t-if="entry.difference > 0">+</t><t t-esc="formatAmount(entry.difference)"/></span>
+                                </li>
+                            </ul>
+                        </t>
+                        <p t-else="" class="text-muted mb-0">Les valeurs brutes concordent par compte.</p>
+                    </div>
+                </details>
+                <p t-elif="bridge" class="mb-0 text-muted small">Pour rapprocher le registre du bilan français, choisissez une société française et ses écritures comptabilisées, tous comptes et axes analytiques confondus.</p>
+            </section>
+
             <div class="o_usl_report_filters">
                 <div t-if="showCompanyFilter" class="o_usl_report_company_filter">
                     <span>Sociétés</span>
@@ -301,7 +331,7 @@
             </div>
 
             <div class="o_usl_report_table_wrap">
-                <table class="table o_usl_report_table">
+                <table class="table o_usl_report_table" t-att-class="{'o_usl_cash_flow_table': reportType === 'cash_flow'}">
                     <thead>
                         <tr>
                             <th class="o_usl_report_label" t-esc="state.data.label_column"/>
@@ -334,7 +364,8 @@
                                     <i t-att-class="'fa ' + (line.collapsed ? 'fa-chevron-right' : 'fa-chevron-down')"/>
                                 </button>
                                 <span class="o_usl_report_code" t-if="line.account_code" t-esc="line.account_code"/>
-                                <span t-esc="line.label"/>
+                                <span t-if="['fixed_assets', 'fixed_asset_group_account'].includes(state.data.report_type) and line.presentation_role === 'total'">Total des fiches du registre</span>
+                                <span t-else="" t-esc="line.label"/>
                                 <small t-if="line.source_description" class="d-block text-muted"
                                        t-esc="line.source_description"/>
                                 <small t-if="line.company_contributions.length &gt; 1"

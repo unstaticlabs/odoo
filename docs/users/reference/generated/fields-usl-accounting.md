@@ -589,6 +589,7 @@ false
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
+| **Usl Review Batch** (`usl_review_batch_id`) | many2one → `usl.expense.batch` |  |  |
 | **Usl Review Candidate** (`usl_review_candidate_ids`) | many2many → `usl.expense.bank.match.candidate` |  |  |
 | **Usl Review Changed** (`usl_review_changed`) | boolean |  |  |
 | **Usl Review Completed** (`usl_review_completed`) | boolean |  |  |

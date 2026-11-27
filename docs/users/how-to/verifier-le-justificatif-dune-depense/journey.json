@@ -1,0 +1,94 @@
+{
+  "journey": "verifier-le-justificatif-dune-depense",
+  "lang": "fr",
+  "login": "expense_user_employee",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_check_the_receipt_on_an_expense_in_french",
+  "source_test_file": {
+    "line": 108,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 96,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "analytics": 139,
+      "approved": 205,
+      "attachments": 111,
+      "batch": 133,
+      "context_action": 145,
+      "entries": 223,
+      "evidence": 233,
+      "exception": 151,
+      "history": 245,
+      "no_actions": 239,
+      "no_trash": 157,
+      "open_expense": 104,
+      "payer": 123,
+      "post": 210,
+      "post_entries": 216,
+      "receipt": 118,
+      "reconciliation": 251,
+      "remove": 163,
+      "upload": 99
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Native receipt upload remains available on the expense work list",
+      "id": "upload",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-upload.png",
+      "sha256": "6c7e5cbff37272e4c4d05065abeaad4d33f1f040695a4f7e14eb7685fc77885a",
+      "text": "Ouvrez **Dépenses > Mes dépenses**. Si vous partez d’un nouveau reçu, **Charger** permet de créer la dépense à partir du fichier.",
+      "trigger": ".o_list_view .o_button_upload_expense"
+    },
+    {
+      "assertion": "Open the captured expense evidence",
+      "id": "open_expense",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez la dépense à contrôler.",
+      "trigger": ".o_list_table tbody tr.o_data_row td[name='name']:contains('Repas avec justificatif')"
+    },
+    {
+      "assertion": "The captured receipt count is available on its expense",
+      "id": "attachments",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Cliquez sur le trombone dans le fil de discussion. Le chiffre indique le nombre de fichiers joints.",
+      "trigger": ".o_form_view:has(.o_field_widget[name='product_id']) .o-mail-Chatter-attachFiles:contains('1')"
+    },
+    {
+      "assertion": "The receipt evidence is inspectable from the expense",
+      "id": "receipt",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-receipt.png",
+      "sha256": "9a776a9881478e51f771b8f1829d2b86a99d709f0fd67c83e37b8af49a13f60d",
+      "text": "Sous **Fichiers**, ouvrez le justificatif et vérifiez qu’il est lisible et correspond à cette dépense.",
+      "trigger": ".o-mail-AttachmentBox:contains('justificatif-repas.pdf')"
+    },
+    {
+      "assertion": "The payer choice remains explicit after receipt capture",
+      "id": "payer",
+      "index": 5,
+      "run": "",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez qui a payé. Une avance personnelle doit être remboursée au salarié. Si la carte de la société a servi, choisissez la société.",
+      "trigger": ".o_form_view .o_field_widget[name='payment_mode']"
+    }
+  ],
+  "title": "Vérifier le justificatif d’une dépense",
+  "tour": "usl_expense_batch_receipt_capture",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

@@ -8,8 +8,10 @@ import warnings
 from datetime import datetime
 from hashlib import md5
 from logging import getLogger
-from zlib import compress, decompress, decompressobj
+from zlib import compress, decompressobj
+from zlib import error as ZlibError
 
+from lxml import etree
 from PIL import Image, PdfImagePlugin
 
 from odoo.tools.arabic_reshaper import reshape
@@ -88,6 +90,8 @@ _logger = getLogger(__name__)
 DEFAULT_PDF_DATETIME_FORMAT = "D:%Y%m%d%H%M%S+00'00'"
 REGEX_SUBTYPE_UNFORMATED = re.compile(r'^\w+/[\w-]+$')
 REGEX_SUBTYPE_FORMATED = re.compile(r'^/\w+#2F[\w-]+$')
+PDFA_ID_NAMESPACE = 'http://www.aiim.org/pdfa/ns/id/'
+RDF_NAMESPACE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 
 
 # Disable linter warning: this import is needed to make sure a PDF stream can be saved in Image.
@@ -368,6 +372,8 @@ class OdooPdfFileWriter(PdfFileWriter):
         super().__init__(*args, **kwargs)
         self._reader = None
         self.is_pdfa = False
+        self.pdfa_part = None
+        self.pdfa_conformance = None
 
     def format_subtype(self, subtype):
         """
@@ -456,23 +462,50 @@ class OdooPdfFileWriter(PdfFileWriter):
     def clone_reader_document_root(self, reader):
         super().clone_reader_document_root(reader)
         self._reader = reader
-        # Try to read the header coming in, and reuse it in our new PDF
-        # This is done in order to allows modifying PDF/A files after creating them (as PyPDF does not read it)
         stream = reader.stream
         stream.seek(0)
-        header = stream.readlines(9)
-        # Should always be true, the first line of a pdf should have 9 bytes (%PDF-1.x plus a newline)
-        if len(header) == 1:
-            # If we found a header, set it back to the new pdf
-            self._header = header[0]
-            # Also check the second line. If it is PDF/A, it should be a line starting by % following by four bytes + \n
-            second_line = stream.readlines(1)[0]
-            if second_line.decode('latin-1')[0] == '%' and len(second_line) == 6:
-                self.is_pdfa = True
+        header = re.match(rb'(%PDF-\d\.\d)[\r\n]', stream.read(9))
+        if header:
+            # The writer supplies its own newline and binary comment.
+            self._header = header[1]
+        self.pdfa_part, self.pdfa_conformance = self._read_pdfa_identification()
+        self.is_pdfa = self.pdfa_part is not None
         # clone_reader_document_root clones reader._ID since 3.2 (py-pdf/pypdf#1520)
         if not hasattr(self, '_ID'):
             # Look if we have an ID in the incoming stream and use it.
             self._set_id(reader.trailer.get('/ID', None))
+
+    def _read_pdfa_identification(self):
+        # Ordinary PDFs also have a binary comment. PDF/A identifies itself
+        # through XMP, with pdfaid:part represented as an element or attribute.
+        xmp = self.get_xmp_metadata()
+        if xmp is None:
+            return None, None
+        namespaces = {'pdfaid': PDFA_ID_NAMESPACE, 'rdf': RDF_NAMESPACE}
+        description = '//rdf:RDF/rdf:Description[not(@rdf:about) or @rdf:about=""]'
+        part, conformance = (
+            xmp.xpath(
+                f'normalize-space(({description}/pdfaid:{field}/text() | {description}/@pdfaid:{field})[1])',
+                namespaces=namespaces,
+            )
+            for field in ('part', 'conformance')
+        )
+        levels = {'1': ('A', 'B'), '2': ('A', 'B', 'U'), '3': ('A', 'B', 'U'), '4': ('', 'E', 'F')}
+        if conformance not in levels.get(part, ()):
+            return None, None
+        return int(part), conformance or None
+
+    def get_xmp_metadata(self):
+        """Return the parsed XMP packet, if it can be read independently of the PDF pages."""
+        try:
+            metadata = self._root_object.get('/Metadata')
+            if isinstance(metadata, generic.StreamObject):
+                return etree.fromstring(
+                    metadata.get_data(), parser=etree.XMLParser(resolve_entities=False, no_network=True),
+                )
+        except (PdfReadError, etree.XMLSyntaxError, NotImplementedError, ZlibError):
+            pass
+        return None
 
     def _set_id(self, pdf_id):
         if not pdf_id:
@@ -535,31 +568,39 @@ class OdooPdfFileWriter(PdfFileWriter):
             _logger.warning('The fonttools package is not installed. Generated PDF may not be PDF/A compliant.')
         else:
             fonts = {}
-            # First browse through all the pages of the pdf file, to get a reference to all the fonts used in the PDF.
             for page in pages:
-                for font in page.get_object()['/Resources']['/Font'].values():
-                    for descendant in font.get_object()['/DescendantFonts']:
-                        fonts[descendant.idnum] = descendant.get_object()
+                resources = page.get_object().get('/Resources')
+                page_fonts = resources.get_object().get('/Font') if resources else None
+                if not page_fonts:
+                    continue
+                for font_ref in page_fonts.get_object().values():
+                    descendants = font_ref.get_object().get('/DescendantFonts')
+                    if descendants:
+                        for descendant in descendants.get_object():
+                            font = descendant.get_object()
+                            fonts[id(font)] = font
 
-            # Then for each font, rewrite the width array with the information taken directly from the font file.
-            # The new width are calculated such as width = round(1000 * font_glyph_width / font_units_per_em)
-            # See: http://martin.hoppenheit.info/blog/2018/pdfa-validation-and-inconsistent-glyph-width-information/
+            # Qt uses character IDs as glyph indices into an embedded TrueType
+            # font. Simple fonts, CFF fonts and custom CID maps encode widths
+            # differently and must keep their original metrics.
             for font in fonts.values():
-                font_file = font['/FontDescriptor']['/FontFile2']
-                stream = io.BytesIO(decompress(font_file._data))
-                ttfont = fontTools.ttLib.TTFont(stream)
-                font_upm = ttfont['head'].unitsPerEm
-                if parse_version(fontTools.__version__) < parse_version('4.37.2'):
-                    glyphs = ttfont.getGlyphSet()._hmtx.metrics
-                else:
-                    glyphs = ttfont.getGlyphSet().hMetrics
-                glyph_widths = []
-                for key, values in glyphs.items():
-                    if key[:5] == 'glyph':
-                        glyph_widths.append(NumberObject(round(1000.0 * values[0] / font_upm)))
-
-                font[NameObject('/W')] = ArrayObject([NumberObject(1), ArrayObject(glyph_widths)])
-                stream.close()
+                if font.get('/Subtype') != '/CIDFontType2':
+                    continue
+                cid_map = font.get('/CIDToGIDMap')
+                if cid_map is not None and cid_map.get_object() != '/Identity':
+                    continue
+                descriptor = font.get('/FontDescriptor')
+                font_file = descriptor.get_object().get('/FontFile2') if descriptor else None
+                if not font_file:
+                    continue
+                with fontTools.ttLib.TTFont(io.BytesIO(font_file.get_object().get_data())) as ttfont:
+                    units_per_em = ttfont['head'].unitsPerEm
+                    metrics = ttfont['hmtx'].metrics
+                    widths = ArrayObject([
+                        NumberObject(round(1000 * metrics[glyph][0] / units_per_em))
+                        for glyph in ttfont.getGlyphOrder()
+                    ])
+                font[NameObject('/W')] = ArrayObject([NumberObject(0), widths])
 
         # Every annotation dictionary, except those whose subtype is Popup,
         # must contain the /F key (annotation flags), as required by PDF/A (clause 6.3.2).
@@ -615,6 +656,7 @@ class OdooPdfFileWriter(PdfFileWriter):
             '/Producer': "Odoo",
         })
         self.is_pdfa = True
+        self.pdfa_part = 3
 
     def add_file_metadata(self, metadata_content):
         """

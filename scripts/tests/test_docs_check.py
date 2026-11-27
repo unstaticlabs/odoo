@@ -45,6 +45,19 @@ class DocsChecksTests(unittest.TestCase):
             self.assertEqual(page.problems, [], page.path)
             self.assertEqual(docs_check.check_links(page, self.root), [])
 
+    def test_language_switch_has_one_destination_per_original_and_language(self):
+        def translated_page(name, language, original):
+            text = PAGE.replace("lang: en", f"lang: {language}\ntranslation_of: {original}")
+            (self.root / "how-to" / name).write_text(text, encoding="utf-8")
+
+        translated_page("fr-a.md", "fr", "how-to/match.md")
+        translated_page("fr-b.md", "fr", "how-to/match.md")
+        translated_page("lost.md", "fr", "how-to/absent.md")
+        findings = docs_check.check(self.root, self.root / "no-decisions")
+        self.assertIn(("docs/users/how-to/fr-b.md", "how-to/fr-a.md already translates 'how-to/match.md' into fr"), findings)
+        self.assertIn(("docs/users/how-to/lost.md", "translated guide 'how-to/absent.md' does not exist"), findings)
+        self.assertEqual(len(findings), 2)
+
     def test_the_landing_page_needs_no_front_matter_but_its_links_must_resolve(self):
         (self.root / "README.md").write_text("# Guide\n\nStart with [nothing](how-to/missing.md).\n", encoding="utf-8")
         findings = docs_check.check(self.root, self.root / "no-decisions")

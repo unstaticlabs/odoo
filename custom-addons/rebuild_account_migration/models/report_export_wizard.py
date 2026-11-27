@@ -781,6 +781,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "companies."
             )
             raise AccessError(message)
+        if self.closing_period_id and companies != self.closing_period_id.company_id:
+            raise UserError(self.env._(
+                "This report must use the company of its closing workspace. "
+                "Reopen the report from the workspace to restore its company."
+            ))
         return companies.sorted(lambda company: (company.name, company.id))
 
     def _draft_entry_warning(self):
@@ -1286,6 +1291,20 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             ),
         )
         refinements = []
+
+        cash_code = row.get("line_code")
+        if self.report_type == "cash_flow" or (
+            self.report_type == "executive_summary" and cash_code == "CLOSING_CASH"
+        ):
+            domain.append(("account_id.account_type", "in", ["asset_cash", "liability_credit_card"]))
+            if cash_code in ("OPENING_CASH", "CLOSING_CASH"):
+                domain = [term for term in domain if term[:2] != ("move_id.date", ">=")]
+                if cash_code == "OPENING_CASH":
+                    domain.append(("move_id.date", "<", self.date_from))
+            elif cash_code == "CASH_RECEIVED":
+                domain.append(("debit", ">", 0))
+            elif cash_code == "CASH_SPENT":
+                domain.append(("credit", ">", 0))
 
         source_line_id = self._row_int(row, "source_line_id")
         if source_line_id:

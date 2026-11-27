@@ -236,9 +236,6 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                    round(COALESCE(sum(line.credit) FILTER (
                        WHERE account.account_type IN ('asset_cash', 'liability_credit_card')
                    ), 0)::numeric, 2) AS cash_spent,
-                   round(COALESCE(sum(line.balance) FILTER (
-                       WHERE account.account_type IN ('asset_cash', 'liability_credit_card')
-                   ), 0)::numeric, 2) AS closing_cash,
                    count(line.id) FILTER (
                        WHERE account.account_type IN ('income', 'income_other')
                    )::integer AS revenue_line_count,
@@ -329,7 +326,22 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         day_count = Decimal(str(data.get("day_count") or "1"))
         cash_received = decimal_value("cash_received")
         cash_spent = decimal_value("cash_spent")
-        closing_cash = decimal_value("closing_cash")
+        self.env.cr.execute(
+            f"""
+            SELECT COALESCE(sum(line.balance), 0), count(*)
+              FROM account_move_line line
+              JOIN account_move move ON move.id = line.move_id
+              JOIN account_account account ON account.id = line.account_id
+             WHERE line.company_id = %s AND move.date < %s
+               AND account.account_type IN ('asset_cash', 'liability_credit_card')
+               {self._ledger_scope_sql()} {self._state_sql()} {filter_sql}
+            """,
+            [self.company_id.id, self.date_from, *filter_params],
+        )
+        opening_amount, opening_count = self.env.cr.fetchone()
+        opening_cash = _amount(opening_amount)
+        closing_cash = opening_cash + cash_received - cash_spent
+        closing_count = opening_count + count_value("cash_line_count")
 
         rows = []
 
@@ -390,10 +402,13 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             })
 
         if report_key == "cash_flow":
+            add("OPENING_CASH", "Trésorerie d’ouverture", "currency",
+                "Solde des comptes de trésorerie et cartes de crédit avant la période",
+                opening_count, opening_cash)
             add("CASH_RECEIVED", "Encaissements", "currency", "Mouvements au débit des comptes de trésorerie", count_value("cash_line_count"), cash_received)
             add("CASH_SPENT", "Décaissements", "currency", "Mouvements au crédit des comptes de trésorerie", count_value("cash_line_count"), cash_spent)
-            add("CASH_SURPLUS", "Surplus de trésorerie", "currency", "Encaissements moins décaissements", count_value("cash_line_count"), cash_received - cash_spent)
-            add("CLOSING_CASH", "Trésorerie de clôture", "currency", "Solde de clôture des comptes de trésorerie", count_value("cash_line_count"), closing_cash)
+            add("CASH_SURPLUS", "Variation de trésorerie", "currency", "Encaissements moins décaissements", count_value("cash_line_count"), cash_received - cash_spent)
+            add("CLOSING_CASH", "Trésorerie de clôture", "currency", "Trésorerie d’ouverture + encaissements − décaissements", closing_count, closing_cash)
             return rows
 
         statement_rows = self._french_annual_rows()
@@ -555,8 +570,8 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "CLOSING_CASH",
             "Trésorerie disponible",
             "currency",
-            "Solde débiteur des comptes classés en trésorerie.",
-            count_value("cash_line_count"),
+            "Solde net des comptes de trésorerie et cartes de crédit à la clôture.",
+            closing_count,
             closing_cash,
         )
         add(

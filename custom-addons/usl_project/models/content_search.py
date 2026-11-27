@@ -137,7 +137,9 @@ def _field_domain(model, path, text, typed, seen=frozenset()):
 def _label_query(model, text, cache):
     """The related model's own search supplies its ACLs and record rules."""
     if model._name not in cache:
-        if not model.has_access("read"):
+        # A chatter message has no label worth matching, and Odoo refuses a message search
+        # by text once the database holds more messages than it checks at once.
+        if model._name == "mail.message" or not model.has_access("read"):
             cache[model._name] = None
         else:
             name = model._rec_name

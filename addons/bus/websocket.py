@@ -40,7 +40,7 @@ from odoo.service.server import CommonServer
 from odoo.sql_db import db_connect
 from odoo.tools import config
 
-from .models.bus import dispatch, fetch_bus_notifications
+from .models.bus import dispatch, fetch_bus_notifications_batch
 from .session_helpers import check_session, new_env
 from .tools import orjson
 
@@ -238,6 +238,8 @@ class ControlCommand(IntEnum):
 DATA_OP = {Opcode.TEXT, Opcode.BINARY}
 CTRL_OP = {Opcode.CLOSE, Opcode.PING, Opcode.PONG}
 HEARTBEAT_OP = {Opcode.PING, Opcode.PONG}
+# Application-level ping/pong payload (browsers don't expose websocket ping/pong).
+PING_PONG_MESSAGE = b'\x00'
 
 VALID_CLOSE_CODES = {
     code for code in CloseCode if code is not CloseCode.ABNORMAL_CLOSURE
@@ -800,7 +802,7 @@ class Websocket:
     def _dispatch_bus_notifications(self):
         self._waiting_for_dispatch = False
         with acquire_cursor(self._session.db) as cr:
-            notifications = fetch_bus_notifications(
+            notifications, has_more_notifications = fetch_bus_notifications_batch(
                 cr,
                 self._min_id_by_channel,
                 [n[0] for n in self._notif_history],
@@ -844,6 +846,8 @@ class Websocket:
                     self._min_id_by_channel[channel] = new_min_id
             self._notif_history = self._notif_history[last_index + 1 :]
         self._send(notifications)
+        if has_more_notifications:
+            self.trigger_notification_dispatching()
 
 
 class TimeoutManager:
@@ -1014,7 +1018,7 @@ class WebsocketConnectionHandler:
     # Latest version of the websocket worker. This version should be incremented
     # every time `websocket_worker.js` is modified to force the browser to fetch
     # the new worker bundle.
-    _VERSION = "saas-19.3-1"
+    _VERSION = "saas-19.3-2"
 
     @classmethod
     def websocket_allowed(cls, request):
@@ -1160,8 +1164,8 @@ class WebsocketConnectionHandler:
             # worker version.
             websocket.close(CloseCode.CLEAN, "OUTDATED_VERSION")
         for message in websocket.get_messages():
-            if message == b'\x00':
-                # Ignore internal sentinel message used to detect dead/idle connections.
+            if message == PING_PONG_MESSAGE:
+                websocket._enqueue_control_command(ControlCommand.SEND, PING_PONG_MESSAGE)
                 continue
             with WebsocketRequest(db, httprequest, websocket) as req:
                 try:

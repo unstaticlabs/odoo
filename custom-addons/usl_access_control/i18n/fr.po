@@ -316,3 +316,132 @@ msgid ""
 msgstr ""
 "L’image de l’agent doit être au format PNG, JPEG, GIF ou WebP. Le format SVG "
 "et les autres formats ne sont pas acceptés."
+
+#. module: usl_access_control
+#: model:ir.model.fields,field_description:usl_access_control.field_usl_agent_connect_grant__agent_id
+msgid "Agent"
+msgstr "Agent"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Cancel"
+msgstr "Annuler"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Connect"
+msgstr "Connecter"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_denied
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_sign_in
+msgid "Connect an Agent"
+msgstr "Connecter un agent"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Create a new Agent"
+msgstr "Créer un agent"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_sign_in
+msgid "Enter an Agent API key by hand"
+msgstr "Saisir une clé API d’agent"
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/controllers/agent_connect.py:0
+msgid "Give the new Agent a name and a purpose."
+msgstr "Indiquez le nom et la mission du nouvel agent."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_denied
+msgid "Go back"
+msgstr "Revenir au client"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_layout
+msgid "Logo"
+msgstr "Logo"
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/controllers/agent_connect.py:0
+#: code:addons/usl_access_control/models/agent_connect.py:0
+msgid "MCP client"
+msgstr "Client MCP"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Name"
+msgstr "Nom"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_denied
+msgid "Only internal users can connect an Agent."
+msgstr "Seuls les utilisateurs internes peuvent connecter un agent."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Purpose"
+msgstr "Mission"
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/models/agent_connect.py:0
+msgid "Reactivate this Agent before you connect it."
+msgstr "Réactivez cet agent avant de le connecter."
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/controllers/agent_connect.py:0
+msgid "Select an Agent."
+msgstr "Choisissez un agent."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_sign_in
+msgid "Sign in to Odoo"
+msgstr "Se connecter à Odoo"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Suspended"
+msgstr "Suspendu"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid ""
+"The new Agent can read the applications you can delegate. You can change its access in My Agents."
+msgstr "Le nouvel agent peut consulter les applications dont vous pouvez déléguer l’accès. Vous pouvez modifier ses droits dans Mes agents."
+
+#. module: usl_access_control
+#. odoo-python
+#: code:addons/usl_access_control/models/agent_connect.py:0
+msgid "You can connect only Agents you own."
+msgstr "Vous pouvez connecter les agents dont vous êtes propriétaire."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "You own no Agent. Create one below."
+msgstr "Vous pouvez créer votre premier agent ci-dessous."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid "Your Agents"
+msgstr "Vos agents"
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect
+msgid ""
+"asks for access through one of your Agents.\n"
+"                Odoo creates a new API key for the Agent that you select. The key goes directly to the MCP server."
+msgstr "demande à se connecter avec l’un de vos agents. Odoo crée une clé pour l’agent choisi et la transmet directement au serveur MCP."
+
+#. module: usl_access_control
+#: model_terms:ir.ui.view,arch_db:usl_access_control.agent_connect_sign_in
+msgid ""
+"asks for access through one of your Agents.\n"
+"                Sign in to Odoo to select the Agent."
+msgstr "demande à se connecter avec l’un de vos agents. Connectez-vous à Odoo pour le choisir."

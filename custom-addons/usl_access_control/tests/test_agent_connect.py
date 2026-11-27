@@ -18,6 +18,7 @@ from odoo.tests import HttpCase, tagged
 
 from ..controllers.agent_connect import (
     CONNECT_PATH,
+    HANDOFF_VARIABLE,
     IDENTITY_WINDOW_SECONDS,
     MCP_ORIGIN_VARIABLE,
     TOKEN_PATH,
@@ -80,7 +81,7 @@ class TestAgentConnect(HttpCase):
 
     def setUp(self):
         super().setUp()
-        environment = patch.dict(os.environ, {MCP_ORIGIN_VARIABLE: MCP_ORIGIN})
+        environment = patch.dict(os.environ, {MCP_ORIGIN_VARIABLE: MCP_ORIGIN, HANDOFF_VARIABLE: "true"})
         environment.start()
         self.addCleanup(environment.stop)
 
@@ -128,12 +129,20 @@ class TestAgentConnect(HttpCase):
             allow_redirects=False,
         )
 
+    def _grants(self):
+        return self.env["usl.agent.connect.grant"].sudo().search([("owner_id", "in", (self.owner | self.stranger).ids)])
+
     def _credentials(self, agent=None):
         return self.env["usl.agent.credential"].search([("agent_id", "=", (agent or self.agent).id)])
 
     def test_the_page_does_not_exist_until_the_deployment_names_its_mcp(self):
         self._sign_in(self.owner)
         with patch.dict(os.environ, {MCP_ORIGIN_VARIABLE: ""}):
+            self.assertEqual(self._page().status_code, HTTPStatus.NOT_FOUND)
+            self.assertEqual(self._exchange("c" * 43).status_code, HTTPStatus.NOT_FOUND)
+
+    def test_configuring_an_origin_alone_keeps_manual_enrollment(self):
+        with patch.dict(os.environ, {HANDOFF_VARIABLE: "false"}):
             self.assertEqual(self._page().status_code, HTTPStatus.NOT_FOUND)
             self.assertEqual(self._exchange("c" * 43).status_code, HTTPStatus.NOT_FOUND)
 
@@ -149,7 +158,7 @@ class TestAgentConnect(HttpCase):
                 self.assertEqual(self._page(**overrides).status_code, HTTPStatus.BAD_REQUEST)
         self.assertEqual(self._submit(agent=str(self.agent.id), return_url="https://attacker.example.test/").status_code,
                          HTTPStatus.BAD_REQUEST)
-        self.assertFalse(self.env["usl.agent.connect.grant"].sudo().search([]))
+        self.assertFalse(self._grants())
 
     def test_a_visitor_without_a_session_gets_sign_in_and_the_manual_link(self):
         response = self._page()
@@ -172,7 +181,7 @@ class TestAgentConnect(HttpCase):
             location = urlsplit(response.headers["Location"])
             self.assertEqual(location.path, "/web/session/identity")
             self.assertEqual(urlsplit(parse_qs(location.query)["redirect"][0]).path, CONNECT_PATH)
-        self.assertFalse(self.env["usl.agent.connect.grant"].sudo().search([]))
+        self.assertFalse(self._grants())
 
     def test_the_page_lists_every_owned_agent_in_all_companies(self):
         self._sign_in(self.owner)
@@ -191,7 +200,7 @@ class TestAgentConnect(HttpCase):
         code = self._code(self._submit(agent=str(self.second_agent.id)))
         # The approval alone creates no key.
         self.assertFalse(self._credentials(self.second_agent))
-        grant = self.env["usl.agent.connect.grant"].sudo().search([])
+        grant = self._grants()
         self.assertNotIn(code, (grant.code_hash, grant.code_challenge))
 
         before = fields.Datetime.now()
@@ -223,6 +232,22 @@ class TestAgentConnect(HttpCase):
             self.second_agent.user_id.id,
         )
 
+        # This owner has no application roles. The client still needs the
+        # authenticated Agent's own identity to explain its empty delegation.
+        self.assertFalse(self.second_agent.delegated_group_ids)
+        self.opener.cookies.clear()  # The MCP uses its own HTTP client after the browser returns.
+        headers = {
+            "Authorization": f"Bearer {result['api_key']}",
+            "Content-Type": "application/json",
+            "X-Odoo-Database": self.env.cr.dbname,
+        }
+        identity = self.url_open("/json/2/usl.agent/current_identity", data="{}", headers=headers)
+        self.assertEqual(identity.status_code, HTTPStatus.OK)
+        self.assertEqual(identity.json()["agent"]["id"], self.second_agent.id)
+        self.assertEqual(identity.json()["effective_applications"], [])
+        tasks = self.url_open("/json/2/project.task/search_count", data='{"domain":[]}', headers=headers)
+        self.assertEqual(tasks.status_code, HTTPStatus.FORBIDDEN)
+
     def test_a_code_works_one_time(self):
         self._sign_in(self.owner)
         code = self._code(self._submit(agent=str(self.agent.id)))
@@ -247,7 +272,7 @@ class TestAgentConnect(HttpCase):
     def test_an_expired_code_gets_no_key(self):
         self._sign_in(self.owner)
         code = self._code(self._submit(agent=str(self.agent.id)))
-        self.env["usl.agent.connect.grant"].sudo().search([]).with_context(
+        self._grants().with_context(
             usl_agent_connect_internal=True,
         ).write({"expires_at": fields.Datetime.now() - datetime.timedelta(seconds=1)})
 
@@ -296,19 +321,19 @@ class TestAgentConnect(HttpCase):
                 self.assertEqual(response.status_code, HTTPStatus.OK)
                 self.assertTrue(html.fromstring(response.text).xpath("//p[@role='alert']"))
         self.assertEqual(self.env["usl.agent"].search([]), existing)
-        self.assertFalse(self.env["usl.agent.connect.grant"].sudo().search([]))
+        self.assertFalse(self._grants())
 
     def test_a_portal_user_cannot_connect_an_agent(self):
         self._sign_in(self.portal)
         self.assertEqual(self._page().status_code, HTTPStatus.FORBIDDEN)
         self.assertEqual(self._submit(agent=str(self.agent.id)).status_code, HTTPStatus.FORBIDDEN)
-        self.assertFalse(self.env["usl.agent.connect.grant"].sudo().search([]))
+        self.assertFalse(self._grants())
 
     def test_a_submit_without_the_csrf_token_is_refused(self):
         self._sign_in(self.owner)
         response = self._submit(csrf_token="")
         self.assertEqual(response.status_code, HTTPStatus.BAD_REQUEST)
-        self.assertFalse(self.env["usl.agent.connect.grant"].sudo().search([]))
+        self.assertFalse(self._grants())
 
     def test_the_key_lifetime_follows_the_system_parameter(self):
         self.env["ir.config_parameter"].sudo().set_int(CONNECT_KEY_DAYS_PARAMETER, 90)

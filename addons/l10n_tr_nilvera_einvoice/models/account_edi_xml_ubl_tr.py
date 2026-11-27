@@ -927,6 +927,42 @@ class AccountEdiXmlUblTr(models.AbstractModel):
         if line_node.get('cac:Item', {}).get('cac:StandardItemIdentification'):
             line_node['cac:Item']['cac:StandardItemIdentification'] = None
 
+    def _add_invoice_line_item_nodes(self, line_node, vals):
+        """Fill <cbc:Name> and <cbc:Description> from the line label.
+
+        The first line of the label is the name (the product name stays when there is a product),
+        the next lines are the description, falling back to the product's sales description.
+        On bills, the description stays the product's purchase description.
+
+        :param line_node: dict representing the invoice line XML structure to update.
+        :param vals: dict containing invoice line data.
+        """
+        # EXTENDS account.edi.xml.ubl_20
+        super()._add_invoice_line_item_nodes(line_node, vals)
+        line = vals['base_line']['record']
+        item_node = line_node['cac:Item']
+        if line.move_id.is_purchase_document():
+            item_node['cbc:Description']['_text'] = self._l10n_tr_get_item_description(line)
+            return
+        name, _separator, description = (line.name or '').partition('\n')
+        if not vals['base_line']['product_id']:
+            item_node['cbc:Name']['_text'] = name.strip() or item_node['cbc:Name']['_text']
+        item_node['cbc:Description']['_text'] = ' '.join(description.split()) or self._l10n_tr_get_item_description(line)
+
+    def _l10n_tr_get_item_description(self, line):
+        """Build the <cbc:Description> value from the product's commercial description.
+
+        Uses the purchase description for purchase documents and the sale description
+        otherwise. The internal reference is not repeated here as it is already
+        reported in <cac:SellersItemIdentification>, so the node is dropped when the
+        description is not set.
+
+        :param line: The invoice line.
+        :return: The description string, or ``False`` when there is nothing to report.
+        """
+        product = line.product_id
+        return product.description_purchase if line.move_id.is_purchase_document() else product.description_sale
+
     def _add_document_line_tax_category_nodes(self, line_node, vals):
         # No InvoiceLine/Item/ClassifiedTaxCategory in Turkey
         pass
@@ -1016,6 +1052,17 @@ class AccountEdiXmlUblTr(models.AbstractModel):
             xpath = './{*}InvoiceLine'
             document_type = {'in_refund': 'in_invoice', 'out_refund': 'out_invoice'}.get(document_type, document_type)
         return super()._import_lines(record, tree, xpath, document_type=document_type, tax_type=tax_type, qty_factor=qty_factor)
+
+    def _retrieve_line_vals(self, record, tree, document_type=False, qty_factor=1):
+        # EXTENDS account.edi.common
+        # Without a matching product, the label is the item name followed by the item description.
+        line_vals = super()._retrieve_line_vals(record, tree, document_type, qty_factor)
+        if not line_vals['product_id']:
+            item_name = (tree.findtext('./{*}Item/{*}Name') or '').strip()
+            description = (tree.findtext('./{*}Item/{*}Description') or '').strip()
+            if item_name and description and item_name != description:
+                line_vals['name'] = f'{item_name}\n{description}'
+        return line_vals
 
     def _l10n_tr_match_refund_reversed_entry(self, invoice, tree):
         if invoice.move_type not in {'in_refund', 'out_refund'}:

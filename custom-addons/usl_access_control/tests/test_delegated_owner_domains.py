@@ -264,6 +264,152 @@ class TestDelegatedOwnerDomains(HttpCase):
         self.project.message_unsubscribe(partner_ids=self.owner.partner_id.ids)
         self.assertFalse(model.search(domain))
 
+    def test_agent_sees_union_of_owner_and_own_access(self):
+        shared = self.env["project.project"].create({
+            "name": "[QA owner domains] Shared with the Agent", "privacy_visibility": "followers",
+            "company_id": self.company.id,
+        })
+        shared_task = self.env["project.task"].create({
+            "name": "[QA owner domains] Shared task", "project_id": shared.id,
+        })
+        shared.message_subscribe(partner_ids=self.agent_user.partner_id.ids)
+        self.env.flush_all()
+        self.assertFalse(shared.with_user(self.owner).has_access("read"))
+        projects = (self.project | self.hidden_project | shared).ids
+        self.assertEqual(
+            set(self.env["project.project"].with_user(self.agent_user).search([("id", "in", projects)]).ids),
+            set((self.project | shared).ids),
+        )
+        tasks = (self.tasks | self.hidden_task | shared_task).ids
+        self.assertEqual(
+            set(self.env["project.task"].with_user(self.agent_user).search([("id", "in", tasks)]).ids),
+            set((self.tasks | shared_task).ids),
+        )
+        self.assertEqual(
+            shared_task.with_user(self.agent_user).read(["name"])[0]["name"],
+            "[QA owner domains] Shared task",
+        )
+        with self.assertRaises(AccessError):
+            self.hidden_task.with_user(self.agent_user).read(["name"])
+        with self.assertRaises(AccessError):
+            shared_task.with_user(self.agent_user).write({"name": "Forbidden"})
+
+    def test_agent_own_access_keeps_the_company_ceiling(self):
+        # Native partner rules let any internal user read internal-user
+        # partners whatever their company; the Agent's companies still bind.
+        colleague = self.env["res.users"].with_context(
+            no_reset_password=True, usl_governed_identity_provisioning=True,
+        ).create({
+            "name": "[QA owner domains] Other-company colleague", "login": "qa.owner.domains.other",
+            "company_id": self.other_company.id, "company_ids": [Command.set(self.other_company.ids)],
+            "usl_identity_classification": "active",
+        })
+        colleague.partner_id.company_id = self.other_company
+        self.env.flush_all()
+        partners =self.env["res.partner"].with_user(self.agent_user).with_context(
+            allowed_company_ids=self.company.ids,
+        )
+        self.assertFalse(partners.search([("id", "=", colleague.partner_id.id)]))
+        # Partner reads stay open inside the ceiling, so the refusal is real.
+        self.assertTrue(partners.search([("id", "=", self.owner.partner_id.id)]))
+        native = self.env["ir.rule"].with_user(self.agent_user).with_context(
+            allowed_company_ids=self.company.ids,
+        )._compute_domain("res.partner", "read")
+        self.assertTrue(
+            self.env["res.partner"].search_count(native & Domain("id", "=", colleague.partner_id.id)),
+            "The native rule must reach the partner, or this test proves nothing.",
+        )
+
+    def _two_company_agent(self):
+        # The owner's default company is A, the Agent's user defaults to B,
+        # and both belong to A and B.
+        both = self.company | self.other_company
+        agent = self.env["usl.agent"].with_user(self.owner).create({
+            "name": "[QA owner domains] Two companies", "purpose": "Assign tasks",
+            "company_id": self.other_company.id, "company_ids": [Command.set(both.ids)],
+            "access_mode": "read_write",
+            "delegated_group_ids": [Command.set(self.env.ref("project.group_project_user").ids)],
+        })
+        self.assertEqual(agent.user_id.company_id, self.other_company)
+        self.assertEqual(self.owner.company_id, self.company)
+        self.assertEqual(agent.user_id.company_ids, both)
+        return agent
+
+    def test_agent_scoped_to_one_company_sees_the_users_who_belong_to_it(self):
+        user = self._two_company_agent().user_id
+        people = self.owner | user
+        for company in (self.company, self.other_company):
+            with self.subTest(company=company.id):
+                users = self.env["res.users"].with_user(user).with_context(
+                    allowed_company_ids=company.ids,
+                )
+                self.assertEqual(users.search([("id", "in", people.ids)]), people)
+                people.with_user(user).with_context(allowed_company_ids=company.ids).check_access("read")
+
+    def test_agent_assigns_users_on_a_task_of_the_scoped_company(self):
+        agent = self._two_company_agent()
+        user = agent.user_id
+        people = self.owner | user
+        for company in (self.company, self.other_company):
+            with self.subTest(company=company.id):
+                access = UslAgentJson2Controller._check_agent_call(
+                    agent=agent, model_name="project.task", method_name="write", kwargs={},
+                )
+                context = UslAgentJson2Controller._agent_call_context(
+                    context={"allowed_company_ids": company.ids}, agent=agent,
+                    model_name="project.task", method_name="write", access=access,
+                )
+                project = self.env["project.project"].create({
+                    "name": f"[QA owner domains] Assign {company.id}", "company_id": company.id,
+                })
+                task = self.env["project.task"].create({
+                    "name": f"[QA owner domains] Assign {company.id}", "project_id": project.id,
+                })
+                project.message_subscribe(partner_ids=people.partner_id.ids)
+                self.env.flush_all()
+                task.with_user(user).with_context(context).write({
+                    "user_ids": [Command.set(people.ids)],
+                })
+                self.assertEqual(task.sudo().user_ids, people)
+
+    def test_agent_still_cannot_see_a_user_outside_the_scoped_company(self):
+        user = self._two_company_agent().user_id
+        outsider = self.env["res.users"].with_context(
+            no_reset_password=True, usl_governed_identity_provisioning=True,
+        ).create({
+            "name": "[QA owner domains] Outsider", "login": "qa.owner.domains.outsider",
+            "company_id": self.other_company.id, "company_ids": [Command.set(self.other_company.ids)],
+            "usl_identity_classification": "active",
+        })
+        self.env.flush_all()
+        users = self.env["res.users"].with_user(user)
+        scoped_a = users.with_context(allowed_company_ids=self.company.ids)
+        self.assertFalse(scoped_a.search([("id", "=", outsider.id)]))
+        with self.assertRaises(AccessError):
+            outsider.with_user(user).with_context(allowed_company_ids=self.company.ids).check_access("read")
+        scoped_b = users.with_context(allowed_company_ids=self.other_company.ids)
+        self.assertEqual(scoped_b.search([("id", "=", outsider.id)]), outsider)
+
+    def test_writable_agent_writes_union_of_owner_and_own_access(self):
+        writer, user = self._writer()
+        shared = self.env["project.project"].create({
+            "name": "[QA owner domains] Shared with the writer", "privacy_visibility": "followers",
+            "company_id": self.company.id,
+        })
+        shared_task = self.env["project.task"].create({
+            "name": "[QA owner domains] Writer shared task", "project_id": shared.id,
+        })
+        shared.message_subscribe(partner_ids=user.partner_id.ids)
+        self.env.flush_all()
+        self.assertFalse(shared_task.with_user(self.owner).has_access("write"))
+        context = self._scope(writer, "write")
+        shared_task.with_user(user).with_context(context).write({"description": "[QA owner domains] Shared"})
+        self.assertIn("Shared", shared_task.sudo().description)
+        self.tasks[:1].with_user(user).with_context(context).write({"description": "[QA owner domains] Owner"})
+        self.assertIn("Owner", self.tasks[:1].sudo().description)
+        with self.assertRaises(AccessError):
+            self.hidden_task.with_user(user).with_context(context).write({"description": "Forbidden"})
+
     def test_native_create_write_unlink_relations_and_owner_acl_loss(self):
         writer, user = self._writer()
         Task = self.env["project.task"].with_user(user)
@@ -295,7 +441,10 @@ class TestDelegatedOwnerDomains(HttpCase):
         original = Rules._compute_domain
 
         def rule(records, model_name, mode="read"):
-            if model_name == "hr.employee.skill.report" and records.env.uid == self.owner.id:
+            # The Agent sees the union of both identities, so both must refuse.
+            if model_name == "hr.employee.skill.report" and records.env.uid in (
+                self.owner.id, self.agent_user.id,
+            ):
                 return Domain("employee_id", "access", "write")
             return original(records, model_name, mode)
 

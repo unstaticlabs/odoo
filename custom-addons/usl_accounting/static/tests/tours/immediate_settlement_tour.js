@@ -1,4 +1,9 @@
 import { registry } from "@web/core/registry";
+import { user } from "@web/core/user";
+
+function label(english, french) {
+    return user.lang.startsWith("fr") ? french : english;
+}
 
 registry.category("web_tour.tours").add("usl_immediate_settlement", {
     steps: () => [
@@ -12,7 +17,7 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
             id: "best_match",
             content: "The matching cue stays compact",
             trigger:
-                ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Best match')",
+                `.o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('${label("Best match", "Meilleur rapprochement")}')`,
         },
         {
             id: "use_rate",
@@ -25,26 +30,26 @@ registry.category("web_tour.tours").add("usl_immediate_settlement", {
             id: "trace",
             content: "The invoice shows one concise settlement trace",
             trigger:
-                ".o_form_view .o_payment_label:contains('Payment rate ·'):contains('no FX')",
+                `.o_form_view .o_payment_label:contains('${label("Payment rate ·", "Taux de paiement ·")}'):contains('${label("no FX", "sans écart de change")}')`,
         },
         {
             id: "open_detail",
             content: "Open the settlement accounting detail",
             trigger:
-                ".o_form_view tr:has(.o_payment_label:contains('Payment rate ·')) .js_payment_info",
+                `.o_form_view tr:has(.o_payment_label:contains('${label("Payment rate ·", "Taux de paiement ·")}')) .js_payment_info`,
             run: "click",
         },
         {
             id: "detail",
             content: "Source facts and the document repricing remain inspectable",
             trigger:
-                ".account_payment_popover:contains('Use payment rate'):contains('Discarded Odoo estimate'):contains('Original document value'):contains('Payment-rate document value')",
+                `.account_payment_popover:contains('${label("Use payment rate", "Utiliser le taux de paiement")}'):contains('${label("Discarded Odoo estimate", "Estimation Odoo rejetée")}'):contains('${label("Original document value", "Valeur d’origine du document")}'):contains('${label("Payment-rate document value", "Valeur du document au taux du paiement")}')`,
         },
         {
             id: "unreconcile",
             content: "Reverse the whole linked settlement",
             trigger:
-                ".account_payment_popover button:contains('Unreconcile')",
+                ".account_payment_popover button.js_unreconcile_payment",
             run: "click",
         },
         {
@@ -67,14 +72,15 @@ registry.category("usl_docs.journeys").add("usl_immediate_settlement", {
     models: ["account.move", "account.bank.statement.line"],
     steps: {
         actions: {
-            text: "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
+            text: "Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.",
             screenshot: true,
+            scrollTo: ".o_immediate_settlement_actions",
         },
         best_match: {
-            text: "**Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.",
+            text: "Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.",
         },
         use_rate: {
-            text: "Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.",
+            text: "Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.",
         },
         trace: {
             text: "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
@@ -93,5 +99,22 @@ registry.category("usl_docs.journeys").add("usl_immediate_settlement", {
         restored: {
             text: "The bill is open again at its original value and the three actions are offered once more.",
         },
+    },
+});
+
+registry.category("usl_docs.journey_translations").add("usl_immediate_settlement.fr", {
+    id: "regler-une-facture-en-devise-au-taux-du-paiement",
+    title: "Régler une facture en devise au taux du paiement",
+    description: "Utilisez le débit bancaire pour valoriser une facture fournisseur en devise, vérifiez le détail du règlement et retrouvez la valeur d’origine en cas d’erreur.",
+    app: "Comptabilité",
+    steps: {
+        actions: "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Sous **Paiements suggérés**, un rapprochement éligible propose **Ajouter**, **Régler** et **Corriger le taux initial**.",
+        best_match: "Survolez la ligne **Meilleur rapprochement** ou placez-y le focus avec la touche Tab. L’infobulle indique la transaction bancaire et les éléments qui justifient le rapprochement.",
+        use_rate: "Choisissez **Corriger le taux initial** si les justificatifs montrent que le taux était erroné à la comptabilisation. Vérifiez le taux et les montants affichés avant de cliquer. Odoo corrige la facture et la rapproche du paiement.",
+        trace: "La facture passe à l’état payé. La ligne de règlement indique le taux de paiement et précise qu’aucun écart de change n’a été comptabilisé.",
+        open_detail: "Cliquez sur l’icône d’information de la ligne de paiement.",
+        detail: "Comparez l’estimation écartée, la valeur d’origine de la facture et sa valeur au taux du paiement. Les écritures associées permettent de retracer le règlement.",
+        unreconcile: "Si le rapprochement est erroné, cliquez sur **Annuler le lettrage** dans le détail du paiement.",
+        restored: "La facture est de nouveau ouverte à sa valeur d’origine. Vous pouvez vérifier les trois propositions et choisir le rapprochement qui convient.",
     },
 });

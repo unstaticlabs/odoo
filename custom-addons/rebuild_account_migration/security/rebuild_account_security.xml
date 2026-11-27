@@ -66,6 +66,16 @@
         rule on every public report model so UI domains, RPC clients, exports,
         and future MCP callers all enforce the same allowed-company boundary.
     -->
+    <!--
+        The lines copy partners and amounts out of the company-checked
+        computation into stored rows, so only the person who listed them reads them.
+    -->
+    <record id="rule_declaration_candidate_review_line_own" model="ir.rule">
+        <field name="name">DES and DAS2 review lines: own review only</field>
+        <field name="model_id" ref="model_rebuild_account_declaration_candidate_review_line"/>
+        <field name="domain_force">[('create_uid', '=', user.id)]</field>
+    </record>
+
     <record id="rule_rebuild_account_trial_balance_line_company" model="ir.rule">
         <field name="name">Trial balance: allowed companies only</field>
         <field name="model_id" ref="model_rebuild_account_trial_balance_line"/>

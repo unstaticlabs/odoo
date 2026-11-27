@@ -4,6 +4,7 @@ import itertools
 import logging
 
 from collections import defaultdict
+from copy import deepcopy
 
 from odoo import _, api, fields, models, tools
 from odoo.exceptions import UserError, ValidationError
@@ -47,7 +48,14 @@ class ProductTemplate(models.Model):
         return categories.browse(category_ids)
 
     def _domain_pricelist_rule_ids(self):
-        return Domain('pricelist_id', '=', False) | Domain('pricelist_id.active', '=', True)
+        return (
+            (Domain('pricelist_id', '=', False) | Domain('pricelist_id.active', '=', True))
+            & (
+                Domain('product_tmpl_id.active', '=', False)
+                | Domain('product_id', '=', False)
+                | Domain('product_id.active', '=', True)
+            )
+        )
 
     @api.model
     def _domain_fixed_pricelist_rule_ids(self):
@@ -1203,13 +1211,13 @@ class ProductTemplate(models.Model):
         e.g: Black excludes XL and L
         -> XL excludes Black
         -> L excludes Black"""
-        result = dict(exclusions)
+        result = deepcopy(exclusions)
         for key, value in exclusions.items():
             for exclusion in value:
-                if exclusion in result and key not in result[exclusion]:
-                    result[exclusion].append(key)
-                else:
+                if exclusion not in result:
                     result[exclusion] = [key]
+                elif key not in result[exclusion]:
+                    result[exclusion].append(key)
 
         return result
 

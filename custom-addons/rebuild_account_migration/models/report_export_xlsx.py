@@ -102,7 +102,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
             "aged_payable": ["partner_name", "not_due", "bucket_1_30", "bucket_31_60", "bucket_61_90", "bucket_over_90", "total"],
             "balance_sheet": ["section", "line_code", "label", "amount"],
             "profit_loss": ["section", "line_code", "label", "amount"],
-            "cash_flow": ["section", "line_code", "label", "amount", "statement_balance"],
+            "cash_flow": ["section", "line_code", "label", "amount"],
             "executive_summary": [
                 "section",
                 "line_code",
