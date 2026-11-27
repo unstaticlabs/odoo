@@ -72,15 +72,15 @@ registry.category("usl_docs.journeys").add("usl_immediate_settlement", {
     models: ["account.move", "account.bank.statement.line"],
     steps: {
         actions: {
-            text: "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
+            text: "Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.",
             screenshot: true,
             scrollTo: ".o_immediate_settlement_actions",
         },
         best_match: {
-            text: "**Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.",
+            text: "Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.",
         },
         use_rate: {
-            text: "Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.",
+            text: "Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.",
         },
         trace: {
             text: "The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.",
@@ -108,9 +108,9 @@ registry.category("usl_docs.journey_translations").add("usl_immediate_settlement
     description: "Utilisez le débit bancaire pour valoriser une facture fournisseur en devise, vérifiez le détail du règlement et retrouvez la valeur d’origine en cas d’erreur.",
     app: "Comptabilité",
     steps: {
-        actions: "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Lorsqu’un débit du même fournisseur satisfait les critères de date et de taux, Odoo propose trois actions de rapprochement. L’action recommandée apparaît en couleur.",
-        best_match: "Consultez **Meilleur rapprochement** pour identifier la ligne bancaire proposée et examiner les autres possibilités.",
-        use_rate: "Si le débit justifie cette valorisation, cliquez sur **Utiliser le taux de paiement**. Odoo recalcule la valeur de la facture en devise de la société au taux observé sur le paiement.",
+        actions: "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Sous **Paiements suggérés**, un rapprochement éligible propose **Ajouter**, **Régler** et **Corriger le taux initial**.",
+        best_match: "Survolez la ligne **Meilleur rapprochement** ou placez-y le focus avec la touche Tab. L’infobulle indique la transaction bancaire et les éléments qui justifient le rapprochement.",
+        use_rate: "Choisissez **Corriger le taux initial** si les justificatifs montrent que le taux était erroné à la comptabilisation. Vérifiez le taux et les montants affichés avant de cliquer. Odoo corrige la facture et la rapproche du paiement.",
         trace: "La facture passe à l’état payé. La ligne de règlement indique le taux de paiement et précise qu’aucun écart de change n’a été comptabilisé.",
         open_detail: "Cliquez sur l’icône d’information de la ligne de paiement.",
         detail: "Comparez l’estimation écartée, la valeur d’origine de la facture et sa valeur au taux du paiement. Les écritures associées permettent de retracer le règlement.",
