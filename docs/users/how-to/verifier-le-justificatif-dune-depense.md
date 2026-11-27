@@ -14,7 +14,7 @@ tour: usl_expense_batch_receipt_capture
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
 screenshot_01-upload_png: 6c7e5cbff37272e4c4d05065abeaad4d33f1f040695a4f7e14eb7685fc77885a
-screenshot_02-receipt_png: 9a776a9881478e51f771b8f1829d2b86a99d709f0fd67c83e37b8af49a13f60d
+screenshot_02-receipt_png: f1417ad80c9fe0db2cdc49a717a25568527ec55f86b9b55689dfbe5664cea278
 generated: true
 ---
 

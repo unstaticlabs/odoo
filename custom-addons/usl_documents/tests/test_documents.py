@@ -1487,6 +1487,7 @@ class TestDocuments(TransactionCase):
                     "field": "tag_ids",
                     "record_id": suggested.id,
                     "label": "Payroll",
+                    "rule": True,
                 },
                 {
                     "kind": "date",
@@ -1498,8 +1499,8 @@ class TestDocuments(TransactionCase):
         )
 
     def test_optional_tag_scores_only_reach_accessible_proposals_and_never_apply(self):
-        tag = self._tag(505, "Synthetic classifier proposal")
-        rule = self._tag(506, "Synthetic matching rule")
+        tag = self._tag(505, "Synthetic classifier proposal", matching_algorithm="6")
+        rule = self._tag(506, "Synthetic matching rule", matching_algorithm="1")
         document = self._document(497)
         payload = {
             "tags": [505, 506, 999999],
@@ -1518,12 +1519,23 @@ class TestDocuments(TransactionCase):
                 {tag.id: 0.81, rule.id: None},
             )
             ordinary = document.document_detail(document.id, check_archive=True)["paperless_suggestions"]
-            self.assertFalse(any("classifier_score" in item for item in ordinary))
+            read.assert_called_with(document.paperless_id, include_tag_scores=False)
+            self.assertEqual(
+                {item["record_id"]: item["rule"] for item in ordinary},
+                {tag.id: False, rule.id: True},
+            )
+            self.assertEqual(
+                {item["record_id"]: item.get("classifier_score") for item in ordinary},
+                {tag.id: 0.81, rule.id: None},
+            )
             payload.pop("tag_scores")
             compatible = document.document_detail(
                 document.id, check_archive=True, include_tag_scores=True,
             )["paperless_suggestions"]
-            self.assertEqual(ordinary, compatible)
+            self.assertEqual(
+                [{key: value for key, value in item.items() if key != "classifier_score"} for item in ordinary],
+                compatible,
+            )
         self.assertFalse(document.tag_ids)
 
     def test_classifier_rule_is_optional_and_uses_the_tag_editors_rights(self):
@@ -1601,9 +1613,12 @@ class TestDocuments(TransactionCase):
             ),
         ):
             detail = document.document_detail(document.id, check_archive=True)
+            scored = document.document_detail(document.id, check_archive=True, include_tag_scores=True)
 
         self.assertTrue(detail["archive_available"])
         self.assertEqual(detail["paperless_suggestions"], [])
+        self.assertTrue(scored["archive_available"])
+        self.assertEqual(scored["paperless_suggestions"], [])
 
     def test_duplicate_checksum_reuses_archive_without_upload(self):
         content = b"identical supplier evidence"

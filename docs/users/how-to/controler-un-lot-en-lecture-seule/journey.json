@@ -29,7 +29,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-evidence.png",
-      "sha256": "6a94b6959b9bf240ae73d5541a7d120464e76248edf8bb4577cca8259693dd51",
+      "sha256": "9d5d833b7c90cbd3fe069d5d964b6ff1a5abbcbe933c3cb524ec97e8e363d3d0",
       "text": "Dans **Dépenses > Lots de dépenses**, ouvrez le lot à contrôler. Consultez son récapitulatif, ses lignes et les justificatifs associés.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids'])"
     },
@@ -59,7 +59,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-reconciliation.png",
-      "sha256": "8579eb298176eefa8699a56bfdb97242cdfcc988eeb5a8e286f5438686e17a5f",
+      "sha256": "3a5caa19efd376ae80c010e45edcace8249cda3c635da89cf42f43ee19b33ab9",
       "text": "Lisez l’état du rapprochement et l’historique. Si une correction est nécessaire, indiquez le lot et la ligne concernés à la personne chargée de la comptabilisation.",
       "trigger": ".o_form_view .o_field_widget[name='accounting_reconciliation_state'].o_readonly_modifier"
     }

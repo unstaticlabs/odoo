@@ -17,7 +17,9 @@ available alongside these destinations.
 
 Tasks include readable text, HTML descriptions, native custom properties,
 selection labels, exact numeric/date values, accessible related record labels,
-and related activities. Property schemas follow native Properties authority:
+and related activities. Readable task conversations also provide message sources;
+see [task conversation search](task-chatter-search.md) for eligibility, refresh
+and native source opening. Property schemas follow native Properties authority:
 a readable task can supply its schema even when its Project is private. This
 metadata boundary does not grant access to the private Project's name or other
 business fields. Each property predicate remains bound to its own schema owner.
@@ -26,8 +28,9 @@ Home groups matches by the installed business app: Tasks, Projects, Documents,
 invoices and entries, accounting lines, expenses, contacts, sales orders,
 purchase orders, opportunities, bank transactions, products and inventory
 transfers. A category appears only when the caller can read its model. Local
-business search uses current native values; it has no duplicated index or cron
-refresh interval. Ordinary task descriptions remain searchable when they
+business search uses current native values. Tasks, projects and contacts also
+use rebuildable PostgreSQL lexical projections; their documented refresh and
+pending-source behavior apply. Ordinary task descriptions remain searchable when they
 discuss credentials, while credential fields/properties and binary/signature
 values are excluded.
 
@@ -41,6 +44,54 @@ a retry. A document outage
 has its own retry; exact document matches remain usable when only the semantic
 engine is unavailable. Home offers a bounded document preview window, then a
 native Documents destination carrying the query.
+
+## Home result order
+
+Within Home’s Tasks, Projects and Contacts categories, a readable own title equal
+to the query comes first, then a title containing the query phrase, then a title
+containing all its lexical words. Other authorized content matches follow.
+Case and accents use the installed native PostgreSQL normalization. The title
+uses the current language and native fallback, rather than an inaccessible
+translation or related record label. Descending record ID breaks every tie.
+The database applies this order before each page window; unchanged data and
+permissions produce the same concatenated order at any supported page size.
+The existing category display priority also stays unchanged: a task conversation
+can precede the Projects group even when a project has an exact title. Ranking
+is within each category, rather than a global score across business apps.
+New records, edits or permission changes between requests can naturally change
+the result set, so offset pagination is not a historical snapshot.
+
+The search domain and category/exclusion filters are unchanged. Ranking never
+reads extra chatter, related identities or hidden title fields. Existing source
+selection and the destination access recheck remain in place. The native Tasks,
+Projects and Contacts lists keep their own sort choices. Other Home categories
+and Documents retain their existing engines and ordering.
+
+This ranking does not correct spelling: `Attelier Ambre` does not find a record
+containing only `Atelier Ambre`. The existing trigram index speeds substring
+predicates; fuzzy matching would need an explicit retrieval contract and its own
+quality and access qualification. The annotated synthetic FR/EN corpus is in
+`custom-addons/usl_home/tests/data/search_relevance.json`.
+
+Agents retain the existing concrete-model MCP search path. On `project.task`,
+`project.project` or `res.partner`, pass the `usl_search_text` content domain,
+`order: "usl_search_text"` and `context: {search_relevance_query: query}` with
+the same text. At the same identity, selected companies, language and archive
+context, this explicit order uses Home’s title ranking and ID tie breaker.
+Use `active_test: false` to match Home’s archive scope. The native field help
+advertises this option on supporting releases; older releases reject ordering
+by this virtual field and must not be presented as relevance-equivalent.
+
+The existing `odoo_search_records` tool forwards that native order and uses
+offset cursors for it. Ordinary ID, name or date orders remain unchanged,
+including ID-only keyset cursors. Task source explanations additionally require
+`search_source_query` and the readable `usl_search_sources` field. No new MCP
+tool or abstract Home service delegation is introduced. Native model/field
+rights, companies and source revocation apply before ordering. The shared
+compiler reads only the current readable own title; a hidden title falls back
+to descending ID. The explicit relevance query must be non-empty and at most
+2,048 characters. This ordering does not expand the matching domain or apply
+fuzzy correction.
 
 ## Access and navigation
 
@@ -104,3 +155,29 @@ more time and memory compiling than executing. The setting is local to that
 execution and restored afterward; ordinary Task searches keep their existing
 planner settings. This does not change matching, ordering, page sizes or counts.
 Database errors retain the caller's normal rollback requirements.
+
+## Tasks about the same subject
+
+When a query has at least two words, or one word of eight characters or more, Home also
+looks for tasks about the same subject, in French or English, at the same time as the
+keyword search. Keyword matches stay where they are. Tasks found only by meaning are
+appended to the Tasks group under **Related by subject**, each with a quiet
+**Similar topic** badge. Without any keyword task the group reads **Tasks about this**.
+A skeleton row stands in for them while the model answers. If the model is slow
+(1.5 s in all) or unavailable nothing is said: the keyword rows are already there.
+The empty message appears only after every stream has finished. A suggestion opens the
+original task. The same read is available through
+`project.task.search_by_meaning(query, limit=5)` for delegated callers; its status is
+`ok`, `empty`, `unavailable` (the model did not answer) or `disabled` (the deployment
+does not offer the search, so Home stops asking).
+
+The feature is off by default. On a database with the `vector` extension already
+installed, upgrade `usl_home`, then enable `USL_TASK_SEMANTIC_SEARCH=1` with the
+same Ollama endpoint, model and manifest digest used by Documents. The service
+checks the model identity before sending text, and remembers that check for five
+minutes in each worker, so a search makes one HTTP call. The background job indexes
+the first 2,048 characters of the title and the original description, up to 48 tasks
+each minute; a task with only a title is found too. The vector sits on the task's
+title fragment. Edits immediately remove stale suggestions until the task is indexed
+again. Changing the model starts a fresh pass. The reader's current task and field
+access governs each result. No messages, files or transcripts enter this index.

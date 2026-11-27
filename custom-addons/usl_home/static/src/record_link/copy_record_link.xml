@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="web.ControlPanel" t-inherit-mode="extension">
+        <xpath expr="//t[@t-if='this.env.config.noBreadcrumbs']//t[@t-slot='control-panel-additional-actions']" position="after">
+            <t t-call="usl_home.RecordLinkAction"/>
+        </xpath>
+        <xpath expr="//t[@t-elif='this.env.isSmall']//t[@t-slot='control-panel-additional-actions']" position="after">
+            <t t-call="usl_home.RecordLinkAction"/>
+        </xpath>
+        <xpath expr="//Breadcrumbs/t[@t-set-slot='breadcrumb-additional-actions']/t" position="after">
+            <t t-call="usl_home.RecordLinkAction"/>
+        </xpath>
+    </t>
+    <t t-name="usl_home.RecordLinkAction">
+        <t t-component="this.recordLinkComponent"
+           t-if="this.env.config.viewType === 'form' and !this.env.inDialog and this.env.model?.root?.resId and !this.env.model.root.isNew"
+           resModel="this.env.model.root.resModel" resId="this.env.model.root.resId"/>
+    </t>
+    <t t-name="usl_home.CopyRecordLink">
+        <button type="button" class="btn o_usl_copy_record_link d-print-none"
+                t-att-class="this.env.isSmall ? 'btn-secondary' : 'btn-link text-muted'"
+                data-tooltip="Copy link" aria-label="Copy link" t-on-click.stop="this.copyLink">
+            <i class="fa fa-link" aria-hidden="true"/>
+        </button>
+    </t>
+    <t t-name="usl_home.ManualRecordLink">
+        <Dialog title="this.title" size="'sm'">
+            <label class="form-label w-100">
+                <span class="d-block mb-2">Your browser did not allow automatic copying. Copy the selected address.</span>
+                <input class="form-control" type="text" readonly="readonly"
+                       t-att-value="this.props.link" t-ref="link"
+                       t-on-focus="(event) => event.target.select()"/>
+            </label>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-primary" t-on-click="() => this.props.close()">Close</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

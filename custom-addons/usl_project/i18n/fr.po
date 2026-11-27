@@ -794,3 +794,8 @@ msgstr "Tâche en attente"
 #: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
 msgid "Waiting reason"
 msgstr "Motif d'attente"
+
+#: model:ir.actions.server,name:usl_project.ir_cron_usl_index_task_content_ir_actions_server
+#: model:ir.cron,cron_name:usl_project.ir_cron_usl_index_task_content
+msgid "Tasks: refresh search index"
+msgstr "Tâches : actualiser l’index de recherche"

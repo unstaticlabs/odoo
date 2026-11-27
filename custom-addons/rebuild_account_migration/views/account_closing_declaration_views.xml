@@ -221,12 +221,16 @@
         <field name="arch" type="xml">
             <form create="false" delete="false">
                 <header>
+                    <!-- A DES that is still only a proposal starts with its source documents, not with its approval. -->
+                    <button name="action_review_documents" type="object" string="Review documents" class="btn-primary"
+                        invisible="not (form_code == 'DES' and applicability == 'conditional' and status in ('to_prepare', 'data_missing', 'internal_review', 'blocked'))"/>
                     <button name="action_review_documents" type="object" string="Review documents"
-                        invisible="form_code not in ('DES', 'DAS2')"/>
+                        invisible="form_code not in ('DES', 'DAS2') or (form_code == 'DES' and applicability == 'conditional' and status in ('to_prepare', 'data_missing', 'internal_review', 'blocked'))"/>
 
                     <button name="action_refresh_preparation" type="object" string="Refresh from Ledger" icon="fa-refresh" groups="account.group_account_manager"/>
                     <button name="action_mark_internal_ready" type="object" string="Internal Review Ready" groups="account.group_account_manager" invisible="status not in ['to_prepare', 'data_missing', 'internal_review', 'blocked']"/>
-                    <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review'" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
+                    <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" class="oe_highlight" groups="account.group_account_manager" invisible="status != 'internal_review' or (form_code == 'DES' and applicability == 'conditional')" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
+                    <button name="action_mark_ready_to_file" type="object" string="Approve for Filing" groups="account.group_account_manager" invisible="status != 'internal_review' or not (form_code == 'DES' and applicability == 'conditional')" title="Confirm the internal review is complete and allow external filing. Accountant review remains optional."/>
                     <button name="action_request_accountant_review" type="object" string="Request Optional Accountant Review" groups="account.group_account_manager" invisible="status not in ['internal_review']"/>
                     <button name="action_record_review_decision" type="object" string="Record Review Decision" groups="account.group_account_manager,rebuild_account_migration.group_rebuild_accountant_reviewer" invisible="status not in ['accountant_review', 'accountant_reviewed', 'ready_to_file']"/>
                     <button name="action_mark_filed" type="object" string="Mark Filed Externally" class="oe_highlight" groups="account.group_account_manager" invisible="status not in ['accountant_reviewed', 'ready_to_file']"/>
@@ -301,7 +305,7 @@
                                 <div class="o_usl_declaration_basis_card_content">
                                     <h3>Why this applies</h3>
                                     <p>Rules relevant to this company and declaration period.</p>
-                                    <field name="applicability_reason" nolabel="1"/>
+                                    <field name="applicability_summary" nolabel="1"/>
                                 </div>
                             </article>
                             <article class="o_usl_declaration_basis_card">
