@@ -3,10 +3,24 @@ import hashlib
 from datetime import datetime, time
 from itertools import chain
 
+from markupsafe import Markup
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
 from .constants import REVIEW_STATES, SOURCE_PROVIDERS
+
+
+SESSION_SCOPE_FIELDS = ("company_id", "channel_id", "source_provider", "period_start", "period_end")
+SESSION_METRIC_FIELDS = (
+    "order_count", "units_sold", "revenue_company_amount", "refund_company_amount",
+    "fee_company_amount", "cogs_company_amount", "gross_margin_company_amount",
+    "unallocated_revenue_company_amount", "unknown_amount_company_amount",
+    "line_revenue_coverage_percent", "accounting_link_coverage_percent",
+    "direct_accounting_link_coverage_percent", "direct_accounting_link_count",
+    "aggregate_covered_count", "not_applicable_link_count", "pending_mapping_count",
+    "pending_link_count", "pending_conversion_count",
+)
 
 
 class B2cAccountingSession(models.Model):
@@ -137,6 +151,21 @@ class B2cAccountingSession(models.Model):
             "for lists. The sentence on the form says what to do about it."
         ),
     )
+    review_session_label = fields.Html(
+        compute="_compute_review_next_step",
+        sanitize=False,
+        help=(
+            "Session name for the review list. On narrow screens it also shows "
+            "the short next step underneath, so no sideways scrolling is needed."
+        ),
+    )
+    review_next_step_short = fields.Char(
+        compute="_compute_review_next_step",
+        help=(
+            "The list-sized version of the next step: only what is missing. "
+            "The form carries the full sentence."
+        ),
+    )
     review_next_step = fields.Char(
         compute="_compute_review_next_step",
         help=(
@@ -201,6 +230,7 @@ class B2cAccountingSession(models.Model):
         return domain
 
     @api.depends(
+        "name",
         "state",
         "refreshed_at",
         "pending_link_count",
@@ -215,6 +245,7 @@ class B2cAccountingSession(models.Model):
                 + session.pending_mapping_count
                 + session.pending_conversion_count
             )
+            short = ""
             if session.state == "locked":
                 status = self.env._("Locked")
                 step = self.env._(
@@ -223,6 +254,7 @@ class B2cAccountingSession(models.Model):
                 )
             elif session.state == "reviewed":
                 status = self.env._("Ready to lock")
+                short = self.env._("Lock the session")
                 step = self.env._(
                     "Reviewed by %(user)s. Next step: Lock the session "
                     "to freeze the month.",
@@ -230,6 +262,7 @@ class B2cAccountingSession(models.Model):
                 )
             elif not session.refreshed_at:
                 status = self.env._("Not refreshed")
+                short = self.env._("Refresh the totals")
                 step = self.env._(
                     "Not refreshed yet. Refresh the evidenced totals, "
                     "then review them.",
@@ -264,19 +297,22 @@ class B2cAccountingSession(models.Model):
                 else:
                     status = self.env._("Awaiting review")
                 if gaps:
+                    short = "; ".join(gaps)
                     step = self.env._(
-                        "Draft, awaiting review. Still open: %(gaps)s. "
-                        "Resolve them, then a B2C operator presses Mark Reviewed.",
-                        gaps="; ".join(gaps),
+                        "Resolve: %(gaps)s, then Refresh Evidenced Totals before Mark Reviewed.",
+                        gaps=short,
                     )
                 else:
+                    short = self.env._("Check totals, then Mark Reviewed")
                     step = self.env._(
-                        "Draft, awaiting review. Every record has an accounting "
-                        "disposition, but coverage is not a review: a B2C "
-                        "operator checks the totals, then presses Mark Reviewed.",
+                        "No open gaps. Check totals and evidence, then press Mark Reviewed.",
                     )
             session.review_status = status
             session.review_next_step = step
+            session.review_next_step_short = short
+            session.review_session_label = Markup(
+                '<span>%s</span><small class="d-md-none d-block text-muted">%s</small>'
+            ) % (session.name or "", short)
 
     def action_refresh(self):
         for session in self:
@@ -420,12 +456,58 @@ class B2cAccountingSession(models.Model):
             {"state": "reviewed", "locked_by_id": False, "locked_at": False},
         )
 
+    def _scope_differs(self, values=None):
+        self.ensure_one()
+        if values is None:
+            return bool(self._origin) and any(self[name] != self._origin[name] for name in SESSION_SCOPE_FIELDS)
+        return any(
+            self._fields[name].convert_to_cache(values[name], self)
+            != self._fields[name].convert_to_cache(self[name], self)
+            for name in SESSION_SCOPE_FIELDS if name in values
+        )
+
+    @api.model
+    def _empty_snapshot(self):
+        return dict.fromkeys(SESSION_METRIC_FIELDS, 0) | {
+            "refreshed_at": False, "reviewed_by_id": False, "reviewed_at": False, "state": "draft",
+        }
+
+    def _check_scope_company_read(self, company):
+        if company and not company.has_access("read"):
+            raise AccessError(self.env._("Choose a company you can access."))
+
+    @api.onchange(*SESSION_SCOPE_FIELDS)
+    def _onchange_snapshot_scope(self):
+        for session in self:
+            if not session._origin or session == session._origin:
+                continue
+            session._check_scope_company_read(session.company_id)
+            if session._scope_differs():
+                session.update(session._empty_snapshot())
+            else:
+                # Reverting an unsaved edit restores its original valid preview.
+                session.update({name: session._origin[name] for name in session._empty_snapshot()})
+
     def write(self, vals):
         if self.filtered(lambda session: session.state == "locked") and not self.env.context.get(
             "b2c_unlock",
         ):
             raise UserError(self.env._("Locked B2C accounting sessions are immutable."))
-        return super().write(vals)
+        if not self or not set(vals).intersection(SESSION_SCOPE_FIELDS):
+            return super().write(vals)
+        self.check_access("write")
+        changed = self.filtered(lambda session: session._scope_differs(vals))
+        if not changed:
+            return super().write(vals)
+        if "company_id" in vals:
+            target_id = self._fields["company_id"].convert_to_cache(vals["company_id"], changed[0])
+            self._check_scope_company_read(self.env["res.company"].browse(target_id))
+        # Keep mixed no-op/changed batches atomic, including native validation.
+        with self.env.cr.savepoint():
+            unchanged = self - changed
+            if unchanged:
+                super(B2cAccountingSession, unchanged).write(vals)
+            return super(B2cAccountingSession, changed).write(dict(vals) | self._empty_snapshot())
 
     def unlink(self):
         if self.filtered(lambda session: session.state != "draft"):

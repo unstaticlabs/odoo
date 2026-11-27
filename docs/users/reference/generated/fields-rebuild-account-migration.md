@@ -380,6 +380,7 @@ false
 | **Readiness Status** (`readiness_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warnings**, **Blocked**. |
 | **Readiness Summary** (`readiness_summary`) | text |  |  |
 | **Review Status** (`review_status`) | selection | yes | Values: **Not Started**, **Internal Ready**, **Accountant Review Requested**, **Accepted by Reviewer**, **Accepted with Difference**, **Changes Required**. |
+| **Period Title** (`review_title`) | char |  |  |
 | **Snapshot Count** (`snapshot_count`) | integer |  |  |
 | **Accepted Closing Snapshots** (`snapshot_ids`) | one2many → `rebuild.account.closing.snapshot` |  |  |
 | **State** (`state`) | selection | yes | Values: **Open**, **Preparing**, **Blocked**, **Internal Review**, **Accountant Review**, **Ready to Close**, **Closed and Locked**, **Archived**. |

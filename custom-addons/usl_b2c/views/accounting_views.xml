@@ -9,8 +9,11 @@
                 <field name="period_start"/>
                 <field name="channel_id"/>
                 <filter name="open" string="Open" domain="[('state', '!=', 'locked')]"/>
-                <filter name="awaiting_review" string="Awaiting Review" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False)]"/>
-                <filter name="blocked_coverage" string="Incomplete Coverage" domain="['|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
+                <filter name="awaiting_review" string="Refreshed Drafts" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False)]"/>
+                <separator/>
+                <filter name="blocked_coverage" string="With Gaps" domain="[('state', '!=', 'locked'), '|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
+                <filter name="needs_refresh" string="To Refresh" domain="[('state', '=', 'draft'), ('refreshed_at', '=', False)]"/>
+                <filter name="ready_for_review" string="Ready for Review" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False), ('pending_link_count', '=', 0), ('pending_mapping_count', '=', 0), ('pending_conversion_count', '=', 0)]"/>
                 <group>
                     <filter name="group_month" string="Month" context="{'group_by': 'period_start:month'}"/>
                     <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
@@ -32,23 +35,24 @@
                 <field name="period_start"/>
                 <field name="channel_id" optional="show"/>
                 <field name="source_provider" optional="show"/>
-                <field name="order_count" sum="Orders"/>
-                <field name="units_sold" sum="Units"/>
-                <field name="revenue_company_amount" sum="Revenue"/>
-                <field name="refund_company_amount" sum="Refunds"/>
-                <field name="fee_company_amount" sum="Fees"/>
-                <field name="cogs_company_amount" sum="COGS"/>
-                <field name="gross_margin_company_amount" sum="Gross Margin"/>
-                <field name="unallocated_revenue_company_amount" sum="Unallocated"/>
-                <field name="line_revenue_coverage_percent"/>
-                <field name="accounting_link_coverage_percent"/>
-                <field name="direct_accounting_link_coverage_percent" optional="show"/>
-                <field name="direct_accounting_link_count" optional="show"/>
-                <field name="aggregate_covered_count" optional="show"/>
-                <field name="not_applicable_link_count" optional="show"/>
-                <field name="pending_mapping_count"/>
-                <field name="pending_link_count"/>
-                <field name="pending_conversion_count"/>
+                <field name="order_count" sum="Orders" invisible="not refreshed_at"/>
+                <field name="units_sold" sum="Units" invisible="not refreshed_at"/>
+                <field name="revenue_company_amount" sum="Revenue" invisible="not refreshed_at"/>
+                <field name="refund_company_amount" sum="Refunds" invisible="not refreshed_at"/>
+                <field name="fee_company_amount" sum="Fees" invisible="not refreshed_at"/>
+                <field name="cogs_company_amount" sum="COGS" invisible="not refreshed_at"/>
+                <field name="gross_margin_company_amount" sum="Gross Margin" invisible="not refreshed_at"/>
+                <field name="unallocated_revenue_company_amount" sum="Unallocated" invisible="not refreshed_at"/>
+                <field name="line_revenue_coverage_percent" invisible="not refreshed_at"/>
+                <field name="accounting_link_coverage_percent" invisible="not refreshed_at"/>
+                <field name="direct_accounting_link_coverage_percent" optional="show" invisible="not refreshed_at"/>
+                <field name="direct_accounting_link_count" optional="show" invisible="not refreshed_at"/>
+                <field name="aggregate_covered_count" optional="show" invisible="not refreshed_at"/>
+                <field name="not_applicable_link_count" optional="show" invisible="not refreshed_at"/>
+                <field name="pending_mapping_count" invisible="not refreshed_at"/>
+                <field name="pending_link_count" invisible="not refreshed_at"/>
+                <field name="pending_conversion_count" invisible="not refreshed_at"/>
+                <field name="refreshed_at" optional="hide"/>
                 <field name="company_id" groups="base.group_multi_company" optional="hide"/>
             </list>
         </field>
@@ -82,7 +86,7 @@
                             <field name="company_currency_id" readonly="1"/>
                             <field name="refreshed_at" readonly="1"/>
                         </group>
-                        <group string="Coverage Controls">
+                        <group string="Coverage Controls" invisible="not refreshed_at">
                             <field name="line_revenue_coverage_percent" readonly="1"/>
                             <field name="accounting_link_coverage_percent" readonly="1"/>
                             <field name="direct_accounting_link_coverage_percent" readonly="1"/>
@@ -96,7 +100,7 @@
                             <field name="pending_conversion_count" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Company-Currency Metrics" col="7">
+                    <group string="Company-Currency Metrics" col="7" invisible="not refreshed_at">
                         <field name="order_count" readonly="1"/>
                         <field name="units_sold" readonly="1"/>
                         <field name="revenue_company_amount" readonly="1"/>
@@ -141,6 +145,42 @@
         <field name="res_model">b2c.accounting.session</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_b2c_accounting_session_search"/>
+    </record>
+
+    <record id="view_b2c_session_review_list" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.review.list</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <list string="Monthly Review">
+                <field name="review_session_label" string="Session" class="text-wrap" width="260px"/>
+                <field name="review_status" string="Review Status" widget="badge" width="150px"
+                       decoration-warning="state == 'draft' and refreshed_at and (pending_link_count or pending_mapping_count or pending_conversion_count)"
+                       decoration-muted="state == 'draft' and not refreshed_at"
+                       decoration-info="state == 'draft' and refreshed_at and not pending_link_count and not pending_mapping_count and not pending_conversion_count"
+                       decoration-success="state == 'reviewed'"/>
+                <field name="review_next_step_short" string="Next Step" class="text-wrap" width="420px"/>
+                <field name="pending_link_count" string="Accounting Gaps" width="110px" invisible="not refreshed_at or not pending_link_count"/>
+                <field name="pending_mapping_count" string="Product Gaps" width="100px" invisible="not refreshed_at or not pending_mapping_count"/>
+                <field name="pending_conversion_count" string="Conversion Gaps" width="110px" invisible="not refreshed_at or not pending_conversion_count"/>
+                <field name="period_start" optional="hide"/>
+                <field name="channel_id" optional="hide"/>
+                <field name="source_provider" optional="hide"/>
+                <field name="refreshed_at" optional="hide"/>
+                <field name="state" widget="badge" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_b2c_session_review" model="ir.actions.act_window">
+        <field name="name">Monthly Review</field>
+        <field name="res_model">b2c.accounting.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_b2c_session_review_list"/>
+        <field name="search_view_id" ref="view_b2c_accounting_session_search"/>
+        <field name="context">{'search_default_blocked_coverage': 1}</field>
+        <field name="help" type="html"><p>No sessions match the selected filters. Choose another review filter or clear them.</p></field>
     </record>
 
     <record id="view_b2c_accounting_link_search" model="ir.ui.view">
