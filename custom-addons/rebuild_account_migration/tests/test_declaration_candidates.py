@@ -1,4 +1,7 @@
-from odoo import Command
+from datetime import date
+from unittest.mock import patch
+
+from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
@@ -94,6 +97,49 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         # The month total a person reads under the list nets the credit note.
         self.assertEqual(lines.mapped("amount"), [-120, 120])
         self.assertEqual(lines.mapped("move_type"), ["out_refund", "out_invoice"])
+
+    def test_calendar_proposes_the_months_of_des_invoices_and_refunds(self):
+        company = self.env.company
+        company.rebuild_declaration_profile_active = True
+        partner = self.env["res.partner"].with_context(no_vat_validation=True).create({
+            "name": "Example design studio", "country_id": self.env.ref("base.es").id, "vat": "ES00000000X",
+        })
+        self.env["res.lang"]._activate_lang("fr_FR")
+        service_tax = self.tax_sale_a.copy({"name": "Example EU service", "amount": 0})
+        service_tax.with_context(lang="fr_FR").name = "Prestations UE – DES requise"
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+
+        def post(tax, when, kind="out_invoice"):
+            return self._create_invoice_one_line(
+                price_unit=40, tax_ids=tax, partner_id=partner, move_type=kind, invoice_date=when, post=True,
+            )
+
+        march = post(service_tax, "2026-03-11")
+        post(self.tax_sale_a, "2026-04-02")
+        may = post(service_tax, "2026-05-07", "out_refund")
+        june = post(native_tax, "2026-06-08")
+        service_tax.active = False
+        calendar = self.env["rebuild.account.declaration"]
+        other = self.env["res.company"].create({"name": "Example second studio"})
+        both = calendar.with_context(allowed_company_ids=[other.id, company.id])
+        self.assertFalse(both._has_eu_b2b_service_signal(other, date(2026, 3, 1), date(2026, 3, 31)))
+        domain = [
+            ("company_id", "=", company.id), ("rule_id.code", "=", "FR_DES"),
+            ("period_start", ">=", "2026-03-01"), ("period_start", "<=", "2026-06-30"),
+        ]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 7, 1)):
+            both.sync_for_company(company)
+            proposals = calendar.search(domain, order="period_start")
+            self.assertEqual(proposals.mapped("period_start"), [date(2026, m, 1) for m in (3, 5, 6)])
+            self.assertEqual(set(proposals.mapped("applicability")), {"conditional"})
+            self.assertIn("invoice or credit note", proposals[1].applicability_reason)
+            for proposal, source in zip(proposals, [march, may, june]):
+                action = proposal.action_review_documents()
+                self.assertEqual(self.env[action["res_model"]].search(action["domain"]).move_id, source)
+            proposals[0].write({"status": "filed", "filing_status": "filed"})
+            calendar.sync_for_company(company)
+            self.assertEqual(calendar.search(domain, order="period_start"), proposals)
+            self.assertEqual((proposals[0].status, proposals[0].filing_status), ("filed", "filed"))
 
     def _bank_debit(self, when, debit_account, amount):
         journal = self.company_data["default_journal_bank"]

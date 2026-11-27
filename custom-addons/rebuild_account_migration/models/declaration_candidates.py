@@ -1,16 +1,9 @@
 """Read the posted documents behind potential declarations, independently of filing state."""
 
-import re
-
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import format_date
-
-from .declaration import EU_COUNTRY_CODES
-
-
-DES_LABEL = re.compile(r"\bdes\s+(?:requis(?:e)?|required)\b", re.I)
 
 
 class DeclarationCandidateReview(models.TransientModel):
@@ -107,26 +100,12 @@ class DeclarationCandidateReview(models.TransientModel):
         }
 
     def _des_rows(self):
-        moves = self.env["account.move"].with_context(active_test=False).search([
-            ("company_id", "=", self.company_id.id), ("state", "=", "posted"),
-            ("move_type", "in", ["out_invoice", "out_refund"]),
-            ("invoice_date", ">=", self.date_from), ("invoice_date", "<=", self.date_to),
-            ("commercial_partner_id.country_id.code", "in", sorted(EU_COUNTRY_CODES - {"FR"})),
-            ("commercial_partner_id.vat", "!=", False),
-        ])
-        native = self.env["account.chart.template"].ref("tva_sale_service_intra_0", raise_if_not_found=False)
-        # Whatever opens a DES in the calendar must also appear here, or the
-        # declaration would point at an empty review.
-        identified = set(self.env["rebuild.account.declaration"]._des_signal_taxes(moves.invoice_line_ids.tax_ids).ids)
-        for tax in moves.invoice_line_ids.tax_ids:
-            if tax == native or any(
-                DES_LABEL.search(" ".join(filter(None, (translated.name, translated.description))))
-                for translated in (tax, tax.with_context(lang="fr_FR"), tax.with_context(lang="en_US"))
-            ):
-                identified.add(tax.id)
+        moves, service_taxes = self.env["rebuild.account.declaration"]._des_period_sources(
+            self.company_id, self.date_from, self.date_to,
+        )
         rows = []
         for move in moves:
-            taxes = move.invoice_line_ids.tax_ids.filtered(lambda tax: tax.id in identified)
+            taxes = move.invoice_line_ids.tax_ids & service_taxes
             if taxes:
                 rows.append({
                     **self._source_row(move, move.invoice_date, self.env._(
