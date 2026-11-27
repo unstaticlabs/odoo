@@ -2949,11 +2949,11 @@
       ],
       "sources": [
         {
-          "line": 2526,
+          "line": 2540,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 3173,
+          "line": 3187,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1364751,6 +1364751,80 @@
     },
     {
       "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.classifier_tag_history",
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.document.search",
+        "rpc:usl.paperless.tag.with_context"
+      ],
+      "digest": "bedb84b03a728c06a31fd0ca9618ec5d2d33410205af35409094b32ea8376755",
+      "guards": [],
+      "key": "rpc:usl.document.classifier_batch_documents",
+      "kind": "rpc",
+      "method": "classifier_batch_documents",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "eb4ac4a3cb9b1e08f77ff9b06559b9be0b5e43503c0bef17f1673ef88bccf255",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 76,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.paperless.tag.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.paperless.tag.with_context"
+      ],
+      "digest": "951f0a7a2a801b8514173d4b69812540d18495d23d4933e540e7dfa75fe5c923",
+      "guards": [],
+      "key": "rpc:usl.document.classifier_tag_history",
+      "kind": "rpc",
+      "method": "classifier_tag_history",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9100a399c91ec3c72824684fc46002c9357e25011289291bc5d3ec52c7041bc3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 59,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.paperless.tag.with_context"
+      ]
+    },
+    {
+      "abstract": false,
       "archiveable": true,
       "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
       "guards": [],
@@ -1390592,6 +1390666,1728 @@
     },
     {
       "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5205,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.check_access",
+        "rpc:usl.document.tag.rule.wizard.ensure_one"
+      ],
+      "digest": "91ca7d689a82f4ec5c50c672512ee933dfe7b55e41848473dcbe9f462c45b353",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.action_save",
+      "kind": "rpc",
+      "method": "action_save",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6beab63108e7760e6d031d578aeb8eaf255bd0dc0caedd1de471e272a8903bb8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 39,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.check_access",
+        "rpc:usl.document.tag.rule.wizard.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5216,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4954,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4832,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4889,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a79380d40b5dff61e79107f94d350cf0315d5a53fe951768b0def1f53b725a0",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 603,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.document.tag.rule.wizard.env",
+        "rpc:usl.document.tag.rule.wizard.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 339,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.document.tag.rule.wizard.env",
+        "rpc:usl.document.tag.rule.wizard.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 799,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 699,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2772,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5132,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3249,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3238,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.document.tag.rule.wizard.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3156,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 359,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.document.tag.rule.wizard.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.document.tag.rule.wizard.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2923,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.search"
+      ],
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 220,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 182,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.check_access",
+        "rpc:usl.document.tag.rule.wizard.default_get",
+        "rpc:usl.document.tag.rule.wizard.fetch",
+        "rpc:usl.document.tag.rule.wizard.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1955,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6461,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.check_access",
+        "rpc:usl.document.tag.rule.wizard.fetch",
+        "rpc:usl.document.tag.rule.wizard.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1943,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1362,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.fields_get",
+        "rpc:usl.document.tag.rule.wizard.search_count",
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1775,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.fields_get",
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1634,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5164,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cb3a90a9ca4752d4aa8a98534ed1ffc659568c64c592a90eda2f67a36f67edd",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 46,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 663,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2787,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse",
+        "rpc:usl.document.tag.rule.wizard.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.document.tag.rule.wizard.ensure_one",
+        "rpc:usl.document.tag.rule.wizard.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2174,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group",
+        "rpc:usl.document.tag.rule.wizard.search",
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 346,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse",
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 319,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse",
+        "rpc:usl.document.tag.rule.wizard.create",
+        "rpc:usl.document.tag.rule.wizard.with_context",
+        "rpc:usl.document.tag.rule.wizard.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.browse",
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 135,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.onchange",
+        "rpc:usl.document.tag.rule.wizard.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.search_count",
+        "rpc:usl.document.tag.rule.wizard.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.document.tag.rule.wizard.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+      "guards": [],
+      "key": "rpc:usl.document.tag.rule.wizard.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.document.tag.rule.wizard",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8023729d4ec15a34439ea54d89d3e037ea6897df9039b6ead204c787e60e7a1f",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 632,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
       "archiveable": true,
       "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
       "guards": [],
@@ -1392275,6 +1394071,43 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.paperless.tag.with_context"
+      ],
+      "digest": "d9e8ac7a8124445c1f1d210c5c1c920f7f526652b49156fea64c5de37940f505",
+      "guards": [],
+      "key": "rpc:usl.document.undo_classifier_batch",
+      "kind": "rpc",
+      "method": "undo_classifier_batch",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e083180e493034fbbb2ff0816ac6cf097fdb14f0328bee617092b4b2863d171a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 99,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.ensure_one",
+        "rpc:usl.paperless.tag.with_context"
       ]
     },
     {
@@ -1452241,6 +1454074,44 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:usl.document.tag.rule.wizard.create",
+        "rpc:usl.paperless.tag.check_access",
+        "rpc:usl.paperless.tag.ensure_one"
+      ],
+      "digest": "3586b1b85f4c560a8d5c45ae1e00d23342b761764cf427a858e39ad07939594b",
+      "guards": [],
+      "key": "rpc:usl.paperless.tag.action_review_classifier_rule",
+      "kind": "rpc",
+      "method": "action_review_classifier_rule",
+      "model": "usl.paperless.tag",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b52ec181faea0bd1a1da21d3ebc76d779ffbc58763c37219783c67ab342775a8",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 12,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.paperless.tag.check_access",
+        "rpc:usl.paperless.tag.ensure_one"
+      ]
     },
     {
       "abstract": false,
@@ -1686219,6 +1688090,24 @@
       ]
     },
     {
+      "digest": "c49d7e38a587efb3532ef200338ebd042ca98711de68bde1495d0d8a3f20240c",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [
+        "rpc:usl.paperless.tag.action_review_classifier_rule"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 12,
+          "path": "custom-addons/usl_documents/models/classifier_review.py"
+        }
+      ]
+    },
+    {
       "digest": "a8d95971d557be7da2686d518b3335e8f036ad4ccc2cc07bd8bedb9a7e94fd34",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1",
       "kind": "sink",
@@ -1690653,7 +1692542,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 795,
+          "line": 811,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690698,7 +1692587,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 985,
+          "line": 1001,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690713,7 +1692602,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 985,
+          "line": 1001,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690728,7 +1692617,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 902,
+          "line": 918,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690743,7 +1692632,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 902,
+          "line": 918,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1761779,6 +1763668,31 @@
     },
     {
       "delegates": [
+        "rpc:usl.document.tag.rule.wizard.action_save"
+      ],
+      "digest": "25b2b924998dc075c5974d888607522571ce2b507a5b87864688df8c5e12831b",
+      "guards": [],
+      "key": "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1",
+      "kind": "ui",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "86b3061eac5ebdbbdff470275cb3374e623bb016689e657e6b92a4272e2610eb",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_documents/views/usl_document_metadata_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_documents.view_usl_document_tag_rule_wizard"
+        }
+      ],
+      "xmlid": "usl_documents.view_usl_document_tag_rule_wizard"
+    },
+    {
+      "delegates": [
         "rpc:usl.paperless.correspondent.action_accept_suggested_partner"
       ],
       "digest": "93f0bad2946bcb562c1151fd2d066efa70da84866135ef0387ea280364abab1f",
@@ -1761916,6 +1763830,31 @@
       "parents": [],
       "risk_flags": [],
       "runtime_digest": "73d90378dbe7bbf2ed6aa3817a10730bcd676d7b32294d079ba3ee70bf02827c",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_documents/views/usl_document_metadata_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_documents.view_usl_paperless_tag_form"
+        }
+      ],
+      "xmlid": "usl_documents.view_usl_paperless_tag_form"
+    },
+    {
+      "delegates": [
+        "rpc:usl.paperless.tag.action_review_classifier_rule"
+      ],
+      "digest": "ff24beb9368148889156f6ab816369feafac73e1a853ae4330901f66d6cf244d",
+      "guards": [],
+      "key": "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1",
+      "kind": "ui",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "2e30f5e32992bcb22e266242e3f3676d0d60188a0dc117809d1bc071664fb087",
       "sinks": [],
       "sources": [
         {
@@ -1768612,11 +1770551,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "21fed61ac2d71992a260214853fd91c9d8bb6e04bcbe03d416754e146ca5416a",
+      "manifest_sha256": "ac5f6370fc1a3328b15f2d5ba4cf61d5332462e8832b4db54ff0620634903778",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "b21bbe61a32cd6866774deda127f8e54a00506517ae480eb133cb1a2503242db",
-      "version": "saas~19.3.1.10.9"
+      "source_sha256": "19584e33d4a8123247dfa1b8f02ec74913151c60efe19255b7de3d8bda79456c",
+      "version": "saas~19.3.1.11.0"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
