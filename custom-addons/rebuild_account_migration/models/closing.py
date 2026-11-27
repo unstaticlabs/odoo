@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError
-from odoo.tools import BinaryBytes
+from odoo.tools import BinaryBytes, format_date
 
 PROFIT_AND_LOSS_ACCOUNT_TYPES = (
     "income",
@@ -255,6 +255,7 @@ class RebuildAccountClosingPeriod(models.Model):
     )
 
     name = fields.Char(required=True)
+    review_title = fields.Char(string="Period Title", compute="_compute_review_title", inverse="_inverse_review_title")
     company_id = fields.Many2one("res.company", required=True, index=True)
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
     period_type = fields.Selection(
@@ -407,6 +408,48 @@ class RebuildAccountClosingPeriod(models.Model):
         return closings
 
     @api.model
+    def _period_title(self, period_type, date_from, date_to):
+        if period_type == "month":
+            return self.env._("%(month)s close", month=format_date(self.env, date_from, date_format="MMMM y"))
+        dates = {
+            "start": format_date(self.env, date_from, date_format="dd MMM y"),
+            "end": format_date(self.env, date_to, date_format="dd MMM y"),
+        }
+        if period_type == "quarter":
+            return self.env._("Quarter close %(start)s - %(end)s", **dates)
+        return self.env._("Annual statutory close %(start)s - %(end)s", **dates)
+
+    @api.depends("name", "period_type", "date_from", "date_to")
+    @api.depends_context("lang")
+    def _compute_display_name(self):
+        english = self.with_context(lang="en_US")
+        for period in self:
+            title = period.name
+            if period.period_type and period.date_from and period.date_to:
+                dates = (period.period_type, period.date_from, period.date_to)
+                if title == english._period_title(*dates):
+                    title = period._period_title(*dates)
+            period.display_name = title
+
+    def _order_field_to_sql(self, table, field_expr, direction, nulls):
+        # The list still sorts on its original title column, including names
+        # entered by an accountant. Translated display names are never stored.
+        if field_expr == "display_name":
+            field_expr = "name"
+        return super()._order_field_to_sql(table, field_expr, direction, nulls)
+
+    @api.depends("display_name")
+    @api.depends_context("lang")
+    def _compute_review_title(self):
+        for period in self:
+            period.review_title = period.display_name
+
+    def _inverse_review_title(self):
+        for period in self:
+            if period.review_title != period.display_name:
+                period.name = period.review_title
+
+    @api.model
     def _upsert_period(self, company, period_type, date_from, date_to, fiscal_start, fiscal_end):
         closing = self.search([
             ("company_id", "=", company.id),
@@ -414,25 +457,17 @@ class RebuildAccountClosingPeriod(models.Model):
             ("date_from", "=", date_from),
             ("date_to", "=", date_to),
         ], limit=1)
-        label = {
-            "month": date_from.strftime("%B %Y close"),
-            "quarter": f"Quarter close {date_from:%d %b %Y} - {date_to:%d %b %Y}",
-            "annual": f"Annual statutory close {date_from:%d %b %Y} - {date_to:%d %b %Y}",
-        }[period_type]
-        vals = {
-            "name": label,
-            "company_id": company.id,
-            "period_type": period_type,
-            "date_from": date_from,
-            "date_to": date_to,
-            "fiscalyear_start": fiscal_start,
-            "fiscalyear_end": fiscal_end,
-        }
+        fiscal_year = {"fiscalyear_start": fiscal_start, "fiscalyear_end": fiscal_end}
         if closing:
-            closing.write(vals)
-        else:
-            closing = self.create(vals)
-        return closing
+            if closing.fiscalyear_start != fiscal_start or closing.fiscalyear_end != fiscal_end:
+                closing.write(fiscal_year)
+            return closing
+        return self.create({
+            **fiscal_year,
+            "company_id": company.id, "period_type": period_type,
+            "date_from": date_from, "date_to": date_to,
+            "name": self.with_context(lang="en_US")._period_title(period_type, date_from, date_to),
+        })
 
     def action_refresh_controls(self):
         for company in self.company_id:
@@ -674,7 +709,7 @@ class RebuildAccountClosingPeriod(models.Model):
         self.ensure_one()
         return {
             "type": "ir.actions.act_window",
-            "name": "Closing Review Package",
+            "name": self.env._("Closing Review Package"),
             "res_model": "rebuild.account.report.export.wizard",
             "view_mode": "form",
             "target": "new",
