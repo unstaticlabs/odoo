@@ -511,6 +511,35 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertEqual(json.loads(output.getvalue())["status"], "passed")
         self.assertFalse(any(command[0] == "docker" for command in runner.commands))
 
+    def test_capture_failure_records_the_active_phase_and_preserves_private_error(self) -> None:
+        runner = ResourceRunner()
+        root = Path("/var/lib/usl-recovery-proofs")
+        arguments = argparse.Namespace(target="production", targets=TARGETS, proof_id=PROOF_ID,
+                                      evidence_directory=root, release=None, failure_after=None, json=True)
+        failure = RuntimeError("synthetic private diagnostic")
+        release = {"identity": "synthetic", "components": {
+            "backup-tool": {"digest_reference": "fixture-tool"},
+        }}
+        with (
+            patch.object(type(self.target), "runner", return_value=runner),
+            patch("operations.stack._recovery_proof_protected_secrets_sha256", return_value="a" * 64),
+            patch("operations.stack.inspect_runtime", return_value={}),
+            patch("operations.stack._release", return_value=(release, "b" * 64, "")),
+            patch("operations.stack._runtime_cas_sha256", return_value="c" * 64),
+            patch("operations.stack._require_prepared_database_tool"),
+            patch("operations.stack._run_recovery_proof_backup", side_effect=failure),
+            self.assertRaisesRegex(RuntimeError, "synthetic private diagnostic"),
+        ):
+            recovery_proof_command(arguments)
+
+        state = json.loads(runner.files[f"{root}/{PROOF_ID}/state.json"])
+        raw_failure = runner.files[f"{root}/{PROOF_ID}/failure.json"]
+        receipt = json.loads(raw_failure)
+        self.assertEqual(state["phase"], "backup-started")
+        self.assertEqual(receipt["stage"], state["phase"])
+        self.assertEqual(receipt["cleanup"]["status"], "clean")
+        self.assertNotIn(str(failure), raw_failure)
+
     def test_interrupted_backup_retry_resumes_exact_writers_and_capture(self) -> None:
         runner = ResourceRunner()
         run_id = f"proof-{PROOF_ID}"
