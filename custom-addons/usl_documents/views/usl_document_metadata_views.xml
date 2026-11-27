@@ -49,6 +49,9 @@
                                    invisible="matching_algorithm in ('0', '6')"/>
                             <field name="is_insensitive"
                                    invisible="matching_algorithm in ('0', '6')"/>
+                            <button name="action_review_classifier_rule" type="object" string="Score rule…"
+                                    class="btn-link px-0" invisible="matching_algorithm != '6'"
+                                    groups="usl_documents.group_documents_user"/>
                             <field name="document_count" readonly="1"
                                    groups="usl_documents.group_documents_manager"/>
                         </group>
@@ -71,6 +74,26 @@
                         <field name="last_error" invisible="not last_error"/>
                     </group>
                 </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_usl_document_tag_rule_wizard" model="ir.ui.view">
+        <field name="name">usl.document.tag.rule.wizard.form</field>
+        <field name="model">usl.document.tag.rule.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Classifier rule">
+                <group>
+                    <field name="tag_id" options="{'no_open': True}"/>
+                    <field name="use_score"/>
+                    <field name="minimum_score" invisible="not use_score" required="use_score" placeholder="0–100"/>
+                </group>
+                <p class="text-muted" invisible="not use_score">Paperless will apply this tag only when its local model reaches this score. Check the results on independently reviewed documents before choosing a minimum.</p>
+                <p class="text-muted" invisible="use_score">Paperless uses its standard learned classification for new matches. Previous reviews and manual corrections are kept.</p>
+                <footer>
+                    <button name="action_save" type="object" string="Save rule" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
             </form>
         </field>
     </record>

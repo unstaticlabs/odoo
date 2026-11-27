@@ -169550,6 +169550,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.action_open_documents_workspace:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._compute_is_in_my_library:sudo:1",
@@ -173533,6 +173534,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": {
+          "reachability_proof": "Creates the calling tag editor’s temporary form only, underneath rpc:usl.paperless.tag.action_review_classifier_rule."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -176394,6 +176398,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1": "70f0254f387e43226b043a4cfac954abd0b15e1a9e799a0ef5ce9cd6ce6224a8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.action_open_documents_workspace:sudo:1": "11ff202ffda4c16b0434ed094f57d8ee831daf2bfa71750d34c5f7d70737e8d8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": "0ad2dde90aa3d9b06a6f59d83d2bdcf48cec8a65faf4942b4369ff6f2be38942",
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": "03516ad41777885871792072f81893d3cf0729aadf8dd6e642e7e6525bb32624",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": "a8d95971d557be7da2686d518b3335e8f036ad4ccc2cc07bd8bedb9a7e94fd34",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:2": "54bbd2f9cf82f3ea63c0f1441ce02ad6242183d2208b27aa4780567cac332751",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._compute_is_in_my_library:sudo:1": "c6e4e7630245e9318a463819915ad0f0ff1f3cf24bf6da5611e7e670e5387f39",
@@ -196627,12 +196632,14 @@
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1",
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_documents:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_partner:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_reject_suggested_partner:1",
         "ui:usl_documents.view_usl_paperless_document_type_form:button:object:action_open_documents:1",
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1",
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1",
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1",
         "ui:usl_documents.view_usl_paperless_user_mapping_list:button:object:action_mark_verified:1",
         "ui:usl_documents_b2c.view_b2c_accounting_session_documents:button:object:action_open_documents_workspace:1",
@@ -197868,6 +197875,11 @@
             "rpc:usl.document.smart.view.action_open_documents"
           ]
         },
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": {
+          "targets": [
+            "rpc:usl.document.tag.rule.wizard.action_save"
+          ]
+        },
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1": {
           "targets": [
             "rpc:usl.paperless.correspondent.action_accept_suggested_partner"
@@ -197896,6 +197908,11 @@
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1": {
           "targets": [
             "rpc:usl.paperless.tag.action_open_documents"
+          ]
+        },
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1": {
+          "targets": [
+            "rpc:usl.paperless.tag.action_review_classifier_rule"
           ]
         },
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1": {
@@ -198653,12 +198670,14 @@
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1": "cf732f88cdd5717c3f65ffa39faf6454a24f96205d0dead6d38964b666069ad1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1": "4a012a843a756b0506527014b48f8db45fb208b3d2ff691a8846c27ff737ad56",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1": "5413d8b23896cc2b2940f9bb8be0a5737e8816139a6451bf75bf5912a7de0043",
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": "a7349e6c74c201187b24683274aeb1499132db837b52529c9e9924ea861b8318",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1": "93f0bad2946bcb562c1151fd2d066efa70da84866135ef0387ea280364abab1f",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_documents:1": "952908ff873bba36c9c54e154458032953143b8d38099c551619afb2281e7906",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_partner:1": "d1081892dbef58e5123f205fba7c48dadc80acbccb9f779cc49246673caa6a5a",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_reject_suggested_partner:1": "8de8ab90f0a7d1ed250ad2c9c77d1c99a1f52bdfd4e5763f13738554273feee8",
         "ui:usl_documents.view_usl_paperless_document_type_form:button:object:action_open_documents:1": "f8bd41daeb48221e077879e334cf211eb21716d55aa9a27984d66cc0e5b47449",
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1": "363fed601902c6b20d1cf8a28dbf6bc39d151a27c79755de8d9fb6cd60cee399",
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1": "ff24beb9368148889156f6ab816369feafac73e1a853ae4330901f66d6cf244d",
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1": "34cb968202e962d72a8d402de0fc30f8da353bacf76c40d699d2d3d74429a275",
         "ui:usl_documents.view_usl_paperless_user_mapping_list:button:object:action_mark_verified:1": "688da3b04ba41b75a0e6c24cbe552bf62c82ee0aa57dcfe55ad26d19eecee5b9",
         "ui:usl_documents_b2c.view_b2c_accounting_session_documents:button:object:action_open_documents_workspace:1": "28c0fff20601bab32f3a7c99c0d17f444c807ed89b4fe228c3af8b042916a4c3",
@@ -221765,6 +221784,146 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:orm_write:1": "4c977c0e7f38cf5dce6281f4ef507e0b207f6c0c97b0c3bbb9be9c8b41a0a958",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:sudo:1": "9a9e1c1252aaef58b99afb9cef21a9845e73389757fab0302a132a56af97ac4d"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.classifier_batch_documents",
+        "rpc:usl.document.classifier_tag_history",
+        "rpc:usl.document.tag.rule.wizard.action_archive",
+        "rpc:usl.document.tag.rule.wizard.action_unarchive",
+        "rpc:usl.document.tag.rule.wizard.check_field_access",
+        "rpc:usl.document.tag.rule.wizard.default_get",
+        "rpc:usl.document.tag.rule.wizard.export_data",
+        "rpc:usl.document.tag.rule.wizard.fields_get",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_grouping_sets",
+        "rpc:usl.document.tag.rule.wizard.get_base_url",
+        "rpc:usl.document.tag.rule.wizard.get_empty_list_help",
+        "rpc:usl.document.tag.rule.wizard.get_external_id",
+        "rpc:usl.document.tag.rule.wizard.get_field_translations",
+        "rpc:usl.document.tag.rule.wizard.get_formview_action",
+        "rpc:usl.document.tag.rule.wizard.get_formview_id",
+        "rpc:usl.document.tag.rule.wizard.get_import_templates",
+        "rpc:usl.document.tag.rule.wizard.get_metadata",
+        "rpc:usl.document.tag.rule.wizard.get_property_definition",
+        "rpc:usl.document.tag.rule.wizard.get_views",
+        "rpc:usl.document.tag.rule.wizard.has_access",
+        "rpc:usl.document.tag.rule.wizard.has_field_access",
+        "rpc:usl.document.tag.rule.wizard.hierarchy_read",
+        "rpc:usl.document.tag.rule.wizard.mail_allowed_qweb_expressions",
+        "rpc:usl.document.tag.rule.wizard.mail_get_partner_fields",
+        "rpc:usl.document.tag.rule.wizard.name_search",
+        "rpc:usl.document.tag.rule.wizard.read",
+        "rpc:usl.document.tag.rule.wizard.read_progress_bar",
+        "rpc:usl.document.tag.rule.wizard.search",
+        "rpc:usl.document.tag.rule.wizard.search_count",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_multi_range",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_range",
+        "rpc:usl.document.tag.rule.wizard.search_read",
+        "rpc:usl.document.tag.rule.wizard.view_header_get",
+        "rpc:usl.document.tag.rule.wizard.web_name_search",
+        "rpc:usl.document.tag.rule.wizard.web_read",
+        "rpc:usl.document.tag.rule.wizard.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads scoped document tags, classifier batches or the editor’s transient form.",
+      "domain": "documents_and_communications",
+      "evidence_id": "document-classifier-review-2582",
+      "id": "read_only.documents_and_communications.classifier_review_2582",
+      "rationale": "The native access checks precede reads. Odoo filters documents and tag labels under the current user before returning batch details.",
+      "reviewed_digests": {
+        "rpc:usl.document.classifier_batch_documents": "40970b6c6f99a8fad7f3d2958851a66bbb9ba3d29d69474be4290a2eb652c597",
+        "rpc:usl.document.classifier_tag_history": "b654b87d2d6ea325dbaf96ecb0dc0f7ee78be39d981cd8797aeaa84fc1a011aa",
+        "rpc:usl.document.tag.rule.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.tag.rule.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.tag.rule.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.tag.rule.wizard.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.tag.rule.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.tag.rule.wizard.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+        "rpc:usl.document.tag.rule.wizard.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.tag.rule.wizard.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.document.tag.rule.wizard.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.tag.rule.wizard.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.tag.rule.wizard.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.tag.rule.wizard.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.tag.rule.wizard.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.tag.rule.wizard.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.tag.rule.wizard.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.tag.rule.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.document.tag.rule.wizard.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.tag.rule.wizard.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.tag.rule.wizard.hierarchy_read": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+        "rpc:usl.document.tag.rule.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.tag.rule.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.tag.rule.wizard.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.tag.rule.wizard.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.tag.rule.wizard.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.tag.rule.wizard.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.tag.rule.wizard.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.tag.rule.wizard.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.tag.rule.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.tag.rule.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.tag.rule.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.document.tag.rule.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.tag.rule.wizard.action_save",
+        "rpc:usl.document.tag.rule.wizard.copy",
+        "rpc:usl.document.tag.rule.wizard.copy_data",
+        "rpc:usl.document.tag.rule.wizard.copy_translations",
+        "rpc:usl.document.tag.rule.wizard.create",
+        "rpc:usl.document.tag.rule.wizard.get_view",
+        "rpc:usl.document.tag.rule.wizard.load",
+        "rpc:usl.document.tag.rule.wizard.name_create",
+        "rpc:usl.document.tag.rule.wizard.onchange",
+        "rpc:usl.document.tag.rule.wizard.onchange_batch",
+        "rpc:usl.document.tag.rule.wizard.unlink",
+        "rpc:usl.document.tag.rule.wizard.update_field_translations",
+        "rpc:usl.document.tag.rule.wizard.web_override_translations",
+        "rpc:usl.document.tag.rule.wizard.web_read_group",
+        "rpc:usl.document.tag.rule.wizard.web_resequence",
+        "rpc:usl.document.tag.rule.wizard.web_save",
+        "rpc:usl.document.tag.rule.wizard.web_save_multi",
+        "rpc:usl.document.tag.rule.wizard.web_save_offline",
+        "rpc:usl.document.tag.rule.wizard.write",
+        "rpc:usl.document.undo_classifier_batch",
+        "rpc:usl.paperless.tag.action_review_classifier_rule"
+      ],
+      "classification": "operational",
+      "consequence": "Changes the editor’s temporary form, the selected learned tag rule, or eligible tag links from one existing batch.",
+      "domain": "documents_and_communications",
+      "evidence_id": "document-classifier-review-2582",
+      "id": "operational.documents_and_communications.classifier_review_2582",
+      "rationale": "Tag editors can change or disable the rule. Batch undo retains later manual changes and checks current document authority for every write. Files and source contents are preserved.",
+      "reviewed_digests": {
+        "rpc:usl.document.tag.rule.wizard.action_save": "91ca7d689a82f4ec5c50c672512ee933dfe7b55e41848473dcbe9f462c45b353",
+        "rpc:usl.document.tag.rule.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.tag.rule.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.tag.rule.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.tag.rule.wizard.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+        "rpc:usl.document.tag.rule.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.tag.rule.wizard.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.tag.rule.wizard.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.tag.rule.wizard.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.tag.rule.wizard.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:usl.document.tag.rule.wizard.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+        "rpc:usl.document.tag.rule.wizard.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.tag.rule.wizard.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.tag.rule.wizard.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.tag.rule.wizard.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.tag.rule.wizard.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.tag.rule.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.tag.rule.wizard.web_save_offline": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+        "rpc:usl.document.tag.rule.wizard.write": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+        "rpc:usl.document.undo_classifier_batch": "d9e8ac7a8124445c1f1d210c5c1c920f7f526652b49156fea64c5de37940f505",
+        "rpc:usl.paperless.tag.action_review_classifier_rule": "8462aa7c9527a39e6ce7be17f3879c3ae276671a0dca30926b6175de8ed9601f"
+      }
     }
   ],
   "evidence_families": {
@@ -221867,6 +222026,14 @@
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_fresh_key_native_http_personal_search_and_group",
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_native_notification_render_keeps_authorship_and_owner_ceiling",
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_notification_render_boundary_context_and_values"
+      ]
+    },
+    "document-classifier-review-2582": {
+      "contract": "Show rules and history with current object permissions. Require the current tag editor to change a threshold; removing a batch preserves unrelated labels, manual edits and restricted documents.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_classifier_rule_is_optional_and_uses_the_tag_editors_rights",
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_classifier_history_and_batch_obey_current_document_scope",
+        "deploy/documents/paperless-ngx/tests/test_tag_review.py::TestReviewedClassifierTags.test_undo_only_this_batch_and_keep_native_parent_used_by_another_child"
       ]
     },
     "documents-batch-metadata-20261014": {

@@ -35,6 +35,7 @@ import { getDefaultConfig } from "@web/views/view";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import {DocumentPreview} from "@usl_documents/document_preview";
 
+import { ClassifierHistoryDialog } from "./classifier_history";
 import { DocumentBatchDialog } from "./document_batch";
 import { LinkedRecordPreview } from "./linked_record_preview";
 
@@ -1858,6 +1859,19 @@ export class DocumentsWorkspaceView extends Component {
             documentTypes: this.state.documentTypes,
             apply: (id, operation, ids) => this.rpc("usl.document", "apply_batch_archive_metadata", [[id], operation, ids]),
             refresh: () => this.refreshBatchMetadata(),
+        });
+    }
+
+    openClassifierHistory() {
+        const { id, name, can_edit: canEdit } = this.state.selected;
+        this.dialog.add(ClassifierHistoryDialog, {
+            documentName: name, canEdit,
+            history: () => this.rpc("usl.document", "classifier_tag_history", [[id]]),
+            documents: batch => this.rpc("usl.document", "classifier_batch_documents", [[id], batch]),
+            undo: (documentId, batch) => this.rpc("usl.document", "undo_classifier_batch", [[documentId], batch]),
+            refresh: async () => {
+                if (this.state.selected?.id === id) { await this.openDocumentById(id); }
+            },
         });
     }
 
