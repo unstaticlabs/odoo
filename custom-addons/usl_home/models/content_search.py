@@ -124,7 +124,7 @@ class HomeContentSearch(models.AbstractModel):
                 continue
             model_name, label = catalog[key]
             model = self.env[model_name].with_context(active_test=False)
-            domain = Domain("usl_search_text", "ilike", query) if model_name == "project.task" else readable_content_domain(model, query)
+            domain = Domain("usl_search_text", "ilike", query) if model_name in {"project.task", "project.project", "res.partner"} else readable_content_domain(model, query)
             records = model.search(domain, limit=limit + 1, offset=offset, order="id desc")
             rows = []
             for record in records[:limit]:

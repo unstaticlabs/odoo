@@ -5291,6 +5291,50 @@
       "xmlid": "usl_feedback.ir_cron_feedback_agent"
     },
     {
+      "digest": "5a26b78b8a2acbf1912cacbc493ad8c7dcf43585cc619c8092816d0c39c93af0",
+      "guards": [],
+      "key": "cron:usl_home.ir_cron_usl_index_contact_content",
+      "kind": "cron",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "672ea4ff05c503ebd86a3a5ed889bde2904195ec1c09e57669fdf864c88ce3db",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_home/data/project_contact_search_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_home.ir_cron_usl_index_contact_content"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_contact_content"
+    },
+    {
+      "digest": "09b7b4b72b98ae0929178b85cbc7af197da4eee33bb52ee2c2e9c2ddcb468dd9",
+      "guards": [],
+      "key": "cron:usl_home.ir_cron_usl_index_project_content",
+      "kind": "cron",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d4c7f0151e1869edf14c0937de66312148960419a1632eb9a36a8a3b9f8c8263",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_home/data/project_contact_search_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_home.ir_cron_usl_index_project_content"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_project_content"
+    },
+    {
       "digest": "bea333df56786d9130d9835dc2acd0420950fe45777181310044ac3bd5116e93",
       "guards": [],
       "key": "cron:usl_mattermost.ir_cron_push_cards",
@@ -881543,7 +881587,7 @@
         "rpc:res.company.with_prefetch",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "1120af2a7888d82287899ebfb5b281a8dee0684a80bc00314bb3dd3ebb85d261",
+      "digest": "09032f76e84a20ecdc6135e729bbcdcbcc1ddb7805cfc8554158afe123006139",
       "guards": [],
       "key": "rpc:project.project.create",
       "kind": "rpc",
@@ -881557,11 +881601,12 @@
         "sale_project",
         "usl_access_control",
         "usl_feedback",
+        "usl_home",
         "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c8861feab0aaf3d4c1e6e8f73783051a39d24761c1c95e0ad7b2a6d7a4330f53",
+      "runtime_digest": "fef0212ba1818542d459a2a5c901da446a9ae6976bbfef01afc43002e447d09a",
       "sinks": [
         "message_send",
         "orm_create",
@@ -881580,6 +881625,10 @@
         {
           "line": 25,
           "path": "custom-addons/usl_feedback/models/project_project.py"
+        },
+        {
+          "line": 28,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "line": 30,
@@ -881854,7 +881903,7 @@
       "delegates": [
         "rpc:project.project.get_property_definition"
       ],
-      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "digest": "53324e5aeba571cf1ca98889e7020b9d0c4213b5d625e1dd7a73db1f7aaad70a",
       "guards": [],
       "key": "rpc:project.project.formatted_read_grouping_sets",
       "kind": "rpc",
@@ -881862,11 +881911,12 @@
       "model": "project.project",
       "modules": [
         "base",
+        "usl_home",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "runtime_digest": "d0f816b00aa2bba0c127fc48cb6015c50c104e3979d60960db97e0f2adc8b1e5",
       "sinks": [
         "sudo"
       ],
@@ -881878,6 +881928,10 @@
         {
           "line": 699,
           "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 71,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "path": "odoo/addons/web/models/models.py"
@@ -883687,23 +883741,31 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "digest": "a67002da12611e0d823724843c2dddeb8eb62b62b546f4dd99b2fcdc0656664f",
       "guards": [],
       "key": "rpc:project.project.search_count",
       "kind": "rpc",
       "method": "search_count",
       "model": "project.project",
       "modules": [
-        "base"
+        "base",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "runtime_digest": "943f6e2d918a18eed7430e9c9cdf3ba6e716a7f8260c3d777d6f403791cdefed",
       "sinks": [],
       "sources": [
         {
           "line": 1387,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 61,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -887948,7 +888010,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "61f6aafe10ccc61c82dc38021de14d90b8974645f59435304147b18dae5961c6",
+      "digest": "3c3ce8f4d030aa2b4a458a068c382e18b71d78514b266be597d4494c6017ec7a",
       "guards": [],
       "key": "rpc:project.project.write",
       "kind": "rpc",
@@ -887963,12 +888025,13 @@
         "usl_access_control",
         "usl_documents",
         "usl_feedback",
+        "usl_home",
         "usl_mattermost",
         "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0a45d9d974993d14c1abad59190f44cfabf4f9ca0494ad034a2f8c75a37daa91",
+      "runtime_digest": "f335932f06fbdb24833379917435175298e3e87ae92e1036cf330dca40367e6e",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -887998,6 +888061,10 @@
         {
           "line": 30,
           "path": "custom-addons/usl_feedback/models/project_project.py"
+        },
+        {
+          "line": 33,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "line": 34,
@@ -888031,6 +888098,9 @@
         },
         {
           "path": "custom-addons/usl_feedback/models/project_project.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "path": "custom-addons/usl_mattermost/models/project.py"
@@ -898153,6 +898223,10 @@
           "path": "addons/project_sms/models/project_task.py"
         },
         {
+          "line": 24,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        },
+        {
           "line": 299,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
@@ -898175,10 +898249,6 @@
         {
           "line": 604,
           "path": "custom-addons/usl_access_control/models/base.py"
-        },
-        {
-          "line": 72,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
           "path": "decorators.py"
@@ -908572,7 +908642,6 @@
       "sinks": [
         "orm_create",
         "orm_write",
-        "raw_sql_mutation",
         "sudo"
       ],
       "sources": [
@@ -908597,6 +908666,10 @@
           "path": "addons/mail/models/mail_activity_mixin.py"
         },
         {
+          "line": 29,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        },
+        {
           "line": 327,
           "path": "custom-addons/usl_feedback/models/project_task.py"
         },
@@ -908619,10 +908692,6 @@
         {
           "line": 633,
           "path": "custom-addons/usl_access_control/models/base.py"
-        },
-        {
-          "line": 77,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
           "line": 99,
@@ -1142515,7 +1142584,7 @@
         "rpc:res.partner.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "5b17e05ef1120a113c3eae93bcea8f1d976db76a2809c3b53a80fbda26131c28",
+      "digest": "11b464cf4066dbf81f111ce9ed0eecc1d76e482acce6fd22883c8f8ccb59640a",
       "guards": [],
       "key": "rpc:res.partner.create",
       "kind": "rpc",
@@ -1142528,11 +1142597,12 @@
         "base_vat",
         "mail",
         "usl_access_control",
-        "usl_b2c"
+        "usl_b2c",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "1d4374e6b850e4a7d866ba72d7993c0fc034b89290d92879c79b6cde2aa8cfad",
+      "runtime_digest": "1371b42aee0746b90962a1e83aba8ff9a73d3335d0faa5731939bd568d5e503d",
       "sinks": [
         "message_send",
         "orm_create",
@@ -1142575,6 +1142645,10 @@
         {
           "line": 908,
           "path": "odoo/addons/base/models/res_partner.py"
+        },
+        {
+          "line": 94,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "line": 992,
@@ -1143202,7 +1143276,7 @@
       "delegates": [
         "rpc:res.partner.get_property_definition"
       ],
-      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "digest": "d3b6d783780980896fbc8fbac2be4fb95e66b0c0ce0776105d73936ccb7d5c26",
       "guards": [],
       "key": "rpc:res.partner.formatted_read_grouping_sets",
       "kind": "rpc",
@@ -1143210,15 +1143284,20 @@
       "model": "res.partner",
       "modules": [
         "base",
+        "usl_home",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "runtime_digest": "af76c17e34c2a9eac5d678398e6fb9ca0ca0579c8d96547bde11e698016fc7f1",
       "sinks": [
         "sudo"
       ],
       "sources": [
+        {
+          "line": 137,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        },
         {
           "line": 1648,
           "path": "odoo/orm/models.py"
@@ -1146795,23 +1146874,31 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "digest": "a67002da12611e0d823724843c2dddeb8eb62b62b546f4dd99b2fcdc0656664f",
       "guards": [],
       "key": "rpc:res.partner.search_count",
       "kind": "rpc",
       "method": "search_count",
       "model": "res.partner",
       "modules": [
-        "base"
+        "base",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "runtime_digest": "943f6e2d918a18eed7430e9c9cdf3ba6e716a7f8260c3d777d6f403791cdefed",
       "sinks": [],
       "sources": [
         {
+          "line": 127,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        },
+        {
           "line": 1387,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -1147532,7 +1147619,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "9b7f316a9250a37b40cc3ce80c2372e2442c29bf561eccc831736dbd9574c3fb",
+      "digest": "9957abb54ae9c7cb4a0124e53a696bf469ad3f61365e2e87979fb8bd6ca8772e",
       "guards": [],
       "key": "rpc:res.partner.write",
       "kind": "rpc",
@@ -1147547,11 +1147634,12 @@
         "snailmail",
         "usl_access_control",
         "usl_b2c",
-        "usl_documents"
+        "usl_documents",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "1602895d615fc95ee603f6857d95d55883505228b28354fab4122588a8abfd6e",
+      "runtime_digest": "823f38b2b7982d6856eab34c8ba1da052ae6691fbbbff648c30c2e619d9c60ac",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1147598,6 +1147686,10 @@
           "path": "odoo/addons/base/models/res_partner.py"
         },
         {
+          "line": 99,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        },
+        {
           "line": 998,
           "path": "addons/base_vat/models/res_partner.py"
         },
@@ -1147609,6 +1147701,9 @@
         },
         {
           "path": "custom-addons/usl_documents/models/business_record.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         },
         {
           "path": "odoo/addons/account/models/partner.py"
@@ -1424349,7 +1424444,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "1276894379ac289a5c58f7be745d64ce72fde2cb747a413fe6799e3c1291b8bc",
+      "digest": "b4ffce78d934d4aaa2706df0724e60094adeaf472f7faa7a4bc1a1a42ffaf7b5",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1424360,7 +1424455,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "22f6955dd8c89c8da2636ff3cc6c64963a085471f9fe8427afca887b74713c32",
+      "runtime_digest": "6c4053aa2106a9060dbf06d450599f89c9b54997294ae4124fec6d99ebfcefb9",
       "sinks": [],
       "sources": [
         {
@@ -1568165,6 +1568260,42 @@
       "xmlid": "usl_feedback.ir_cron_feedback_agent_ir_actions_server"
     },
     {
+      "digest": "57e8aa1d48d6f88155321441e5c1f86825f423277ecde4285a17e30abd4fd7e0",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "57e8aa1d48d6f88155321441e5c1f86825f423277ecde4285a17e30abd4fd7e0",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
+    },
+    {
+      "digest": "cbec7edd66ce4d0a27584accf90ab501af8cbb56d595a2cae8c038099f84139e",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "cbec7edd66ce4d0a27584accf90ab501af8cbb56d595a2cae8c038099f84139e",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_project_content_ir_actions_server"
+    },
+    {
       "digest": "ef483ad5c7c97a7202f1dd4a54c086d1011750eeedcdfbf58fb01d14b887aed8",
       "guards": [
         "guard:automation.server_action.execute"
@@ -1695481,7 +1695612,7 @@
       ]
     },
     {
-      "digest": "6565d9938b8f44662f7f0e4075f44f6584e370c1288fb66e43727aa47a4c9d64",
+      "digest": "b2874fa675629a01b39efa5bbebf4db60358f80a2334724fee107e09153896dd",
       "key": "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1695496,7 +1695627,7 @@
       ]
     },
     {
-      "digest": "ad38e846cb9a44e1c5858c525c9867deb9582bcf7ac85dc4fe8e7d8f05671ad3",
+      "digest": "e0d0e89cd32914518ecb7e6a368defb91a3430c978520b798acd993ee361ee7c",
       "key": "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1695747,6 +1695878,78 @@
         {
           "line": 149,
           "path": "custom-addons/usl_home/models/home_service.py"
+        }
+      ]
+    },
+    {
+      "digest": "01020e4f95bed51bf8ace79dc2b6ec7ed0a07ec7521b1683f4cfe34618196834",
+      "key": "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:project.project.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 28,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "f4234b3afdeb7311db81cf588e75260123958d5d85dc46fca9c7e6dcf6a0290e",
+      "key": "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:project.project.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 33,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "01020e4f95bed51bf8ace79dc2b6ec7ed0a07ec7521b1683f4cfe34618196834",
+      "key": "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:res.partner.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 94,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "f4234b3afdeb7311db81cf588e75260123958d5d85dc46fca9c7e6dcf6a0290e",
+      "key": "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:res.partner.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 99,
+          "path": "custom-addons/usl_home/models/project_contact_index.py"
         }
       ]
     },
@@ -1699219,6 +1699422,441 @@
       ]
     },
     {
+      "digest": "65ac8cd0c7b38fe4d853ed004486b1f59514881ae0e6ba1772cf1e85e5bab87c",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 176,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "6cbad30824ff00b86186aa2ca0c7ce97cac963b67531c2397f7e0e01380f59b8",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 176,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "0bc66ee1b6f0255536e2729d0bef0d2e5f78546dc1b01adc98549d0917268bd2",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 176,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "bc1b5f24f14153dc87d8d95b68f0fc923f5dce8b9dd3ee9d0becbc30beecd690",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "742c9d3547b34ea966f77f65294e76b8613a65ee4db7302ddc177bf503bcd707",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "a12e739b0352eae189c0e66f5a2fc6e818aa32dd58794d9e981909f2cc0ebaa9",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "a329bbc0978fd2d46113217bae61301c595f0c05dd6317d7a3bfdde5a57fa851",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "046f2993e586864bd70cc908883a7d2f42c5f127a95ee0dbdeb294240b94071d",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "6f80e80a1a1783f46dfc014e623843f7625b3fdd5f347a7c62ae5a2a5db330fa",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "42accd6a957f3f073d328bd37342ab80e937a72794e85c18fda6f2f0fe445238",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "102886179842d314ca9163a10d715ebc31c2892163041caca640af5e216fa363",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "6b75b26889f4b0a969c9c5745badf7b1ee9c574f2884f8fdce7b6083441fb506",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "4030fc17b4ee09a99e1f5314724251877ad7435360123caa9c933da237c7c474",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "3eb012aba29933a01334efde8118869b76df73bdad459e6ffe207f282067bb9a",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "a14a8a07ea6da6f82cb848fdebc7b6969b3850006b3ec4524ad61fb7179909d4",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "2c11142fbf46440771d70d2f7776e42b41327908f31b71fdaa08bf909cb412ae",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "77e0898b7f32153c6531626ef1372d2e006eab83568629b29f4d45311442fedc",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "ea1bdf1918baebc4407b8396c97f2531db21401e7c155390a1e3050a268f6742",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 52,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "7bf4a9c3fb587f8b63a81e53986fff8eba3442cf4f1590b4208478e4360a8cb1",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 194,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "fdae22101a356794c7d82c59ea2c54a5cfc2fd05f96e1e037dca7a78407bdb2d",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 194,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "491967e2339e7b2a72c19bdcf3b11f781c8d14b8b17791a6edfb3b3cab1f6793",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 194,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "afb5a1b151e4ae2ccaa013600e61de0dd21b83de1b6520c7100baa9f0aca9cba",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "9f52f9ca28e0afb030bcfd45b45b129f64a9e9f799eb4ea522f2c35fd63a8d47",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "5f4e127a6ab6fb744997e86860c274b9c21e18123135311063592dcce2d6a611",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "bb33ab569985afcc60ae554e1c6eaffb1d598688e857abd11b191b9840ae496a",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 212,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "020229d673b610b0902f3c03307751c486fcf37f74b87426aa74811893b2ebc6",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 212,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "7a115201aa2e70fa6d989a593df6c0181eba0cd0552541624a5862b3c7296dfc",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 185,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "4729196280ad8700b19cf2057b3a45f63da8e64d9833f75f33718f2832d1aa85",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 185,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "5749ce9e92bf8f54d1d8d0dba465499fbb70f410954c5fdd92c574473964797a",
+      "key": "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 185,
+          "path": "custom-addons/usl_project/models/content_index.py"
+        }
+      ]
+    },
+    {
       "digest": "02161f2e9d700e4b618b44f2c4e9b36164b19567d147f7751fec5d5bc1ee64ba",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_project.py:project.project._usl_complete_task_stages:orm_create:1",
       "kind": "sink",
@@ -1699834,81 +1700472,6 @@
       ]
     },
     {
-      "digest": "a7deba55e6bcc14f4772f25107a6184b67923b06656776c9c2a2c6324734cd27",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 84,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "2aed4d84343690841e157a535082d0956691ce82f20048f5bce4ecaf4f0d6042",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 84,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "586da0f08938668707b04688c22dfabe8133f4f04f0e33ea5ea6f514cb511fc5",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 84,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "9667852f91c18b1c142d24f9494d0f0143672af4042be83dd52f8d90ef05d537",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 57,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "cdc00f199ba722cbf33a29b5e97019365cce26ccd99d412ae2ba8ccc1a0de5ad",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 57,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
       "digest": "a4a012cf49f1434ee5bfa61243bcddf2938058a8fcc783e516feeeb9590c5f5b",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1",
       "kind": "sink",
@@ -1699921,97 +1700484,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 72,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "47a5d59deed4eb51428c85a2dabbf7d28b27250bb9db75c3c27f0225ea907f03",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "parents": [
-        "rpc:project.task.init"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 20,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "ccb35a87b3b55975215ca50b349fa6d623f85151d1087895a08c6987e5a1c366",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "parents": [
-        "rpc:project.task.init"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 20,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "a40d49525e5dba41c88ce25aa9e0218c629d936397820c28e9c65e496b18b248",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "parents": [
-        "rpc:project.task.init"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 20,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "3322ae1ef075b13ec17fab85d5f48144487653110ee03d17f2d56e13b6cb7190",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "parents": [
-        "rpc:project.task.init"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 20,
-          "path": "custom-addons/usl_project/models/task_lexical_index.py"
-        }
-      ]
-    },
-    {
-      "digest": "6813c7816d48689c01c68c72257c9c79443d8b541124265fe65df4372dd501d3",
-      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5",
-      "kind": "sink",
-      "modules": [
-        "usl_project"
-      ],
-      "parents": [
-        "rpc:project.task.init"
-      ],
-      "sink_kind": "raw_sql_mutation",
-      "sources": [
-        {
-          "line": 20,
+          "line": 24,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1700029,7 +1700502,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 77,
+          "line": 29,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1763293,6 +1763766,44 @@
     },
     {
       "delegates": [
+        "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
+      ],
+      "digest": "2d00dd53d6d76c0c89358f10859b399a8379f3aeefc521cf517010933eed504b",
+      "key": "ui:usl_home.ir_cron_usl_index_contact_content_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "2d00dd53d6d76c0c89358f10859b399a8379f3aeefc521cf517010933eed504b",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
+    },
+    {
+      "delegates": [
+        "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
+      ],
+      "digest": "b186aefab49cb223c7829c93c24bfd2c4d9a0ce7bf729b21b662c793980030b9",
+      "key": "ui:usl_home.ir_cron_usl_index_project_content_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "b186aefab49cb223c7829c93c24bfd2c4d9a0ce7bf729b21b662c793980030b9",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_home.ir_cron_usl_index_project_content_ir_actions_server"
+    },
+    {
+      "delegates": [
         "rpc:res.company.action_use_automatic_usl_ui_theme_color"
       ],
       "digest": "a488df27ba9e4326e39f71d47a432223c95e4adcf207df137b3e7e90cb3df0b4",
@@ -1768884,11 +1769395,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "93b74ae9c3a56f15e5908d6642d2d04929ca18d9f162b73fce0afce893a07755",
+      "manifest_sha256": "6041ae40b62a2899d5159c7ba5043c71d5b375c69930feb2f7a76332cf5082ef",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "5cc770fc9eed9d8437e4866b0d1b21ebf3f3707c668130eefad85ad33b50d316",
-      "version": "saas~19.3.1.0.13"
+      "source_sha256": "33ae0ad114d6ae92394fcfea5537e2f73f26a2bde51e6cb45958a44345487ad1",
+      "version": "saas~19.3.1.0.14"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",
@@ -1768926,11 +1769437,11 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "72d935fb7d192e9fbd92a2de9d958a9dc3643c86006a9dfd9e485e501d7f3f58",
+      "manifest_sha256": "117ecf52bb071a0f9efb33f80b89ebe69f0fb4c64b190542ff6c3639e17f9bf8",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "8d801a587fa5e540c2f39ab735b85dba16b496418cd482a0802bc2bb6905a5d7",
-      "version": "saas~19.3.1.0.22"
+      "source_sha256": "28f2b6de567daea3ca984df32676491bc07c5e2ce11aea5ec1d0279b02681d40",
+      "version": "saas~19.3.1.0.23"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",

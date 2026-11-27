@@ -2775,6 +2775,14 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server",
+      "classification": "operational"
+    },
+    {
+      "action_key": "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:usl_mattermost.ir_cron_push_cards_ir_actions_server",
       "classification": "operational"
     },

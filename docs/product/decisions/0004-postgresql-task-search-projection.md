@@ -70,3 +70,19 @@ derived, rebuildable data; they are not an audit log or a new source of truth.
 - Refresh projections while searching. This reduces visible indexing lag but
   makes ordinary read-only searches mutate state and couples response latency to
   rebuilding, so it is excluded.
+
+## Extension: projects and contacts (2026-11-27)
+
+The next dependent slice shares a private Python-inherited Odoo mixin across tasks,
+projects and contacts while preserving separate source tables and native foreign
+keys. Task table names and schema remain unchanged. A project title is natively
+translated, so its fragments carry a language and apply Odoo's current-language
+and missing-translation English fallback. Contact names and notes retain their
+native storage. This prevents a match from an unavailable title translation
+without introducing an external engine or a public projection model. The
+existing Name and email controls remain alongside the new Content choice.
+
+The mixin uses Odoo’s `_register=False` mechanism and declares only private
+helpers. It adds no registry model or table. Mutation SQL keeps explicit targets
+for the three sources so the existing action inventory retains every sink;
+sharing implementation must not silently retire those review bindings.

@@ -1027,3 +1027,41 @@ msgstr "Cette destination de recherche n’est pas disponible."
 #: code:addons/usl_home/static/src/project_search/project_search.js:0
 msgid "This record is no longer available in your selected companies."
 msgstr "Cet enregistrement n’est plus disponible dans les sociétés sélectionnées."
+
+#. module: usl_home
+#: model:ir.cron,cron_name:usl_home.ir_cron_usl_index_project_content
+msgid "Projects: refresh search index"
+msgstr "Projets : actualiser l’index de recherche"
+
+#. module: usl_home
+#: model:ir.cron,cron_name:usl_home.ir_cron_usl_index_contact_content
+msgid "Contacts: refresh search index"
+msgstr "Contacts : actualiser l’index de recherche"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_project_project__usl_search_text
+msgid "Project content"
+msgstr "Contenu du projet"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_res_partner__usl_search_text
+msgid "Contact content"
+msgstr "Contenu du contact"
+
+#. module: usl_home
+#: model_terms:ir.ui.view,arch_db:usl_home.view_project_content_search
+#: model_terms:ir.ui.view,arch_db:usl_home.view_contact_content_search
+msgid "Content"
+msgstr "Contenu"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/project_contact_index.py:0
+msgid "Use a text search for project content."
+msgstr "Utilisez une recherche textuelle dans le contenu du projet."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/project_contact_index.py:0
+msgid "Use a text search for contact content."
+msgstr "Utilisez une recherche textuelle dans le contenu du contact."

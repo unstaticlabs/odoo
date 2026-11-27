@@ -27,6 +27,7 @@ Numbered decision records live in [`decisions/`](decisions/README.md).
 - [B2C sales, products and inventory](b2c-sales-inventory.md)
 - [Work management](work-management.md)
 - [Task content search](task-search.md)
+- [Project and contact content search](project-contact-search.md) — native Content filters, language fallback and refresh recovery.
 - [Find work by its contents](live-content-search.md)
 - [System boundaries](system-boundaries.md)
 - [Pocket ID SSO architecture](pocket-id-sso.md)

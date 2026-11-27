@@ -1,4 +1,5 @@
 from odoo import Command
+from odoo.tools import SQL
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -133,10 +134,14 @@ class TestTaskLexicalIndex(TransactionCase):
         execute = self.env.cr.execute
         self.env.flush_all()
         def readonly(query, *args, **kwargs):
-            code = query.code if hasattr(query, "code") else query
+            code = query._sql_tuple[0] if isinstance(query, SQL) else query
             self.assertNotRegex(str(code).lstrip().upper(), r"^(INSERT|UPDATE|DELETE|CREATE|ALTER|DROP)\b")
             return execute(query, *args, **kwargs)
+        self.env.flush_all()  # Complete fixture writes before the read-only phase.
         with patch.object(self.env.cr, "execute", readonly):
+            for statement in ("UPDATE usl_task_search_queue SET queued_at = queued_at WHERE FALSE", SQL("UPDATE usl_task_search_queue SET queued_at = queued_at WHERE FALSE")):
+                with self.assertRaises(AssertionError):
+                    self.env.cr.execute(statement)
             self.assertEqual(self._search("heliograph Amber"), task)
 
     def test_postgresql_lexical_index_is_usable(self):
