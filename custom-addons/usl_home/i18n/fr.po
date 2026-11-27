@@ -1105,3 +1105,27 @@ msgstr "Saisissez une recherche non vide de 2 048 caractères au maximum pour tr
 #: model:ir.model.fields,help:usl_home.field_res_partner__usl_search_text
 msgid "Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged."
 msgstr "Utilisez un domaine de contenu ilike. Pour la pertinence de l’accueil, triez par usl_search_text et renseignez search_relevance_query avec le même texte. Les autres tris natifs restent inchangés."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Note"
+msgstr "Note"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Note · %s"
+msgstr "Note · %s"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Subject of a message"
+msgstr "Sujet d’un message"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Subject of a message · %s"
+msgstr "Sujet d’un message · %s"

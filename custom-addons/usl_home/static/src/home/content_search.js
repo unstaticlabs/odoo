@@ -2,6 +2,54 @@ import { Component, onMounted, onWillUnmount, onWillUpdateProps, useRef, useStat
 import { useService } from "@web/core/utils/hooks";
 import { useSetupAction } from "@web/search/action_hook";
 import { _t } from "@web/core/l10n/translation";
+import { router } from "@web/core/browser/router";
+import { deserializeDateTime, formatDate } from "@web/core/l10n/dates";
+import { sprintf } from "@web/core/utils/strings";
+
+/** Fold one character like the server does for matching: no case, no accent. */
+function foldChar(char) {
+    const base = char.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    return base.length === 1 ? base : char;
+}
+
+/**
+ * Split plain text into segments, flagging the ones that match a query word.
+ * The result is rendered as text nodes, never as HTML.
+ */
+export function highlightParts(text, query) {
+    const value = String(text || "");
+    const terms = [...new Set(String(query || "").split(/[^\p{L}\p{N}]+/u).filter(Boolean))]
+        .map((term) => [...term].map(foldChar).join(""));
+    if (!value || !terms.length) {
+        return [{ text: value, match: false }];
+    }
+    const chars = [...value];
+    const owner = [];
+    let folded = "";
+    chars.forEach((char, index) => {
+        const piece = foldChar(char);
+        folded += piece;
+        owner.push(...new Array(piece.length).fill(index));
+    });
+    const marked = new Array(chars.length).fill(false);
+    for (const term of terms) {
+        for (let at = folded.indexOf(term); at >= 0; at = folded.indexOf(term, at + term.length)) {
+            for (let unit = at; unit < at + term.length; unit++) {
+                marked[owner[unit]] = true;
+            }
+        }
+    }
+    const parts = [];
+    chars.forEach((char, index) => {
+        const last = parts.at(-1);
+        if (last && last.match === marked[index]) {
+            last.text += char;
+        } else {
+            parts.push({ text: char, match: marked[index] });
+        }
+    });
+    return parts;
+}
 
 export class HomeContentSearch extends Component {
     static template = "usl_home.ContentSearch";
@@ -54,6 +102,23 @@ export class HomeContentSearch extends Component {
             records.set(this.resultKey(record), record);
         }
         return [...records.values()];
+    }
+
+    excerptParts(record) {
+        return highlightParts(record.excerpt, this.state.query);
+    }
+
+    sourceLabel(source) {
+        const author = source.author_name || "";
+        const date = source.date ? formatDate(deserializeDateTime(source.date)) : "";
+        const who = [author, date].filter(Boolean).join(" · ");
+        if (source.message_kind === "subject") {
+            return who ? sprintf(_t("Subject of a message · %s"), who) : _t("Subject of a message");
+        }
+        if (source.message_kind === "note") {
+            return who ? sprintf(_t("Note · %s"), who) : _t("Note");
+        }
+        return who || source.label;
     }
 
     resultDomId(record) {
@@ -197,6 +262,13 @@ export class HomeContentSearch extends Component {
                 args.push(record.source.id, record.source.field);
             }
             const action = await this.orm.call("usl.home.service", "get_search_result_action", args);
+            const highlight = action.usl_highlight_message_id;
+            delete action.usl_highlight_message_id;
+            if (highlight) {
+                // The form's chatter reads this when it mounts, as it does for a
+                // /mail/message link, but the web client stays loaded.
+                router.current.highlight_message_id = highlight;
+            }
             await this.action.doAction(action);
         } catch {
             this.notification.add(_t("This record could not be opened. Refresh the search and try again."), { type: "warning" });
