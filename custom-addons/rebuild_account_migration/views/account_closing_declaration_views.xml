@@ -614,7 +614,7 @@
         <field name="arch" type="xml">
             <list create="false" delete="false" decoration-danger="readiness_status == 'blocked'" decoration-warning="readiness_status == 'warning'" decoration-success="state in ['closed', 'archived']">
                 <field name="date_to"/>
-                <field name="name"/>
+                <field name="display_name" string="Period Title"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <field name="period_type"/>
                 <field name="state" widget="badge"
@@ -659,7 +659,7 @@
                         </button>
                     </div>
                     <widget name="web_ribbon" title="Blocked" bg_color="text-bg-danger" invisible="readiness_status != 'blocked'"/>
-                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <div class="oe_title"><h1><field name="review_title" required="1"/></h1></div>
                     <group>
                         <group>
                             <field name="company_id" options="{'no_create': True}"/>
