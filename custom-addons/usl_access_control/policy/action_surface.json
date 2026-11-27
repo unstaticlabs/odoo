@@ -965483,7 +965483,7 @@
       ],
       "sources": [
         {
-          "line": 737,
+          "line": 772,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965528,7 +965528,7 @@
           "path": "custom-addons/usl_access_control/models/protected_models.py"
         },
         {
-          "line": 618,
+          "line": 653,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965567,7 +965567,7 @@
       ],
       "sources": [
         {
-          "line": 579,
+          "line": 614,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965582,7 +965582,7 @@
       "delegates": [
         "rpc:rebuild.account.closing.period.ensure_one"
       ],
-      "digest": "b6468994777440bd84f23028e484d7c998ecb25b00f9269c64c5b9d68c563857",
+      "digest": "1f21aa8c074d7d3d5b6dbf999ec04e4e3a7a1050f559e874aefb7a951cc4dbdd",
       "guards": [],
       "key": "rpc:rebuild.account.closing.period.action_open_closing_package",
       "kind": "rpc",
@@ -965593,11 +965593,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a88ad1a8523d7f65a9fc8dcd05d8a99f7ecec732a982e12a310f8808aa9c59e1",
+      "runtime_digest": "b3e0ee8499ed88d55bb56e7e004d4f3e93c168fcf7a77cd825f102e79a4c7313",
       "sinks": [],
       "sources": [
         {
-          "line": 673,
+          "line": 708,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965630,7 +965630,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 773,
+          "line": 808,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965702,7 +965702,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 762,
+          "line": 797,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965738,7 +965738,7 @@
       ],
       "sources": [
         {
-          "line": 562,
+          "line": 597,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965771,7 +965771,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 594,
+          "line": 629,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965804,7 +965804,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 437,
+          "line": 472,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -965837,7 +965837,7 @@
       ],
       "sources": [
         {
-          "line": 567,
+          "line": 602,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -967047,7 +967047,8 @@
         "rpc:account.move.search",
         "rpc:rebuild.account.closing.period.browse",
         "rpc:rebuild.account.closing.period.create",
-        "rpc:rebuild.account.closing.period.search"
+        "rpc:rebuild.account.closing.period.search",
+        "rpc:rebuild.account.closing.period.with_context"
       ],
       "digest": "26d9c9dd30c92eb0024a165048de8b90727b137f3f6abc8342184fa664d5142a",
       "guards": [],
@@ -967067,7 +967068,7 @@
       ],
       "sources": [
         {
-          "line": 373,
+          "line": 374,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -967076,7 +967077,8 @@
       ],
       "transient": false,
       "unresolved_delegates": [
-        "rpc:rebuild.account.closing.period.browse"
+        "rpc:rebuild.account.closing.period.browse",
+        "rpc:rebuild.account.closing.period.with_context"
       ]
     },
     {
@@ -967534,7 +967536,7 @@
           "path": "custom-addons/usl_documents/models/business_record.py"
         },
         {
-          "line": 356,
+          "line": 357,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -967769,7 +967771,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 855,
+          "line": 890,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -968837,7 +968839,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 924,
+          "line": 959,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -969261,7 +969263,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 918,
+          "line": 953,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         },
         {
@@ -1649768,7 +1649770,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 692,
+          "line": 727,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649783,7 +1649785,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 692,
+          "line": 727,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649798,13 +1649800,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 444,
+          "line": 479,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
     },
     {
-      "digest": "aa43b11a01cdc0c690a1932f0873c81722243bc85f7da2cee45fa5b8ea31a4dd",
+      "digest": "46c83c92629dc74139344cf5c77cab21613e5656b85ee4e81f5e0f942c31cc85",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1649813,13 +1649815,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 410,
+          "line": 453,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
     },
     {
-      "digest": "d726f0407f0b8a2381f0583e2d02f16868a39e131898ccce274b26c8c6a62c7a",
+      "digest": "c5c109657a7fa1602bfca0d5c06aa22d4fc21171916d9c0c107a37642ad207c8",
       "key": "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1649828,7 +1649830,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 410,
+          "line": 453,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649849,7 +1649851,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 618,
+          "line": 653,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649870,7 +1649872,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 618,
+          "line": 653,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649888,7 +1649890,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 579,
+          "line": 614,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649906,7 +1649908,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 562,
+          "line": 597,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649924,7 +1649926,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 567,
+          "line": 602,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649942,7 +1649944,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 356,
+          "line": 357,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1649960,7 +1649962,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 855,
+          "line": 890,
           "path": "custom-addons/rebuild_account_migration/models/closing.py"
         }
       ]
@@ -1770208,11 +1770210,11 @@
       "version": "1.1"
     },
     {
-      "manifest_sha256": "9393ff607f21a70e8217ed02c4f2e55dd9e13836e5893d26c805034fa520e8d9",
+      "manifest_sha256": "5dad0f89809c84eec3968354b04dd0d03eeca519a0c7232f87e903c72807ec1d",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "f5deac612259b0d678125d1a88c614c7637704e1e6e6ee2e2692d7def15185f5",
-      "version": "saas~19.3.1.13.55"
+      "source_sha256": "9957717a61720e1c94e4c4a0d8930d2f6d0e38fd80f739e12890d21e8f542efc",
+      "version": "saas~19.3.1.13.57"
     },
     {
       "manifest_sha256": "a3a8024b1226ef713cc665c6c804362fd897338a958493f6d860b650e62eae30",
