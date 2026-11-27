@@ -1762108,7 +1762108,7 @@
       "delegates": [
         "rpc:usl.bill.company.transfer.action_apply"
       ],
-      "digest": "705ac542744ef24df9f8f52cc479c8d1fea1fe719d8408fcc9a49258fe065c20",
+      "digest": "fb3abbafcaa9a2b2f3245055d2c38ca9932262f522203234a6ac10b040faa2f6",
       "guards": [],
       "key": "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1",
       "kind": "ui",
@@ -1762117,7 +1762117,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f478373cc700be8831ca8b1e8ba6f4898bc46c767d29045e5d8aa111f9d4f2a7",
+      "runtime_digest": "74c66827c2d3f53ac441222eb1e3a260c42584d75b1ae0035bcb3f04547b8bb9",
       "sinks": [],
       "sources": [
         {
@@ -1772430,7 +1772430,7 @@
       "manifest_sha256": "13f99ef6d91bd5009a9be3a56c470e62c7041a5388244e7d588332fad104f00c",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "108419679de58c62d6357525396e7fe413db887983f0e2337b08537cb9cd3940",
+      "source_sha256": "a7b45cee651d19e6e75d7a7380e855627982b8fa9fecd4b8ed1361c3f5677400",
       "version": "saas~19.3.2.2.24"
     },
     {

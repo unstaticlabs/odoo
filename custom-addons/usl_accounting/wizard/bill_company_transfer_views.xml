@@ -70,7 +70,8 @@
                 <p class="text-muted mt-3 mb-0"><field name="consequences" nolabel="1"/></p>
                 <footer>
                     <button name="action_prepare_mapping" type="object" string="Review accounts" class="btn-primary" invisible="stage != 'choose'"/>
-                    <button name="action_apply" type="object" string="Transfer draft" class="btn-primary" invisible="stage != 'map'"/>
+                    <button name="action_apply" type="object" string="Transfer draft" class="btn-primary" invisible="stage != 'map'"
+                            help="Move this draft to the destination company using the journal, accounts and taxes you reviewed."/>
                     <button name="action_choose_company" type="object" string="Back" class="btn-secondary" invisible="stage != 'map'"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>

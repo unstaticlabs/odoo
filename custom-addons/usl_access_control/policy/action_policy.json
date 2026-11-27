@@ -222064,7 +222064,7 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:orm_create:1": "1a8ed4262374c2dd0e3fbc7c7b52e22bbdcabf3c247e478f1e50f158913f8c99",
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.write:orm_write:1": "3fc09319caddd287b63c0d6aeb6df9d285abf8f194478ad2d423d9d490eb33f4",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._reconcile_paperless_permissions_at_transaction_end:orm_write:1": "210cae1a9eee2f33188ae90679262a974ddf7b9bf43f4be024b0f99fc3166b80",
-        "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1": "705ac542744ef24df9f8f52cc479c8d1fea1fe719d8408fcc9a49258fe065c20",
+        "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1": "fb3abbafcaa9a2b2f3245055d2c38ca9932262f522203234a6ac10b040faa2f6",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_choose_company:1": "6c6ef9ee8bf61d54cde09eeb44fa494bab48be174a518aa95877a5d7c9e6cefc",
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1": "6e7790880284ed52387a8cfc7d6afb3717bd25840902fb49317d1156f8bb146b",
         "ui:usl_accounting.view_move_form_bill_company_transfer:button:object:action_change_bill_company:1": "2bcc65aee9f3215fc0c5c2e2bec2240bce6d270e8dde980cb4bdefa0285881a7"

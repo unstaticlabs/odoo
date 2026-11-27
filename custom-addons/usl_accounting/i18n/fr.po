@@ -8508,3 +8508,8 @@ msgstr "Choisissez la position fiscale de destination ou sélectionnez « Sans p
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__remove_fiscal_position
 msgid "Use no fiscal position"
 msgstr "Sans position fiscale"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+msgid "Move this draft to the destination company using the journal, accounts and taxes you reviewed."
+msgstr "Transfère ce brouillon vers la société de destination avec le journal, les comptes et les taxes que vous avez vérifiés."
