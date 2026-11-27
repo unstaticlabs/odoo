@@ -2824,6 +2824,48 @@ for (const dismissal of ["close", "back"]) {
         expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe(null);
     });
 }
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} while the access refresh is still running keeps a readable document and its route`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        let refreshing = false;
+        let release;
+        const gate = new Promise((resolve) => { release = resolve; });
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+        onRpc("usl.document", "document_detail", async () => {
+            if (refreshing) {
+                await gate;
+            }
+            return { ...document, archive_available: false, links: [link], versions: [] };
+        });
+        onRpc("usl.document", "action_open_linked_record", () => {
+            refreshing = true;
+            throw makeServerError({ type: "AccessError" });
+        });
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        // The drawer is cleared while the refresh waits for the document.
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        release();
+        await animationFrame();
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(1);
+        expect(browser.history.state?.trapState).not.toBe(true);
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe("620");
+    });
+}
+
 
 test.tags("desktop");
 test("returning from an opened linked record scrolls the linked records into view", async () => {

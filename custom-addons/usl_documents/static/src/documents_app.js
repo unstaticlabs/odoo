@@ -1561,18 +1561,13 @@ export class DocumentsWorkspaceView extends Component {
             String(versionId || "") === String(previewHistory.versionId || "") &&
             (previewHistory.open || previewHistory.awaitingReturn)
         ) {
-            if (this.state.selected?.id !== previewHistory.documentId) {
+            const documentOpen = this.state.selected?.id === previewHistory.documentId;
+            if (!documentOpen && !this.linkedAccessRefresh) {
                 // The access refresh could not reopen the document, so the
                 // user may no longer read it. Do not hide this return: leave
                 // the list as the only entry and drop the document route.
                 this.previewHistory = null;
-                this.cancelHistoryBack();
-                this.closingDetail = false;
-                this.hasLocalListHistory = false;
-                this.clearDetailState();
-                this.writeNavigationState("replace");
-                this.persistState();
-                this.restoreScroll();
+                this.dropDocumentRoute();
                 return;
             }
             // Back dismisses the preview first. The native dialog's X also
@@ -1580,6 +1575,16 @@ export class DocumentsWorkspaceView extends Component {
             previewHistory.returned = true;
             if (!previewHistory.open && !browser.history.state?.trapState) {
                 this.previewHistory = null;
+            }
+            if (!documentOpen) {
+                // The drawer is cleared only while that refresh runs. Keep the
+                // route until it says whether the document is still readable.
+                const dropIfDenied = () => {
+                    if (!this.state.selected) {
+                        this.dropDocumentRoute();
+                    }
+                };
+                this.linkedAccessRefresh.then(dropIfDenied, dropIfDenied);
             }
             return;
         }
@@ -1622,6 +1627,16 @@ export class DocumentsWorkspaceView extends Component {
         this.closingDetail = false;
         this.hasLocalListHistory = true;
         await this.openDocumentById(documentId, versionId);
+    }
+
+    dropDocumentRoute() {
+        this.cancelHistoryBack();
+        this.closingDetail = false;
+        this.hasLocalListHistory = false;
+        this.clearDetailState();
+        this.writeNavigationState("replace");
+        this.persistState();
+        this.restoreScroll();
     }
 
     clearWorkspaceRouteState() {
@@ -3559,7 +3574,21 @@ export class DocumentsWorkspaceView extends Component {
         });
     }
 
-    async refreshAfterLinkedAccessChange(documentId) {
+    refreshAfterLinkedAccessChange(documentId) {
+        // Remember the refresh in flight: while it runs the drawer is cleared
+        // on purpose, which must not be read as the user losing the document.
+        const refresh = this.runLinkedAccessRefresh(documentId);
+        this.linkedAccessRefresh = refresh;
+        const settle = () => {
+            if (this.linkedAccessRefresh === refresh) {
+                this.linkedAccessRefresh = null;
+            }
+        };
+        refresh.then(settle, settle);
+        return refresh;
+    }
+
+    async runLinkedAccessRefresh(documentId) {
         // The list, facets and open drawer may all contain the old link title.
         // Rebuild them with the user's current grants, including document access.
         const restoreDrawer = this.state.selected?.id === documentId;
