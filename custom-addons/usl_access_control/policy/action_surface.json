@@ -3108,11 +3108,11 @@
       ],
       "sources": [
         {
-          "line": 362,
+          "line": 364,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         },
         {
-          "line": 395,
+          "line": 397,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3130,7 +3130,7 @@
       ],
       "sources": [
         {
-          "line": 294,
+          "line": 296,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3148,7 +3148,7 @@
       ],
       "sources": [
         {
-          "line": 345,
+          "line": 347,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -3166,7 +3166,7 @@
       ],
       "sources": [
         {
-          "line": 231,
+          "line": 233,
           "path": "custom-addons/usl_home/static/src/home/home.js"
         }
       ]
@@ -902670,7 +902670,7 @@
       "delegates": [
         "rpc:project.task.with_context"
       ],
-      "digest": "486bbb58a85b8a626d1015c3b60e02ad9afcc23f65f489e432877dba048a4db5",
+      "digest": "c5b5d3f6743a1203a852b1c0a1b356a049910919c904b484e7b2d73493d02dbe",
       "guards": [],
       "key": "rpc:project.task.search_by_meaning",
       "kind": "rpc",
@@ -902681,7 +902681,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "59e8676ed4ab78837426ec915fd9137029352b9c3725e658902cc7c3fc64c7ab",
+      "runtime_digest": "4a5aa2cbf68de3a5e141abca8d63b8bb1910d87bbdd9227dbeeb5c1c1fef881d",
       "sinks": [],
       "sources": [
         {
@@ -1425379,7 +1425379,7 @@
         "rpc:rebuild.account.overview.search",
         "rpc:usl.home.favorite.search"
       ],
-      "digest": "14820167fe40b77a5c5838a02a20771f0bcd30e417cc86de249fcacde4539192",
+      "digest": "5187bec46aaf633b3d3f777fa647f7e5167701b6e4ffedc3dc293818b539a3ea",
       "guards": [],
       "key": "rpc:usl.home.service.get_configuration",
       "kind": "rpc",
@@ -1425390,7 +1425390,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "941dc92682231eaef9b890df6692ae699886829f3f1589a3c52cf588597793c6",
+      "runtime_digest": "052a11485627453cbaee4359f734e734a55851658f78e338e810143e5debc4c6",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1425402,7 +1425402,14 @@
           "path": "custom-addons/usl_home/models/home_service.py"
         },
         {
+          "line": 222,
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        },
+        {
           "path": "custom-addons/usl_home/models/home_service.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/task_semantics.py"
         }
       ],
       "transient": false
@@ -1698284,7 +1698291,7 @@
       ]
     },
     {
-      "digest": "ee068d7e2ec887c7a8b2acdbbd08cd38e1d2bc9cae7fa9b47724c23a3653bcd7",
+      "digest": "d8e27c37845423db9caf8e7a26221b1eb92438529446bae0e3e2faf82f21adeb",
       "key": "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1",
       "kind": "sink",
       "modules": [
@@ -1771897,10 +1771904,10 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "ca724d7ede5c5f055a8b6d6a63eada0cb03c676ed56e90252c15779f8fa6142f",
+      "manifest_sha256": "cc385516327b4a32f201eafe151a2b8739f64b432a804c1719e8d401dcd2b54c",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "725285637419d3c0b6d4012579fccde9113f476c1f2d5bee3375b658b9f6daff",
+      "source_sha256": "89dddc49d7a1fb104b805a6147eb6f1b66ecbc574b074c8e7f555e4f8713c4d4",
       "version": "saas~19.3.1.0.18"
     },
     {

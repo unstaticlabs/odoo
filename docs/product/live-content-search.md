@@ -176,7 +176,7 @@ installed, upgrade `usl_home`, then enable `USL_TASK_SEMANTIC_SEARCH=1` with the
 same Ollama endpoint, model and manifest digest used by Documents. The service
 checks the model identity before sending text, and remembers that check for five
 minutes in each worker, so a search makes one HTTP call. The background job indexes
-the first 2,048 characters of the title and the original description, up to 16 tasks
+the first 2,048 characters of the title and the original description, up to 48 tasks
 each minute; a task with only a title is found too. The vector sits on the task's
 title fragment. Edits immediately remove stale suggestions until the task is indexed
 again. Changing the model starts a fresh pass. The reader's current task and field

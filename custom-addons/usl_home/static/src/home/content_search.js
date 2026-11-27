@@ -57,7 +57,7 @@ export function highlightParts(text, query) {
 
 export class HomeContentSearch extends Component {
     static template = "usl_home.ContentSearch";
-    static props = { query: { type: String, optional: true }, revision: Number };
+    static props = { query: { type: String, optional: true }, revision: Number, meaningSearch: { type: Boolean, optional: true } };
 
     setup() {
         this.orm = useService("orm");
@@ -173,7 +173,7 @@ export class HomeContentSearch extends Component {
 
     /** Two words, or one long enough to carry a meaning. */
     asksMeaning(query) {
-        return !this.meaningDisabled && (query.split(/\s+/).filter(Boolean).length >= 2 || query.length >= 8);
+        return this.props.meaningSearch === true && !this.meaningDisabled && (query.split(/\s+/).filter(Boolean).length >= 2 || query.length >= 8);
     }
 
     inputChanged(event) {

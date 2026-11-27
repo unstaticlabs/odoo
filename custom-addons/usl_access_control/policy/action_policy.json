@@ -147634,7 +147634,7 @@
         "rpc:usl.home.service.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:usl.home.service.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:usl.home.service.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
-        "rpc:usl.home.service.get_configuration": "14820167fe40b77a5c5838a02a20771f0bcd30e417cc86de249fcacde4539192",
+        "rpc:usl.home.service.get_configuration": "5187bec46aaf633b3d3f777fa647f7e5167701b6e4ffedc3dc293818b539a3ea",
         "rpc:usl.home.service.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.home.service.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
         "rpc:usl.home.service.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
@@ -222333,7 +222333,7 @@
       "id": "read_only.work_management.task_meaning.rpc",
       "rationale": "Returns the current reader’s accessible task descriptions and titles, ranked after native record rules and source field checks; the pinned local inference service reads the explicit query.",
       "reviewed_digests": {
-        "rpc:project.task.search_by_meaning": "486bbb58a85b8a626d1015c3b60e02ad9afcc23f65f489e432877dba048a4db5"
+        "rpc:project.task.search_by_meaning": "c5b5d3f6743a1203a852b1c0a1b356a049910919c904b484e7b2d73493d02dbe"
       }
     },
     {
@@ -222414,7 +222414,7 @@
       },
       "rationale": "Initializes optional derived storage, updates it in bounded batches, and uses the deployment-configured internal model after validating its identity.",
       "reviewed_digests": {
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": "ee068d7e2ec887c7a8b2acdbbd08cd38e1d2bc9cae7fa9b47724c23a3653bcd7",
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": "d8e27c37845423db9caf8e7a26221b1eb92438529446bae0e3e2faf82f21adeb",
         "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1": "aeba9cc42d9604c3abe3f4e3bfaa99943e204621df8c23e2d5ec11d597fa89c1",
         "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1": "65fe0cfa2090cf8f694f75b5e0322dfbfa3dd45634468c21879942f4f7cbc51f"
       }

@@ -11,8 +11,8 @@ defineMailModels();
 const local = (title) => ({ groups: [{ key: "tasks", label: "Tasks", offset: 0, has_more: false, records: [{ model: "project.task", id: 5, title, excerpt: "Amber lantern specification" }] }] });
 const documents = { group: { key: "documents", label: "Documents", offset: 0, has_more: false, records: [] } };
 
-async function mountSearch(query = "") {
-    return mountWithCleanup(HomeContentSearch, { props: { query, revision: 0 } });
+async function mountSearch(query = "", meaningSearch = true) {
+    return mountWithCleanup(HomeContentSearch, { props: { query, revision: 0, meaningSearch } });
 }
 
 test("local results remain usable while document contents are pending", async () => {
@@ -378,4 +378,22 @@ test("the empty state waits for every stream, then names the company", async () 
     meaning.resolve({ status: "empty", group: { key: "task_meaning", records: [] } });
     await animationFrame();
     expect(".o_usl_search_empty").toHaveText(/Nothing matches “zzz qqq” in .+\. Try fewer words or another spelling\./);
+});
+
+test("a deployment without meaning search makes no request and shows no loading row", async () => {
+    const pending = new Deferred();
+    onRpc("usl.home.service", "search_records", () => pending);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => {
+        expect.step("meaning requested");
+        return { status: "disabled", group: { key: "task_meaning", records: [] } };
+    });
+    await mountSearch("a long enough query", false);
+    await animationFrame();
+    expect(".o_usl_search_skeleton").toHaveCount(0);
+    pending.resolve(local("Exact task"));
+    await animationFrame();
+    expect(".o_usl_search_skeleton").toHaveCount(0);
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect.verifySteps([]);
 });

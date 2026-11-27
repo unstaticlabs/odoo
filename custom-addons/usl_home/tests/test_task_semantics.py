@@ -17,6 +17,14 @@ class TestTaskSemantics(TransactionCase):
             lexical = service.search_records('Amber workshop fixture', categories=['tasks'])
             self.assertIn(task.id, [row['id'] for row in lexical['groups'][0]['records']])
 
+    def test_home_configuration_says_once_whether_meaning_search_is_offered(self):
+        from odoo.addons.usl_home.models import task_semantics as semantics
+        service = self.env['usl.home.service']
+        with patch.object(semantics, '_configured_model', return_value=None):
+            self.assertIs(service.get_configuration()['task_meaning_search'], False)
+        with patch.object(semantics, '_configured_model', return_value=('http://fixture.invalid', 'fixture', 'a' * 64)):
+            self.assertIs(service.get_configuration()['task_meaning_search'], True)
+
     def _rank_fixture(self, extra_companies=()):
         from odoo.addons.usl_home.models import task_semantics as semantics
         Task = self.env['project.task']
