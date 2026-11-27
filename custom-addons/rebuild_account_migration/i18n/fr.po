@@ -14139,3 +14139,9 @@ msgstr "Une ligne par pièce source, listée quand vous affichez les pièces."
 #: model:ir.model,name:rebuild_account_migration.model_rebuild_account_declaration_candidate_review_line
 msgid "DES or DAS2 document to review"
 msgstr "Pièce DES ou DAS2 à examiner"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/report_export_wizard.py:0
+msgid "This report must use the company of its closing workspace. Reopen the report from the workspace to restore its company."
+msgstr "Le rapport doit porter sur la société du dossier de clôture. Rouvrez-le depuis ce dossier pour retrouver la bonne société."

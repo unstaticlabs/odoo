@@ -781,6 +781,11 @@ class RebuildAccountReportExportWizard(models.TransientModel):
                 "companies."
             )
             raise AccessError(message)
+        if self.closing_period_id and companies != self.closing_period_id.company_id:
+            raise UserError(self.env._(
+                "This report must use the company of its closing workspace. "
+                "Reopen the report from the workspace to restore its company."
+            ))
         return companies.sorted(lambda company: (company.name, company.id))
 
     def _draft_entry_warning(self):

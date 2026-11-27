@@ -552,7 +552,10 @@ the databases and durable resources, reuses compatible OCR, previews, Tantivy
 and vectors, applies the exact candidate plan, neutralizes staging, and starts
 the candidate only after offline materialization succeeds. While the isolated
 candidate database is still attached to its temporary private PostgreSQL
-container, the controller applies the target's complete scheduled-action
+container, its Docker client receives only that database’s password from the
+protected environment file on the target host. Recovery proofs use the same
+selection for each database. The controller then applies the target's complete
+scheduled-action
 policy through Odoo's ORM. Production receives its explicitly gated set and
 staging receives no active jobs. Unknown, missing or ambiguously identified
 jobs stop the candidate before the active generation is touched.

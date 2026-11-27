@@ -31,7 +31,7 @@
       "run": "",
       "screenshot": "01-actions.png",
       "sha256": "40769fcdf9042557a05a33a8e653ef356b77c7c5c14a5fc43c0c911e5da399fb",
-      "text": "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Lorsqu’un débit du même fournisseur satisfait les critères de date et de taux, Odoo propose trois actions de rapprochement. L’action recommandée apparaît en couleur.",
+      "text": "Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Sous **Paiements suggérés**, un rapprochement éligible propose **Ajouter**, **Régler** et **Corriger le taux initial**.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },
     {
@@ -41,7 +41,7 @@
       "run": "",
       "screenshot": null,
       "sha256": null,
-      "text": "Consultez **Meilleur rapprochement** pour identifier la ligne bancaire proposée et examiner les autres possibilités.",
+      "text": "Survolez la ligne **Meilleur rapprochement** ou placez-y le focus avec la touche Tab. L’infobulle indique la transaction bancaire et les éléments qui justifient le rapprochement.",
       "trigger": ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Meilleur rapprochement')"
     },
     {
@@ -51,7 +51,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Si le débit justifie cette valorisation, cliquez sur **Utiliser le taux de paiement**. Odoo recalcule la valeur de la facture en devise de la société au taux observé sur le paiement.",
+      "text": "Choisissez **Corriger le taux initial** si les justificatifs montrent que le taux était erroné à la comptabilisation. Vérifiez le taux et les montants affichés avant de cliquer. Odoo corrige la facture et la rapproche du paiement.",
       "trigger": ".o_form_view .payment_rate_assign:not([disabled])"
     },
     {

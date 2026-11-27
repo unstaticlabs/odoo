@@ -141,6 +141,30 @@ and any verification result that does not name the exact selected production
 snapshot. Operators can still use `list` for inspection, but automation must not
 reimplement selection from its untrusted rows.
 
+### Database ownership on a new generation
+
+The controller initializes the Odoo database before loading a dump. The
+application owns its tables, can create schemas and trusted extensions, and
+uses its existing database credentials. PostgreSQL owns the database. Its
+administrative role uses the container's local peer-authenticated socket.
+Operator probes still connect locally as the application role. For a restored
+single-database deployment, set the database name, its exact anchored filter
+and `list_db = False`. Odoo uses the application's CONNECT grant to find that
+database on a first visit. Verify a fresh browser session reaches the login
+form and the evented worker accepts its WebSocket handshake. A successful
+database health check alone only establishes a connection to PostgreSQL.
+
+The restore checks the new role and database before loading business objects.
+On a failed materialization, create a new generation using the existing
+recovery procedure. A wake or rollback reopens the selected volume with its
+original ownership. When restoring an older release with the current
+controller, select a qualified backup tool that supports prepared databases
+with the immutable `USL_OPERATIONS_IMAGE` override. The GitOps release
+launcher pins its matching tool automatically. Release preparation and the
+independent recovery proof ask that image for its capabilities with no
+network or data mounts. An older or unreadable tool stops there and names
+the required override.
+
 ## Independent staging recovery restore
 
 This low-level command is for an explicitly authorized recovery or disposable
