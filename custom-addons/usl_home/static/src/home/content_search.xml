@@ -28,7 +28,13 @@
                 <div t-if="state.documentError" role="alert">Document contents are temporarily unavailable. <button type="button" class="btn btn-link" t-on-click="() => this.loadDocuments()">Try again</button></div>
                 <p t-if="state.documents?.warnings?.some(warning => warning.code === 'semantic_unavailable')" class="text-muted small">Meaning-based document matches are temporarily unavailable. Exact content matches are still shown.</p>
                 <button t-if="state.documents?.continue_in_documents" class="btn btn-link" type="button" t-on-click="continueDocuments">Continue in Documents</button>
-                <p t-if="empty" class="text-muted mb-0" role="status">No matching records in your selected companies. Try another word.</p>
+                <p t-if="empty &amp;&amp; !state.meaningStatus" class="text-muted mb-0" role="status">No matching records in your selected companies. Try another word.</p>
+            </div>
+            <div t-if="state.query.trim() &amp;&amp; state.offerTaskMeaning" class="mt-2">
+                <button t-if="!state.meaningStatus || state.meaningStatus === 'unavailable'" type="button" class="btn btn-link btn-sm px-0" t-on-click="findRelatedTasks">Find tasks about this</button>
+                <span t-if="state.meaningStatus === 'loading'" class="text-muted small" role="status">Finding related task descriptions…</span>
+                <p t-elif="state.meaningStatus === 'unavailable'" class="text-muted small mb-0" role="status">Task suggestions are temporarily unavailable. You can still search by keyword.</p>
+                <p t-elif="state.taskMeaning &amp;&amp; !groups.find(group => group.key === 'task_meaning')?.records.length" class="text-muted small mb-0" role="status">No additional task descriptions to show.</p>
             </div>
         </section>
     </t>

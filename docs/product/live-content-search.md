@@ -155,3 +155,21 @@ more time and memory compiling than executing. The setting is local to that
 execution and restored afterward; ordinary Task searches keep their existing
 planner settings. This does not change matching, ordering, page sizes or counts.
 Database errors retain the caller's normal rollback requirements.
+
+## Find tasks about this
+
+After typing a query on Home, choose **Find tasks about this** to see related task
+descriptions in your selected companies. This also works across French and English.
+Only descriptions close to the strongest match are suggested. If none is close enough, the list stays empty.
+A suggestion opens the original task. Exact results stay in place while suggestions
+load or if the model is busy. The same read is available through
+`project.task.search_by_meaning(query, limit=5)` for delegated callers.
+
+The feature is off by default. On a database with the `vector` extension already
+installed, upgrade `usl_home`, then enable `USL_TASK_SEMANTIC_SEARCH=1` with the
+same Ollama endpoint, model and manifest digest used by Documents. The service
+checks the model identity before sending text. The background job indexes the
+first 2,048 characters of up to 16 task descriptions each minute. Edits immediately
+remove stale suggestions until the new description is indexed. Changing the model
+starts a fresh pass. The reader's current task and field access governs each result.
+No messages, files or transcripts enter this task-description index.

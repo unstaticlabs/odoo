@@ -7,3 +7,4 @@ from . import project_contact_index
 from . import task_message_search
 
 from . import search_relevance
+from . import task_semantics

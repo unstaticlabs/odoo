@@ -3032,6 +3032,24 @@
     },
     {
       "delegates": [
+        "rpc:project.task.search_by_meaning"
+      ],
+      "digest": "13abe825ed9c9cb7c8a80f8ec5e2cd2a3507fcd51bce87f276fe0de9b99454f6",
+      "handler": "findRelatedTasks",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 182,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:usl.home.service.get_search_result_action",
         "rpc:usl.home.service.search_records"
       ],
@@ -3044,11 +3062,11 @@
       ],
       "sources": [
         {
-          "line": 119,
+          "line": 126,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         },
         {
-          "line": 199,
+          "line": 222,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3066,7 +3084,7 @@
       ],
       "sources": [
         {
-          "line": 178,
+          "line": 201,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3084,7 +3102,7 @@
       ],
       "sources": [
         {
-          "line": 150,
+          "line": 158,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -5276,6 +5294,28 @@
         }
       ],
       "xmlid": "usl_feedback.ir_cron_feedback_agent"
+    },
+    {
+      "digest": "de5ac3430860efd06b8aac875223936d89fbfdb320737f852d1329b95244386a",
+      "guards": [],
+      "key": "cron:usl_home.ir_cron_embed_task_descriptions",
+      "kind": "cron",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7efc5b25cecae1cb9a0a5b8e41478d2a5a836458b2850aa04ea8c5bb027139a",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_home/data/task_meaning_search_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_home.ir_cron_embed_task_descriptions"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_embed_task_descriptions"
     },
     {
       "digest": "5a26b78b8a2acbf1912cacbc493ad8c7dcf43585cc619c8092816d0c39c93af0",
@@ -902640,6 +902680,39 @@
     {
       "abstract": false,
       "archiveable": true,
+      "delegates": [
+        "rpc:project.task.with_context"
+      ],
+      "digest": "dd4e0b53152ae5b984c50ca13155283d820f68783b6053a9c7c149ca84dcb5a3",
+      "guards": [],
+      "key": "rpc:project.task.search_by_meaning",
+      "kind": "rpc",
+      "method": "search_by_meaning",
+      "model": "project.task",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d0a91b390b5d2ece2d8d666afc2147778f9dceba8d236a9537c85ca32c2a6704",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 128,
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
       "digest": "ea2e5db601da2ff641512ed92274061faee31fb202d3172a6ce267a0cde9289b",
       "guards": [],
       "key": "rpc:project.task.search_count",
@@ -1423805,7 +1423878,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 184,
+          "line": 193,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424395,7 +1424468,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 163,
+          "line": 172,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424503,7 +1424576,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc",
+      "digest": "51dfa449085c5fb7ad6f6ec5b0ab95c653e89c093e0465b98495da94d457402f",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1424514,11 +1424587,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a7e4adfc1f9447de16e29ffaa2feb139fd65adb7ba134788c85087b9f9269944",
+      "runtime_digest": "1418884ddeb274a5411e8316a2c6e5115b6e684c52318300a4f95172fa071ed1",
       "sinks": [],
       "sources": [
         {
-          "line": 129,
+          "line": 130,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1568319,6 +1568392,24 @@
       "xmlid": "usl_feedback.ir_cron_feedback_agent_ir_actions_server"
     },
     {
+      "digest": "db62b401e580f477c19d95dc973a9c70836beb351e18249404b1b4c02f46d7ab",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "db62b401e580f477c19d95dc973a9c70836beb351e18249404b1b4c02f46d7ab",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+    },
+    {
       "digest": "57e8aa1d48d6f88155321441e5c1f86825f423277ecde4285a17e30abd4fd7e0",
       "guards": [
         "guard:automation.server_action.execute"
@@ -1696307,6 +1696398,54 @@
       ]
     },
     {
+      "digest": "c1c363e6d7801ee262ac41242db7a28968783038db6cab9a844a18a2ae45054c",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "external_call",
+      "sources": [
+        {
+          "line": 42,
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        }
+      ]
+    },
+    {
+      "digest": "8b72c785022db3294ed4d0e462922d352a6ef9e1919c8c9fcb1de1a770408251",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 94,
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        }
+      ]
+    },
+    {
+      "digest": "65fe0cfa2090cf8f694f75b5e0322dfbfa3dd45634468c21879942f4f7cbc51f",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 76,
+          "path": "custom-addons/usl_home/models/task_semantics.py"
+        }
+      ]
+    },
+    {
       "digest": "65094166fbdbf36deef55be8f6084f65434467b84fe672317799accc4bc16097",
       "key": "sink:usl_locale:custom-addons/usl_locale/models/ir_http.py:ir.http.session_info:sudo:1",
       "kind": "sink",
@@ -1764155,6 +1764294,25 @@
     },
     {
       "delegates": [
+        "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+      ],
+      "digest": "b56afeeffb55c99660d61599ff0c80fdbb18639ebd678f35491c30a0c1457bd1",
+      "key": "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "b56afeeffb55c99660d61599ff0c80fdbb18639ebd678f35491c30a0c1457bd1",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+    },
+    {
+      "delegates": [
         "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
       ],
       "digest": "2d00dd53d6d76c0c89358f10859b399a8379f3aeefc521cf517010933eed504b",
@@ -1769803,11 +1769961,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "90832f58fe4404c09a1606605a965d41e17c1d3387e914625375859b895fd6ea",
+      "manifest_sha256": "cc385516327b4a32f201eafe151a2b8739f64b432a804c1719e8d401dcd2b54c",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "3cceb750333dd09db84fdff3755635809258e70125738213ba06283f193a5793",
-      "version": "saas~19.3.1.0.17"
+      "source_sha256": "0073ed609dedc1973fafe4c39413ca738471e5bdfcc1aba3ab0f90f6bd368e18",
+      "version": "saas~19.3.1.0.18"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",

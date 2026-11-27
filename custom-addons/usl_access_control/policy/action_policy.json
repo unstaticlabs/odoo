@@ -71004,7 +71004,7 @@
       "reviewed_digests": {
         "rpc:usl.home.service.get_search_result_action": "9b33af8a514ca1face45276ebf4fc558d1df69e2eb9d71245dfc7d45a198a677",
         "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
-        "rpc:usl.home.service.search_records": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc"
+        "rpc:usl.home.service.search_records": "51dfa449085c5fb7ad6f6ec5b0ab95c653e89c093e0465b98495da94d457402f"
       }
     },
     {
@@ -222305,6 +222305,124 @@
       "reviewed_digests": {
         "ui:usl_home.ir_cron_usl_index_task_messages_ir_actions_server": "ae9cfacd61ed987daa3378edf6a16c66dd4b3124cfeec2efa9217724d3af3469"
       }
+    },
+    {
+      "action_keys": [
+        "rpc:project.task.search_by_meaning"
+      ],
+      "classification": "read_only",
+      "consequence": "Returns the current reader’s accessible task descriptions and titles, ranked after native record rules and source field checks; the pinned local inference service reads the explicit query.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "read_only.work_management.task_meaning.rpc",
+      "rationale": "Returns the current reader’s accessible task descriptions and titles, ranked after native record rules and source field checks; the pinned local inference service reads the explicit query.",
+      "reviewed_digests": {
+        "rpc:project.task.search_by_meaning": "dd4e0b53152ae5b984c50ca13155283d820f68783b6053a9c7c149ca84dcb5a3"
+      }
+    },
+    {
+      "action_keys": [
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1"
+      ],
+      "classification": "transport",
+      "consequence": "Explicit click calls the same read-only search as a delegated reader.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "transport.work_management.task_meaning.client",
+      "overrides": {
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1": {
+          "targets": [
+            "rpc:project.task.search_by_meaning"
+          ]
+        }
+      },
+      "rationale": "Explicit click calls the same read-only search as a delegated reader.",
+      "reviewed_digests": {
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1": "13abe825ed9c9cb7c8a80f8ec5e2cd2a3507fcd51bce87f276fe0de9b99454f6"
+      }
+    },
+    {
+      "action_keys": [
+        "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+      ],
+      "classification": "operational",
+      "consequence": "Runs one fixed batch of the private rebuildable task-description index as the existing native scheduler identity.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "operational.work_management.task_meaning.server",
+      "rationale": "Runs one fixed batch of the private rebuildable task-description index as the existing native scheduler identity.",
+      "reviewed_digests": {
+        "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": "db62b401e580f477c19d95dc973a9c70836beb351e18249404b1b4c02f46d7ab"
+      }
+    },
+    {
+      "action_keys": [
+        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+      ],
+      "classification": "transport",
+      "consequence": "Dispatches to the fixed scheduler action.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "transport.work_management.task_meaning.ui",
+      "overrides": {
+        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": {
+          "targets": [
+            "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+          ]
+        }
+      },
+      "rationale": "Dispatches to the fixed scheduler action.",
+      "reviewed_digests": {
+        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": "b56afeeffb55c99660d61599ff0c80fdbb18639ebd678f35491c30a0c1457bd1"
+      }
+    },
+    {
+      "action_keys": [
+        "cron:usl_home.ir_cron_embed_task_descriptions"
+      ],
+      "classification": "system_internal",
+      "consequence": "Only the native scheduler and its separately reviewed manual action can launch this private batch.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "system_internal.work_management.task_meaning.cron",
+      "overrides": {
+        "cron:usl_home.ir_cron_embed_task_descriptions": {
+          "reachability_proof": "Scheduler-owned private worker; the separately reviewed, fixed native server action covers manual execution."
+        }
+      },
+      "rationale": "Only the native scheduler and its separately reviewed manual action can launch this private batch.",
+      "reviewed_digests": {
+        "cron:usl_home.ir_cron_embed_task_descriptions": "de5ac3430860efd06b8aac875223936d89fbfdb320737f852d1329b95244386a"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1",
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1",
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Initializes optional derived storage, updates it in bounded batches, and uses the deployment-configured internal model after validating its identity.",
+      "domain": "work_management",
+      "evidence_id": "task-description-meaning-3758",
+      "id": "system_internal.work_management.task_meaning.sinks",
+      "overrides": {
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": {
+          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1": {
+          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
+        },
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1": {
+          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
+        }
+      },
+      "rationale": "Initializes optional derived storage, updates it in bounded batches, and uses the deployment-configured internal model after validating its identity.",
+      "reviewed_digests": {
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": "c1c363e6d7801ee262ac41242db7a28968783038db6cab9a844a18a2ae45054c",
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1": "8b72c785022db3294ed4d0e462922d352a6ef9e1919c8c9fcb1de1a770408251",
+        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1": "65fe0cfa2090cf8f694f75b5e0322dfbfa3dd45634468c21879942f4f7cbc51f"
+      }
     }
   ],
   "evidence_families": {
@@ -222862,6 +222980,18 @@
         "custom-addons/usl_home/tests/test_task_chatter_search.py",
         "custom-addons/usl_home/static/tests/content_search.test.js",
         "scripts/odoo/task_chatter_concurrency_qa.py"
+      ]
+    },
+    "task-description-meaning-3758": {
+      "contract": "An internal reader explicitly searches task descriptions already indexed by the configured and verified internal model. Native field, record and selected-company access precede ranking. Stale fragments are excluded. The local index contains rebuildable data only. Ordinary text search does not invoke the task model.",
+      "tests": [
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_unconfigured_search_keeps_existing_task_results",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_paraphrase_and_revocation_before_limit",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_pending_edit_removes_old_match_and_pinned_model",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_gateway_rejects_drift_before_sending_any_text",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_extension_is_optional_and_never_calls_model_while_unavailable",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_other_selected_company_keeps_its_own_semantic_results",
+        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_one_clear_result_and_no_unrelated_filler"
       ]
     },
     "task-github-reference-20261014": {

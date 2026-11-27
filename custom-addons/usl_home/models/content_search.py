@@ -1,5 +1,6 @@
 """Read-only live business search for Home and the native Projects search bar."""
 
+import os
 import re
 
 from odoo import api, models
@@ -157,7 +158,15 @@ class HomeContentSearch(models.AbstractModel):
                     "context_label": self._search_context_label(record),
                 })
             groups.append({"key": key, "label": label, "records": rows, "has_more": len(records) > limit, "offset": offset})
-        return {"groups": groups}
+        task = self.env["project.task"]
+        offer = ("tasks" in catalog and "tasks" in requested and "tasks" not in excluded
+                 and os.getenv("USL_TASK_SEMANTIC_SEARCH") == "1"
+                 and task.has_field_access(task._fields["description"], "read")
+                 and task.has_field_access(task._fields["name"], "read"))
+        result = {"groups": groups}
+        if offer:
+            result["offer_task_meaning"] = True
+        return result
 
     @api.model
     def search_documents(self, query, limit=5, offset=0):

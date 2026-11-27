@@ -1105,3 +1105,34 @@ msgstr "Saisissez une recherche non vide de 2 048 caractères au maximum pour tr
 #: model:ir.model.fields,help:usl_home.field_res_partner__usl_search_text
 msgid "Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged."
 msgstr "Utilisez un domaine de contenu ilike. Pour la pertinence de l’accueil, triez par usl_search_text et renseignez search_relevance_query avec le même texte. Les autres tris natifs restent inchangés."
+
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/task_semantics.py:0
+msgid "Related task descriptions"
+msgstr "Descriptions de tâches associées"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Find tasks about this"
+msgstr "Chercher des tâches sur ce sujet"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Finding related task descriptions…"
+msgstr "Recherche de descriptions de tâches associées…"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Task suggestions are temporarily unavailable. You can still search by keyword."
+msgstr "Les suggestions de tâches sont momentanément indisponibles. La recherche par mot-clé reste accessible."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "No additional task descriptions to show."
+msgstr "Aucune autre description de tâche à afficher."

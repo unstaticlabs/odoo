@@ -205,3 +205,37 @@ test("withdrawn message source does not open and offers refresh guidance", async
     expect.verifySteps(["This record could not be opened. Refresh the search and try again."]);
     expect(".o_usl_search_result").toHaveCount(1);
 });
+
+test("task suggestions start only on request and keep keyword results", async () => {
+    const pending = new Deferred();
+    onRpc("usl.home.service", "search_records", () => ({ ...local("Exact task"), offer_task_meaning: true }));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", ({ args }) => {
+        expect.step(args[0]);
+        return pending;
+    });
+    await mountSearch("fix sound");
+    await animationFrame();
+    expect.verifySteps([]);
+    await contains("button:contains('Find tasks about this')").click();
+    expect.verifySteps(["fix sound"]);
+    expect('.o_usl_search_result').toHaveCount(1);
+    pending.resolve({ status: "ok", group: { key: "task_meaning", label: "Related task descriptions", records: [
+        { model: "project.task", id: 5, title: "Exact task" }, { model: "project.task", id: 7, title: "Replace recording microphone" },
+    ] } });
+    await animationFrame();
+    expect('.o_usl_search_result').toHaveCount(2);
+    expect('[data-category="task_meaning"]').toHaveText(/Replace recording microphone/);
+});
+
+test("an unavailable task model preserves exact results and permits retry", async () => {
+    onRpc("usl.home.service", "search_records", () => ({ ...local("Exact task"), offer_task_meaning: true }));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => ({ status: "unavailable", group: {key: "task_meaning", records: []} }));
+    await mountSearch("amber");
+    await animationFrame();
+    await contains("button:contains('Find tasks about this')").click();
+    expect('.o_usl_search_result').toHaveCount(1);
+    expect('[role="status"]').toHaveText(/Task suggestions are temporarily unavailable/);
+    expect("button:contains('Find tasks about this')").toHaveCount(1);
+});

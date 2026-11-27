@@ -13,6 +13,7 @@ export class HomeContentSearch extends Component {
         this.notification = useService("notification");
         this.input = useRef("input");
         this.state = useState({ query: this.props.query || "", groups: [], documents: null, loading: false, documentsLoading: false, error: false, documentError: false, selected: null });
+        Object.assign(this.state, { offerTaskMeaning: false, taskMeaning: null, meaningStatus: null });
         this.generation = 0;
         this.requests = new Set();
         useSetupAction({
@@ -33,7 +34,12 @@ export class HomeContentSearch extends Component {
     }
 
     get groups() {
-        return [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
+        const groups = [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
+        if (this.state.taskMeaning) {
+            const shown = new Set(groups.flatMap((group) => group.records.map((record) => this.resultKey(record))));
+            groups.push({ ...this.state.taskMeaning, records: this.state.taskMeaning.records.filter((record) => !shown.has(this.resultKey(record))) });
+        }
+        return groups;
     }
 
     get results() {
@@ -70,6 +76,7 @@ export class HomeContentSearch extends Component {
         this.cancelRequests();
         this.state.groups = [];
         this.state.documents = null;
+        Object.assign(this.state, { offerTaskMeaning: false, taskMeaning: null, meaningStatus: null });
         this.state.selected = null;
         this.state.error = false;
         this.state.documentError = false;
@@ -107,7 +114,7 @@ export class HomeContentSearch extends Component {
         const generation = ++this.generation;
         this.cancelRequests();
         const query = this.state.query.trim();
-        Object.assign(this.state, { groups: [], documents: null, selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
+        Object.assign(this.state, { groups: [], documents: null, offerTaskMeaning: false, taskMeaning: null, meaningStatus: null, selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
         if (!query) {
             return;
         }
@@ -118,6 +125,7 @@ export class HomeContentSearch extends Component {
             try {
                 const result = await this.request(this.orm.call("usl.home.service", "search_records", [query], kwargs));
                 if (generation === this.generation) {
+                    if (result.offer_task_meaning) { this.state.offerTaskMeaning = true; }
                     const groups = new Map(this.state.groups.map((group) => [group.key, group]));
                     for (const group of result.groups) {
                         groups.set(group.key, group);
@@ -163,6 +171,21 @@ export class HomeContentSearch extends Component {
             if (generation === this.generation) {
                 this.state.documentsLoading = false;
             }
+        }
+    }
+
+    async findRelatedTasks() {
+        if (this.state.meaningStatus === "loading") { return; }
+        const generation = this.generation;
+        this.state.meaningStatus = "loading";
+        try {
+            const result = await this.request(this.orm.call("project.task", "search_by_meaning", [this.state.query.trim()]));
+            if (generation === this.generation) {
+                this.state.taskMeaning = result.group;
+                this.state.meaningStatus = result.status;
+            }
+        } catch {
+            if (generation === this.generation) { this.state.meaningStatus = "unavailable"; }
         }
     }
 
