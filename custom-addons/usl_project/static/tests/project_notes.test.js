@@ -1,5 +1,6 @@
 import { expect, test } from "@odoo/hoot";
 import { advanceTime, animationFrame } from "@odoo/hoot-mock";
+import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { contains, defineModels, fields, makeServerError, models, mountWithCleanup, onRpc } from "@web/../tests/web_test_helpers";
 import { ProjectNotes } from "../src/project_notes/project_notes";
 
@@ -7,6 +8,7 @@ class Project extends models.Model {
     _name = "project.project";
     name = fields.Char();
 }
+defineMailModels();
 defineModels([Project]);
 
 const notes = [{ path: "Guide.md", title: "Guide" }, { path: "Review.md", title: "Review" }];
