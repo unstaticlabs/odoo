@@ -159,20 +159,31 @@ class GenerationDatabaseTests(unittest.TestCase):
             ], check=True, capture_output=True)
             self.addCleanup(subprocess.run, ["docker", "stop", name], check=False, capture_output=True)
             return name
+        odoo = [
+            "/opt/odoo/odoo-bin", "--without-demo=all", "--db_host=127.0.0.1", f"--db_user={self.role}",
+            f"--db_password={self.password}", f"--database={self.db}", "--data-dir=/tmp/odoo-role-qa",
+            "--addons-path=/opt/odoo/odoo/addons,/opt/odoo/addons",
+        ]
         def load(container, *action):
-            command = [
-                "docker", "exec", container, "/opt/odoo/odoo-bin", "--stop-after-init", "--no-http",
-                "--without-demo=all", "--db_host=127.0.0.1", f"--db_user={self.role}",
-                f"--db_password={self.password}", f"--database={self.db}", "--data-dir=/tmp/odoo-role-qa",
-                "--addons-path=/opt/odoo/odoo/addons,/opt/odoo/addons", *action,
-            ]
+            command = ["docker", "exec", container, *odoo, "--stop-after-init", "--no-http", *action]
             result = subprocess.run(command, text=True, capture_output=True, timeout=240)
             self.assertEqual(result.returncode, 0, (result.stdout + result.stderr)[-3000:])
         writer = start_odoo(original)
-        load(writer, "--init=base")
+        load(writer, "--init=web,bus")
         for _ in range(2):
             load(writer, "--update=base")
         archive = subprocess.check_output(["docker", "exec", original, "pg_dump", "-U", self.role, "-Fc", self.db])
         self.materialize(restored, archive)
-        load(start_odoo(restored))
+        server = start_odoo(restored)
+        load(server)
         self.assertEqual(self.sql(restored, "SELECT state FROM ir_module_module WHERE name='base'"), "installed")
+
+        # A healthy connection to the system DB does not exercise the first
+        # anonymous visit or the evented worker against the restored database.
+        subprocess.run(["docker", "exec", "--detach", server, *odoo, "--workers=2", "--max-cron-threads=0",
+                        "--http-port=18069", "--gevent-port=18072", f"--db-filter=^{self.db}$", "--no-database-list"], check=True)
+        probe = Path(__file__).with_name("fixtures") / "generation_database_web_probe.py"
+        with probe.open() as script:
+            receipt = subprocess.check_output(["docker", "exec", "-i", server, "python", "-"],
+                                              stdin=script, text=True, timeout=80)
+        self.assertEqual(json.loads(receipt), [200, True, 101, "odoo.exceptions.AccessDenied"])
