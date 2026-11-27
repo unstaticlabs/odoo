@@ -1,0 +1,10 @@
+<odoo noupdate="1">
+    <record id="ir_cron_embed_task_descriptions" model="ir.cron">
+        <field name="name">Tasks: index descriptions for meaning-based search</field>
+        <field name="model_id" ref="project.model_project_task"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_usl_embed_task_descriptions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+    </record>
+</odoo>

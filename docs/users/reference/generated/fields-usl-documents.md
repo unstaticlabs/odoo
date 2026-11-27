@@ -462,6 +462,18 @@ false
 | **Tags** (`tag_ids`) | many2many → `usl.paperless.tag` |  |  |
 | **User** (`user_id`) | many2one → `res.users` |  |  |
 
+## Classifier tag score rule
+
+`usl.document.tag.rule.wizard`, defined by this module. Transient: the record lives only while its dialog is open.
+
+false
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Minimum score out of 100** (`minimum_score`) | char |  |  |
+| **Tag** (`tag_id`) | many2one → `usl.paperless.tag` | yes |  |
+| **Require a model score** (`use_score`) | boolean |  |  |
+
 ## Private Documents Workspace State
 
 `usl.document.user.state`, defined by this module.

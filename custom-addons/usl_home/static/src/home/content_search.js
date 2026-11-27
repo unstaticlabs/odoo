@@ -2,6 +2,58 @@ import { Component, onMounted, onWillUnmount, onWillUpdateProps, useRef, useStat
 import { useService } from "@web/core/utils/hooks";
 import { useSetupAction } from "@web/search/action_hook";
 import { _t } from "@web/core/l10n/translation";
+import { router } from "@web/core/browser/router";
+import { deserializeDateTime, formatDate } from "@web/core/l10n/dates";
+import { sprintf } from "@web/core/utils/strings";
+import { user } from "@web/core/user";
+
+const PAGE_ROWS = 5;
+const MIN_RELATED_ROWS = 2;
+
+/** Fold one character like the server does for matching: no case, no accent. */
+function foldChar(char) {
+    const base = char.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+    return base.length === 1 ? base : char;
+}
+
+/**
+ * Split plain text into segments, flagging the ones that match a query word.
+ * The result is rendered as text nodes, never as HTML.
+ */
+export function highlightParts(text, query) {
+    const value = String(text || "");
+    const terms = [...new Set(String(query || "").split(/[^\p{L}\p{N}]+/u).filter(Boolean))]
+        .map((term) => [...term].map(foldChar).join(""));
+    if (!value || !terms.length) {
+        return [{ text: value, match: false }];
+    }
+    const chars = [...value];
+    const owner = [];
+    let folded = "";
+    chars.forEach((char, index) => {
+        const piece = foldChar(char);
+        folded += piece;
+        owner.push(...new Array(piece.length).fill(index));
+    });
+    const marked = new Array(chars.length).fill(false);
+    for (const term of terms) {
+        for (let at = folded.indexOf(term); at >= 0; at = folded.indexOf(term, at + term.length)) {
+            for (let unit = at; unit < at + term.length; unit++) {
+                marked[owner[unit]] = true;
+            }
+        }
+    }
+    const parts = [];
+    chars.forEach((char, index) => {
+        const last = parts.at(-1);
+        if (last && last.match === marked[index]) {
+            last.text += char;
+        } else {
+            parts.push({ text: char, match: marked[index] });
+        }
+    });
+    return parts;
+}
 
 export class HomeContentSearch extends Component {
     static template = "usl_home.ContentSearch";
@@ -13,6 +65,10 @@ export class HomeContentSearch extends Component {
         this.notification = useService("notification");
         this.input = useRef("input");
         this.state = useState({ query: this.props.query || "", groups: [], documents: null, loading: false, documentsLoading: false, error: false, documentError: false, selected: null });
+        // Meaning-based task matches arrive beside the keyword results, never
+        // behind a click. A deployment without the feature is asked only once.
+        Object.assign(this.state, { meaning: [], meaningLoading: false });
+        this.meaningDisabled = false;
         this.generation = 0;
         this.requests = new Set();
         useSetupAction({
@@ -33,7 +89,34 @@ export class HomeContentSearch extends Component {
     }
 
     get groups() {
-        return [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
+        const groups = [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
+        const shown = new Set(groups.flatMap((group) => group.records.map((record) => this.resultKey(record))));
+        const index = groups.findIndex((group) => group.key === "tasks");
+        // A calm card: the group fills to five rows, and meaning-only rows always
+        // get at least two so the feature is never hidden by a full keyword page.
+        const room = Math.max(MIN_RELATED_ROWS, PAGE_ROWS - (groups[index]?.records.length ?? 0));
+        const related = this.state.meaning.filter((record) => !shown.has(this.resultKey(record))).slice(0, room);
+        if (index < 0 && !related.length && !this.state.meaningLoading) {
+            return groups;
+        }
+        // Related tasks join the Tasks group after the keyword rows, so rows already
+        // on screen never move. Without keyword tasks the group is about the subject.
+        const tasks = index < 0
+            ? { key: "tasks", label: _t("Tasks"), offset: 0, has_more: false, records: [] }
+            : groups[index];
+        const merged = {
+            ...tasks,
+            label: !tasks.records.length && related.length ? _t("Tasks about this") : tasks.label,
+            relatedStart: tasks.records.length,
+            records: [...tasks.records, ...related],
+        };
+        if (index < 0) {
+            // Where the group sorts when keyword tasks exist: ahead of the others.
+            groups.unshift(merged);
+        } else {
+            groups[index] = merged;
+        }
+        return groups;
     }
 
     get results() {
@@ -56,12 +139,41 @@ export class HomeContentSearch extends Component {
         return [...records.values()];
     }
 
+    excerptParts(record) {
+        return highlightParts(record.excerpt, this.state.query);
+    }
+
+    sourceLabel(source) {
+        const author = source.author_name || "";
+        const date = source.date ? formatDate(deserializeDateTime(source.date)) : "";
+        const who = [author, date].filter(Boolean).join(" · ");
+        if (source.message_kind === "subject") {
+            return who ? sprintf(_t("Subject of a message · %s"), who) : _t("Subject of a message");
+        }
+        if (source.message_kind === "note") {
+            return who ? sprintf(_t("Note · %s"), who) : _t("Note");
+        }
+        return who || source.label;
+    }
+
     resultDomId(record) {
         return `usl-home-search-result-${record.model.replaceAll(".", "-")}-${record.id}`;
     }
 
     get empty() {
-        return !this.state.loading && !this.state.documentsLoading && !this.state.error && !this.state.documentError && !this.results.length;
+        return !this.state.loading && !this.state.documentsLoading && !this.state.meaningLoading && !this.state.error && !this.state.documentError && !this.results.length;
+    }
+
+    get emptyMessage() {
+        const names = (user.activeCompanies || []).map((company) => company.name).filter(Boolean);
+        return names.length
+            ? sprintf(_t("Nothing matches “%(query)s” in %(company)s. Try fewer words or another spelling."), { query: this.state.query.trim(), company: names.join(", ") })
+            : sprintf(_t("Nothing matches “%(query)s”. Try fewer words or another spelling."), { query: this.state.query.trim() });
+    }
+
+    /** Two words, or one long enough to carry a meaning. */
+    asksMeaning(query) {
+        return !this.meaningDisabled && (query.split(/\s+/).filter(Boolean).length >= 2 || query.length >= 8);
     }
 
     inputChanged(event) {
@@ -70,6 +182,7 @@ export class HomeContentSearch extends Component {
         this.cancelRequests();
         this.state.groups = [];
         this.state.documents = null;
+        Object.assign(this.state, { meaning: [], meaningLoading: this.asksMeaning(this.state.query.trim()) });
         this.state.selected = null;
         this.state.error = false;
         this.state.documentError = false;
@@ -107,7 +220,7 @@ export class HomeContentSearch extends Component {
         const generation = ++this.generation;
         this.cancelRequests();
         const query = this.state.query.trim();
-        Object.assign(this.state, { groups: [], documents: null, selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
+        Object.assign(this.state, { groups: [], documents: null, meaning: [], meaningLoading: Boolean(query) && this.asksMeaning(query), selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
         if (!query) {
             return;
         }
@@ -140,6 +253,7 @@ export class HomeContentSearch extends Component {
             loadRecords({ categories: ["tasks", "projects"] }),
             loadRecords({ exclude_categories: ["tasks", "projects"] }),
             this.loadDocuments(query, generation),
+            this.loadMeaning(query, generation),
         ]);
     }
 
@@ -166,19 +280,39 @@ export class HomeContentSearch extends Component {
         }
     }
 
+    async loadMeaning(query, generation) {
+        if (!this.state.meaningLoading) {
+            return;
+        }
+        try {
+            const result = await this.request(this.orm.call("project.task", "search_by_meaning", [query]));
+            if (generation === this.generation) {
+                this.meaningDisabled = result.status === "disabled";
+                this.state.meaning = result.status === "ok" ? result.group.records : [];
+            }
+        } catch {
+            // Keyword results are already on screen; say nothing.
+        } finally {
+            if (generation === this.generation) {
+                this.state.meaningLoading = false;
+            }
+        }
+    }
+
     async more(group) {
-        if (group.loading) { return; }
-        group.loading = true;
+        const base = group.key === "documents" ? group : this.state.groups.find((old) => old.key === group.key);
+        if (!base || base.loading) { return; }
+        base.loading = true;
         if (group.key === "documents") {
             return this.loadDocuments(this.state.query.trim(), this.generation, group.offset + 5);
         }
         const generation = this.generation;
-        const offset = group.offset + 5;
+        const offset = base.offset + 5;
         try {
             const { groups } = await this.request(this.orm.call("usl.home.service", "search_records", [this.state.query.trim()], { categories: [group.key], offset }));
             if (generation === this.generation && groups[0]) {
                 const next = groups[0];
-                next.records = this.mergeRecords(group.records, next.records);
+                next.records = this.mergeRecords(base.records, next.records);
                 this.state.groups = this.state.groups.map((old) => old.key === group.key ? next : old);
             }
         } catch {
@@ -186,13 +320,24 @@ export class HomeContentSearch extends Component {
                 this.notification.add(_t("More results could not be loaded. Try again."), { type: "warning" });
             }
         } finally {
-            group.loading = false;
+            base.loading = false;
         }
     }
 
     async open(record) {
         try {
-            const action = await this.orm.call("usl.home.service", "get_search_result_action", [record.model, record.id]);
+            const args = [record.model, record.id];
+            if (record.source?.kind === "message") {
+                args.push(record.source.id, record.source.field);
+            }
+            const action = await this.orm.call("usl.home.service", "get_search_result_action", args);
+            const highlight = action.usl_highlight_message_id;
+            delete action.usl_highlight_message_id;
+            if (highlight) {
+                // The form's chatter reads this when it mounts, as it does for a
+                // /mail/message link, but the web client stays loaded.
+                router.current.highlight_message_id = highlight;
+            }
             await this.action.doAction(action);
         } catch {
             this.notification.add(_t("This record could not be opened. Refresh the search and try again."), { type: "warning" });

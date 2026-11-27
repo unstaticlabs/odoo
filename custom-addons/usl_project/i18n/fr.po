@@ -730,3 +730,9 @@ msgstr "Son étape de projet est changée manuellement."
 #. odoo-javascript
 msgid "Reasons for return"
 msgstr "Motifs du retour"
+
+#. module: usl_project
+#: model:ir.actions.server,name:usl_project.ir_cron_usl_index_task_content_ir_actions_server
+#: model:ir.cron,cron_name:usl_project.ir_cron_usl_index_task_content
+msgid "Tasks: refresh search index"
+msgstr "Tâches : actualiser l’index de recherche"
