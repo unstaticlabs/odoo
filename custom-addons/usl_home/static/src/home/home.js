@@ -66,6 +66,7 @@ export class UslHome extends Component {
         this.gridRef = useRef("grid");
         this.state = useState({
             searchRevision: 0,
+            taskMeaningSearch: false,
             loadingConfiguration: true,
             configurationError: false,
             customize: false,
@@ -169,6 +170,7 @@ export class UslHome extends Component {
                 "get_configuration",
                 []
             );
+            this.state.taskMeaningSearch = Boolean(configuration.task_meaning_search);
             this.state.layout = configuration.layout;
             this.state.availableWidgets = configuration.available_widgets;
             this.state.favorites = configuration.favorites;

@@ -211,7 +211,7 @@ def _property_domains(model, name, text, typed, cache):
             for predicate, owners in owners_by_predicate.values()]
 
 
-def readable_content_domain(model, value):
+def readable_content_domain(model, value, *, exclude_fields=frozenset()):
     """Search business values visible to this caller, never credential/binary data.
 
     Related labels use independently authorized native queries rather than raw
@@ -226,7 +226,7 @@ def readable_content_domain(model, value):
     metadata = model.fields_get(attributes=["type", "selection", "searchable", "store", "relation"])
     for name, definition in metadata.items():
         field = model._fields[name]
-        if name in _EXCLUDED_FIELDS or _CREDENTIAL_FIELD.search(name):
+        if name in _EXCLUDED_FIELDS or name in exclude_fields or _CREDENTIAL_FIELD.search(name):
             continue
         if not definition.get("searchable") or not model.has_field_access(field, "read"):
             continue
