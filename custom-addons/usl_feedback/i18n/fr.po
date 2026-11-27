@@ -1912,8 +1912,14 @@ msgstr "Gemini conserve votre conversation pour poursuivre l’échange. Il reç
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Gemini receives counts by stage and recent feedback titles. If Odoo Projects is connected, it can also read existing feedback reports to find duplicates."
-msgstr "Gemini reçoit le nombre de retours par étape et les titres récents. Si la connexion à Odoo Projets est activée, il peut aussi consulter les retours existants pour repérer les doublons."
+msgid "To find duplicates, Gemini also receives the titles of up to 25 recent feedback reports."
+msgstr "Pour repérer les doublons, Gemini reçoit aussi les titres de 25 retours récents au maximum."
+
+#. module: usl_feedback
+#. odoo-javascript
+#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
+msgid "Each title comes with the report number and its stage. Gemini also receives totals for each stage. If Odoo Projects is connected, it can read existing reports for more detail."
+msgstr "Chaque titre est accompagné du numéro du retour et de son étape. Gemini reçoit aussi le nombre de retours par étape. Si la connexion à Odoo Projets est activée, il peut consulter les fiches pour en savoir plus."
 
 #. module: usl_feedback
 #. odoo-javascript

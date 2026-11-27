@@ -124,6 +124,34 @@ class TestProductFeedback(TransactionCase):
         payload = draft.feedback_submit_initial(message, bool(context))
         return self.env["project.task"].sudo().browse(payload["id"]), payload
 
+    def test_board_summary_matches_the_duplicate_notice(self):
+        tasks = self.env["project.task"].with_user(self.maintainer).with_context(
+            tracking_disable=True, usl_feedback_direct_create=True,
+        )
+        inbox = self.env.ref("usl_feedback.stage_feedback_new")
+        reports = tasks.create([
+            {
+                "name": f"Fixture report {number} " + "x" * 160,
+                "stage_id": inbox.id,
+            }
+            for number in range(27)
+        ])
+        for stage in ("stage_feedback_done", "stage_feedback_declined"):
+            tasks.create({
+                "name": "Outside the recent list",
+                "stage_id": self.env.ref(f"usl_feedback.{stage}").id,
+            })
+        summary = self.env["usl.feedback.agent.run"]._board_summary(reports[-1])
+        recent = [line for line in summary.splitlines() if line.startswith("#")]
+        self.assertEqual(recent, [
+            f"#{report.id} [{inbox.name}] {report.name[:160]}"
+            for report in reversed(reports[1:-1])
+        ])
+        count = tasks.search_count([
+            ("project_id", "=", self.project.id), ("stage_id", "=", inbox.id),
+        ])
+        self.assertIn(f"{inbox.name}: {count}", summary.splitlines())
+
     def test_quick_provider_completion_has_two_second_product_wait(self):
         task, _payload = self._submit(message="[QA] Quick provider completion")
         run = self.env["usl.feedback.agent.run"].sudo().search([("task_id", "=", task.id)], limit=1)
