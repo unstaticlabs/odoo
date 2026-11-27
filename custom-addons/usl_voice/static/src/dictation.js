@@ -304,16 +304,20 @@ export class FieldDictation extends Component {
             this.reset();
             return;
         }
-        ownRecording(kept.id);
-        if (entry) {
-            this.state.stored = this.state.stored.filter((stored) => stored !== entry);
-        } else {
-            this.reset();
-        }
-        offerUndo(this.notify, kept.at, {
+        const offer = () => offerUndo(this.notify, kept.at, {
             undo: () => this.undiscard(kept),
             expire: () => forgetRecording(kept.id),
         });
+        if (entry) {
+            this.state.stored = this.state.stored.filter((stored) => stored !== entry);
+            // Only the tab that takes charge of an unused recording may delete it: another tab may be
+            // retrying it. If it is not ours any more, the list just drops it.
+            claimRecording(entry.id).then((won) => won && offer());
+            return;
+        }
+        ownRecording(kept.id);
+        this.reset();
+        offer();
     }
     undiscard(kept) {
         if (kept.file && this.state.mode === "idle" && !this.pendingAudio && !this.state.recovered) {

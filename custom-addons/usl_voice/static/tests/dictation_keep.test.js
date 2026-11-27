@@ -529,6 +529,29 @@ test("a recording kept in another database of the same browser is not offered", 
     expect(dictation.state.stored.map((entry) => entry.id)).toEqual(["earlier"]);
 });
 
+test("a tab cannot delete a recording another tab is handling", async () => {
+    realLocks();
+    let release;
+    const held = new Promise((resolve) => (release = resolve));
+    await new Promise((resolve) => navigator.locks.request("usl-voice-earlier", () => (resolve(), held)));
+    after(() => release());
+    const dictation = await mountDictation([earlier()]);
+    dictation.state.stored = [earlier()]; // a list drawn before the other tab took it
+    dictation.discard("earlier");
+    expect(dictation.state.stored.length).toBe(0);
+    for (let turn = 0; turn < 5; turn++) {
+        await advanceTime(50);
+    }
+    expect(".o_notification").toHaveCount(0); // no Undo offered: nothing was discarded
+    release();
+    let ids = [];
+    for (let turn = 0; turn < 20 && !ids.length; turn++) {
+        await advanceTime(50);
+        ids = (await kept()).map((entry) => entry.id);
+    }
+    expect(ids).toEqual(["earlier"]); // still kept, and offered again
+});
+
 test("the recovery panel folds into a small count and opens again on a tap", async () => {
     const dictation = await mountDictation([earlier()]);
     await waitFor(".o-usl-stored");
