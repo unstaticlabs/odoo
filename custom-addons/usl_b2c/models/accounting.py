@@ -9,6 +9,18 @@ from odoo.exceptions import AccessError, UserError, ValidationError
 from .constants import REVIEW_STATES, SOURCE_PROVIDERS
 
 
+SESSION_SCOPE_FIELDS = ("company_id", "channel_id", "source_provider", "period_start", "period_end")
+SESSION_METRIC_FIELDS = (
+    "order_count", "units_sold", "revenue_company_amount", "refund_company_amount",
+    "fee_company_amount", "cogs_company_amount", "gross_margin_company_amount",
+    "unallocated_revenue_company_amount", "unknown_amount_company_amount",
+    "line_revenue_coverage_percent", "accounting_link_coverage_percent",
+    "direct_accounting_link_coverage_percent", "direct_accounting_link_count",
+    "aggregate_covered_count", "not_applicable_link_count", "pending_mapping_count",
+    "pending_link_count", "pending_conversion_count",
+)
+
+
 class B2cAccountingSession(models.Model):
     _name = "b2c.accounting.session"
     _description = "Monthly B2C Accounting Session"
@@ -417,12 +429,58 @@ class B2cAccountingSession(models.Model):
             {"state": "reviewed", "locked_by_id": False, "locked_at": False},
         )
 
+    def _scope_differs(self, values=None):
+        self.ensure_one()
+        if values is None:
+            return bool(self._origin) and any(self[name] != self._origin[name] for name in SESSION_SCOPE_FIELDS)
+        return any(
+            self._fields[name].convert_to_cache(values[name], self)
+            != self._fields[name].convert_to_cache(self[name], self)
+            for name in SESSION_SCOPE_FIELDS if name in values
+        )
+
+    @api.model
+    def _empty_snapshot(self):
+        return dict.fromkeys(SESSION_METRIC_FIELDS, 0) | {
+            "refreshed_at": False, "reviewed_by_id": False, "reviewed_at": False, "state": "draft",
+        }
+
+    def _check_scope_company_read(self, company):
+        if company and not company.has_access("read"):
+            raise AccessError(self.env._("Choose a company you can access."))
+
+    @api.onchange(*SESSION_SCOPE_FIELDS)
+    def _onchange_snapshot_scope(self):
+        for session in self:
+            if not session._origin or session == session._origin:
+                continue
+            session._check_scope_company_read(session.company_id)
+            if session._scope_differs():
+                session.update(session._empty_snapshot())
+            else:
+                # Reverting an unsaved edit restores its original valid preview.
+                session.update({name: session._origin[name] for name in session._empty_snapshot()})
+
     def write(self, vals):
         if self.filtered(lambda session: session.state == "locked") and not self.env.context.get(
             "b2c_unlock",
         ):
             raise UserError(self.env._("Locked B2C accounting sessions are immutable."))
-        return super().write(vals)
+        if not self or not set(vals).intersection(SESSION_SCOPE_FIELDS):
+            return super().write(vals)
+        self.check_access("write")
+        changed = self.filtered(lambda session: session._scope_differs(vals))
+        if not changed:
+            return super().write(vals)
+        if "company_id" in vals:
+            target_id = self._fields["company_id"].convert_to_cache(vals["company_id"], changed[0])
+            self._check_scope_company_read(self.env["res.company"].browse(target_id))
+        # Keep mixed no-op/changed batches atomic, including native validation.
+        with self.env.cr.savepoint():
+            unchanged = self - changed
+            if unchanged:
+                super(B2cAccountingSession, unchanged).write(vals)
+            return super(B2cAccountingSession, changed).write(dict(vals) | self._empty_snapshot())
 
     def unlink(self):
         if self.filtered(lambda session: session.state != "draft"):

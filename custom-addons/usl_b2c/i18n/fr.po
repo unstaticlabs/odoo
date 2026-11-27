@@ -3217,3 +3217,9 @@ msgstr "Écarts de conversion"
 #: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_session_review
 msgid "No sessions match the selected filters. Clear them or choose another review filter."
 msgstr "Aucune session ne correspond aux filtres sélectionnés. Retirez-les ou choisissez un autre filtre de revue."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Choose a company you can access."
+msgstr "Choisissez une société à laquelle vous avez accès."

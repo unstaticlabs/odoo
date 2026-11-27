@@ -138,6 +138,17 @@ approves, posts or changes a session. Native reader/operator permissions and
 company rules still govern the same form and its existing actions. Monthly
 Sessions retains the complete financial columns and reviewed/locked history.
 
+Changing the actual month, date boundary, company, channel or provider invalidates
+that session's refresh snapshot and review decision. Its derived figures are
+cleared and remain blank in the native lists/form until Refresh computes the new
+scope. Original evidence, source records and accounting entries are retained.
+The unsaved form preview behaves the same way; Cancel writes nothing, and
+returning to the original scope restores its preview. A same-value scope write
+or an unrelated note preserves a valid snapshot. Locked sessions retain their
+native protection. Company changes require current access to the target company.
+Upgrades preserve existing stored session snapshots; this is no automatic repair
+of a scope edit made before invalidation was available.
+
 ## Inventory position
 
 The lossless restore initially contains 46 source templates, each with one

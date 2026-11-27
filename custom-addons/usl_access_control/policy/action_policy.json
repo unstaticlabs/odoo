@@ -86834,7 +86834,7 @@
         "rpc:b2c.accounting.session.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.accounting.session.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.accounting.session.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:b2c.accounting.session.write": "26dd1c924a22e91b2a6363a646af0dc57d369bf385b0a1b25e86aa5fe8503a73",
+        "rpc:b2c.accounting.session.write": "34a86aa0052de7a6d9cc1887630dc25d371301dcc2aee3a9c716d16520b7bcc6",
         "rpc:b2c.import.batch.action_account_for_revenue": "2354154c96d294671f682debbf3c8c0d1bb7cea2593a6b1a20e26142fca7e6f8",
         "rpc:b2c.import.batch.action_bill_fees": "8362d348133bfff8f2f19fa08db019f4f2233fb163d22936649804e7624699d2",
         "rpc:b2c.import.batch.action_convert_receipts": "3bcb172cebb641c097a2e831de2d083c8ceaf78b5bf103233afbaaae7f2b8104",
@@ -149882,6 +149882,9 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:2",
@@ -156327,7 +156330,16 @@
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.accounting.session.unlink"
         },
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": {
-          "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:b2c.accounting.session.write"
+          "reachability_proof": "Exact native B2C session write delegate: preserves native write authority and locked-state checks; real scope changes clear only derived snapshots atomically, while no-op writes preserve them. No financial source, evidence or accounting mutation. Parent action: rpc:b2c.accounting.session.write."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": {
+          "reachability_proof": "Exact native B2C session write delegate: preserves native write authority and locked-state checks; real scope changes clear only derived snapshots atomically, while no-op writes preserve them. No financial source, evidence or accounting mutation. Parent action: rpc:b2c.accounting.session.write."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": {
+          "reachability_proof": "Exact native B2C session write delegate: preserves native write authority and locked-state checks; real scope changes clear only derived snapshots atomically, while no-op writes preserve them. No financial source, evidence or accounting mutation. Parent action: rpc:b2c.accounting.session.write."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": {
+          "reachability_proof": "Exact native B2C session write delegate: preserves native write authority and locked-state checks; real scope changes clear only derived snapshots atomically, while no-op writes preserve them. No financial source, evidence or accounting mutation. Parent action: rpc:b2c.accounting.session.write."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:orm_create:1": {
           "reachability_proof": "This runs only while the module is being installed or upgraded, from the addon loader itself. It has no runtime RPC, controller, UI, client, server-action or cron entry key, and cannot be reached once loading ends."
@@ -158638,7 +158650,10 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_refresh:orm_write:1": "f6a2fcd2494c52aa156047785892f05fadfb8d86d694c2bc74f9f2845af976cc",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1": "b882b52015493fc362ef55f3851e6eaa60747db4b984a7371f8081486ef9efb7",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1": "cfbbb43ba51d6356425a4c93c332b8c7509e93cab18638fdb5372e86ebc35994",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "b4cb48248040186b82988ca2d951c3817e9b8ebc5bb41fb0f60b12366af7a6ac",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "5bacfb1807db309e736f98082ac29bf8caf6c031f4e50d9cbfedbb3751d5f16c",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": "d4200ba22cff5c39a297d5401d94e84ad30d40eec0756aac8691c096ac03d0d7",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": "d608b7f703f0f782d28696b317aa9c233cfcf3d98a6f0c1d21d7926d3c3d1eb0",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": "c59559000c347c8ffca2f0869367b5e3ae8df8d6a21f6a5803a1d420807cf4a2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:orm_create:1": "dd7e62fbba206faac8052f94f3a3c2f14c85a1383665c9c9c194eb8d7077f623",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:1": "27ba7cf4a388532e309be00d99f2243f510ef365a92f35798b168ad18d45d63e",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:2": "7c04940a3b8a92b4f5c87e3e7400f634eeb4cf7eec15d5cf22a1255d614d5552",
@@ -221834,9 +221849,10 @@
       ]
     },
     "b2c-session-review-2586-v1": {
-      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available.",
+      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available. A real editable scope change invalidates the snapshot and review; no-op edits and cancelled native previews preserve it, under current company and delegated actor authority.",
       "tests": [
-        "custom-addons/usl_b2c/tests/test_session_review.py::TestB2cSessionReview"
+        "custom-addons/usl_b2c/tests/test_session_review.py::TestB2cSessionReview",
+        "custom-addons/usl_b2c/tests/test_session_snapshot_validity.py::TestSessionSnapshotValidity"
       ]
     },
     "bank-rule-native-proof-20261015": {
