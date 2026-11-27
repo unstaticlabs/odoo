@@ -38,11 +38,12 @@
                 </ol>
             </t>
             <t t-else="">
-                <p t-if="state.documents.length">Undo the automatic tags from this run on the documents below. Later manual changes are kept.</p>
+                <p t-if="state.documents.length">Undoing removes every automatic tag this run added to the documents below. Later manual changes are kept.</p>
                 <p t-else="" class="text-muted">No changes remain on documents you can edit.</p>
                 <ul class="list-group list-group-flush">
                     <li t-foreach="state.documents" t-as="document" t-key="document.id" class="list-group-item px-0">
                         <span t-esc="document.name"/>
+                        <span t-if="!state.results[document.id]" class="d-block small text-muted" t-esc="tagsToRemove(document)"/>
                         <span t-if="state.results[document.id]" class="d-block small" role="status" t-esc="state.results[document.id].text"/>
                     </li>
                 </ul>

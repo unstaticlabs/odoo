@@ -1364758,7 +1364758,7 @@
         "rpc:usl.document.search",
         "rpc:usl.paperless.tag.with_context"
       ],
-      "digest": "40970b6c6f99a8fad7f3d2958851a66bbb9ba3d29d69474be4290a2eb652c597",
+      "digest": "bedb84b03a728c06a31fd0ca9618ec5d2d33410205af35409094b32ea8376755",
       "guards": [],
       "key": "rpc:usl.document.classifier_batch_documents",
       "kind": "rpc",
@@ -1364769,11 +1364769,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "d76e89df2f926717c991b9d316fc7f7e7c39943f9cdd7f5fe97c06cee7cb3e05",
+      "runtime_digest": "eb4ac4a3cb9b1e08f77ff9b06559b9be0b5e43503c0bef17f1673ef88bccf255",
       "sinks": [],
       "sources": [
         {
-          "line": 73,
+          "line": 76,
           "path": "custom-addons/usl_documents/models/classifier_review.py"
         },
         {
@@ -1364794,7 +1364794,7 @@
         "rpc:usl.document.ensure_one",
         "rpc:usl.paperless.tag.with_context"
       ],
-      "digest": "b654b87d2d6ea325dbaf96ecb0dc0f7ee78be39d981cd8797aeaa84fc1a011aa",
+      "digest": "951f0a7a2a801b8514173d4b69812540d18495d23d4933e540e7dfa75fe5c923",
       "guards": [],
       "key": "rpc:usl.document.classifier_tag_history",
       "kind": "rpc",
@@ -1364805,7 +1364805,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c4be72ad6d1303bd8633a2249784a84d7475920113024be4bb49e7c60a4fd2cf",
+      "runtime_digest": "9100a399c91ec3c72824684fc46002c9357e25011289291bc5d3ec52c7041bc3",
       "sinks": [],
       "sources": [
         {
@@ -1394096,7 +1394096,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 90,
+          "line": 99,
           "path": "custom-addons/usl_documents/models/classifier_review.py"
         },
         {
@@ -1770551,11 +1770551,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "21fed61ac2d71992a260214853fd91c9d8bb6e04bcbe03d416754e146ca5416a",
+      "manifest_sha256": "ac5f6370fc1a3328b15f2d5ba4cf61d5332462e8832b4db54ff0620634903778",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "b21bbe61a32cd6866774deda127f8e54a00506517ae480eb133cb1a2503242db",
-      "version": "saas~19.3.1.10.9"
+      "source_sha256": "19584e33d4a8123247dfa1b8f02ec74913151c60efe19255b7de3d8bda79456c",
+      "version": "saas~19.3.1.11.0"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",

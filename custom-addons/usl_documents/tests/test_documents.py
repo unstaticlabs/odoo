@@ -1572,7 +1572,9 @@ class TestDocuments(TransactionCase):
         ):
             actor = document.with_user(self.user)
             self.assertEqual([row["tag"] for row in actor.classifier_tag_history()], [tag.name])
-            self.assertEqual(actor.classifier_batch_documents(batch), [{"id": document.id, "name": document.display_name}])
+            self.assertEqual(actor.classifier_batch_documents(batch), [
+                {"id": document.id, "name": document.display_name, "tags": [tag.display_name]},
+            ])
             self.assertEqual(actor.classifier_batch_documents("never-visible"), [])
             list_batch.assert_called_once()
             history.reset_mock()
@@ -1584,6 +1586,9 @@ class TestDocuments(TransactionCase):
             with self.assertRaises(ValidationError):
                 actor.undo_classifier_batch("invalid")
             undo.assert_not_called()
+        with patch.object(PaperlessClient, "tag_decisions", side_effect=PaperlessNotFound("missing endpoint")):
+            with self.assertRaisesRegex(ValidationError, "archive needs to be upgraded"):
+                document.with_user(self.user).classifier_tag_history()
 
     def test_suggestion_outage_does_not_hide_available_archive(self):
         document = self._document(406)

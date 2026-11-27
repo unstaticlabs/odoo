@@ -81,9 +81,9 @@ class BatchDocuments(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, batch):
-        if not request.user.has_perm("documents.view_document"):
+        if not request.user.has_perm("documents.change_document"):
             raise PermissionDenied()
-        documents = permitted_object_ids(request.user, Document, "view_document", parent_field="root_document")
+        documents = permitted_object_ids(request.user, Document, "change_document", parent_field="root_document")
         events = TagDecision.objects.filter(
             batch=batch, status="applied", document_id__in=documents,
             tag_id__in=DocumentHistory.visible_tags(request.user),

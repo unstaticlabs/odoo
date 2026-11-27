@@ -8,6 +8,7 @@ from django.db import connection, connections
 from django.db.migrations.executor import MigrationExecutor
 from django.test import TransactionTestCase, override_settings, skipUnlessDBFeature
 from documents.models import Document, Tag
+from guardian.shortcuts import assign_perm
 from documents.signals.handlers import set_tags
 from rest_framework.test import APITestCase
 
@@ -89,6 +90,44 @@ class TestReviewedClassifierTags(APITestCase):
         self.assertEqual(self.client.post(self.history, {"undo_batch": str(batch)}, format="json").json()["removed"], 0)
         self.classify(.99, replace=True)
         self.assertFalse(self.document.tags.filter(pk=self.tag.pk).exists())
+
+    def test_partial_undo_keeps_the_created_parent_until_its_last_child_is_undone(self):
+        parent = Tag.objects.create(name="Folder", owner=self.user)
+        self.tag.tn_parent = parent
+        self.tag.save()
+        sibling = Tag.objects.create(name="Chamber music", owner=self.user, tn_parent=parent, matching_algorithm=Tag.MATCH_AUTO)
+        self.configure()
+        TagRule.objects.create(tag=sibling, minimum_score=85)
+        batch = uuid4()
+        with (
+            patch("documents.matching.match_tags", return_value=[self.tag, sibling]),
+            patch("paperless_tag_review.service.suggested_tag_scores", return_value={self.tag.pk: .9, sibling.pk: .9}),
+        ):
+            set_tags(None, self.document, classifier=object(), tag_review_batch=batch)
+        self.assertEqual(set(self.document.tags.all()), {self.tag, sibling, parent})
+        undo = lambda tag: self.client.post(self.history, {"undo_batch": str(batch), "tag_ids": [tag.pk, parent.pk]}, format="json")
+        self.assertEqual(undo(self.tag).json()["removed"], 1)
+        self.assertEqual(set(self.document.tags.all()), {sibling, parent})
+        self.assertEqual(undo(sibling).json()["removed"], 1)
+        self.assertFalse(self.document.tags.exists())
+
+    def test_batch_preview_lists_only_documents_the_caller_can_change(self):
+        self.configure()
+        batch = uuid4()
+        readable = Document.objects.create(
+            title="Shared for reading", content="Concert", checksum="read-only-concert",
+            mime_type="text/plain", owner=self.other,
+        )
+        assign_perm("view_document", self.user, readable)
+        for document in (self.document, readable):
+            with (
+                patch("documents.matching.match_tags", return_value=[self.tag]),
+                patch("paperless_tag_review.service.suggested_tag_scores", return_value={self.tag.pk: .93}),
+            ):
+                set_tags(None, document, classifier=object(), tag_review_batch=batch)
+        self.assertEqual(self.client.get(f"/api/tag_review/documents/{readable.pk}/").status_code, 200)
+        preview = self.client.get(f"/api/tag_review/batches/{batch}/")
+        self.assertEqual(preview.json()["events"], [{"document_id": self.document.pk, "tag_id": self.tag.pk}])
 
     def test_manual_preexisting_tag_keeps_ownership(self):
         self.configure()

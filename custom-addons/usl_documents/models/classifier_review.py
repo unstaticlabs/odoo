@@ -59,7 +59,10 @@ class Document(models.Model):
     def classifier_tag_history(self):
         self.ensure_one()
         self.check_access("read")
-        events = self._paperless().tag_decisions(self.paperless_id)["events"]
+        try:
+            events = self._paperless().tag_decisions(self.paperless_id)["events"]
+        except PaperlessNotFound:
+            raise ValidationError(_("The archive needs to be upgraded before showing automatic tag history.")) from None
         tags = self.env["usl.paperless.tag"].with_context(active_test=False).search([
             ("paperless_id", "in", [event["tag_id"] for event in events]),
         ])
@@ -80,12 +83,18 @@ class Document(models.Model):
         visible_tags = self.env["usl.paperless.tag"].with_context(active_test=False).search([
             ("paperless_id", "in", [event["tag_id"] for event in events]),
         ])
-        allowed_tags = set(visible_tags.mapped("paperless_id"))
-        document_ids = {event["document_id"] for event in events if event["tag_id"] in allowed_tags}
+        names = {tag.paperless_id: tag.display_name for tag in visible_tags}
+        removable = {}
+        for event in events:
+            if event["tag_id"] in names:
+                removable.setdefault(event["document_id"], []).append(names[event["tag_id"]])
         documents = self.search([
-            ("paperless_id", "in", list(document_ids)), ("availability_state", "=", "available"),
+            ("paperless_id", "in", list(removable)), ("availability_state", "=", "available"),
         ], order="name, id")
-        return [{"id": doc.id, "name": doc.display_name} for doc in documents if doc.has_access("write")]
+        return [
+            {"id": doc.id, "name": doc.display_name, "tags": sorted(removable[doc.paperless_id])}
+            for doc in documents if doc.has_access("write")
+        ]
 
     def undo_classifier_batch(self, batch):
         self.ensure_one()

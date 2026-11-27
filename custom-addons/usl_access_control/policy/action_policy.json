@@ -221862,8 +221862,8 @@
       "id": "read_only.documents_and_communications.classifier_review_2582",
       "rationale": "The native access checks precede reads. Odoo filters documents and tag labels under the current user before returning batch details.",
       "reviewed_digests": {
-        "rpc:usl.document.classifier_batch_documents": "40970b6c6f99a8fad7f3d2958851a66bbb9ba3d29d69474be4290a2eb652c597",
-        "rpc:usl.document.classifier_tag_history": "b654b87d2d6ea325dbaf96ecb0dc0f7ee78be39d981cd8797aeaa84fc1a011aa",
+        "rpc:usl.document.classifier_batch_documents": "bedb84b03a728c06a31fd0ca9618ec5d2d33410205af35409094b32ea8376755",
+        "rpc:usl.document.classifier_tag_history": "951f0a7a2a801b8514173d4b69812540d18495d23d4933e540e7dfa75fe5c923",
         "rpc:usl.document.tag.rule.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
         "rpc:usl.document.tag.rule.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
         "rpc:usl.document.tag.rule.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",

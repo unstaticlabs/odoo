@@ -33,13 +33,17 @@ export class ClassifierHistoryDialog extends Component {
 
     description(event) {
         const status = { applied: _t("Applied"), removed: _t("Removed manually"),
-            undone: _t("Undone"), kept: _t("Kept after review") };
+            undone: _t("Undone"), kept: _t("Kept (changed by hand)") };
         return status[event.status] || event.status;
     }
 
     scoreSummary(event) {
         const score = formatFloat(100 * event.score, { digits: [16, 1] });
         return _t("Score %s/100 · Minimum %s", score, event.minimum_score);
+    }
+
+    tagsToRemove(document) {
+        return _t("Tags to remove: %s", document.tags.join(", "));
     }
 
     date(value) {

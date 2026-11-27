@@ -84,7 +84,9 @@ def undo_document_batch(document, batch, visible_tag_ids):
     ))
     memberships = _memberships(document, [event.tag_id for event in events])
     owned = {e.tag_id for e in events if memberships.get(e.tag_id) == e.membership}
-    parents = {int(pk): membership for e in events for pk, membership in e.added_parents.items()}
+    # A parent this run created stays owned by the run until it is removed, whatever happened to the receipt naming it.
+    receipts = TagDecision.objects.filter(document=document, batch=batch).values_list("added_parents", flat=True)
+    parents = {int(pk): membership for added in receipts for pk, membership in added.items()}
     current_parents = _memberships(document, parents)
     inherited = {pk for pk, member in parents.items() if current_parents.get(pk) == member and pk in visible_tag_ids}
     remaining = document.tags.exclude(pk__in=owned | inherited)

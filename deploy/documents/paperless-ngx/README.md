@@ -163,6 +163,10 @@ its changes into one batch. An intake classifies one document at a time.
 removes only links created by that run and still owned by it. A manual
 removal or a previous undo prevents the classifier from reapplying that
 document/tag pair. People can still add or remove the tag themselves.
+Paperless's own bulk edit does not record a manual removal, so a tag removed
+that way can be applied again by a later run. The batch preview lists only
+documents the caller may change, and a parent tag created by a run is removed
+with the last tag of that run that needed it.
 Replaying an undo is safe even if a response was lost.
 
 ## Semantic API contract

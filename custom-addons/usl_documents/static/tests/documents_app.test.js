@@ -2660,7 +2660,8 @@ test("classifier history reviews the visible batch and retries only its unfinish
     onRpc("usl.document", "document_detail", () => { detailCalls++; return doc; });
     onRpc("usl.document", "classifier_tag_history", () => [{ tag: "Concerts", batch: "sample-run", score: .892,
         minimum_score: 84, status: "applied", created: "2026-10-10T12:00:00Z" }]);
-    onRpc("usl.document", "classifier_batch_documents", () => [doc, { id: 4102, name: "Stage notes" }]);
+    onRpc("usl.document", "classifier_batch_documents", () => [
+        { id: 4101, name: "Recital notes", tags: ["Concerts", "Programmes"] }, { id: 4102, name: "Stage notes", tags: ["Concerts"] }]);
     onRpc("usl.document", "undo_classifier_batch", ({ args }) => {
         const id = args[0][0];
         undo.push(id);
@@ -2673,6 +2674,7 @@ test("classifier history reviews the visible batch and retries only its unfinish
     expect(".modal").toHaveText(/Score 89.2\/100/);
     await contains(".modal button", { text: "Review batch" }).click();
     expect(".modal").toHaveText(/Stage notes/);
+    expect(".modal").toHaveText(/Tags to remove: Concerts, Programmes/);
     expect(undo).toEqual([]);
     await contains(".modal button", { text: "Undo this batch" }).click();
     await animationFrame();
