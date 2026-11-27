@@ -1090,7 +1090,7 @@
                         </div>
                     </section>
 
-                    <section class="border-top p-3">
+                    <section class="border-top p-3 o_usl_detail_linked_records" t-ref="linkedRecords">
                         <h6>Linked records</h6>
                         <div t-if="state.selected.links?.length" class="list-group">
                             <div t-foreach="state.selected.links" t-as="link" t-key="link.id"

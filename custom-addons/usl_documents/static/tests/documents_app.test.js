@@ -4,6 +4,7 @@ import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
 import {
     contains,
+    makeServerError,
     mockService,
     mountWithCleanup,
     onRpc,
@@ -2685,6 +2686,70 @@ for (const dismissal of ["close", "back"]) {
         expect(".o_usl_documents_detail").toHaveCount(1);
     });
 }
+
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} after the document lost access leaves the list without its route`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        let revoked = false;
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: revoked ? [] : [document], count: revoked ? 0 : 1 }));
+        onRpc("usl.document", "document_detail", () => {
+            if (revoked) {
+                throw makeServerError({ type: "AccessError" });
+            }
+            return { ...document, archive_available: false, links: [link], versions: [] };
+        });
+        onRpc("usl.document", "action_open_linked_record", () => {
+            revoked = true;
+            throw makeServerError({ type: "AccessError" });
+        });
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe("620");
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        expect(browser.history.state?.trapState).not.toBe(true);
+        expect(browser.history.state?.uslDocumentId || null).toBe(null);
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe(null);
+    });
+}
+
+test.tags("desktop");
+test("returning from an opened linked record scrolls the linked records into view", async () => {
+    mockUserAgent("mac");
+    const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+    const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+    onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+    const scrolled = [];
+    patchWithCleanup(Element.prototype, {
+        scrollIntoView() {
+            scrolled.push(this.className);
+        },
+    });
+    mockService("action", { doAction() {} });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    expect(scrolled.some((name) => String(name).includes("o_usl_detail_linked_records"))).toBe(false);
+    await contains(".o_usl_open_linked_record").click();
+    // Back remounts the workspace, which reopens the same document.
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await animationFrame();
+    expect(scrolled.filter((name) => String(name).includes("o_usl_detail_linked_records")).length).toBe(1);
+});
 
 
 test.tags("desktop");

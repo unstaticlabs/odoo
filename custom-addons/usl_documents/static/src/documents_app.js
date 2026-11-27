@@ -3,6 +3,7 @@
 import {
     Component,
     onMounted,
+    onPatched,
     onWillStart,
     onWillUnmount,
     onWillUpdateProps,
@@ -265,6 +266,10 @@ export class DocumentsWorkspaceView extends Component {
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
                 : null;
         this.listScroller = useRef("documentList");
+        this.linkedRecordsRef = useRef("linkedRecords");
+        this.pendingLinkedRecordsScroll = null;
+        onPatched(() => this.scrollToLinkedRecords());
+        onMounted(() => this.scrollToLinkedRecords());
         const storagePrefix = `usl_documents.workspace.${user.userId}`;
         this.globalStorageKey = `${storagePrefix}.global`;
         this.storageKey = `${storagePrefix}.${
@@ -1551,6 +1556,20 @@ export class DocumentsWorkspaceView extends Component {
             String(versionId || "") === String(previewHistory.versionId || "") &&
             (previewHistory.open || previewHistory.awaitingReturn)
         ) {
+            if (this.state.selected?.id !== previewHistory.documentId) {
+                // The access refresh could not reopen the document, so the
+                // user may no longer read it. Do not hide this return: leave
+                // the list as the only entry and drop the document route.
+                this.previewHistory = null;
+                this.cancelHistoryBack();
+                this.closingDetail = false;
+                this.hasLocalListHistory = false;
+                this.clearDetailState();
+                this.writeNavigationState("replace");
+                this.persistState();
+                this.restoreScroll();
+                return;
+            }
             // Back dismisses the preview first. The native dialog's X also
             // removes its trap with Back; neither operation closes the drawer.
             previewHistory.returned = true;
@@ -2529,6 +2548,7 @@ export class DocumentsWorkspaceView extends Component {
                     }
                 }
                 this.persistState();
+                this.restoreLinkedRecordsPosition(document.id);
             }
         } catch (error) {
             this.notification.add(
@@ -3406,8 +3426,44 @@ export class DocumentsWorkspaceView extends Component {
         await reloading;
     }
 
+    get linkedRecordsReturnKey() {
+        return `${this.storageKey}.linkedRecordsReturn`;
+    }
+
+    restoreLinkedRecordsPosition(documentId) {
+        // Back from a linked record lands on the same document. Bring the
+        // linked records into view instead of the top of the drawer.
+        try {
+            const stored = browser.sessionStorage.getItem(this.linkedRecordsReturnKey);
+            browser.sessionStorage.removeItem(this.linkedRecordsReturnKey);
+            if (Number(stored) === Number(documentId)) {
+                this.pendingLinkedRecordsScroll = Number(documentId);
+            }
+        } catch {
+            // Scroll position is a convenience only.
+        }
+    }
+
+    scrollToLinkedRecords() {
+        const documentId = this.pendingLinkedRecordsScroll;
+        const section = this.linkedRecordsRef.el;
+        if (!documentId || !section || this.state.selected?.id !== documentId) {
+            return;
+        }
+        this.pendingLinkedRecordsScroll = null;
+        section.scrollIntoView({ block: "start" });
+    }
+
     async openLink(link) {
         this.persistState();
+        try {
+            browser.sessionStorage.setItem(
+                this.linkedRecordsReturnKey,
+                String(this.state.selected.id)
+            );
+        } catch {
+            // Scroll position is a convenience only.
+        }
         const action = await this.rpc(
             "usl.document",
             "action_open_linked_record",
