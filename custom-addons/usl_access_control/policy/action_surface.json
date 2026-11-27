@@ -888155,7 +888155,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "3c3ce8f4d030aa2b4a458a068c382e18b71d78514b266be597d4494c6017ec7a",
+      "digest": "da42bbad3991b901215b5a76ec6012a0c93b2a741ea595de68552e7289309277",
       "guards": [],
       "key": "rpc:project.project.write",
       "kind": "rpc",
@@ -888176,7 +888176,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "f335932f06fbdb24833379917435175298e3e87ae92e1036cf330dca40367e6e",
+      "runtime_digest": "0b56e6d698d2759cc0b142001036999f5a640fb48bb313f7d29c3b3fffb57de3",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -899997,7 +899997,7 @@
           "path": "addons/project/models/project_task.py"
         },
         {
-          "line": 412,
+          "line": 422,
           "path": "custom-addons/usl_project/models/project_task.py"
         },
         {
@@ -908304,7 +908304,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 368,
+          "line": 378,
           "path": "custom-addons/usl_project/models/project_task.py"
         },
         {
@@ -908795,7 +908795,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "0173e66a618f9ec64f4f9693b91420725abe94ff8b685ba8321ebbb06800db2a",
+      "digest": "cbec4dfb61bfb94a757260285ff2b1206067e1d596dd9a87340a65bd9f06ce21",
       "guards": [],
       "key": "rpc:project.task.write",
       "kind": "rpc",
@@ -908816,7 +908816,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "8585bf85a6c6a3e79c4b79d8184225e905464ef97ce2432cf5921865fb4f9a27",
+      "runtime_digest": "81b61aedbd4737f6fdfd8ca7e91dd8c8cdd42599e6d5f25312e879acea0ee85c",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1706272,7 +1706272,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 47,
+          "line": 50,
           "path": "custom-addons/usl_project/models/project_project.py"
         }
       ]
@@ -1706287,7 +1706287,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 47,
+          "line": 50,
           "path": "custom-addons/usl_project/models/project_project.py"
         }
       ]
@@ -1706302,7 +1706302,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 47,
+          "line": 50,
           "path": "custom-addons/usl_project/models/project_project.py"
         }
       ]
@@ -1706344,7 +1706344,7 @@
       ]
     },
     {
-      "digest": "d96baec456bc0ae9ec536ff5decdd739a0f8752b7630f7c3ae31f9d404b6fb70",
+      "digest": "8661f778d48f99b1e86ff231464ee41e1bd5e224e057b365f0cd31bec5e98136",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_project.py:project.project.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1706431,7 +1706431,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 388,
+          "line": 398,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1706602,7 +1706602,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 412,
+          "line": 422,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1706620,7 +1706620,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 368,
+          "line": 378,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1706638,13 +1706638,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 368,
+          "line": 378,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
     },
     {
-      "digest": "6243e6d4a59d3909bad7db01adea465c419800fad87237320623ef6ad9b61746",
+      "digest": "6f621e08665a84deead672835478a12156012d16833a6acd35739b76f835a75f",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1706662,7 +1706662,7 @@
       ]
     },
     {
-      "digest": "b6effd4462444d1741fb1a2bdf3dc6dff4089af02400e0d526db5f0ae11b4bce",
+      "digest": "efed12f737665ace30703eea0fe94e53e4fcf6fbf3d1be784bb8020118f746e8",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1706680,7 +1706680,7 @@
       ]
     },
     {
-      "digest": "5f840b64d0f1180d33e36cc87c63ed8b015e721dcb721884dafc2382f382de4d",
+      "digest": "98d8eff6146d1401b62a27c7e102a999eb654595747b2cd5e5cf344cac29e2d7",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1706698,7 +1706698,7 @@
       ]
     },
     {
-      "digest": "7fd9caaa988d9f7fccfd5509619bf521edde8fbcff357719b2c3810d1b44601e",
+      "digest": "0ca56e850b622e64e7bc0fe4de63da0b8c34e14ae3f99dad3ed4acef8a3b77e1",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1706716,7 +1706716,7 @@
       ]
     },
     {
-      "digest": "37c25889b3669caaa06f14bb15c30a252e915191a347cbfccafc55c48ca8bd8f",
+      "digest": "e86855b27a9f6a64a106d5b4a52d8808e63289677b28d104e4dd7713c268992b",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1706734,7 +1706734,7 @@
       ]
     },
     {
-      "digest": "d24d5dc92cb68726c249c33a4acbfca6e8c969335d1348ef773696743f3fbd6b",
+      "digest": "2be0a860e1e2c23e0c700568bd747374ecd61aba3157a4d70cfb4aeacb0a9467",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:6",
       "kind": "sink",
       "modules": [
@@ -1706752,7 +1706752,7 @@
       ]
     },
     {
-      "digest": "eddeb5a7e0701cf1a3a5b01a7de4317bdfdfc8e26f23d27b252d01b3c1738195",
+      "digest": "4fe3452d0c841555b2abb4d8ee309ba03cfccf4999a50d3a3df7d589f6297e0d",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:7",
       "kind": "sink",
       "modules": [
@@ -1706770,7 +1706770,25 @@
       ]
     },
     {
-      "digest": "13e6c173322d63ce4fc2d64616c461291cf75631cc94d4f3cf90a225c5314931",
+      "digest": "be4951ebad3c0cde24f467af2f24e1d351554f944e4f1255a0f3dbeaee20ca96",
+      "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:8",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 258,
+          "path": "custom-addons/usl_project/models/project_task.py"
+        }
+      ]
+    },
+    {
+      "digest": "ac81d4951e80572f66a36b94bdba8ecfe5f99b1431538b5dcc229fdbf69ed9b1",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1706788,7 +1706806,25 @@
       ]
     },
     {
-      "digest": "1d24ca549674a1d9b8263c5249221350fdb8eb4814cd611b309dc2f080cc8baa",
+      "digest": "4f3ac21d6b194d7a3f59b08d5e67c4cedb8e153bb34cbb1d3c8e8e88531c059e",
+      "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:10",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 258,
+          "path": "custom-addons/usl_project/models/project_task.py"
+        }
+      ]
+    },
+    {
+      "digest": "242e484e1636b07025fded90ff85a5e8e31ec7f6e8f7e0261f05476238ae44fc",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1706806,7 +1706842,7 @@
       ]
     },
     {
-      "digest": "bc956307096b34c63554b00dbc5b66c89646013442a9802aa5247d72a4bceecd",
+      "digest": "82abb75c0e89fdd06aeb196ca639623dc55bab3a301f92b8ce22914ca0ab163a",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1706824,7 +1706860,7 @@
       ]
     },
     {
-      "digest": "0a696c92b2e3df3a7c80d40fe917728dccaddc3b189399e094057adb153237b4",
+      "digest": "0326de635d0b42dfee2cb590492572f6417530812f021b51e4d04c5fef98c0d4",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4",
       "kind": "sink",
       "modules": [
@@ -1706842,7 +1706878,7 @@
       ]
     },
     {
-      "digest": "fda2110222c60ce315865342f3e3a8705882d74d1c0f4e1976145a03e7c3810d",
+      "digest": "bf6461e3f065af8990311cbd7c6df855e850de09aebcc815cfa7bb1f9a23ff0c",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5",
       "kind": "sink",
       "modules": [
@@ -1706860,7 +1706896,7 @@
       ]
     },
     {
-      "digest": "421bb7ecaaa9c73ae1cec9c37e4be05abe24c9f374b6a76e1e923ab3a41416c0",
+      "digest": "2005cb29da3224b70933c6ce7a41e5ec781a899b855c119e39340b63c3337e6c",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6",
       "kind": "sink",
       "modules": [
@@ -1706878,7 +1706914,7 @@
       ]
     },
     {
-      "digest": "a9f28eac19d1fb887810270655a5f38326f765cf2d76e358f525fbc9c20d9765",
+      "digest": "215988a047f536f396fa9476ee630e21d93385b618476cb72b593e96a42e395b",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:7",
       "kind": "sink",
       "modules": [
@@ -1706896,7 +1706932,7 @@
       ]
     },
     {
-      "digest": "1b4bc04737e0922be74e0ea3b1ab0d1973441ebcc56d1758d2197d247f003fb2",
+      "digest": "e443749f082255944c11a86aa55174c4e2fed4fc64acb9c11a206152dc57a469",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:8",
       "kind": "sink",
       "modules": [
@@ -1706914,7 +1706950,7 @@
       ]
     },
     {
-      "digest": "dbeb10acd6cf2c7a641f69f7366cd350f0ca3bc83c10216372300720edffe54c",
+      "digest": "a66e55551f784c3b3b63abf6f129b68d1e5b8a5b259c8e71abb6c17a64c5b5c9",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:9",
       "kind": "sink",
       "modules": [
@@ -1776209,7 +1776245,7 @@
       "manifest_sha256": "3dbeb71efa48a3fcdb937907ab7d5adcf38d68afe21984ad5b050b7d3e5821ad",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "5a78ba429967c51462ec002097f3e59558836409dceae794f3524b7583e3b349",
+      "source_sha256": "70fd47ebbbfd58034a21d007f0abd2431d3fa7ef1112b2d7a7864f145871ea64",
       "version": "saas~19.3.1.0.24"
     },
     {
