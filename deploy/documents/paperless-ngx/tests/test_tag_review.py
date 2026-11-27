@@ -4,7 +4,8 @@ from uuid import uuid4
 from unittest.mock import patch
 
 from django.contrib.auth.models import Permission, User
-from django.db import connections
+from django.db import connection, connections
+from django.db.migrations.executor import MigrationExecutor
 from django.test import TransactionTestCase, override_settings, skipUnlessDBFeature
 from documents.models import Document, Tag
 from documents.signals.handlers import set_tags
@@ -203,3 +204,30 @@ class TestConcurrentClassification(TransactionTestCase):
         results = parallel(lambda item: undo_document_batch(item, batch, {tag.pk}))
         self.assertEqual(sorted(result["removed"] for result in results), [0, 1])
         self.assertFalse(document.tags.exists())
+
+
+class TestInstallingTagReview(TransactionTestCase):
+    def test_existing_archive_and_tag_membership_survive_initial_and_repeated_migration(self):
+        node = ("paperless_tag_review", "0001_initial")
+        # Model an existing 3.5.1 database by keeping all predecessor app tables.
+        MigrationExecutor(connection).migrate([("paperless_tag_review", None)])
+        try:
+            previous = MigrationExecutor(connection).loader.project_state([("documents", "0030_note_format")]).apps
+            old_tag, old_document = previous.get_model("documents", "Tag"), previous.get_model("documents", "Document")
+            actor = User.objects.create_user(username="existing-archive-editor")
+            tag = old_tag.objects.create(name="Existing project", owner_id=actor.pk, matching_algorithm=Tag.MATCH_AUTO)
+            document = old_document.objects.create(
+                title="Existing fixture", mime_type="application/pdf", owner_id=actor.pk, checksum="existing-fixture-checksum",
+            )
+            membership = old_document.tags.through.objects.create(document_id=document.pk, tag_id=tag.pk)
+            for _attempt in range(2):
+                MigrationExecutor(connection).migrate([node])
+                existing = Document.objects.get(pk=document.pk)
+                self.assertEqual((existing.owner_id, existing.checksum), (actor.pk, "existing-fixture-checksum"))
+                self.assertEqual(
+                    Document.tags.through.objects.get(document_id=document.pk, tag_id=tag.pk).pk, membership.pk,
+                )
+                self.assertFalse(TagRule.objects.exists())
+                self.assertFalse(TagDecision.objects.exists())
+        finally:
+            MigrationExecutor(connection).migrate([node])
