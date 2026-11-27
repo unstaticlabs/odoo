@@ -166383,15 +166383,19 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1": {
@@ -166407,9 +166411,11 @@
           "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": {
@@ -166452,6 +166458,7 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_source:orm_create:1": {
@@ -166473,12 +166480,15 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:1": {
@@ -167922,16 +167932,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._check_order_money:orm_write:1": "ae53561c2a68d42b1a65481f6467d38e5377eb3c586618e13c7a1259f68cf51a",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1": "f464ceae0aa651a130430224afc917d66da65694fb332ec48985cecd0745090f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": "7e52af0959b51a8f4e1d5b48739cf6d29d1f86fd4f444d138b9b821f7bb9b0fd",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "75aaa124795740391731c06c184b7c199778aa399b3e6ac10bcccc3f36d86aad",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": "4903e6d954bfd26df0d6fef5d2faa824bf9a5ee666f95028e33d293631066029",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": "cc97f256cf9b5e195f5a6794960d9ea0caf27c8d5db95b4b1d0537c4d95528d1",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": "e59b129bee22f64056651ff5f56ba80ee03644503bbda4d818ee3745fe19538c",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "859a738a24d1c7dced2e104482babac895bf740de218a75f41b68752b6f79dbc",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": "df1a6df17354411a0b507afce6ef459f96738812dd66cce3d571b822f4e4ea06",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": "e858a28235ff459151e3d79fbc49de7f2b4c239d4fd3d051fb6ac927897513d3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": "90d954e175a8e4fb3d53caedb2c3476235932042d1448736294b0196cc468c4b",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1": "3498f773b0d41f069343fd2fe70f1041d4258ccb70dcb7db95f27bff51aef6bc",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:2": "acd174795ed70328f20a63da469ef4afad638936f5db31865e7629ca9b1b4627",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_reset:orm_write:1": "bbec2b2647fc3527c0cb80eefd86cf489795398791c4654c25d22112450cc360",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1": "4fee9138c926a03895646071776cc549718ac7c8f83d021429b6d388bf062a23",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": "b4b81e40c9f18e07fd7bf8ccb5290b5ce98ed203dcd86a29ea88824aa0bf880e",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": "6bffa8dbc1ff6700fbe8c0e7f6caa80320fc0050aa68412583d5cbc8a00e517a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": "187e56414c9c4974d8102308d870cde9c9b71d8b01f5aeb22f62e9aec4bb9ab0",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": "428539ec7ad1546bcbd2370eb224ff5ad69302db7128ed1a49277eb293990d60",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": "4c3c1b593729493834c814d5f915a219ecb31aff74035f9bf19cf0d89d7cf065",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:orm_write:1": "3bc57367ac3cb49d5191cbc52c9e2dcf0efb420c5291e728c0a00ca128e308ea",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:1": "28b21e2f3ed9a0f7ec51ee4f69869c9651e1f4888864431002f6c871562e86e3",
@@ -167945,16 +167955,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch.action_resolve:orm_write:1": "be1bee5a09740d60bb90e7b9455c11e0716ce6172fc529e61a2705e15e11dbab",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._assert_channels_can_sell:orm_write:1": "e71da624b7e93a453bd7e6fc8d8e1638c38dd03572f29ce5e83350df2200cf16",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_lines:orm_create:1": "411607c4d67aeb2abf1b6e9c5300d080ac6c5e08ddd3f45abc24484edcccd050",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": "0390cf63a758bc05501f21ecdd16199ff555c2dac72dc1ed8340f6744598f5a8",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": "212e69af0c70a853f7685b0e9a4eb9e15c7485097eab85789e9e53d89da6429b",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_source:orm_create:1": "df8a88d3e7ac386879021aea763f5b1602b04ab16639e6be1e43ac49ce719db2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:1": "4afb99765f5eee7eb2fe2ad648486c4a28960905279e2f7e6bcea23cdcc42c25",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:2": "48f8f3824800893056ec0819919344117d07ea1f716192fcf996223c354b7190",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:sudo:1": "b35b8af4327b5f728b4dafb3ab84599f225f52353af967d7eb584f57f8bfc73c",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:orm_create:1": "8c9899a7a6667d6251868c7db5aa27999c2ea76195fc79720ad1f72b6e88067f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:sudo:1": "7ad5828abf330997f50accdf3aabbd37d791577b3a4b31a39a5a46635a18bb74",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": "58b4306df6878baf98483b05742d30b5e647986d565207644521740f329bdf4c",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": "3aa399313ec39e5853ff6c464e8ea9ceb317cfaee656649c80394513885d5139",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": "b21cce4532684ed1a5fe93f49d982bc237af59bebfdbfc07f15a0637f97a8400",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": "4ebd0e0c1904d5a465b34b8a824767e1195ad793f163d9e5fad94efbf7685f9b",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": "9f76400a1a91a25d1d222c0de5d60948cacb2b1e98f1d501ec0155a762d40388",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": "a68df86d49c14d44cb0e6ab1d09fbaa1010af1d8795f6ca824947bd9843285e3",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:1": "021df3a5a9febd00376a1696359eaa86453ad87bc53dd5c6e66f99777a87e5a0",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:2": "a0a91745104fb0ec2e1f93e959ddffaa93696c461cb4b6be6fe19dee16937e44",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._pricelist:orm_create:1": "507823373d0f1ed3f0b6bd114c7c969b65d3aa7cbf68e3fb0efa0358ba547600",
@@ -222340,6 +222350,15 @@
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_links_are_for_project_managers",
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_lost_access_refreshes_the_cards",
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_only_an_https_mattermost_url_is_used"
+      ]
+    },
+    "medusa-native-identities-2588-v1": {
+      "contract": "Explicit native Medusa order/item IDs are retained through the existing import flow. Historical/native item lines for one order are not matched by content; conflicting snapshots are refused with per-order recovery while distinct orders can coexist. Contradictory existing native identity and stale conflicting identity are refused. Native statuses are compared between identified snapshots and numeric facts are compared before JSON serialization. New Medusa identities use the existing protected provenance boundary and a company/native-ID uniqueness constraint; historical orders remain NULL and unchanged. Stale preview reuse links the complete order/item family. Existing source/company/model authority, batch atomicity and mutation classifications remain. Synthetic native response projection, replay, apply, French, state-only nonmutation, company and predecessor preservation evidence; no collection or automatic financial synchronization.",
+      "tests": [
+        "custom-addons/usl_b2c_ingest/tests/test_medusa_identity.py",
+        "custom-addons/usl_b2c_ingest/tests/test_import_batch.py",
+        "custom-addons/usl_b2c_ingest/tests/test_materialise.py",
+        "docs/product/medusa-identified-import.md"
       ]
     },
     "native-empty-crud-parity": {
