@@ -265,15 +265,12 @@ class B2cAccountingSession(models.Model):
                     status = self.env._("Awaiting review")
                 if gaps:
                     step = self.env._(
-                        "Draft, awaiting review. Still open: %(gaps)s. "
-                        "Resolve them, then a B2C operator presses Mark Reviewed.",
+                        "Resolve: %(gaps)s. Then check totals and press Mark Reviewed.",
                         gaps="; ".join(gaps),
                     )
                 else:
                     step = self.env._(
-                        "Draft, awaiting review. Every record has an accounting "
-                        "disposition, but coverage is not a review: a B2C "
-                        "operator checks the totals, then presses Mark Reviewed.",
+                        "No open gaps. Check totals and evidence, then press Mark Reviewed.",
                     )
             session.review_status = status
             session.review_next_step = step

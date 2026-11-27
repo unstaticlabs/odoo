@@ -119,6 +119,25 @@ Company record rules cover all B2C models. Readers are read-only. Operators may
 review mappings, links, and sessions. Managers may configure channels, unlock
 sessions, and manage access. Users outside the B2C groups have no model access.
 
+## Monthly review
+
+Monthly Review opens the existing monthly sessions with a compact list and the
+native With Gaps filter selected. It puts the session, review status, next step
+and existing accounting, product-mapping and currency-conversion gaps together.
+The same search offers To Refresh for drafts with no recorded refresh, and
+Ready for Review for refreshed drafts with none of those known gaps. Native
+filters intersect the gap, refresh and ready categories; clear the current filter
+to change category. Adding Ready for Review to With Gaps returns no rows rather
+than including incomplete sessions. Refreshed Drafts remains the broader native
+filter and can include sessions with gaps.
+
+These are views of the latest evidenced session snapshot, not new measures or
+proof that all shop activity has been imported. A refreshed session remains a
+draft until a person reviews it. Opening or filtering the list never refreshes,
+approves, posts or changes a session. Native reader/operator permissions and
+company rules still govern the same form and its existing actions. Monthly
+Sessions retains the complete financial columns and reviewed/locked history.
+
 ## Inventory position
 
 The lossless restore initially contains 46 source templates, each with one

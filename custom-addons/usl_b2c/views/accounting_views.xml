@@ -9,8 +9,12 @@
                 <field name="period_start"/>
                 <field name="channel_id"/>
                 <filter name="open" string="Open" domain="[('state', '!=', 'locked')]"/>
-                <filter name="awaiting_review" string="Awaiting Review" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False)]"/>
-                <filter name="blocked_coverage" string="Incomplete Coverage" domain="['|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
+                <filter name="awaiting_review" string="Refreshed Drafts" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False)]"/>
+                <filter name="blocked_coverage" string="With Gaps" domain="['|', '|', ('pending_link_count', '&gt;', 0), ('pending_mapping_count', '&gt;', 0), ('pending_conversion_count', '&gt;', 0)]"/>
+                <separator/>
+                <filter name="needs_refresh" string="To Refresh" domain="[('state', '=', 'draft'), ('refreshed_at', '=', False)]"/>
+                <separator/>
+                <filter name="ready_for_review" string="Ready for Review" domain="[('state', '=', 'draft'), ('refreshed_at', '!=', False), ('pending_link_count', '=', 0), ('pending_mapping_count', '=', 0), ('pending_conversion_count', '=', 0)]"/>
                 <group>
                     <filter name="group_month" string="Month" context="{'group_by': 'period_start:month'}"/>
                     <filter name="group_channel" string="Channel" context="{'group_by': 'channel_id'}"/>
@@ -141,6 +145,38 @@
         <field name="res_model">b2c.accounting.session</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_b2c_accounting_session_search"/>
+    </record>
+
+    <record id="view_b2c_session_review_list" model="ir.ui.view">
+        <field name="name">b2c.accounting.session.review.list</field>
+        <field name="model">b2c.accounting.session</field>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <list string="Monthly Review" decoration-warning="pending_link_count or pending_mapping_count or pending_conversion_count">
+                <field name="name" string="Session" class="text-wrap" width="260px"/>
+                <field name="review_status" string="Review Status" width="140px"/>
+                <field name="review_next_step" string="Next Step" class="text-wrap" width="440px"/>
+                <field name="pending_link_count" string="Accounting Gaps" width="110px"/>
+                <field name="pending_mapping_count" string="Product Gaps" width="100px"/>
+                <field name="pending_conversion_count" string="Conversion Gaps" width="110px"/>
+                <field name="period_start" optional="hide"/>
+                <field name="channel_id" optional="hide"/>
+                <field name="source_provider" optional="hide"/>
+                <field name="refreshed_at" optional="hide"/>
+                <field name="state" widget="badge" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_b2c_session_review" model="ir.actions.act_window">
+        <field name="name">Monthly Review</field>
+        <field name="res_model">b2c.accounting.session</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_b2c_session_review_list"/>
+        <field name="search_view_id" ref="view_b2c_accounting_session_search"/>
+        <field name="context">{'search_default_blocked_coverage': 1}</field>
+        <field name="help" type="html"><p>No sessions match the selected filters. Clear them or choose another review filter.</p></field>
     </record>
 
     <record id="view_b2c_accounting_link_search" model="ir.ui.view">

@@ -12161,6 +12161,7 @@
         "ui:usl_accounting.view_bank_ingestion_form:button:object:action_correct_period:1",
         "ui:usl_b2c.action_b2c_accounting_link",
         "ui:usl_b2c.action_b2c_accounting_session",
+        "ui:usl_b2c.action_b2c_session_review",
         "ui:usl_tese_payroll.action_tese_payroll_accounts"
       ],
       "classification": "read_only",
@@ -12832,6 +12833,10 @@
         "rpc:wiz.account.asset.report.hierarchy_read": {
           "evidence_id": "upstream-sync-20261125",
           "rationale": "The native hierarchy read bounds the record count while keeping the existing access-checked search, grouping and read operations."
+        },
+        "ui:usl_b2c.action_b2c_session_review": {
+          "evidence_id": "b2c-session-review-2586-v1",
+          "rationale": "Native list/form navigation reuses b2c.accounting.session access and company rules. Search categories and existing computed status do not refresh, review, lock or write financial data; native reader and two-company regressions verify the boundary."
         }
       },
       "rationale": "Normalized source plus resolved delegates contain no reachable mutation or external-effect sink; framework-only unresolved recordset helpers do not add an entry point.",
@@ -19237,6 +19242,7 @@
         "ui:usl_accounting.view_bank_ingestion_form:button:object:action_correct_period:1": "8bfdcb178940eebeb1804c2c121e724b8f5a27afb433e877e23e87c78c30d5b0",
         "ui:usl_b2c.action_b2c_accounting_link": "8c9c7e04bcf6b2b2061fcaf09c1189cbaa8b30c822e7b62b942314aae63d7f03",
         "ui:usl_b2c.action_b2c_accounting_session": "7b88ac6ac202995ab0a55417095f3064aae4be3ff02b4a50d228ff1018c5588d",
+        "ui:usl_b2c.action_b2c_session_review": "d137b95ee5b2fd362b1abcf45e499b63f2650528bb2a8b55e73f8e380916fb88",
         "ui:usl_tese_payroll.action_tese_payroll_accounts": "89d5e8fe8fcbe6b284dfb4930e75f57aa13f5a8ff48b7b4b0c14732fbf1b4823"
       }
     },
@@ -221809,6 +221815,12 @@
       "tests": [
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_project_agent_edits_one_activity_without_completing_it",
         "custom-addons/usl_access_control/tests/test_agents.py::TestAutonomousAgents.test_agent_activity_edit_refuses_other_tasks_and_companies"
+      ]
+    },
+    "b2c-session-review-2586-v1": {
+      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available.",
+      "tests": [
+        "custom-addons/usl_b2c/tests/test_session_review.py::TestB2cSessionReview"
       ]
     },
     "bank-rule-native-proof-20261015": {
