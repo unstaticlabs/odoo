@@ -32,7 +32,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-approved.png",
-      "sha256": "80482bf56282e311293e6309c67053c5b67c6af1bb8fa20334d9f2d9db853261",
+      "sha256": "71d2a6d589253700a76847799f9a136ab7558d3a0aa60b3a6962be1838020402",
       "text": "Open **Expenses > Expense Batches** and choose an approved Batch. **Post batch** is the primary action; the summary says how much is company-paid and how much is owed to the employee.",
       "trigger": "button[name='action_post']"
     },

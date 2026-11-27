@@ -14,8 +14,8 @@ journey: verifier-un-lot-avant-envoi
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: fe545d2c0213a7acef4a91083faf723c3323d0e9f43e5a695bf494d93eb9b899
-screenshot_02-exception_png: 768dc2e910643da50fd8f1290a5282c7ca3a0474de3da298981288283a12a90a
+screenshot_01-batch_png: 21c93df064d3daf20ff59a9b3c53cd71f3fd9a22b39d2a8845c687250bbc6e5c
+screenshot_02-exception_png: 1517f9d60792b8d0e0abdbf4daaad763be3a45411b30e4671aa993b81886bfcc
 generated: true
 ---
 
