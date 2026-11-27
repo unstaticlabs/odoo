@@ -1030,15 +1030,16 @@ msgstr "Cet enregistrement n’est plus disponible dans les sociétés sélectio
 
 #. module: usl_home
 #. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
 #: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
 msgid "Copy link"
 msgstr "Copier le lien"
 
 #. module: usl_home
 #. odoo-javascript
-#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
-msgid "Copy this link manually"
-msgstr "Copier ce lien manuellement"
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Your browser did not allow automatic copying. Copy the selected address."
+msgstr "Le navigateur n’a pas autorisé la copie automatique. Copiez l’adresse sélectionnée."
 
 #. module: usl_home
 #. odoo-javascript

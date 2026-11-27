@@ -34,14 +34,14 @@ test("show the link for manual copying when the browser refuses", async () => {
     });
     await mountView({ ...form, resId: 17 });
     await contains(button).click();
-    await expect(".modal-title").toHaveText("Copy this link manually");
+    await expect(".modal-title").toHaveText("Copy link");
     expect(".modal-body input[readonly]").toHaveCount(1);
     const input = document.querySelector(".modal-body input");
-    if (input) {
-        expect(input).toHaveValue(`${browser.location.origin}/odoo/res.partner/17`);
-        expect(input).toBeFocused();
-        expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
-    }
+    expect(input).toHaveValue(`${browser.location.origin}/odoo/res.partner/17`);
+    expect(input).toBeFocused();
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, input.value.length]);
+    expect(".modal-body").toHaveText(/did not allow automatic copying/);
+    expect(input).not.toHaveAttribute("aria-label");
 });
 
 test("new records have no link to copy", async () => {

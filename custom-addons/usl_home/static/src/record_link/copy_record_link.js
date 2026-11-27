@@ -15,7 +15,7 @@ class ManualRecordLink extends Component {
 
     setup() {
         this.input = useRef("link");
-        this.title = _t("Copy this link manually");
+        this.title = _t("Copy link");
         onMounted(() => {
             this.input.el.focus();
             this.input.el.select();

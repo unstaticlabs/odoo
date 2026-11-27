@@ -26,9 +26,9 @@
     <t t-name="usl_home.ManualRecordLink">
         <Dialog title="this.title" size="'sm'">
             <label class="form-label w-100">
-                <span class="d-block mb-2">Copy link</span>
+                <span class="d-block mb-2">Your browser did not allow automatic copying. Copy the selected address.</span>
                 <input class="form-control" type="text" readonly="readonly"
-                       aria-label="Copy link" t-att-value="this.props.link" t-ref="link"
+                       t-att-value="this.props.link" t-ref="link"
                        t-on-focus="(event) => event.target.select()"/>
             </label>
             <t t-set-slot="footer">
