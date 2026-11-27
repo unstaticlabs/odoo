@@ -11,6 +11,7 @@ import {
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
+import { isMobileOS } from "@web/core/browser/feature_detection";
 import { Domain } from "@web/core/domain";
 import { router } from "@web/core/browser/router";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -1484,6 +1485,10 @@ export class DocumentsWorkspaceView extends Component {
 
     async handlePopState(event) {
         const historyState = event.state || {};
+        // Native mobile dialogs use a temporary Back trap, not a document route.
+        if (historyState.trapState) {
+            return;
+        }
         const routedState = historyState.nextState || {};
         const urlState = this.readUrlState();
         const targetsDocument = Boolean(
@@ -1538,6 +1543,24 @@ export class DocumentsWorkspaceView extends Component {
               : urlState.versionId;
         const documentId = Number(rawDocumentId) || null;
         const versionId = rawVersionId || null;
+        const previewHistory = this.previewHistory;
+        if (
+            previewHistory?.usesBackTrap &&
+            documentId === previewHistory.documentId &&
+            String(versionId || "") === String(previewHistory.versionId || "") &&
+            (previewHistory.open || previewHistory.awaitingReturn)
+        ) {
+            // Back dismisses the preview first. The native dialog's X also
+            // removes its trap with Back; neither operation closes the drawer.
+            previewHistory.returned = true;
+            if (!previewHistory.open && !browser.history.state?.trapState) {
+                this.previewHistory = null;
+            }
+            return;
+        }
+        if (previewHistory && !previewHistory.open) {
+            this.previewHistory = null;
+        }
         const isDuplicateOpenEntry =
             documentId &&
             documentId === this.state.selected?.id &&
@@ -3300,6 +3323,15 @@ export class DocumentsWorkspaceView extends Component {
 
     previewLink(link) {
         const documentId = this.state.selected.id;
+        const previewHistory = {
+            documentId,
+            versionId: this.state.selected.selected_version_id || null,
+            usesBackTrap: isMobileOS(),
+            open: true,
+            returned: false,
+            awaitingReturn: false,
+        };
+        this.previewHistory = previewHistory;
         this.addPreviewDialog(LinkedRecordPreview, {
             title: _t("Record preview"),
             resModel: link.model,
@@ -3308,6 +3340,25 @@ export class DocumentsWorkspaceView extends Component {
                 "usl.document", "action_open_linked_record", [[documentId], link.id], { preview: true },
             ),
             onUnavailable: () => this.refreshAfterLinkedAccessChange(documentId),
+        }, {
+            onClose: () => {
+                previewHistory.open = false;
+                // The native Back handler can close before or after this
+                // workspace receives the same popstate event.
+                previewHistory.awaitingReturn = previewHistory.usesBackTrap;
+                // The native listener may rearm its trap after close() returns,
+                // until Owl unmounts the dialog. Keep that final return scoped
+                // to this preview; clear it if Back already completed without one.
+                Promise.resolve().then(() => {
+                    if (this.previewHistory === previewHistory && previewHistory.returned &&
+                        !browser.history.state?.trapState) {
+                        this.previewHistory = null;
+                    }
+                });
+                if (!previewHistory.awaitingReturn && this.previewHistory === previewHistory) {
+                    this.previewHistory = null;
+                }
+            },
         });
     }
 

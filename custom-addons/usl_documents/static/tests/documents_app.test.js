@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, mockUserAgent, test } from "@odoo/hoot";
 import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
@@ -2648,4 +2648,62 @@ test("linked record offers a preview and keeps the ordinary open action", async 
     await contains(".o_usl_document_card").click();
     expect(".o_usl_preview_linked_record").toHaveCount(1);
     expect(".o_usl_open_linked_record").toHaveCount(1);
+});
+
+
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} preserves its document and ordinary history`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+        onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+        onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        expect(".o_usl_linked_record_summary").toHaveCount(1);
+        expect(browser.history.state.trapState).toBe(true);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_linked_record_summary").toHaveCount(0);
+        expect(".o_usl_documents_detail").toHaveCount(1);
+        expect(".o_usl_open_linked_record").toHaveCount(1);
+        expect(browser.history.state.trapState).not.toBe(true);
+        browser.history.back();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        browser.history.forward();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(1);
+    });
+}
+
+
+test.tags("desktop");
+test("desktop preview keeps ordinary duplicate-route Back behavior", async () => {
+    mockUserAgent("mac");
+    const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+    const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+    onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    browser.history.pushState(browser.history.state, "", browser.location.href);
+    await contains(".o_usl_preview_linked_record").click();
+    await animationFrame();
+    expect(browser.history.state.trapState).not.toBe(true);
+    browser.history.back();
+    await animationFrame();
+    expect(".o_usl_documents_detail").toHaveCount(0);
+    await contains(".modal .btn-close").click();
+    expect(".o_usl_documents_detail").toHaveCount(0);
 });
