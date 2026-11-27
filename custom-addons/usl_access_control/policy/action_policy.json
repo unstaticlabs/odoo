@@ -71004,7 +71004,7 @@
       "reviewed_digests": {
         "rpc:usl.home.service.get_search_result_action": "9b33af8a514ca1face45276ebf4fc558d1df69e2eb9d71245dfc7d45a198a677",
         "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
-        "rpc:usl.home.service.search_records": "d72b5713e1ffd0e3518adb5cca6c6f1cfbfd506137bb4e78f3acaef014b51111"
+        "rpc:usl.home.service.search_records": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc"
       }
     },
     {

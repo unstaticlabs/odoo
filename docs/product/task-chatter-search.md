@@ -48,6 +48,6 @@ set again. An authorized operator can use the private
 for an explicit rebuild. Direct SQL edits require explicit requeueing.
 
 This is lexical task-conversation search. Activities keep their existing live
-search behavior; transcripts, attachment contents, richer ranking, semantic
+search behavior; transcripts, attachment contents, semantic
 matching and linked-record traversal remain separate work. See
 [task search](task-search.md) and [project/contact search](project-contact-search.md).

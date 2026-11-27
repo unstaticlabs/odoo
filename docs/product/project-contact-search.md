@@ -7,8 +7,8 @@ Home uses the same content domain for its Projects and Contacts categories.
 Project titles and descriptions, and contact names and notes, have private
 PostgreSQL search fragments. Once refreshed, words may occur in a different
 order within one source field; accents are normalized and HTML is converted to
-plain text. Native link references remain searchable. Native result ordering
-is retained.
+plain text. Native link references remain searchable. Native list ordering is retained. Home ranks its own readable titles before
+content-only mentions, as described in [Home result order](live-content-search.md#home-result-order).
 
 A project title uses the current language, with the same English fallback as
 Odoo when that translation is absent. A title in another language does not
@@ -32,8 +32,8 @@ that delay. Searches never refresh the projection.
 Existing fields, properties and related-record labels continue through the live
 search implementation. This slice therefore does not establish a global speed
 target or replace every live predicate. A reordered-word result can currently
-have an empty Home excerpt. Source explanations, richer sources, ranking,
-semantic matching and graph traversal remain separate work.
+have an empty Home excerpt. Source explanations, richer sources, semantic matching and graph traversal
+remain separate work.
 
 ## Maintenance and upgrade
 
