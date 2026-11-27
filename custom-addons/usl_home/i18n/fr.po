@@ -1027,3 +1027,27 @@ msgstr "Cette destination de recherche n’est pas disponible."
 #: code:addons/usl_home/static/src/project_search/project_search.js:0
 msgid "This record is no longer available in your selected companies."
 msgstr "Cet enregistrement n’est plus disponible dans les sociétés sélectionnées."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Copy link"
+msgstr "Copier le lien"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
+msgid "Copy this link manually"
+msgstr "Copier ce lien manuellement"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
+msgid "Link copied"
+msgstr "Lien copié"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Close"
+msgstr "Fermer"
