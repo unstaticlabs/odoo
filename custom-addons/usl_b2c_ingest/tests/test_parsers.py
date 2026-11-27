@@ -95,6 +95,18 @@ class TestParsers(TransactionCase):
         self.assertEqual(by_key["wide"], by_key["long"])
         self.assertEqual(len(by_key["wide"]), 4)
 
+    def test_medusa_free_and_unpriced_lines_use_the_shop_amounts(self):
+        order = dict(fixtures.MEDUSA_WIDE_ROWS[0])
+        order.update({
+            "item_1_qty": "2", "item_1_unit_price": "15.00", "item_1_total": "0.00",
+            "item_2_qty": "3", "item_2_unit_price": "4.25", "item_2_total": "",
+        })
+        _fmt, rows, _document = self._parse(fixtures.medusa_orders([order]))
+        header, = self._by_grain(rows, parsers.ORDER_GRAIN)
+        amounts = [line.values["subtotal_amount"] for line in self._by_grain(rows, parsers.LINE_GRAIN)]
+        self.assertEqual(amounts, [Decimal("0.00"), Decimal("12.75")])
+        self.assertEqual(header.values["subtotal_amount"], Decimal("12.75"))
+
     def test_medusa_widening_its_layout_loses_no_item(self):
         """A seventh item slot is read, not quietly dropped.
 
