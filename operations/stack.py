@@ -10704,6 +10704,7 @@ def _recovery_proof_command_locked(
         tool_image = _operations_image(release)
         _require_prepared_database_tool(runner, tool_image)
         if backup is None:
+            stage = "backup-started"
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
             if arguments.resume_backup:
@@ -10724,7 +10725,7 @@ def _recovery_proof_command_locked(
                     arguments.resume_backup = _recover_recovery_proof_backup(
                         target, runner, backup_run_id, runtime_sha,
                     )
-                write_state("backup-started", None)
+                write_state(stage, None)
                 backup = _run_recovery_proof_backup(arguments, release)
         else:
             backup = _backup_run_receipt(
