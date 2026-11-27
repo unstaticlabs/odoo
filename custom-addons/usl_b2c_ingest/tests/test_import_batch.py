@@ -1,7 +1,7 @@
 """Reading a drop of channel exports, end to end."""
 
 from odoo.exceptions import ValidationError
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools.binary import BinaryBytes
 
 from . import fixtures
@@ -79,6 +79,33 @@ class TestImportBatch(TransactionCase):
 
     def _issue_kinds(self, batch):
         return {issue.kind for issue in batch.issue_ids}
+
+    def test_import_details_follow_the_batch_company_selection(self):
+        other = self.env["res.company"].create({"name": "Second synthetic shop"})
+        companies = self.company | other
+        reviewer = new_test_user(
+            self.env, login="b2c-import-reviewer", groups="usl_b2c.group_b2c_reader",
+            company_id=self.company.id, company_ids=[(6, 0, companies.ids)],
+        )
+        batches = self.env["b2c.import.batch"]
+        for company in companies:
+            batch = batches.with_company(company).create({"name": "Synthetic drop", "company_id": company.id})
+            self.env["b2c.import.file"].create({
+                "batch_id": batch.id, "name": "orders.csv", "content": BinaryBytes(fixtures.medusa_order_items()),
+            })
+            batch.with_company(company).action_parse()
+            batches |= batch
+
+        for model in ("b2c.import.file", "b2c.import.row", "b2c.import.issue"):
+            details = self.env[model].sudo().search([("batch_id", "in", batches.ids)])
+            self.assertEqual(set(details.batch_id.ids), set(batches.ids), model)
+            for selection in (self.company, other, companies):
+                with self.subTest(model=model, companies=selection.ids):
+                    visible = self.env[model].with_user(reviewer).with_context(
+                        allowed_company_ids=selection.ids,
+                    ).search([("batch_id", "in", batches.ids)])
+                    expected = details.filtered(lambda item: item.batch_id.company_id in selection)
+                    self.assertEqual(set(visible.ids), set(expected.ids))
 
     def test_a_drop_reports_what_it_holds_without_changing_anything_else(self):
         before = self.env["b2c.order"].search_count([])

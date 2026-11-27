@@ -1170094,7 +1170094,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         },
         {
@@ -1363780,7 +1363780,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1409,
+          "line": 1411,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363815,7 +1363815,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1400,
+          "line": 1402,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363895,7 +1363895,7 @@
       ],
       "sources": [
         {
-          "line": 1430,
+          "line": 1432,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364003,7 +1364003,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1418,
+          "line": 1420,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364121,7 +1364121,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1391,
+          "line": 1393,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364323,10 +1364323,14 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:res.users.sudo",
         "rpc:usl.document.browse",
-        "rpc:usl.paperless.user.mapping.search"
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.sudo",
+        "rpc:usl.paperless.user.mapping.search",
+        "rpc:usl.paperless.user.mapping.sudo"
       ],
-      "digest": "3705885878f5ef2808e1854075825b52e73c1571cc62cdad936ca627073260f9",
+      "digest": "475d1f6657b45d61074e1dae991218ff03d2a6ff5e6818fae2f677f553de0a90",
       "guards": [],
       "key": "rpc:usl.document.action_sync_permissions",
       "kind": "rpc",
@@ -1364337,7 +1364341,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a5d20dd3c78c768e51d840a03358b18217634400e9a37abf26a124b5e9447338",
+      "runtime_digest": "1e3e88d37db02e1a6303db57f5dde7f8859f232a4d0188df5a7ccf538d39eacb",
       "sinks": [
         "orm_write",
         "sudo"
@@ -1364353,7 +1364357,11 @@
       ],
       "transient": false,
       "unresolved_delegates": [
-        "rpc:usl.document.browse"
+        "rpc:res.users.sudo",
+        "rpc:usl.document.browse",
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.sudo",
+        "rpc:usl.paperless.user.mapping.sudo"
       ]
     },
     {
@@ -1688220,7 +1688228,7 @@
       ]
     },
     {
-      "digest": "b946647d3306820f303bd32483e786374601e14c1952e5e8376bd97a40b550be",
+      "digest": "4627735d74b476f230b5914757d3e2fb14091f8a916efaeb1cfe5d30acbe0627",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1688235,7 +1688243,7 @@
       ]
     },
     {
-      "digest": "a0dc214883ed9d0927de2f6990a7ed4d259bbd4eaca10d7d2f43e76b745e864d",
+      "digest": "832c4239e689a0a397a329b66ac144d963e5291fc6f3302690c4f5ce31e30b1d",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1688250,7 +1688258,7 @@
       ]
     },
     {
-      "digest": "0a36cdd4df75f314fefbc1ec6eabae735b1c6a1c7fb9f191495fddce037b65df",
+      "digest": "96be620326394e25130760a7afb4cdd9fd2752421d08db08e2f91191ae4a9866",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1688265,7 +1688273,7 @@
       ]
     },
     {
-      "digest": "4b5165c915a18a0951064e602447244166f357863ebbd3abf360bcdc08c51131",
+      "digest": "9d3952dabb47c49cee9d2b325a3d3254070a9385cfb04767416a2a105772336d",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1688280,7 +1688288,7 @@
       ]
     },
     {
-      "digest": "0fff1cb95971d1db317d233c8cb0cc5a178ec015d95ef26b1d1c21be98ae31fd",
+      "digest": "2f70fe0b57b51db488a80af688a462cc816607b2c7902f0a5ba099a36e5545c0",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:4",
       "kind": "sink",
       "modules": [
@@ -1688466,7 +1688474,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1430,
+          "line": 1432,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1688652,7 +1688660,7 @@
       ]
     },
     {
-      "digest": "6f7932705260eec70d432433d3177b3ed62bb3bfbc7e23013ba6df9e840e763f",
+      "digest": "93672b46d2341f64e359dc4a854895422bfe3b1b7ad5c0df74b1b56426f48325",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1688670,7 +1688678,7 @@
       ]
     },
     {
-      "digest": "316a5e7149cb5f2783843c69900606060fece7da8b2a06080574d5a9a8c3ccfe",
+      "digest": "108bda5e0cda9ddc4e74c45ec3c4fe3ad473ca9db640e752ccd103e8f89b563d",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1688688,7 +1688696,7 @@
       ]
     },
     {
-      "digest": "579560ae8bebd35adf1d1452a9d2905c549a66ded9d94f3796708f06ee4f2904",
+      "digest": "b90fcce3efbbda1c02082bca328b0dbea00eca8d84118e3b71b432bd8bf0d375",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1688706,7 +1688714,7 @@
       ]
     },
     {
-      "digest": "291e641e7d25f19f78b57eb3f5ffc16be01853ce12430d04f92712eabc89fcba",
+      "digest": "e5329f9807cd97bb940a7759ccc0ef899b9535e05dc9032275666317eb4e6908",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1688724,7 +1688732,7 @@
       ]
     },
     {
-      "digest": "68444fd4bd4d3fae372f3edff01c219daecc9409e283a657d7de9483eff5384d",
+      "digest": "b12eba46df54a9b645331ceec9bf741f6c021b9f711e2a7e5a99eda19a8977e0",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1688742,7 +1688750,7 @@
       ]
     },
     {
-      "digest": "ece81fb6a176a9776d7bb82ad1bcc6f21309862ca580a739c882717ba3d9246e",
+      "digest": "bfe026633f426f28c6857d3b8fd0f95bb9838eec133847b4f41a4970ef78fe4d",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1688760,7 +1688768,7 @@
       ]
     },
     {
-      "digest": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
+      "digest": "a5052530a33ab9a41470ddb51bc4885d591cf78e90394098e642fcfc7af8201e",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1693014,7 +1693022,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1693032,7 +1693040,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1693050,7 +1693058,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1693068,7 +1693076,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1693086,7 +1693094,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1693104,7 +1693112,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 37,
+          "line": 41,
           "path": "custom-addons/usl_documents/models/res_users.py"
         }
       ]
@@ -1770522,11 +1770530,11 @@
       "version": "saas~19.3.1.5.1"
     },
     {
-      "manifest_sha256": "9592deb7b170ff1d928b4705553dae7988b320132bb14dca59cfcc6bd4d055be",
+      "manifest_sha256": "e5a28047fb2c077bf0a22690247e0dad00f3ab1a208b1d2165ee3811e59499ef",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "c6aa2eb86af27f9f2895bbbf42f551be80153de2b246f8e6118fed55e942b6ab",
-      "version": "saas~19.3.1.3.2"
+      "source_sha256": "3979711195775fe71354a6983e8f7a7175828116ee64e41a9e052b4f89a9ddfb",
+      "version": "saas~19.3.1.3.4"
     },
     {
       "manifest_sha256": "e756e13b2f600132017bb524fe5676e31ce75a2475e3a439a71cda029f5544cc",
@@ -1770543,11 +1770551,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "ac5f6370fc1a3328b15f2d5ba4cf61d5332462e8832b4db54ff0620634903778",
+      "manifest_sha256": "21fed61ac2d71992a260214853fd91c9d8bb6e04bcbe03d416754e146ca5416a",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "c957f435ada28ad50fadf95720150de5d727bcfb4d4fb539b1c3f5f333cf86e6",
-      "version": "saas~19.3.1.11.0"
+      "source_sha256": "b21bbe61a32cd6866774deda127f8e54a00506517ae480eb133cb1a2503242db",
+      "version": "saas~19.3.1.10.9"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
