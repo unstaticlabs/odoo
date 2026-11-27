@@ -284,9 +284,7 @@ def _ui_action_xmlid(value):
     return None
 
 
-def ui_action_records():
-    """Inventory reports, client/window actions, and other UI action records."""
-
+def ui_action_values(concrete):
     fields = (
         "binding_model_id",
         "binding_type",
@@ -303,16 +301,17 @@ def ui_action_records():
         "target",
         "type",
     )
+    return {field: record_value(concrete, field) for field in fields if field in concrete._fields}
+
+
+def ui_action_records():
+    """Inventory reports, client/window actions, and other UI action records."""
     result = []
     for action in env["ir.actions.actions"].sudo().search([], order="id"):
         concrete_model = action.type if action.type in env.registry else action._name
         concrete = env[concrete_model].sudo().browse(action.id)
         xmlid = external_id(concrete)
-        values = {
-            field: record_value(concrete, field)
-            for field in fields
-            if field in concrete._fields
-        }
+        values = ui_action_values(concrete)
         delegates = (
             [f"server_action:{xmlid}"]
             if concrete_model == "ir.actions.server"
@@ -515,6 +514,166 @@ def policy_digest(surface, policy):
     return digest({"action_policy": policy_payload, "action_surface": surface})
 
 
+def _feedback_reference_context(source, project):
+    """Canonicalize the one declared numeric reference without executing context."""
+    if not (
+        project and project._name == "project.project" and project.exists()
+        and project.usl_feedback_project and isinstance(source, str)
+    ):
+        return None
+    try:
+        node = ast.parse(source.strip(), mode="eval").body
+        ast.literal_eval(node)  # refuse dynamic expressions and dictionary unpacking
+    except (SyntaxError, ValueError, TypeError):
+        return None
+    if not isinstance(node, ast.Dict) or not all(
+        isinstance(key, ast.Constant) and isinstance(key.value, str) for key in node.keys
+    ):
+        return None
+    keys = [key.value for key in node.keys]
+    if len(set(keys)) != len(keys) or "default_project_id" not in keys:
+        return None
+    index = keys.index("default_project_id")
+    value = node.values[index]
+    if not isinstance(value, ast.Constant) or type(value.value) is not int or value.value != project.id:
+        return None
+    node.values[index] = ast.Constant(value="usl_feedback.project_product_feedback")
+    return ast.dump(node, include_attributes=False)
+
+
+def _window_navigation(action):
+    """Read native navigation by portable references. Never substitute a local row number."""
+    unresolved = False
+
+    def portable(record):
+        nonlocal unresolved
+        if record and record.exists():
+            # The single-ID helper may choose a different alias after a restore.
+            aliases = sorted(
+                xmlid for xmlid in record._get_external_ids().get(record.id, [])
+                if not xmlid.startswith("__") and env.ref(xmlid, raise_if_not_found=False) == record
+            )
+            if aliases:
+                return aliases
+        unresolved = True
+        return None
+
+    def target(model, row_id):
+        nonlocal unresolved
+        if not row_id:
+            return None
+        if model in env:
+            return portable(env[model].browse(row_id))
+        unresolved = True
+        return None
+
+    values = {key: action[key] for key in (
+        "view_mode", "mobile_view_mode", "filter", "cache", "limit", "usage", "help", "explanation",
+    )}
+    values["destination"] = target(action.res_model, action.res_id)
+    values["view"] = portable(action.view_id) if action.view_id else None
+    values["search_view"] = portable(action.search_view_id) if action.search_view_id else None
+    values["ordered_views"] = [(mode, target("ir.ui.view", row_id)) for row_id, mode in action.views]
+    # Native views is computed, and changing a binding sequence or view_id
+    # alone does not invalidate it in the current transaction. Read the actual
+    # bindings as well, in Odoo's (sequence, id) precedence; local IDs stay local.
+    bindings = sorted(action.view_ids, key=lambda row: (row.sequence, row.id))
+    values["declared_views"] = [
+        (row.view_mode, portable(row.view_id) if row.view_id else None, row.multi) for row in bindings
+    ]
+    values["groups"] = sorted(filter(None, (portable(group) for group in action.group_ids)))
+    # Native default views can vary by registry and user. These two Feedback
+    # actions explicitly declare their views; a fallback needs separate review.
+    if (
+        not action.search_view_id or any(not row_id for row_id, mode in action.views)
+        or any(not row.view_id for row in bindings)
+    ):
+        unresolved = True
+    # Embedded actions carry their own visibility, destinations and context.
+    # These two shipped windows contain none. A newly bound child needs review.
+    if env["ir.embedded.actions"].sudo().search_count([("parent_action_id", "=", action.id)]):
+        unresolved = True
+    return values, unresolved
+
+
+def reference_diagnostic(runtime_payload):
+    """Explain the known restore differences separately from strict admission evidence."""
+    feedback = ("usl_feedback.action_feedback_collaborator", "usl_feedback.action_feedback_maintainer")
+    cron_ref = "l10n_fr_pdp.ir_cron_l10n_fr_pdp_generate_flows"
+    server_ref = f"{cron_ref}_ir_actions_server"
+    actions = {action["key"]: action["digest"] for action in runtime_payload["actions"]}
+    if len(actions) != len(runtime_payload["actions"]):
+        raise ValueError("Duplicate runtime action keys prevent reference comparison.")
+    project = env.ref("usl_feedback.project_product_feedback", raise_if_not_found=False)
+    issues = []
+    entries = {}
+
+    def observe(key, exact, meaning):
+        if actions.pop(key, None) != exact:
+            raise ValueError(f"Missing or inconsistent reference inventory entry: {key}")
+        entries[key] = {"exact": exact, "meaning": meaning}
+
+    for xmlid in feedback:
+        action = env.ref(xmlid, raise_if_not_found=False)
+        if not action or action._name != "ir.actions.act_window" or not action.exists():
+            raise ValueError(f"Missing Feedback window action: {xmlid}")
+        values = ui_action_values(action)
+        exact = digest(values)
+        values["context"] = _feedback_reference_context(values.get("context"), project)
+        if values["context"] is None:
+            issues.append(f"{xmlid}: unverified Feedback board reference or context")
+        navigation, unresolved = _window_navigation(action)
+        if unresolved:
+            issues.append(f"{xmlid}: window destination or navigation cannot be verified")
+        observe(f"ui:{xmlid}", exact, digest({"ui": values, "navigation": navigation}))
+
+    cron = env.ref(cron_ref, raise_if_not_found=False)
+    server = env.ref(server_ref, raise_if_not_found=False)
+    if not cron or cron._name != "ir.cron" or not server or server._name != "ir.actions.server":
+        raise ValueError("Missing PDP cron or generated server action.")
+    if not cron.exists() or not server.exists():
+        raise ValueError("The PDP cron or its server action no longer exists.")
+    if cron.ir_actions_server_id != server:
+        issues.append("PDP cron points to another server action")
+    for xmlid, record in ((cron_ref, cron), (server_ref, server)):
+        module, name = xmlid.split(".", 1)
+        binding = [
+            ("module", "=", module), ("name", "=", name), ("model", "=", record._name),
+            ("res_id", "=", record.id), ("noupdate", "=", True),
+        ]
+        if not env["ir.model.data"].sudo().search_count(binding):
+            issues.append(f"{xmlid}: outside the declared noupdate binding")
+    principal = env.ref("base.user_root", raise_if_not_found=False)
+    if not principal or principal._name != "res.users" or cron.user_id != principal:
+        issues.append("PDP execution principal does not match the declaration")
+    # The shipped scheduled action uses native model/record access. Explicit
+    # groups select a different authorization path in ir.actions.server.run.
+    if server.group_ids:
+        issues.append("PDP server action uses explicit execution groups")
+    if server.state != "code" or server.usage != "ir_cron" or server.parent_id:
+        issues.append("PDP server action is outside its declared scheduled-code configuration")
+    values = ui_action_values(server)
+    exact = digest(values)
+    del values["name"]  # only this generated action's presentation may differ
+    values["action_sequence"] = server.sequence
+    values["cron_priority"] = cron.priority
+    observe(f"ui:{server_ref}", exact, digest(values))
+    for key in (f"cron:{cron_ref}", f"server_action:{server_ref}"):
+        exact = actions[key]
+        observe(key, exact, exact)
+    modules = sorted((item["name"], normalized_module_version(item["version"]))
+                     for item in runtime_payload["modules"])
+    return {
+        "schema": "usl-action-reference-diagnostic/v3",
+        "module_count": len(modules),
+        "modules_sha256": digest(modules),
+        "other_action_count": len(actions),
+        "other_actions_sha256": digest(sorted(actions.items())),
+        "references": entries,
+        "issues": issues,
+    }
+
+
 def runtime_check(runtime_payload):
     from odoo.addons.usl_access_control.models import action_policy  # noqa: PLC0415
 
@@ -581,5 +740,7 @@ def runtime_check(runtime_payload):
 
 if os.environ.get("ACTION_RISK_MODE", "discover") == "check":
     runtime_check(payload)
+elif os.environ.get("ACTION_RISK_MODE") == "reference-diagnostic":
+    print(json.dumps(reference_diagnostic(payload), ensure_ascii=False, sort_keys=True))
 else:
     print(json.dumps(payload, ensure_ascii=False, sort_keys=True))

@@ -7,6 +7,12 @@ drop in a file without choosing a folder, find text inside it, understand its
 business context, preview or download the received file, and link one archived
 document to several Odoo records. Advanced bulk work remains in Paperless.
 
+In **Linked records**, select a record name to read its native form inside Documents.
+The arrow opens the full record. The visible preview rechecks the document, its
+link and the target through the existing Open action every four seconds. The
+form clears if a request remains unanswered for eight seconds. Returning to a
+hidden tab requires a fresh check before the form appears again.
+
 The workspace is deliberately about documents, not integration health:
 
 - cards show title, date, correspondent, type, useful Odoo context, and
@@ -346,7 +352,7 @@ and leaves an auditable Odoo tombstone rather than converting the item into an
 unexplained missing reference.
 
 When Trash is initiated from Odoo, the detail shows the initiating Odoo user
-and time. Paperless 3.4.2's supported Trash response provides `deleted_at` but
+and time. Paperless 3.5.1's supported Trash response provides `deleted_at` but
 does not identify the deleting user; a direct Paperless action is therefore
 labelled honestly as moved in Paperless with the actor unavailable, rather
 than guessing an audit identity.
@@ -457,6 +463,11 @@ the supported way to make a deliberate correction.
 
 
 ## Attach original evidence to an existing business record
+
+To list the archive files attached to a task, pass `linked_model: "project.task"`
+and its `linked_id` to `documents_search` without a text query. The list uses
+Odoo's links and each reader's document access. It does not search file content.
+Use `documents_get_context` to inspect the versions and linked records of a result.
 
 An Agent can attach a client-provided file, copy a readable `ir.attachment`, or
 copy the current original of an accessible archived document onto an expense or

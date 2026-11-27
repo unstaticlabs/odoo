@@ -1,9 +1,15 @@
+from collections import defaultdict
 from datetime import UTC, timedelta
 from zoneinfo import ZoneInfo
 
 from odoo import _, api, fields, models, tools
 
 from odoo.addons.project.models.project_task import CLOSED_STATES
+
+from .task_reactivation import RETURN_ORDER, RETURN_REASONS, RETURN_WRITE, check_return_write
+
+
+_SKIP_REACTIVATION = object()
 
 
 class ProjectTask(models.Model):
@@ -24,11 +30,45 @@ class ProjectTask(models.Model):
         compute="_compute_usl_dependency_date_warning",
     )
 
+    usl_return_reasons = fields.Json(readonly=True, copy=False)
+    usl_project_return_badge = fields.Json(compute="_compute_usl_project_return_badge")
+    usl_personal_return_badge = fields.Json(compute="_compute_usl_personal_return_badge")
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        check_return_write(self, vals_list)
+        return super().create(vals_list)
+
+    @api.depends("usl_return_reasons", "stage_id", "active", "state", "project_id.active",
+                 "project_id.type_ids.sequence", "project_id.type_ids.active", "project_id.type_ids.fold")
+    def _compute_usl_project_return_badge(self):
+        self.usl_project_return_badge = False
+        tasks = self.filtered(lambda task: task.usl_return_reasons and task.active
+                              and task.project_id.active and task.state not in CLOSED_STATES)
+        for project, batch in tasks.grouped("project_id").items():
+            inbox = project.with_context(active_test=True)._get_default_task_stage()
+            for task in batch.filtered(lambda task: task.stage_id == inbox):
+                task.usl_project_return_badge = task.usl_return_reasons
+
+    @api.depends_context("uid")
+    @api.depends("personal_stage_id.stage_id", "personal_stage_id.usl_return_reasons", "active", "state")
+    def _compute_usl_personal_return_badge(self):
+        self.usl_personal_return_badge = False
+        links = self.env["project.task.stage.personal"].search([
+            ("task_id", "in", self.ids), ("user_id", "=", self.env.uid),
+        ])
+        if not links:
+            return
+        inbox = self.env["project.task.type"]._usl_personal_inboxes(self.env.user).get(self.env.uid)
+        if inbox:
+            reasons = {link.task_id.id: link.usl_return_reasons for link in links if link.stage_id == inbox}
+            for task in self:
+                if task.active and task.state not in CLOSED_STATES:
+                    task.usl_personal_return_badge = reasons.get(task.id, False)
+
     def _get_default_personal_stage_create_vals(self, user_id):
         values = super()._get_default_personal_stage_create_vals(user_id)
         open_stage_values = [value for value in values if not value.get("fold")]
-        if open_stage_values:
-            open_stage_values[0]["usl_reactivation_role"] = "inbox"
         if len(open_stage_values) > 1:
             open_stage_values[-1]["usl_reactivation_role"] = "later"
         return values
@@ -47,84 +87,122 @@ class ProjectTask(models.Model):
             subtask.state in CLOSED_STATES for subtask in subtasks
         )
 
-    def _usl_is_due_for_user(self, user, now=None):
+    def _usl_date_return_reasons(self, tz, now):
         self.ensure_one()
-        now = now or fields.Datetime.now()
+        reasons = set()
         if self.planned_date_begin and self.planned_date_begin <= now:
-            return True
-        if not self.date_deadline:
-            return False
-        timezone = ZoneInfo(user.tz or "UTC")
-        utc_now = fields.Datetime.to_datetime(now).replace(tzinfo=UTC)
-        utc_deadline = fields.Datetime.to_datetime(self.date_deadline).replace(
-            tzinfo=UTC,
-        )
-        today = utc_now.astimezone(timezone).date()
-        local_deadline = utc_deadline.astimezone(timezone).date()
-        return local_deadline <= today + timedelta(days=3)
+            reasons.add("start_reached")
+        if self.date_deadline:
+            timezone = ZoneInfo(tz or "UTC")
+            today = now.replace(tzinfo=UTC).astimezone(timezone).date()
+            deadline = self.date_deadline.replace(tzinfo=UTC).astimezone(timezone).date()
+            days = (deadline - today).days
+            if days <= 3:
+                reasons.add("overdue" if days < 0 else "due_today" if days == 0 else "due_soon")
+        return reasons
 
-    def _usl_reactivate_later_personal_stages(self, *, due_only=False, now=None):
-        """Move validated assignee-owned Later links to their Inbox stages."""
-        tasks = self.sudo().filtered(
-            lambda task: task.active and task.state not in CLOSED_STATES,
-        )
+    def _usl_is_due_for_user(self, user, now=None):
+        return self._usl_is_due_in_timezone(user.tz, now)
+
+    def _usl_is_due_in_timezone(self, tz, now=None):
+        return bool(self._usl_date_return_reasons(tz, now or fields.Datetime.now()))
+
+    def _usl_return_reasons(self, events, date_checks, tz, now):
+        reasons = events.get(self.id, set())
+        if self.id in date_checks:
+            reasons = reasons | self._usl_date_return_reasons(tz, now)
+        return tuple(reason for reason in RETURN_ORDER if reason in reasons)
+
+    def _usl_reactivate_later_personal_stages(self, events, date_checks, now):
+        tasks = self.sudo().filtered(lambda task: task.active and task.state not in CLOSED_STATES)
         if not tasks:
             return 0
-
         PersonalStage = self.env["project.task.stage.personal"].sudo()
-        later_links = PersonalStage.search(
-            [
-                ("task_id", "in", tasks.ids),
-                ("task_id.active", "=", True),
-                ("task_id.state", "not in", list(CLOSED_STATES)),
-                ("user_id.active", "=", True),
-                ("user_id.share", "=", False),
-                ("stage_id.usl_reactivation_role", "=", "later"),
-            ],
-        )
-        inbox_stages = self.env["project.task.type"].sudo().search(
-            [
-                ("user_id", "in", later_links.user_id.ids),
-                ("active", "=", True),
-                ("usl_reactivation_role", "=", "inbox"),
-            ],
-        )
-        inbox_by_user = {stage.user_id.id: stage for stage in inbox_stages}
-        links_by_inbox = {}
+        later_links = PersonalStage.search([
+            ("task_id", "in", tasks.ids),
+            ("user_id.active", "=", True),
+            ("user_id.share", "=", False),
+            ("stage_id.active", "=", True),
+            ("stage_id.usl_reactivation_role", "=", "later"),
+        ])
+        inboxes = self.env["project.task.type"].sudo()._usl_personal_inboxes(later_links.user_id)
+        batches = defaultdict(list)
         for link in later_links:
-            inbox = inbox_by_user.get(link.user_id.id)
-            if (
-                not inbox
-                or link.user_id not in link.task_id.user_ids
-                or (due_only and not link.task_id._usl_is_due_for_user(link.user_id, now))
-            ):
+            inbox = inboxes.get(link.user_id.id)
+            if (not inbox or inbox == link.stage_id or link.stage_id.user_id != link.user_id
+                    or link.user_id not in link.task_id.user_ids):
                 continue
-            links_by_inbox.setdefault(inbox, PersonalStage)
-            links_by_inbox[inbox] |= link
-        for inbox, links in links_by_inbox.items():
-            links.write({"stage_id": inbox.id})
-        return sum(len(links) for links in links_by_inbox.values())
+            reasons = link.task_id._usl_return_reasons(events, date_checks, link.user_id.tz, now)
+            if reasons:
+                batches[inbox.id, reasons].append(link.id)
+        for (stage_id, reasons), ids in batches.items():
+            PersonalStage.browse(ids).with_context(usl_return_write=RETURN_WRITE).write(
+                {"stage_id": stage_id, RETURN_REASONS: list(reasons)},
+            )
+        return sum(map(len, batches.values()))
+
+    def _usl_reactivate_later_project_stages(self, events, date_checks, now):
+        tasks = self.sudo().filtered(
+            lambda task: task.active and not task.is_template and task.state not in CLOSED_STATES
+            and task.project_id.active and task.stage_id.active and not task.stage_id.user_id
+            and task.stage_id.usl_reactivation_role == "later",
+        )
+        moved = 0
+        for project, project_tasks in tasks.grouped("project_id").items():
+            inbox = project.with_context(active_test=True)._get_default_task_stage()
+            if not inbox or inbox.user_id:
+                continue
+            batches = defaultdict(list)
+            for task in project_tasks:
+                if task.stage_id == inbox or project not in task.stage_id.project_ids:
+                    continue
+                reasons = task._usl_return_reasons(events, date_checks, project.company_id.tz, now)
+                if reasons:
+                    batches[task.state, reasons].append(task.id)
+            for (state, reasons), ids in batches.items():
+                self.sudo().browse(ids).with_context(
+                    usl_skip_task_reactivation=_SKIP_REACTIVATION, usl_return_write=RETURN_WRITE,
+                ).write({"stage_id": inbox.id, "state": state, RETURN_REASONS: list(reasons)})
+                moved += len(ids)
+        return moved
 
     @api.model
     def _cron_usl_reactivate_later_tasks(self):
+        now = fields.Datetime.now()
         later_links = self.env["project.task.stage.personal"].sudo().search(
             [
                 ("task_id.active", "=", True),
                 ("task_id.state", "not in", list(CLOSED_STATES)),
                 ("user_id.active", "=", True),
                 ("user_id.share", "=", False),
+                ("stage_id.active", "=", True),
                 ("stage_id.usl_reactivation_role", "=", "later"),
             ],
         )
-        return later_links.task_id._usl_reactivate_later_personal_stages(
-            due_only=True,
-            now=fields.Datetime.now(),
+        project_tasks = self.sudo().search(
+            [
+                ("active", "=", True),
+                ("is_template", "=", False),
+                ("state", "not in", list(CLOSED_STATES)),
+                ("project_id.active", "=", True),
+                ("stage_id.active", "=", True),
+                ("stage_id.user_id", "=", False),
+                ("stage_id.usl_reactivation_role", "=", "later"),
+                "|",
+                ("planned_date_begin", "<=", now),
+                ("date_deadline", "<=", now + timedelta(days=5)),
+            ],
+        )
+        return (
+            later_links.task_id._usl_reactivate_later_personal_stages({}, set(later_links.task_id.ids), now)
+            + project_tasks._usl_reactivate_later_project_stages({}, set(project_tasks.ids), now)
         )
 
     def _usl_reactivation_snapshot(self):
         return {
             task.id: {
                 "stage_id": task.stage_id.id,
+                "project_id": task.project_id.id,
                 "state": task.state,
                 "blocked": task.is_blocked_by_dependences(),
                 "planned_date_begin": task.planned_date_begin,
@@ -134,11 +212,13 @@ class ProjectTask(models.Model):
         }
 
     def write(self, vals):
-        if self.env.context.get("usl_skip_task_reactivation"):
+        check_return_write(self, [vals])
+        if self.env.context.get("usl_skip_task_reactivation") is _SKIP_REACTIVATION:
             return super().write(vals)
 
         event_fields = {
             "stage_id",
+            "project_id",
             "state",
             "depend_on_ids",
             "parent_id",
@@ -171,49 +251,58 @@ class ProjectTask(models.Model):
             for parent in parents
         }
 
-        result = super().write(vals)
+        result = super(
+            ProjectTask,
+            self.with_context(usl_skip_task_reactivation=_SKIP_REACTIVATION),
+        ).write(vals)
 
-        candidates = self.browse()
-        if "stage_id" in vals or "state" in vals:
-            candidates |= tracked_tasks.filtered(
-                lambda task: (
-                    ("stage_id" in vals and task.stage_id.id != task_before[task.id]["stage_id"])
-                    or ("state" in vals and task.state != task_before[task.id]["state"])
-                ),
-            )
-        if "depend_on_ids" in vals:
-            candidates |= tracked_tasks.filtered(
-                lambda task: task_before[task.id]["blocked"]
-                and not task.is_blocked_by_dependences(),
-            )
+        events = defaultdict(set)
         if "state" in vals:
-            candidates |= dependent_tasks.filtered(
-                lambda task: dependent_blocked_before.get(task.id, False)
-                and not task.is_blocked_by_dependences(),
-            )
+            for task in tracked_tasks:
+                previous = task_before[task.id]["state"]
+                if task.state != previous and task.state not in CLOSED_STATES:
+                    events[task.id].add("reopened" if previous in CLOSED_STATES else "status_changed")
+        if "depend_on_ids" in vals:
+            for task in tracked_tasks:
+                if task_before[task.id]["blocked"] and not task.is_blocked_by_dependences():
+                    events[task.id].add("unblocked")
+        if "state" in vals:
+            for task in dependent_tasks:
+                if dependent_blocked_before[task.id] and not task.is_blocked_by_dependences():
+                    events[task.id].add("unblocked")
         if {"state", "parent_id", "active"}.intersection(vals):
-            parents |= tracked_tasks.sudo().parent_id
-            candidates |= parents.filtered(
-                lambda parent: (
-                    not parent_complete_before.get(parent.id, False)
-                    and parent._usl_has_completed_direct_subtasks()
-                ),
+            for parent in parents | tracked_tasks.sudo().parent_id:
+                if not parent_complete_before.get(parent.id, False) and parent._usl_has_completed_direct_subtasks():
+                    events[parent.id].add("subtasks_closed")
+
+        moved_tasks = tracked_tasks.filtered(
+            lambda task: task.stage_id.id != task_before[task.id]["stage_id"],
+        )
+        closed = tracked_tasks.filtered(lambda task: not task.active or task.state in CLOSED_STATES)
+        clear_project = (closed | moved_tasks | tracked_tasks.filtered(
+            lambda task: task.project_id.id != task_before[task.id]["project_id"],
+        )).filtered(RETURN_REASONS)
+        if clear_project:
+            super(ProjectTask, clear_project).write({RETURN_REASONS: False})
+        if closed:
+            links = self.env["project.task.stage.personal"].sudo().search([("task_id", "in", closed.ids)])
+            links.filtered(RETURN_REASONS).with_context(usl_return_write=RETURN_WRITE).write({RETURN_REASONS: False})
+
+        date_checks = {
+            task.id for task in tracked_tasks
+            if any(
+                name in vals and task[name] != task_before[task.id][name]
+                for name in ("planned_date_begin", "date_deadline")
             )
-        if {"planned_date_begin", "date_deadline"}.intersection(vals):
-            changed_date_tasks = tracked_tasks.filtered(
-                lambda task: any(
-                    field_name in vals
-                    and task[field_name] != task_before.get(task.id, {}).get(field_name)
-                    for field_name in ("planned_date_begin", "date_deadline")
-                ),
-            )
-            if changed_date_tasks:
-                changed_date_tasks._usl_reactivate_later_personal_stages(
-                    due_only=True,
-                )
-        candidates.with_context(
-            usl_skip_task_reactivation=True,
-        )._usl_reactivate_later_personal_stages()
+        }
+        project_events = dict(events)
+        for task in moved_tasks:
+            events[task.id] = events[task.id] | {"project_stage_changed"}
+        now = fields.Datetime.now()
+        self.browse(events.keys() | date_checks)._usl_reactivate_later_personal_stages(events, date_checks, now)
+        (self.browse(project_events.keys() | date_checks) - moved_tasks)._usl_reactivate_later_project_stages(
+            project_events, date_checks, now,
+        )
         return result
 
     def unlink(self):
@@ -223,12 +312,16 @@ class ProjectTask(models.Model):
             for parent in parents
         }
         result = super().unlink()
-        parents.filtered(
+        candidates = parents.filtered(
             lambda parent: (
                 not parent_complete_before.get(parent.id, False)
                 and parent._usl_has_completed_direct_subtasks()
             ),
-        )._usl_reactivate_later_personal_stages()
+        )
+        events = dict.fromkeys(candidates.ids, {"subtasks_closed"})
+        now = fields.Datetime.now()
+        candidates._usl_reactivate_later_personal_stages(events, set(), now)
+        candidates._usl_reactivate_later_project_stages(events, set(), now)
         return result
 
     @api.model

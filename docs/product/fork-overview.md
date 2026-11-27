@@ -116,6 +116,16 @@ a file in that output and not on this page is a defect of this page. Where
 the last touch of a file is an upstream catch-up (`9c030166`), the originating
 commit is the one named.
 
+### HTTP access logs
+
+The HTTP and WebSocket workers log the declared route and the public model
+method resolved by Odoo. Document identifiers, link parameters and filenames
+stay out of access logs and the URL field in worker timeout diagnostics.
+Unmatched requests use a fixed label. When integrating a new Odoo server version,
+check the Werkzeug and Gevent formatters and run
+the native `test_http` RPC logging tests. Both servers must retain the status
+and timing needed to diagnose a slow or failed request.
+
 ### Accounting sequences — `account`
 
 - `addons/account/models/account_move.py` and
@@ -153,6 +163,21 @@ commit is the one named.
   section ids change, not only when their count or first app changes, so a
   same-count replacement (a favorite project swapped for another) updates it
   immediately. Test: `addons/web/static/tests/webclient/navbar.test.js`.
+
+### Saving on leaving the page — `web`
+
+- `addons/web/static/src/model/relational_model/record.js`
+  (`_preprocessX2manyChanges`): when the page is closed or reloaded while a
+  line of an editable list holds text that was typed and not yet confirmed,
+  the form's last-chance save replaces the commands of that list with the list
+  itself before its first `await`. Upstream replaces them after it, and the
+  last-chance save does not wait, so the list field became an empty array:
+  the save raised `_abandonRecords is not a function` and the typed line was
+  lost. Upgrade cost: one function, twelve lines upstream; a conflict there
+  means upstream changed the same function, so keep theirs if the test below
+  passes with it, and remove this entry. Test: `save on closing tab/browser
+  (pending change in a x2many list row)` in
+  `addons/web/static/tests/views/form/auto_save.test.js`.
 
 ### Agents' effective API access — `api_doc`
 

@@ -1006,12 +1006,15 @@ class HrEmployee(models.Model):
             else:
                 if len(employee.work_contact_id.employee_ids) <= 1:
                     partner = employee.work_contact_id
+                    vals = {
+                        fname: value for fname, value in [('email', employee.work_email), ('phone', employee.work_phone)]
+                        if partner[fname] != value
+                    }
+                    if not vals:
+                        continue
                     if not employee.user_id and not partner.user_ids:
                         partner = partner.sudo()
-                    partner.write({
-                        'email': employee.work_email,
-                        'phone': employee.work_phone,
-                    })
+                    partner.write(vals)
         if employees_without_work_contact:
             employees_without_work_contact.sudo()._create_work_contacts()
 
@@ -1308,6 +1311,13 @@ class HrEmployee(models.Model):
             return super()._compute_display_name()
         for employee_private, employee_public in zip(self, self.env['hr.employee.public'].browse(self.ids)):
             employee_private.display_name = employee_public.display_name
+
+    @api.model
+    def _search_display_name(self, operator, value):
+        domain = super()._search_display_name(operator, value)
+        if self.env.context.get('import_file'):
+            domain &= Domain('company_id', 'in', self.env.companies.ids)
+        return domain
 
     @api.model
     def search_fetch(self, domain, field_names=None, offset=0, limit=None, order=None):
@@ -2379,7 +2389,13 @@ class HrEmployee(models.Model):
 
     def action_new_departure(self):
         self.ensure_one()
-        if not self.is_in_contract:
+        # A contract already ended (end date set to bound the last payslip) is still ended through a departure,
+        # on its end date by default
+        version_sudo = self.sudo().version_id
+        ended_contract_date = version_sudo.contract_date_start and version_sudo.contract_date_end
+        if ended_contract_date and ended_contract_date >= fields.Date.context_today(self):
+            ended_contract_date = False
+        if not self.is_in_contract and not ended_contract_date:
             raise UserError(self.env._("You can't end the collaboration of an employee without contract, archive it instead."))
         if self.departure_id:
             if self.departure_id.apply_date:
@@ -2405,10 +2421,17 @@ class HrEmployee(models.Model):
             'target': 'new',
             'context': {
                 'default_employee_id': self.id,
+                **({'default_dismissal_date': ended_contract_date} if ended_contract_date else {}),
             },
         }
 
     def action_cancel_departure(self):
         self.ensure_one()
         self.action_unarchive()
-        self.departure_id.unlink()
+        departure = self.departure_id
+        if departure:
+            # The departure date was set as end date of an open-ended contract when the departure was created
+            version_sudo = self._get_version(departure.departure_date).sudo()
+            if not version_sudo.fixed_term and version_sudo.contract_date_end == departure.departure_date:
+                version_sudo.contract_date_end = False
+        departure.unlink()

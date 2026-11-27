@@ -32,7 +32,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  OLLAMA_IMAGE: ollama/ollama@sha256:b2f0122c476bc9fe7ce679d8bb4bd555351e25e2554eefb156f61cb0a89cf429
+  OLLAMA_IMAGE: ollama/ollama@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754
   OLLAMA_MODEL: bge-m3:latest
   OLLAMA_MANIFEST_SHA256: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
   OLLAMA_DIMENSION: "1024"
@@ -372,7 +372,7 @@ jobs:
           subject-digest: ${{ steps.renderer.outputs.subject_digest }}
           create-storage-record: true
       - name: Install ORAS
-        uses: oras-project/setup-oras@5e2f2482b30b0cb3e14e67f89a80c88c659a7c63 # v2.0.3
+        uses: oras-project/setup-oras@ac735097e22fe643015b0d19645f7c9a69942128 # v2.0.4
       - name: Build release notes from merged pull requests
         env:
           GH_TOKEN: ${{ github.token }}

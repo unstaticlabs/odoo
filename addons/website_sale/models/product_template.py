@@ -917,6 +917,15 @@ class ProductTemplate(models.Model):
                 uom_price = pricelist._get_product_price(  # unit price in packaging UOM
                     product=product_or_template, quantity=quantity, uom=product_uom
                 )
+                if product_taxes:
+                    uom_price = self._apply_taxes_to_price(
+                        uom_price,
+                        currency,
+                        product_taxes,
+                        taxes,
+                        product_or_template,
+                        website=website,
+                    )
                 base_uom_price = product_uom._compute_price(  # convert packaging prices to base UOM
                     price=uom_price, to_unit=product_or_template.uom_id
                 )
@@ -1590,6 +1599,9 @@ class ProductTemplate(models.Model):
             and not self.env.user._is_internal()
         ):
             website = self.env['website'].get_current_website()
-            if not website.with_context(website_id=website.id).is_view_active('website_sale.product_comment'):
+            if (
+                self.env.user._is_public()
+                or not website.with_context(website_id=website.id).is_view_active('website_sale.product_comment')
+            ):
                 return [(Domain.TRUE, 'write')]
         return super()._mail_get_operation_for_mail_message_operation(message_operation)

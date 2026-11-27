@@ -85,6 +85,33 @@ class TestPdf(TransactionCase):
         attachments = list(pdf_reader.get_attachments())
         self.assertEqual(len(attachments), 2)
 
+    def test_odoo_pdf_file_reader_object_is_indirect_reference(self):
+        # macOS Preview can write `/Info 5 0 R` in the catalog, with `5 0 obj 4 0 R endobj`
+        objects = {
+            1: b"<< /Type /Catalog /Pages 2 0 R /Info 5 0 R >>",
+            2: b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+            3: b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >>",
+            4: b"<< /Producer (macOS Quartz PDFContext, AppendMode 1.1) >>",
+            5: b"4 0 R",
+        }
+        data = bytearray(b"%PDF-1.4\n")
+        offsets = {}
+        for number, body in objects.items():
+            offsets[number] = len(data)
+            data += b"%d 0 obj\n%s\nendobj\n" % (number, body)
+        xref = len(data)
+        data += b"xref\n0 6\n0000000000 65535 f \n"
+        data += b"".join(b"%010d 00000 n \n" % offsets[n] for n in range(1, 6))
+        data += b"trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n%d\n%%%%EOF\n" % xref
+
+        reader = pdf.OdooPdfFileReader(io.BytesIO(bytes(data)), strict=False)
+        pdf_writer = pdf.PdfFileWriter()
+        pdf_writer.clone_reader_document_root(reader)
+        self.assertEqual(pdf_writer._root_object['/Info']['/Producer'], 'macOS Quartz PDFContext, AppendMode 1.1')
+        out = io.BytesIO()
+        pdf_writer.write(out)
+        self.assertEqual(len(pdf.OdooPdfFileReader(out, strict=False).pages), 1)
+
     def test_merge_pdf(self):
         self.assertEqual(len(self.minimal_pdf_reader.pages), 1)
 
@@ -172,6 +199,53 @@ class TestPdf(TransactionCase):
 
         pdf_writer.convert_to_pdfa()
         self.assertTrue(pdf_writer.is_pdfa)
+
+    def test_pdfa_keeps_other_cid_font_widths(self):
+        writer = pdf.OdooPdfFileWriter()
+        writer.clone_reader_document_root(self.minimal_pdf_reader)
+        page = writer._root_object['/Pages']['/Kids'][0].get_object()
+        fonts = page['/Resources']['/Font']
+        # These unused font resources have their own width encodings.
+        for name, subtype in (('Cff', '/CIDFontType0'), ('Mapped', '/CIDFontType2')):
+            cid_font = pdf.DictionaryObject({
+                pdf.NameObject('/Subtype'): pdf.NameObject(subtype),
+                pdf.NameObject('/W'): pdf.ArrayObject([pdf.NumberObject(12), pdf.ArrayObject([pdf.NumberObject(575)])]),
+            })
+            if name == 'Mapped':
+                font_program = pdf.DecodedStreamObject()
+                with file_open('web/static/fonts/sign/Zeyada-Regular.ttf', mode='rb') as ttf:
+                    font_program.set_data(ttf.read())
+                cid_font[pdf.NameObject('/FontDescriptor')] = pdf.DictionaryObject({
+                    pdf.NameObject('/FontFile2'): writer._add_object(font_program),
+                })
+                cid_map = pdf.DecodedStreamObject()
+                cid_map.set_data(bytes(26))
+                cid_font[pdf.NameObject('/CIDToGIDMap')] = writer._add_object(cid_map)
+            fonts[pdf.NameObject('/' + name)] = pdf.DictionaryObject({
+                pdf.NameObject('/Subtype'): pdf.NameObject('/Type0'),
+                pdf.NameObject('/DescendantFonts'): pdf.ArrayObject([cid_font]),
+            })
+        writer.convert_to_pdfa()
+        for name in ('/Cff', '/Mapped'):
+            self.assertEqual(fonts[name]['/DescendantFonts'][0]['/W'], [12, [575]])
+
+    def test_convert_to_pdfa_with_fontless_pages(self):
+        source = pdf.PdfFileWriter()
+        blank = source.add_blank_page(width=100, height=100)
+        # Page resources can be inherited. An empty page needs no font.
+        blank.pop('/Resources', None)
+        source._root_object['/Pages'][pdf.NameObject('/Resources')] = pdf.DictionaryObject()
+        source.add_blank_page(width=100, height=100)
+        buffer = io.BytesIO()
+        source.write(buffer)
+        buffer.seek(0)
+        writer = pdf.OdooPdfFileWriter()
+        writer.clone_reader_document_root(pdf.OdooPdfFileReader(buffer))
+        writer.convert_to_pdfa()
+        result = io.BytesIO()
+        writer.write(result)
+        self.assertEqual(len(pdf.OdooPdfFileReader(io.BytesIO(result.getvalue())).pages), 2)
+
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
 class TestSignature(TransactionCase):

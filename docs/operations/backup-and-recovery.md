@@ -26,7 +26,8 @@ Staging stores encrypted Restic repositories on the VPS at
 containers mount these persistent paths; snapshot qualification and checkpoint
 receipts remain required. These backups survive container replacement, but not
 loss of the VPS storage. Production backups and production-sourced recovery
-proofs continue to use R2. Existing staging snapshots in R2 are not migrated or
+proofs use MEGA S4 (`operations/targets/production.json`, `backup` section),
+not R2. Existing staging snapshots in R2 are not migrated or
 deleted by this change. Staging snapshots expire after 24 hours in both local
 repositories. `scripts/usl-stack --target staging backup prune --json` applies
 this policy under the same operation lock used by backup and restore. GitOps
@@ -40,7 +41,7 @@ remain until the next deployment cleanup. Production retention remains unchanged
 
 The target must reference a validated release manifest whose images exactly
 match the running Odoo, Paperless, Sign, MCP, and renderer containers. A
-mismatch stops before writers are paused.
+mismatch stops before anything is paused.
 
 ```bash
 scripts/usl-stack health --target production
@@ -48,12 +49,68 @@ scripts/usl-stack smoke --target production
 scripts/usl-stack backup create --target production --json
 ```
 
-The command pre-pulls the backup tool, pauses the application writers and Step
-CA, dumps both databases, captures durable and reusable-cache state, restarts
-the writers, writes both Restic snapshots to the target repositories, verifies their identities, and
-marks only the verified durable snapshot as recovery-eligible. The JSON result
-contains the full snapshot IDs and timings. Do not use `latest` or abbreviated
-snapshot IDs.
+The command pre-pulls the backup tool, captures the cohort (see
+[Capture modes](#capture-modes)), writes both Restic snapshots to the target
+repositories, verifies their identities, and marks only the verified durable
+snapshot as recovery-eligible. The JSON result contains the full snapshot IDs
+and timings. Do not use `latest` or abbreviated snapshot IDs.
+
+### Capture modes
+
+`backup create` captures **online** by default. Odoo, Paperless and MCP stay
+open, no gateway maintenance marker is created, and only the Sign and Step CA
+services are stopped, for the few seconds it takes to copy their recovery
+material (Step CA's Badger database cannot be copied while it runs). A signing
+request made in that window fails; the user must retry it. The receipt records
+`capture_mode: "online"`, no writer interval, and the pause in
+`performance.capture_pause_seconds`.
+
+`backup create --leave-quiesced` is the release path. It enables maintenance,
+stops every writer (Odoo, Paperless, MCP, Sign, Step CA), captures, and leaves
+them stopped for the release that follows, which needs them stopped anyway. The
+receipt records `capture_mode: "quiesced"`, the writer quiescence evidence and
+`writers_quiesced: true`. Release gates that need stopped writers (staging
+checkpoint, `resume-staging`, production reconciliation) accept only that
+receipt and refuse an online one.
+
+An online capture proceeds in this order:
+
+1. The Odoo database is read in one repeatable-read transaction whose snapshot
+   is exported (`pg_export_snapshot()`). The business controls and the list of
+   filestore files the database cites are read inside that transaction, then
+   `pg_dump --snapshot` dumps it while the transaction stays open. Counters and
+   dump therefore describe the same instant.
+2. The Paperless database is exported the same way, after Odoo. Odoo stores
+   Paperless document ids (`usl.document.paperless_id`); Paperless stores no
+   Odoo id. Exporting Paperless second makes it the superset of what Odoo
+   references. A document deleted in between leaves a dangling id in the copy,
+   which Odoo's next reconciliation reports like any other missing root.
+3. The Odoo filestore, Paperless originals, Trash and consume directories and
+   the reusable caches are copied afterwards. Both applications only add files
+   (Odoo names a file by its content and writes it before the row commits;
+   production Paperless has no `PAPERLESS_FILENAME_FORMAT`, so originals are
+   never renamed), so the later copy contains everything the earlier export
+   cites. Files can also disappear during the copy: Odoo's attachment
+   garbage collection deletes files. A deleted file the snapshot does not
+   reference is tolerated (the copy skips it). A deleted file the snapshot
+   references fails the capture at the completeness check.
+4. Completeness check: every `ir_attachment.store_fname` in the Odoo snapshot
+   must exist in the copy with the SHA-1 held in `checksum`, and every
+   Paperless document in its snapshot must have its original with the checksum
+   held in `documents_document.checksum` (SHA-256 for Paperless 3, 64
+   characters; MD5, 32 characters, for an original it never re-hashed). A missing or different file fails the
+   backup. Nothing is filled in; the next scheduled backup starts again.
+5. MCP OAuth and the Paperless vector index are SQLite databases that may be
+   open for writing. They are copied with SQLite's backup, not as files. The
+   Tantivy search index is copied as it is; if a merge removed a segment during
+   the copy, the copy gets Paperless's own `.rebuilding` marker and the restored
+   stack rebuilds it on start.
+6. Sign and Step CA are stopped, their recovery material is copied and checked
+   against its identity before the copy, and they are started again.
+
+The cohort manifest is the same `usl-recovery-cohort/v2` document in both modes,
+so verification, materialization and snapshots taken before online capture
+existed are unaffected.
 
 The host retains `capture.json` and `receipt.json` under the exact
 `<state-directory>/backup-runs/<run-id>/` directory. A retry resumes only that
@@ -75,11 +132,38 @@ scripts/usl-stack backup verify --target production \
   --snapshot <64-character-qualified-snapshot-id> --json
 ```
 
+Each verification restores into a directory of its own and removes it when it
+ends, so a snapshot can be rechecked while a release verifies the same one.
+
 `backup select` is the unattended-controller interface. It rejects malformed or
 ambiguous Restic timestamps, recovery tags from another target, legacy cohorts,
 and any verification result that does not name the exact selected production
 snapshot. Operators can still use `list` for inspection, but automation must not
 reimplement selection from its untrusted rows.
+
+### Database ownership on a new generation
+
+The controller initializes the Odoo database before loading a dump. The
+application owns its tables, can create schemas and trusted extensions, and
+uses its existing database credentials. PostgreSQL owns the database. Its
+administrative role uses the container's local peer-authenticated socket.
+Operator probes still connect locally as the application role. For a restored
+single-database deployment, set the database name, its exact anchored filter
+and `list_db = False`. Odoo uses the application's CONNECT grant to find that
+database on a first visit. Verify a fresh browser session reaches the login
+form and the evented worker accepts its WebSocket handshake. A successful
+database health check alone only establishes a connection to PostgreSQL.
+
+The restore checks the new role and database before loading business objects.
+On a failed materialization, create a new generation using the existing
+recovery procedure. A wake or rollback reopens the selected volume with its
+original ownership. When restoring an older release with the current
+controller, select a qualified backup tool that supports prepared databases
+with the immutable `USL_OPERATIONS_IMAGE` override. The GitOps release
+launcher pins its matching tool automatically. Release preparation and the
+independent recovery proof ask that image for its capabilities with no
+network or data mounts. An older or unreadable tool stops there and names
+the required override.
 
 ## Independent staging recovery restore
 
@@ -179,11 +263,12 @@ scripts/usl-stack restore run \
 Use production replacement only from an approved deployment or incident
 workflow. Ordinary operators should prove the snapshot in staging first.
 
-## Disposable daily recovery proof
+## Disposable recovery proof
 
-The no-change daily path takes a new qualified production backup and restores
-that same-release cohort without changing staging or activating a production
-generation:
+The proof runs every four hours (GitLab schedule `20 */4 * * *`, UTC) and
+during the nightly release. It takes a new qualified production backup, online,
+and restores that same-release cohort without changing staging or activating a
+production generation:
 
 ```bash
 scripts/usl-stack recovery-proof run \
@@ -213,7 +298,7 @@ candidate or read staging configuration. The materializer restores the exact
 qualified durable and cache snapshots, including OCR, previews, Tantivy and
 vector indexes. It then queries the restored databases independently and
 compares Accounting, Documents, access, queue, cron and release controls with
-the quiesced capture manifest.
+the capture manifest.
 
 Restic materialization runs first on a separately labelled, short-lived egress
 network so it can reach the backup repository. No application or database
@@ -236,7 +321,7 @@ Odoo database. It then starts and probes Odoo HTTP, Paperless web and Redis,
 MCP OAuth readiness and its unauthenticated boundary, Step CA, DSS, the document
 renderer, Gotenberg, and Tika. Read-only smoke checks compare the restored
 Accounting, Documents, access, queue, cron, and release controls with the
-quiesced capture manifest and sample durable files and the OAuth SQLite
+capture manifest and sample durable files and the OAuth SQLite
 database. The proof never writes `active.json`, uses a release candidate, reads
 staging configuration, or attaches the production gateway.
 For a non-empty OAuth vault, the MCP `prepare` operation decrypts every active
@@ -248,7 +333,7 @@ file and hash its bytes rather than its pathname.
 Before allocating the restored proof, capacity includes the capture that has
 already been written. All disposable proof volumes use Docker's filesystem:
 the proof reserves the largest configured storage-tier reserve on that same
-filesystem (15 GiB when Docker lives on the production bulk disk). Shared tiers
+filesystem (6 GiB when Docker lives on the production bulk disk). Shared tiers
 do not add their reserves together. A local or unmatched Docker filesystem
 retains the existing 2 GiB minimum. An optional rehearsal must fit this budget;
 it does not borrow the deployment reserve or change backup retention.
@@ -302,7 +387,9 @@ It neither wakes that target nor reports it healthy. A missing or corrupt
 admission, foreign volume, or ordinary production runtime error still refuses
 cleanup. Normal wake and release identity checks remain unchanged. On
 production, the same plan also applies paired Restic retention: 14 daily, 8
-weekly, 24 monthly, and 10 yearly recovery points. A retained durable snapshot
+weekly, 24 monthly, and 10 yearly recovery points (`RETENTION` in
+`operations/cohort.py`), applied by the production cleanup the release
+controller runs after a release. A retained durable snapshot
 always protects its exact reusable-cache snapshot. Cache snapshots are also
 kept for at least 30 days and the two newest release identities are protected.
 Unqualified and historical application-data-only evidence is never silently
@@ -320,6 +407,20 @@ Each backup run writes a local capture directory to
 database dumps, the durable tree, the reusable cache, `manifest.json`, and
 `state.json`. One capture is about 900 MB. Restic holds the recovery copy. The
 local directory is only the upload workspace.
+
+Right after a production or staging `backup create` writes its qualified
+receipt, the same command deletes every older qualified capture directory of
+that target, recovery-proof captures included, and keeps the one that just
+succeeded. It goes through the validation `cleanup apply` uses, except that the
+capture of the last usable recovery anchor is no longer kept: the anchor reads
+`backup-runs/<run-id>/` receipts, the proof evidence and the remote snapshot
+pair, never the capture directory. Older captures that never qualified (failed backups
+or proofs) are deleted too: once a newer backup has qualified, an older failed run can no
+longer be resumed and must be re-run with a new run id. Captures of an unfinished release attempt and
+anything newer stay. A failed backup
+deletes nothing, and a failed deletion is reported on stderr without failing the
+backup. The proof evidence under `/var/lib/usl-odoo/recovery-proofs/` is not
+touched.
 
 `cleanup plan` lists the captures that retention deletes in `delete_captures`.
 It lists the captures that retention keeps in `protected_captures`.
@@ -341,10 +442,10 @@ Retention keeps a capture when one of these conditions is true:
   capture for ever.
 - On production, a qualified release capture is never kept. Its snapshots
   hold the data, and a fast rollback uses the generation volumes.
-- On production, the daily proof capture is the newest qualified one, or the
+- On production, the proof capture is the newest qualified one, or the
   capture of the usable recovery anchor. If no anchor exists, every qualified
   proof capture stays.
-- On staging, the capture is one of the two newest qualified captures.
+- On staging, the capture is the newest qualified capture (`STAGING_CAPTURE_KEEP = 1`).
 
 Retention manages only the run names that the release launcher creates:
 `release-pre-<attempt>`, `release-candidate-<attempt>`, and
@@ -540,8 +641,8 @@ rule, so the existing backlog still needs its own operational follow-up.
 Production retention keeps the last validated full usable-service recovery point
 in addition to its normal calendar buckets. Its exact durable snapshot and
 paired reusable-cache snapshot must still exist and belong to the same run.
-The local capture also stays alongside the two newest data-qualified proof
-captures. A newer backup that passes file verification but fails service startup
+`cleanup apply` also keeps the local capture alongside the newest
+data-qualified proof capture; every successful backup then deletes it. A newer backup that passes file verification but fails service startup
 does not replace this anchor.
 
 A successful proof atomically copies its validated completion receipt to

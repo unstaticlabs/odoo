@@ -1,8 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 from unittest.mock import patch
-from freezegun import freeze_time
-from datetime import date
 
 from lxml import html
 
@@ -309,6 +307,16 @@ class TestPage(common.TransactionCase):
             with self.assertRaises(werkzeug.exceptions.Forbidden):
                 empty_password_view._handle_visibility(do_raise=True)
 
+    def test_cookies_bar_on_multiple_websites(self):
+        websites = self.env.ref('website.default_website') + self.env['website'].create({'name': 'Website 2'})
+        domain = [('website_id', 'in', websites.ids), ('url', '=', '/cookie-policy')]
+        self.assertFalse(self.env['website.page'].search(domain))
+
+        websites.write({'cookies_bar': True})
+        pages = self.env['website.page'].search(domain)
+        self.assertEqual(len(pages), 2)
+        self.assertEqual(pages.website_id, websites)
+
 
 @tagged('-at_install', 'post_install')
 class WithContext(HttpCase):
@@ -361,19 +369,20 @@ class WithContext(HttpCase):
         r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 404, "Deactivated users should be logged out before serving fallback pages")
 
-    def test_unpublished_page_no_cache(self):
-        """Ensure that a previously-published page that is now unpublished will not be cached."""
+    def test_hidden_page_cache_invalidation(self):
+        """Ensure that a cached page is not served anymore once it is hidden"""
         self.authenticate(None, None)
 
-        with freeze_time(date(2025, 12, 30)):
-            r = self.url_open(self.page.url)
+        r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 200, "Restricted users should see the published page")
 
         self.page.write({'is_published': False})
-
-        with freeze_time(date(2025, 12, 31)):
-            r = self.url_open(self.page.url)
+        r = self.url_open(self.page.url)
         self.assertEqual(r.status_code, 404, "Restricted users should see a 404 as the page is unpublished")
+
+        self.page.write({'is_published': True})
+        r = self.url_open(self.page.url)
+        self.assertEqual(r.status_code, 200, "Restricted users should see the republished page")
 
     def test_page_cache_host_indexability(self):
         """Cached HTML must preserve the current host's robots directive."""

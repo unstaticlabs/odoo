@@ -32,7 +32,20 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 | **Link** (`github_url`) | char |  | The main link to this work in another system: a pull request, issue, document, deploy run... |
 | **Planned Start** (`planned_date_begin`) | datetime |  | The date and time when work is planned to start. Together with the deadline, it defines the task's planned range. |
 | **Dependency Schedule Warning** (`usl_dependency_date_warning`) | char |  |  |
+| **Usl Personal Return Badge** (`usl_personal_return_badge`) | json |  |  |
+| **Usl Project Return Badge** (`usl_project_return_badge`) | json |  |  |
+| **Usl Return Reasons** (`usl_return_reasons`) | json |  |  |
 | **Task content** (`usl_search_text`) | char |  |  |
+
+## Personal Task Stage
+
+`project.task.stage.personal`, defined by this module.
+
+false
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Usl Return Reasons** (`usl_return_reasons`) | json |  |  |
 
 ## Task Stage
 
@@ -40,4 +53,5 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| **Reactivation Role** (`usl_reactivation_role`) | selection |  | For a personal stage, identifies where deferred tasks wait and where they return when work becomes actionable. Values: **Inbox destination**, **Later source**. |
+| **Usl Reactivation Help** (`usl_reactivation_help`) | json |  |  |
+| **Reactivation Role** (`usl_reactivation_role`) | selection |  | Deferred tasks return from Later to Inbox when work becomes actionable. The default task stage receives returns. Use the Projects field to share a project stage. Values: **Later source**. |

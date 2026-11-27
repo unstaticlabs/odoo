@@ -1,0 +1,120 @@
+{
+  "journey": "comptabiliser-votre-premier-lot-de-depenses",
+  "lang": "fr",
+  "login": "expense_batch_journey_accountant",
+  "persona": "accountant",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_post_your_first_batch_in_french",
+  "source_test_file": {
+    "line": 186,
+    "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 446,
+    "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+    "steps": {
+      "batches": 466,
+      "example": 472,
+      "expenses": 460,
+      "home": 449,
+      "launcher": 454
+    }
+  },
+  "steps": [
+    {
+      "assertion": "Start on the signed-in Odoo home page",
+      "id": "home",
+      "index": 1,
+      "run": "",
+      "screenshot": "01-home.png",
+      "sha256": "e2679f3f34cbd477856c7f824d1b6e5cc011f8440bb7a339508983466f553709",
+      "text": "Utilisez une base de formation avec un lot approuvé et un compte autorisé à comptabiliser les dépenses. Connectez-vous avec votre compte habituel. Vous arrivez sur **Accueil**.",
+      "trigger": ".o_usl_home .o_usl_home_header"
+    },
+    {
+      "assertion": "Open the application menu",
+      "id": "launcher",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez le menu des applications en haut à gauche.",
+      "trigger": ".o_navbar_apps_menu button"
+    },
+    {
+      "assertion": "Open Expenses",
+      "id": "expenses",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez **Dépenses**. Dans cet exemple, le salarié a avancé les frais d’hôtel et la société a réglé le repas.",
+      "trigger": ".o_app[data-menu-xmlid='hr_expense.menu_hr_expense_root']"
+    },
+    {
+      "assertion": "Open the list of expense batches",
+      "id": "batches",
+      "index": 4,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez **Lots de dépenses**. Repérez le déplacement approuvé qui vous sert d’exercice.",
+      "trigger": "[data-menu-xmlid='usl_expense_batch.menu_expense_batches']"
+    },
+    {
+      "assertion": "Open the approved training trip",
+      "id": "example",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Ouvrez **Séminaire de démonstration**, ou le lot équivalent dans votre base de formation.",
+      "trigger": ".o_list_view td[name='name']:contains('Séminaire de démonstration')"
+    },
+    {
+      "assertion": "Accounting receives the approved mixed-payer Batch",
+      "id": "approved",
+      "index": 6,
+      "run": "",
+      "screenshot": "02-approved.png",
+      "sha256": "74e10e3e981dad7d720c5c30df45dfba806e60b597d38dfb2e01d298a95c7888",
+      "text": "Lisez le récapitulatif avant de comptabiliser. Repérez qui a payé chaque dépense et gardez les deux montants en tête pour la suite.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Post the company-paid side and open native reimbursement",
+      "id": "post",
+      "index": 7,
+      "run": "click",
+      "screenshot": "03-post.png",
+      "sha256": "5af7feb487b0edde688ac04031f1df55058da9870c99929416041e04e4cc4a00",
+      "text": "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais payés par la société et ouvre une confirmation distincte pour la somme avancée par le salarié.",
+      "trigger": "button[name='action_post']"
+    },
+    {
+      "assertion": "Complete the native employee-paid posting wizard",
+      "id": "post_entries",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Vérifiez le journal et la date comptable, puis cliquez sur **Comptabiliser les dépenses** pour enregistrer la part du salarié.",
+      "trigger": ".o_dialog footer button[name='action_post_entry']"
+    },
+    {
+      "assertion": "Both mixed-payer journal entries are available for review",
+      "id": "entries",
+      "index": 9,
+      "run": "",
+      "screenshot": "04-entries.png",
+      "sha256": "9239f4f3d15d135ce15b8fd5c7d8080a569f25015a12f04759e38d38a98d5d04",
+      "text": "Vous venez de comptabiliser votre premier lot. Comparez les montants des deux écritures avec le récapitulatif. Vous retrouvez séparément la dépense payée par la société et la somme à rembourser au salarié.",
+      "trigger": ".o_list_view .o_list_table tbody:has(tr:nth-child(2))"
+    }
+  ],
+  "title": "De la première connexion au premier lot de dépenses comptabilisé",
+  "tour": "usl_expense_first_posted_batch",
+  "type": "tutorial",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}

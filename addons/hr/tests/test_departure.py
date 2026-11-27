@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from freezegun import freeze_time
 
 from odoo import Command
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.hr.tests.common import TestHrCommon
 from odoo.tests import Form
@@ -23,7 +23,7 @@ class TestDeparture(TestHrCommon):
             'contract_date_start': date.today(),
         })
 
-        cls.emp_A, cls.emp_B, cls.emp_C = cls.env['hr.employee'].create([
+        cls.emp_A, cls.emp_B, cls.emp_C, cls.emp_D = cls.env['hr.employee'].create([
             {
                 'name': f'Employee {code}',
                 'parent_id': cls.emp_boss.id,
@@ -31,7 +31,7 @@ class TestDeparture(TestHrCommon):
                 'work_email': f'employee_{code}@example.com',
                 'contract_date_start': date(2025, 2, 1),
                 'contract_date_end': False,
-            } for code in ['A', 'B', 'C']
+            } for code in ['A', 'B', 'C', 'D']
         ])
 
         cls.user_A = cls.env['res.users'].create({
@@ -131,3 +131,64 @@ class TestDeparture(TestHrCommon):
             'departure_date': date(2025, 5, 30),
         }])
         self.assertEqual(self.employee.version_ids[1].departure_id, departure)
+
+    def test_departure_notice_contract_date(self):
+        self.emp_D.write({
+            'employee_type_id': self.env.ref('hr.contract_type_employee').id,
+        })
+
+        departure = self.env['hr.employee.departure'].create({
+            'employee_id': self.emp_D.id,
+            'dismissal_date': date(2025, 5, 25),
+            'departure_date': date(2025, 5, 30),
+            'departure_reason_id': self.env.ref('hr.departure_fired').id,
+            'departure_description': 'PFI fired',
+        })
+
+        self.assertEqual(self.emp_D.contract_date_end, departure.departure_date)
+
+        # Cancelling the departure reopens the contract
+        self.emp_D.action_cancel_departure()
+        self.assertFalse(self.emp_D.contract_date_end)
+
+    @freeze_time('2025-11-17')
+    def test_departure_of_an_ended_contract(self):
+        # The end date was set on the contract to bound the last payslip, before ending the collaboration
+        employee = self.env['hr.employee'].create({
+            'name': 'Ended Contract Employee',
+            'date_version': date(2025, 2, 1),
+            'contract_date_start': date(2025, 2, 1),
+            'contract_date_end': date(2025, 10, 31),
+        })
+        self.assertFalse(employee.is_in_contract)
+        action = employee.action_new_departure()
+        self.assertEqual(action['context']['default_dismissal_date'], date(2025, 10, 31))
+        departure = self.env['hr.employee.departure'].with_context(**action['context']).create({
+            'departure_reason_id': self.env.ref('hr.departure_fired').id,
+        })
+        self.assertEqual(departure.departure_date, date(2025, 10, 31))
+        self.assertEqual(employee.contract_date_end, date(2025, 10, 31))
+
+        # Without any contract, the employee is archived instead
+        employee_without_contract = self.env['hr.employee'].create({'name': 'No Contract Employee'})
+        with self.assertRaises(UserError):
+            employee_without_contract.action_new_departure()
+
+    def test_departure_fixed_term_contract_date(self):
+        employee = self.env['hr.employee'].create({
+            'name': 'Fixed Term Employee',
+            'date_version': date(2025, 2, 1),
+            'contract_date_start': date(2025, 2, 1),
+            'contract_date_end': date(2025, 12, 31),
+            'fixed_term': True,
+        })
+        self.env['hr.employee.departure'].create({
+            'employee_id': employee.id,
+            'dismissal_date': date(2025, 5, 25),
+            'departure_date': date(2025, 5, 30),
+            'departure_reason_id': self.env.ref('hr.departure_fired').id,
+        })
+        # The end of the fixed-term contract is kept until the departure is applied, to be kept on cancellation
+        self.assertEqual(employee.contract_date_end, date(2025, 12, 31))
+        employee.action_cancel_departure()
+        self.assertEqual(employee.contract_date_end, date(2025, 12, 31))

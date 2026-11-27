@@ -18,9 +18,10 @@ TARGETS = ROOT / "operations/targets"
 
 
 class HealthRunner:
-    def __init__(self, target, *, proxy_mode: bool = True) -> None:
+    def __init__(self, target, *, proxy_mode: bool = True, websocket_refusals: int = 0) -> None:
         self.target = target
         self.proxy_mode = proxy_mode
+        self.websocket_refusals = websocket_refusals
         self.commands: list[list[str]] = []
 
     def run(self, command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -29,6 +30,9 @@ class HealthRunner:
             compile(command[command.index("-c") + 1], "health-probe", "exec")
         if command[0] == "curl":
             if "--include" in command:
+                if self.websocket_refusals:
+                    self.websocket_refusals -= 1
+                    return subprocess.CompletedProcess(command, 28, "", "curl: (28) Operation timed out")
                 return subprocess.CompletedProcess(
                     command,
                     28,
@@ -118,9 +122,9 @@ class TargetWithRunner:
 
 
 class HealthContractTests(unittest.TestCase):
-    def run_health(self, *, proxy_mode: bool = True) -> tuple[int, dict, HealthRunner]:
+    def run_health(self, *, proxy_mode: bool = True, websocket_refusals: int = 0) -> tuple[int, dict, HealthRunner]:
         target = load_target("production", TARGETS)
-        runner = HealthRunner(target, proxy_mode=proxy_mode)
+        runner = HealthRunner(target, proxy_mode=proxy_mode, websocket_refusals=websocket_refusals)
         wrapped = TargetWithRunner(target, runner)
         containers = []
         project = target.project
@@ -157,6 +161,7 @@ class HealthContractTests(unittest.TestCase):
                 "operations.stack._runtime_admission_evidence",
                 return_value={"mcp": {"status": "ready"}, "sign": {"status": "ready"}},
             ),
+            patch("operations.stack.time.sleep"),
             redirect_stdout(output),
         ):
             result = health_command(
@@ -190,6 +195,21 @@ class HealthContractTests(unittest.TestCase):
             report["endpoints"]["odoo"]["url"],
             "http://127.0.0.1:18069/web/health?db_server_status=1",
         )
+
+    def test_a_websocket_slow_to_start_passes_once_it_answers(self) -> None:
+        # Production, 2026-11-26: the websocket worker of a stack started seconds earlier
+        # missed one three-second request on a busy host, and the release rolled back.
+        result, report, runner = self.run_health(websocket_refusals=2)
+        self.assertEqual(result, 0)
+        self.assertEqual(report["status"], "passed")
+        self.assertEqual(report["websocket"]["status_code"], 101)
+        self.assertEqual(sum("--include" in command for command in runner.commands), 3)
+
+    def test_a_websocket_that_never_answers_still_fails_the_health(self) -> None:
+        result, report, runner = self.run_health(websocket_refusals=1000)
+        self.assertEqual(result, 2)
+        self.assertIn("odoo:websocket", report["failures"])
+        self.assertEqual(sum("--include" in command for command in runner.commands), 6)
 
     def test_health_rejects_false_proxy_mode(self) -> None:
         result, report, _runner = self.run_health(proxy_mode=False)

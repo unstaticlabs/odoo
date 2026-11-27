@@ -2483,6 +2483,52 @@ class TestAutonomousAgents(TransactionCase):
                 ["denied"],
             )
 
+    def test_agent_api_audit_survives_a_concurrent_credential_update(self):
+        """Two calls with the same key at once: the usage touch of one updates
+        the credential row that the other's audit insert checks, and
+        PostgreSQL refuses that insert with a serialization failure. The
+        evidence must still be recorded, on a fresh transaction."""
+        agent = self._create_agent()
+        controller = UslAgentJson2Controller()
+        request_state = SimpleNamespace(
+            env=self.env, registry=self.env.registry,
+            httprequest=SimpleNamespace(remote_addr="127.0.0.1", user_agent=SimpleNamespace(string="test")),
+        )
+        events = self.env["usl.audit.event"].sudo()
+        audit_model = type(events)
+        original_record_event = audit_model._record_event
+        attempts = []
+
+        def refuse_first_attempt(model, values):
+            attempts.append(values["request_id"])
+            if len(attempts) == 1:
+                raise pgerrors.SerializationFailure(
+                    "could not serialize access due to concurrent update",
+                )
+            return original_record_event(model, values)
+
+        with (
+            patch.object(json2_module, "request", request_state),
+            patch.object(
+                self.env.registry, "cursor", return_value=contextlib.nullcontext(self.env.cr),
+            ),
+            patch.object(self.env.cr, "commit", lambda: None),
+            patch.object(audit_model, "_record_event", refuse_first_attempt),
+            patch("time.sleep", lambda seconds: None),
+        ):
+            controller._record_agent_api_call(
+                agent=agent, model_name="project.task", method_name="search_read",
+                record_ids=(), outcome="succeeded", request_id="req-concurrent",
+                correlation_id="req-concurrent",
+            )
+            self.env.cr.postcommit.run()
+
+        self.assertEqual(attempts, ["req-concurrent", "req-concurrent"])
+        self.assertEqual(
+            events.search([("request_id", "=", "req-concurrent")]).mapped("outcome"),
+            ["succeeded"],
+        )
+
 
 
 

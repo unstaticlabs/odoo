@@ -7,7 +7,7 @@ from pathlib import Path
 SOURCE_ROOT = Path(
     sys.argv[1] if len(sys.argv) > 1 else "/usr/src/paperless/src",
 ).resolve()
-MISMATCH_MESSAGE = "Paperless v3.4.2 source is incompatible with the USL overlay"
+MISMATCH_MESSAGE = "Paperless v3.5.1 source is incompatible with the USL overlay"
 
 
 def patch_file(
@@ -207,7 +207,7 @@ patch_file(
 
 patch_file(
     "documents/tasks.py",
-    "c33a6e8f5bac5ba7ef9e6b38c282db51cdfa294ed2294528d959288d6b547134",
+    "198c7c402769b20843b5bb76d64960b4e3a32faf95402d8d3a0925e6b365940f",
     (
         (
             "import logging\n",
@@ -269,7 +269,7 @@ def update_document_in_llm_index(document) -> None:
 
 patch_file(
     "documents/signals/handlers.py",
-    "f05978600bf3bf8836a38515e1cf904b2ccd813a201db0050ea5e91bf1a000ac",
+    "2e066e8eeede1d100d2f6a3607bcdb248d245e436cde3a408bf05c872dd3cc57",
     (
         (
             "import logging\n",
@@ -300,28 +300,36 @@ patch_file(
 
 patch_file(
     "documents/bulk_edit.py",
-    "75771ea266a5a0c53850d27230d973c254d129cd67c73a385472e2a1d4ce2718",
+    "fa9470914bb3da80df39011f5a164fc5ee09e01e2fc115c7d7ea0278f35b9831",
     (
         (
-            '''    bulk_update_documents.apply_async(
-        kwargs={"document_ids": affected_docs},
-        headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+            '''        merge=merge,
     )
+
+    _finish_metadata_edit(affected_docs, update_callback)
 
     return "OK"
 
 
 def rotate(
 ''',
-            '''    bulk_update_documents.apply_async(
-        kwargs={
-            "document_ids": affected_docs,
-            # Permissions and ownership are authorization metadata, not
-            # embedding inputs. Tantivy is still refreshed by the bulk task.
-            "skip_llm_index": True,
-        },
-        headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+            '''        merge=merge,
     )
+
+    # Permissions and ownership are authorization metadata, not embedding
+    # inputs. Tantivy is still refreshed by the bulk task. A queued bulk
+    # operation passes a callback; documents/bulk_operations.py applies the
+    # same rule there.
+    if update_callback is not None:
+        update_callback(affected_docs)
+    else:
+        bulk_update_documents.apply_async(
+            kwargs={
+                "document_ids": affected_docs,
+                "skip_llm_index": True,
+            },
+            headers={"trigger_source": PaperlessTask.TriggerSource.SYSTEM},
+        )
 
     return "OK"
 
@@ -332,9 +340,32 @@ def rotate(
     ),
 )
 
+# Paperless 3.5 runs bulk edits as one queued task. That task refreshes the
+# affected documents itself, so the permission rule must also live here.
+patch_file(
+    "documents/bulk_operations.py",
+    "8851c3c37731ec3faa030291d748f069338e4bdf6452cd032dbcf1e5b8eea183",
+    (
+        (
+            """    if affected_ids:
+        bulk_update_documents(list(dict.fromkeys(affected_ids)))
+""",
+            """    if affected_ids:
+        # Permission and ownership edits do not change embedding inputs.
+        # Tantivy is still refreshed; the vectors are not recomputed. Other
+        # operations keep the exact upstream call.
+        followup_kwargs = (
+            {"skip_llm_index": True} if operation == "set_permissions" else {}
+        )
+        bulk_update_documents(list(dict.fromkeys(affected_ids)), **followup_kwargs)
+""",
+        ),
+    ),
+)
+
 patch_file(
     "paperless/settings/__init__.py",
-    "1691555e1b45f12ef87fc252ca677f7d023fdb3cb28f70fe7a25a3edab24bab5",
+    "80a0b4e12d7531e2ab98bb1377c93064ac7d1b466b33dc3cfcb90d84c51ed0e6",
     (
         (
             '''if LLM_EMBEDDING_CHUNK_SIZE < 1:
@@ -359,7 +390,7 @@ LLM_CONTEXT_SIZE = get_int_from_env("PAPERLESS_AI_LLM_CONTEXT_SIZE", 8192)
 
 patch_file(
     "paperless_ai/embedding.py",
-    "4317f77c81044c7b8b859211dad272771f3f8f759ea1efe8bec9ad4afdd879f8",
+    "61b9e97fd5227cd32b50faf7f8487b37fa825fe68077fe3105c3a6e548f3b69e",
     (
         (
             '''                model_name=config.llm_embedding_model or "embeddinggemma",
@@ -421,7 +452,7 @@ patch_file(
 
 patch_file(
     "paperless_ai/chat.py",
-    "b65bd0547ef722a308ae3c9b575a5c20a13bf4c1ae0ce720f6a53e322125ec5d",
+    "b4baf40ff85e7d96ed133d0ce85600d0b9adb863595b6a7f62490a410a1fec23",
     (
         (
             """def stream_chat_with_documents(
@@ -475,58 +506,55 @@ patch_file(
         ),
         (
             """    config = AIConfig()
+    permitted_ids: set[int] | None = None
     if unrestricted:
-        # Exclude trashed ids (usually few) instead of an IN filter over the
-        # full permitted set, which risks the vector store's bound parameter
-        # limit (_MAX_IN_VALUES) on large installs. Trashed documents stay
-        # indexed until permanent deletion (delete_document_from_llm_index
-        # hangs off post_delete, not trash), so must be excluded explicitly.
+        # Exclude trashed ids (usually few) rather than send every permitted
+        # id on each query. Trashed documents stay indexed until permanent
+        # deletion (post_delete, not trash), so must be excluded explicitly.
         trashed_ids = Document.deleted_objects.values_list("pk", flat=True)
         filters = exclude_document_ids_filter(str(pk) for pk in trashed_ids)
     else:
-        filters = document_id_filters(
-            str(pk) for pk in documents.values_list("pk", flat=True)
-        )
+        permitted_ids = set(documents.values_list("pk", flat=True))
 """,
             """    config = AIConfig()
     # Personal chat always runs inside an explicit document scope that is
     # rechecked during the stream. The native unrestricted mode has no such
-    # scope, so it is refused rather than silently widened.
+    # scope, so it is refused rather than silently widened. Upstream then
+    # scopes retrieval to permitted_ids and drops any other node.
     if unrestricted:
         raise PermissionError("Unrestricted document chat is disabled.")
-    document_ids = list(documents.values_list("pk", flat=True))
-    authorization_check(document_ids)
-    filters = document_id_filters(str(document_id) for document_id in document_ids)
+    permitted_ids: set[int] | None = set(documents.values_list("pk", flat=True))
+    authorization_check(sorted(permitted_ids))
 """,
         ),
         (
-            """        client = AIClient()
+            """    client = AIClient()
 
-        references = _get_document_references(documents, top_nodes)
+    references = _get_document_references(documents, top_nodes)
 """,
-            """        context_document_ids = sorted(
-            {
-                int(node.metadata["document_id"])
-                for node in top_nodes
-                if str(node.metadata.get("document_id", "")).isdigit()
-                and int(node.metadata["document_id"]) in document_ids
-            },
-        )
-        authorization_check(context_document_ids)
-        client = AIClient(client_config)
+            """    context_document_ids = sorted(
+        {
+            int(node.metadata["document_id"])
+            for node in top_nodes
+            if str(node.metadata.get("document_id", "")).isdigit()
+            and int(node.metadata["document_id"]) in permitted_ids
+        },
+    )
+    authorization_check(context_document_ids)
+    client = AIClient(client_config)
 
-        references = _get_document_references(documents, top_nodes)
+    references = _get_document_references(documents, top_nodes)
 """,
         ),
         (
-            """            for chunk in response_stream.response_gen:
-                yield chunk
-                sys.stdout.flush()
+            """        for chunk in response_stream.response_gen:
+            yield chunk
+            sys.stdout.flush()
 """,
-            """            for chunk in response_stream.response_gen:
-                authorization_check(context_document_ids)
-                yield chunk
-                sys.stdout.flush()
+            """        for chunk in response_stream.response_gen:
+            authorization_check(context_document_ids)
+            yield chunk
+            sys.stdout.flush()
 """,
         ),
         (
@@ -544,7 +572,7 @@ patch_file(
 
 patch_file(
     "documents/views.py",
-    "07c836f31036a98105866035620fbe576559d95d344c1734cdd5d1774852e270",
+    "0c54fce2adb92228a839ce281ceb46aa2c94d3e08c2d1fb34602965fb92a9036",
     (
         (
             """from paperless_ai.exceptions import LLMProviderError
@@ -553,6 +581,7 @@ from paperless_ai.exceptions import LLMTimeoutError
             """from paperless_ai.exceptions import LLMProviderError
 from paperless_ai.exceptions import LLMTimeoutError
 from paperless_usl_ranges import ranged_file_response
+from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator, wants_tag_scores
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
 from paperless_personal_ai.runtime import PersonalAIGenerationError
@@ -562,6 +591,32 @@ from paperless_personal_ai.service import PersonalAIEligibilityError
 from paperless_personal_ai.service import personal_ai_cache_identity
 from paperless_personal_ai.service import resolve_personal_llm_config
 """,
+        ),
+        (
+            "            etag_func=suggestions_etag,\n            last_modified_func=suggestions_last_modified,",
+            "            etag_func=unscored_cache_validator(suggestions_etag),\n"
+            "            last_modified_func=unscored_cache_validator(suggestions_last_modified),",
+        ),
+        (
+            "        document_suggestions = get_suggestion_cache(doc.pk)\n",
+            "        include_scores = wants_tag_scores(request)\n"
+            "        document_suggestions = None if include_scores else get_suggestion_cache(doc.pk)\n",
+        ),
+        (
+            '        resp_data = {\n            "correspondents": [',
+            '        tags = match_tags(doc, classifier, request.user)\n'
+            '        resp_data = {\n            "correspondents": [',
+        ),
+        (
+            '"tags": [t.id for t in match_tags(doc, classifier, request.user)],',
+            '"tags": [t.id for t in tags],',
+        ),
+        (
+            "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
+            "        if include_scores:\n"
+            "            resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
+            "            return Response(resp_data, headers={'Cache-Control': 'private, no-store'})\n"
+            "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
         ),
         (
             """        return serve_file(
@@ -793,12 +848,14 @@ from paperless_personal_ai.service import resolve_personal_llm_config
             user=request.user,
         )
 
-        response = StreamingHttpResponse(
-            stream_chat_with_documents(
-                query_str=question,
-                documents=documents,
-                unrestricted=unrestricted,
-                output_language=output_language,
+        return StreamingHttpResponse(
+            _iterate_in_sync_thread(
+                stream_chat_with_documents(
+                    query_str=question,
+                    documents=documents,
+                    unrestricted=unrestricted,
+                    output_language=output_language,
+                ),
             ),
             content_type="text/event-stream",
         )
@@ -833,13 +890,16 @@ from paperless_personal_ai.service import resolve_personal_llm_config
             user=request.user,
         )
 
-        response = StreamingHttpResponse(
-            stream_personal_document_chat(
-                query_str=question,
-                user_id=request.user.pk,
-                document_id=doc_id,
-                output_language=output_language,
-                client_config=client_config,
+        # Upstream 3.5 serves the sync generator chunk by chunk under ASGI.
+        return StreamingHttpResponse(
+            _iterate_in_sync_thread(
+                stream_personal_document_chat(
+                    query_str=question,
+                    user_id=request.user.pk,
+                    document_id=doc_id,
+                    output_language=output_language,
+                    client_config=client_config,
+                ),
             ),
             content_type="text/event-stream",
         )
@@ -850,7 +910,7 @@ from paperless_personal_ai.service import resolve_personal_llm_config
 
 patch_file(
     "paperless/serialisers.py",
-    "5db6a451c083ca274c30c6a36f160376b77c4ac3a77c8fedf511a288917f21be",
+    "0a0d87b893e71e0888953c0eb96033a04d8329ef9ef1e19009f07fa243de6fcf",
     (
         (
             """    llm_api_key = ObfuscatedPasswordField(
@@ -893,7 +953,7 @@ _WORKFLOW_AI_DISABLED = (
 
 patch_file(
     "documents/serialisers.py",
-    "c942d1cbe76aa1a090de2699ac754bbae40fa3df2d4199eec1d290af74ce244b",
+    "71e149cb2b9a257df79fb8299570f5164b4ff7cf978372f339a4c3fde5cf7d57",
     (
         (
             '''        if (
@@ -938,6 +998,73 @@ patch_file(
     )
     return []
 ''',
+        ),
+    ),
+)
+
+
+patch_file(
+    "paperless_ai/indexing.py",
+    "87f5b201f2556adc5e914769e39f2a917e29089a52870074660f6b2bc8c911d8",
+    (
+        (
+            "from paperless_ai.db import db_connection_released\n",
+            "from paperless_ai.db import db_connection_released\n"
+            "from paperless_ai.index_generation import needs_model_rebuild, replacement_index, require_index_model\n",
+        ),
+        (
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+            "    require_index_model(store, get_configured_model_name(config))\n"
+            "    embed_model = get_embedding_model(config)\n    llama_settings.Settings.embed_model",
+        ),
+        (
+            '''    if not rebuild:
+        with read_store() as store:
+            if store.table_exists() and store.config_mismatch(model_name):
+                logger.warning("Embedding model changed; forcing LLM index rebuild.")
+                rebuild = True
+
+''',
+            "",
+        ),
+        (
+            "        if rebuild or not store.table_exists():\n",
+            "        if not rebuild and needs_model_rebuild(store, model_name):\n"
+            "            logger.warning('The index model changed or is unknown; building a replacement.')\n"
+            "            rebuild = True\n"
+            "        if rebuild or not store.table_exists():\n",
+        ),
+        (
+            "    new_nodes = build_document_node(\n",
+            "    model_name = get_configured_model_name(config)\n"
+            "    with read_store() as current:\n"
+            "        require_index_model(current, model_name)\n"
+            "    new_nodes = build_document_node(\n",
+        ),
+        (
+            "    with write_store(embed_model_name=get_configured_model_name(config)) as store:\n",
+            "    with write_store(embed_model_name=model_name) as store:\n",
+        ),
+        (
+            '''            store.drop_table()
+            for document in iter_wrapper(
+                QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+            ):
+                nodes = build_document_node(document, chunk_size=chunk_size)
+                _embed_nodes(nodes, embed_model)
+                store.add(nodes)''',
+            '''            with replacement_index(store, model_name, settings.LLM_INDEX_DIR, _exclude_readers) as candidate:
+                for document in iter_wrapper(
+                    QuerySetStream(documents, chunk_size=_INDEX_STREAM_CHUNK_SIZE),
+                ):
+                    nodes = build_document_node(document, chunk_size=chunk_size)
+                    _embed_nodes(nodes, embed_model)
+                    candidate.add(nodes)''',
+        ),
+        (
+            "        store.upsert_document(str(document.id), new_nodes)\n",
+            "        require_index_model(store, model_name)\n"
+            "        store.upsert_document(str(document.id), new_nodes)\n",
         ),
     ),
 )
