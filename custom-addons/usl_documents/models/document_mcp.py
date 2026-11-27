@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import http.client
 import json
 import re
 from datetime import timedelta
@@ -15,6 +18,45 @@ _MCP_MAX_CONTENT_LENGTH = 8000
 _MCP_MAX_CONTENT_OFFSET = 1_000_000
 _MCP_EXCERPT_LENGTH = 500
 _MCP_SEARCH_WINDOW = 50
+
+
+def _version_integrity(document, version, *, original, check_size):
+    # Paperless migrated its stored content digests from MD5 to SHA-256.
+    # Values outside those two native formats have no known algorithm.
+    digest = version.checksum if original else version.archive_checksum
+    if not digest or not re.fullmatch(r"(?:[0-9a-fA-F]{32}|[0-9a-fA-F]{64})", digest):
+        return None
+    result = {
+        "algorithm": "sha256" if len(digest) == 64 else "md5",
+        "digest": digest.lower(),
+        "size_bytes": None,
+    }
+    if not check_size:
+        return result
+    try:
+        client = document._paperless()
+        # Integrity context has at most two optional header probes. A slow
+        # archive should leave time for the reader to receive the metadata.
+        client.stream_timeout = min(client.stream_timeout, 2)
+        probe = client.probe_download(
+            document.paperless_id, version_id=version.paperless_version_id, original=original,
+        )
+    except PaperlessError:
+        return result
+    headers = {key.lower(): value for key, value in probe["headers"].items()}
+    length = headers.get("content-length", "")
+    if (
+        probe["status"] == 200
+        and headers.get("etag", "").lower() == f'"{digest.lower()}"'
+        and "content-range" not in headers
+        and headers.get("content-encoding", "identity").lower() == "identity"
+        and re.fullmatch(r"[0-9]{1,19}", length)
+    ):
+        # MCP consumers decode JSON numbers as exact integers only in this range.
+        byte_count = int(length)
+        if byte_count <= 2**53 - 1:
+            result["size_bytes"] = byte_count
+    return result
 
 
 class UslDocumentMcp(models.Model):
@@ -547,6 +589,82 @@ class UslDocumentMcp(models.Model):
         return self._mcp_document_values(document)
 
     @api.model
+    def mcp_read_binary(self, document_id, *, document_version_id=None, variant="original"):
+        """Read exact file bytes through the authenticated native authority.
+
+        Authorization must use the primary database, never replica-routed reads:
+        a newly withdrawn share must not be accepted through replication lag.
+        The small-file path needs no bearer grant or second client connection.
+        Larger files retain the existing streaming download workflow.
+        """
+        document = self._mcp_visible_document(document_id)
+        descriptor = document._authorized_binary_descriptor(
+            document_version_id=document_version_id, variant=variant,
+        )
+        maximum = 4 * 1024 * 1024
+        stream = document._paperless().open_download(
+            descriptor["paperless_document_id"],
+            version_id=descriptor["paperless_version_id"], original=variant == "original",
+        )
+        try:
+            if stream.status != 200:
+                raise ValidationError(_("The complete document file is unavailable. Try its download URL."))
+            headers = {key.lower(): value for key, value in stream.headers.items()}
+            if headers.get("content-encoding", "identity").strip().lower() != "identity":
+                raise ValidationError(_(
+                    "The archive returned a transformed file encoding. No file was returned. "
+                    "Retry when the archive serves the original bytes.",
+                ))
+            declared = headers.get("content-length")
+            try:
+                declared_size = int(declared) if declared is not None else None
+            except (TypeError, ValueError):
+                raise ValidationError(_("The document transfer has an invalid size.")) from None
+            if declared_size is not None and declared_size > maximum:
+                raise ValidationError(_("This file is too large for direct reading. Use its download URL."))
+            content = bytearray()
+            for chunk in stream.iter_chunks():
+                if len(content) + len(chunk) > maximum:
+                    raise ValidationError(_("This file is too large for direct reading. Use its download URL."))
+                content.extend(chunk)
+            if not content or (declared_size is not None and declared_size != len(content)):
+                raise ValidationError(_("The document transfer is incomplete. No file was returned."))
+            payload = bytes(content)
+        except (TimeoutError, OSError, http.client.HTTPException, PaperlessError):
+            raise ValidationError(_(
+                "The document transfer is incomplete. No file was returned.",
+            )) from None
+        finally:
+            stream.close()
+        sha256 = hashlib.sha256(payload).hexdigest()
+        source_checksum = str(descriptor["checksum"] or "").lower()
+        verified = None
+        if re.fullmatch(r"[a-f0-9]{64}", source_checksum):
+            verified = "sha256"
+            actual = sha256
+        elif re.fullmatch(r"[a-f0-9]{32}", source_checksum):
+            verified = "md5"
+            actual = hashlib.md5(payload, usedforsecurity=False).hexdigest()
+        if verified and actual != source_checksum:
+            raise ValidationError(_("The document bytes do not match the selected version. No file was returned."))
+        if not verified and declared_size is None and stream.transport_complete is not True:
+            raise ValidationError(_(
+                "The document transfer has no proof of completion. No file was returned. "
+                "Retry when the archive provides a checksum or a complete framed response.",
+            ))
+        return {
+            "document_id": document.id,
+            "document_version_id": descriptor["version"].id,
+            "variant": variant,
+            "filename": descriptor["filename"],
+            "mime_type": descriptor["mime_type"],
+            "size_bytes": len(payload),
+            "sha256": sha256,
+            "source_checksum_verified": verified,
+            "content_base64": base64.b64encode(payload).decode("ascii"),
+        }
+
+    @api.model
     def mcp_get_content(self, document_id, *, offset=0, limit=4000):
         document = self._mcp_visible_document(document_id)
         try:
@@ -692,13 +810,15 @@ class UslDocumentMcp(models.Model):
         }
 
     @api.model
-    def mcp_get_versions(self, document_id):
+    def mcp_get_versions(self, document_id, *, include_integrity=False):
         document = self._mcp_visible_document(document_id)
         binary_available = bool(self._mcp_binary_documents(document))
         versions = document.version_ids.sorted(
             key=lambda item: (item.is_current, item.created_at or fields.Datetime.now()),
             reverse=True,
         )
+        with_integrity = include_integrity is True and binary_available
+        current = versions.filtered("is_current") if with_integrity else None
         return {
             "document_id": document.id,
             "versions": [
@@ -724,6 +844,12 @@ class UslDocumentMcp(models.Model):
                         else []
                     ),
                     "materialization_required": binary_available,
+                    **({"integrity": {
+                        variant: _version_integrity(
+                            document, version, original=variant == "original", check_size=version == current,
+                        )
+                        for variant in ("original", "archive")
+                    }} if with_integrity else {}),
                 }
                 for version in versions
             ],

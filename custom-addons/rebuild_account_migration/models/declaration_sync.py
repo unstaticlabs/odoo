@@ -664,12 +664,17 @@ class RebuildAccountDeclaration(models.Model):
         return declaration
 
     @api.model
+    def _des_services_reason(self):
+        return _(
+            "A posted invoice or credit note for EU services was found this month. "
+            "Open Review documents to check the source before filing."
+        )
+
+    @api.model
     def _applicability_reason(self, company, rule):
         if rule.trigger_kind == "eu_b2b_services":
-            return _(
-                "A posted invoice or credit note for EU services was found this month. "
-                "Open Review documents to check the source before filing."
-            )
+            # Saved in English whoever runs the sync; the declaration shows it in the reader's language.
+            return self.with_context(lang="en_US")._des_services_reason()
         profile = (
             f"{dict(company._fields['rebuild_legal_form'].selection).get(company.rebuild_legal_form, company.rebuild_legal_form)}, "
             f"{dict(company._fields['rebuild_corporate_tax_regime'].selection).get(company.rebuild_corporate_tax_regime, company.rebuild_corporate_tax_regime)}, "

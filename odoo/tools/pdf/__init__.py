@@ -9,7 +9,9 @@ from datetime import datetime
 from hashlib import md5
 from logging import getLogger
 from zlib import compress, decompressobj
+from zlib import error as ZlibError
 
+from lxml import etree
 from PIL import Image, PdfImagePlugin
 
 from odoo.tools.arabic_reshaper import reshape
@@ -88,6 +90,8 @@ _logger = getLogger(__name__)
 DEFAULT_PDF_DATETIME_FORMAT = "D:%Y%m%d%H%M%S+00'00'"
 REGEX_SUBTYPE_UNFORMATED = re.compile(r'^\w+/[\w-]+$')
 REGEX_SUBTYPE_FORMATED = re.compile(r'^/\w+#2F[\w-]+$')
+PDFA_ID_NAMESPACE = 'http://www.aiim.org/pdfa/ns/id/'
+RDF_NAMESPACE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 
 
 # Disable linter warning: this import is needed to make sure a PDF stream can be saved in Image.
@@ -368,6 +372,8 @@ class OdooPdfFileWriter(PdfFileWriter):
         super().__init__(*args, **kwargs)
         self._reader = None
         self.is_pdfa = False
+        self.pdfa_part = None
+        self.pdfa_conformance = None
 
     def format_subtype(self, subtype):
         """
@@ -456,23 +462,50 @@ class OdooPdfFileWriter(PdfFileWriter):
     def clone_reader_document_root(self, reader):
         super().clone_reader_document_root(reader)
         self._reader = reader
-        # Try to read the header coming in, and reuse it in our new PDF
-        # This is done in order to allows modifying PDF/A files after creating them (as PyPDF does not read it)
         stream = reader.stream
         stream.seek(0)
-        header = stream.readlines(9)
-        # Should always be true, the first line of a pdf should have 9 bytes (%PDF-1.x plus a newline)
-        if len(header) == 1:
-            # If we found a header, set it back to the new pdf
-            self._header = header[0]
-            # Also check the second line. If it is PDF/A, it should be a line starting by % following by four bytes + \n
-            second_line = stream.readlines(1)[0]
-            if second_line.decode('latin-1')[0] == '%' and len(second_line) == 6:
-                self.is_pdfa = True
+        header = re.match(rb'(%PDF-\d\.\d)[\r\n]', stream.read(9))
+        if header:
+            # The writer supplies its own newline and binary comment.
+            self._header = header[1]
+        self.pdfa_part, self.pdfa_conformance = self._read_pdfa_identification()
+        self.is_pdfa = self.pdfa_part is not None
         # clone_reader_document_root clones reader._ID since 3.2 (py-pdf/pypdf#1520)
         if not hasattr(self, '_ID'):
             # Look if we have an ID in the incoming stream and use it.
             self._set_id(reader.trailer.get('/ID', None))
+
+    def _read_pdfa_identification(self):
+        # Ordinary PDFs also have a binary comment. PDF/A identifies itself
+        # through XMP, with pdfaid:part represented as an element or attribute.
+        xmp = self.get_xmp_metadata()
+        if xmp is None:
+            return None, None
+        namespaces = {'pdfaid': PDFA_ID_NAMESPACE, 'rdf': RDF_NAMESPACE}
+        description = '//rdf:RDF/rdf:Description[not(@rdf:about) or @rdf:about=""]'
+        part, conformance = (
+            xmp.xpath(
+                f'normalize-space(({description}/pdfaid:{field}/text() | {description}/@pdfaid:{field})[1])',
+                namespaces=namespaces,
+            )
+            for field in ('part', 'conformance')
+        )
+        levels = {'1': ('A', 'B'), '2': ('A', 'B', 'U'), '3': ('A', 'B', 'U'), '4': ('', 'E', 'F')}
+        if conformance not in levels.get(part, ()):
+            return None, None
+        return int(part), conformance or None
+
+    def get_xmp_metadata(self):
+        """Return the parsed XMP packet, if it can be read independently of the PDF pages."""
+        try:
+            metadata = self._root_object.get('/Metadata')
+            if isinstance(metadata, generic.StreamObject):
+                return etree.fromstring(
+                    metadata.get_data(), parser=etree.XMLParser(resolve_entities=False, no_network=True),
+                )
+        except (PdfReadError, etree.XMLSyntaxError, NotImplementedError, ZlibError):
+            pass
+        return None
 
     def _set_id(self, pdf_id):
         if not pdf_id:
@@ -623,6 +656,7 @@ class OdooPdfFileWriter(PdfFileWriter):
             '/Producer': "Odoo",
         })
         self.is_pdfa = True
+        self.pdfa_part = 3
 
     def add_file_metadata(self, metadata_content):
         """

@@ -1,10 +1,13 @@
 from datetime import date
 from unittest.mock import patch
 
+from lxml import etree
+
 from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tools.safe_eval import safe_eval
 
 
 @tagged("post_install", "-at_install")
@@ -53,7 +56,7 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertIn(tax.name, review.source_rows[0]["reason"])
         action, lines = self._listed("des", "2026-03-01", "2026-03-31")
         self.assertEqual(lines.move_id.ids, [refund.id, native_invoice.id, original.id])
-        self.assertEqual(action["context"]["group_by"], ["date:month"])
+        self.assertEqual(action["context"]["group_by"], ["partner_id"])
         self.assertEqual(lines[-1].action_open_document()["res_id"], original.id)
         self.assertEqual(self.env["rebuild.account.declaration"].search(domain).ids, before)
         # From the declaration itself, the same list opens without asking for the dates again.
@@ -140,6 +143,87 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
             calendar.sync_for_company(company)
             self.assertEqual(calendar.search(domain, order="period_start"), proposals)
             self.assertEqual((proposals[0].status, proposals[0].filing_status), ("filed", "filed"))
+
+    def _des_customer(self, name, vat):
+        return self.env["res.partner"].with_context(no_vat_validation=True).create({
+            "name": name, "country_id": self.env.ref("base.es").id, "vat": vat,
+        })
+
+    def test_des_reason_is_saved_once_and_read_in_the_reader_language(self):
+        company = self.env.company
+        company.rebuild_declaration_profile_active = True
+        self.env["res.lang"]._activate_lang("fr_FR")
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+        self._create_invoice_one_line(
+            price_unit=40, tax_ids=native_tax, partner_id=self._des_customer("Example design studio", "ES00000000X"),
+            move_type="out_invoice", invoice_date="2026-03-11", post=True,
+        )
+        calendar = self.env["rebuild.account.declaration"]
+        domain = [("company_id", "=", company.id), ("rule_id.code", "=", "FR_DES"), ("period_start", "=", "2026-03-01")]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 7, 1)):
+            for sync_language in ("en_US", "fr_FR", "en_US"):
+                calendar.with_context(lang=sync_language).sync_for_company(company)
+                proposal = calendar.search(domain)
+                with self.subTest(sync_language=sync_language):
+                    self.assertEqual(len(proposal), 1)
+                    self.assertIn("invoice or credit note", proposal.applicability_reason)
+                    self.assertIn("facture ou un avoir", proposal.with_context(lang="fr_FR").applicability_summary)
+                    self.assertIn("invoice or credit note", proposal.with_context(lang="en_US").applicability_summary)
+        # A reason the accountant typed is never replaced by generated wording.
+        proposal.with_context(lang="fr_FR").applicability_summary = "Confirmed with the accountant."
+        self.assertEqual(proposal.applicability_reason, "Confirmed with the accountant.")
+        self.assertEqual(proposal.with_context(lang="fr_FR").applicability_summary, "Confirmed with the accountant.")
+
+    def test_des_documents_add_up_per_customer_with_their_vat_number(self):
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+        studio, atelier = self._des_customer("Example design studio", "ES00000000X"), self._des_customer("Example atelier", "BE0000000001")
+
+        def post(partner, amount, when, kind="out_invoice"):
+            return self._create_invoice_one_line(
+                price_unit=amount, tax_ids=native_tax, partner_id=partner, move_type=kind, invoice_date=when, post=True,
+            )
+
+        post(studio, 100, "2026-05-04")
+        post(atelier, 70, "2026-05-12")
+        post(studio, 30, "2026-05-20", "out_refund")
+        post(studio, 999, "2026-06-02")
+        action, lines = self._listed("des", "2026-05-01", "2026-05-31")
+        self.assertEqual(action["context"]["group_by"], ["partner_id"])
+        self.assertEqual(
+            {line.partner_id.name: line.partner_vat for line in lines},
+            {"Example design studio": "ES00000000X", "Example atelier": "BE0000000001"},
+        )
+        totals = {
+            partner.name: total for partner, total in
+            self.env[action["res_model"]]._read_group(action["domain"], ["partner_id"], ["amount:sum"])
+        }
+        self.assertEqual(totals, {"Example design studio": 70, "Example atelier": 70})
+        arch = self.env[action["res_model"]].get_views([action["views"][0]])["views"]["list"]["arch"]
+        self.assertIn('name="partner_vat"', arch)
+
+    def test_review_documents_leads_while_the_des_is_only_a_proposal(self):
+        form = self.env.ref("rebuild_account_migration.view_rebuild_account_declaration_form")
+        arch = etree.fromstring(self.env["rebuild.account.declaration"].get_view(form.id)["arch"])
+
+        def leading_buttons(values):
+            """The visible header buttons drawn as the primary action, as the form would show them."""
+            return [
+                button.get("name") for button in arch.xpath("//header/button")
+                if not safe_eval(button.get("invisible") or "False", values)
+                and {"btn-primary", "oe_highlight"} & set(button.get("class", "").split())
+                and button.get("name") in ("action_review_documents", "action_mark_ready_to_file")
+            ]
+
+        for form_code, applicability, status, expected in [
+            ("DES", "conditional", "to_prepare", ["action_review_documents"]),
+            ("DES", "conditional", "internal_review", ["action_review_documents"]),
+            ("DES", "conditional", "ready_to_file", []),
+            ("DES", "applicable", "internal_review", ["action_mark_ready_to_file"]),
+            ("DAS2", "applicable", "internal_review", ["action_mark_ready_to_file"]),
+        ]:
+            values = {"form_code": form_code, "applicability": applicability, "status": status}
+            with self.subTest(**values):
+                self.assertEqual(leading_buttons(values), expected)
 
     def _bank_debit(self, when, debit_account, amount):
         journal = self.company_data["default_journal_bank"]

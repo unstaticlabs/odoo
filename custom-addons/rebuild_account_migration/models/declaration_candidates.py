@@ -84,7 +84,8 @@ class DeclarationCandidateReview(models.TransientModel):
             "views": [(self.env.ref(f"rebuild_account_migration.{view}").id, "list")],
             "search_view_id": [self.env.ref("rebuild_account_migration.view_declaration_candidate_line_search").id],
             "domain": [("review_id", "=", self.id)],
-            "context": {"group_by": ["date:month"] if des else ["partner_id"] if one_year else ["period", "partner_id"]},
+            # A DES return has one line per customer VAT number, so the list adds up per customer.
+            "context": {"group_by": ["partner_id"] if des or one_year else ["period", "partner_id"]},
             "help": self.env._("No source documents listed. If you opened this list more than an hour ago, show the documents again from the declaration calendar."),
             "target": "current",
         }
@@ -210,6 +211,10 @@ class DeclarationCandidateReviewLine(models.TransientModel):
     date = fields.Date(help="Invoice date for DES, payment date for DAS2.")
     period = fields.Char(help="Declaration period the document belongs to: a month for DES, a year for DAS2.")
     partner_id = fields.Many2one("res.partner", string="Partner", help="Customer of the invoice or beneficiary of the payment.")
+    partner_vat = fields.Char(
+        string="VAT number", related="move_id.commercial_partner_id.vat",
+        help="VAT number of the customer, the key of its line in the DES return.",
+    )
     move_id = fields.Many2one("account.move", string="Document", help="Posted invoice, bill or payment entry to review.")
     move_type = fields.Selection(related="move_id.move_type", string="Type", help="Tells an invoice from a credit note.")
     payment_move_id = fields.Many2one("account.move", string="Payment", help="Payment entry that settled the bill, when the document is a bill.")
