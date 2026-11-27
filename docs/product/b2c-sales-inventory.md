@@ -119,6 +119,38 @@ Company record rules cover all B2C models. Readers are read-only. Operators may
 review mappings, links, and sessions. Managers may configure channels, unlock
 sessions, and manage access. Users outside the B2C groups have no model access.
 
+## Monthly review
+
+Monthly Review opens the existing monthly sessions with a compact list and the
+native With Gaps filter selected. With Gaps leaves out locked sessions, so a
+closed month with explained gaps does not stay in the list. Each row shows the
+session, a coloured review status badge, the short next step (only what is
+missing) and the accounting, product-mapping and currency-conversion gaps that
+are not zero; the full sentence, which ends with Refresh Evidenced Totals and
+Mark Reviewed, is on the form. The same search offers To Refresh for drafts with
+no recorded refresh, and Ready for Review for refreshed drafts with none of
+those known gaps. The three categories share one filter group, so selecting a
+second one adds its sessions to the list instead of emptying it. Refreshed Drafts
+remains the broader native filter and can include sessions with gaps.
+
+These are views of the latest evidenced session snapshot, not new measures or
+proof that all shop activity has been imported. A refreshed session remains a
+draft until a person reviews it. Opening or filtering the list never refreshes,
+approves, posts or changes a session. Native reader/operator permissions and
+company rules still govern the same form and its existing actions. Monthly
+Sessions retains the complete financial columns and reviewed/locked history.
+
+Changing the actual month, date boundary, company, channel or provider invalidates
+that session's refresh snapshot and review decision. Its derived figures are
+cleared and remain blank in the native lists/form until Refresh computes the new
+scope. Original evidence, source records and accounting entries are retained.
+The unsaved form preview behaves the same way; Cancel writes nothing, and
+returning to the original scope restores its preview. A same-value scope write
+or an unrelated note preserves a valid snapshot. Locked sessions retain their
+native protection. Company changes require current access to the target company.
+Upgrades preserve existing stored session snapshots; this is no automatic repair
+of a scope edit made before invalidation was available.
+
 ## Inventory position
 
 The lossless restore initially contains 46 source templates, each with one

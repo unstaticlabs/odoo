@@ -2239,6 +2239,7 @@ msgstr "État de la vérification"
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_status
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_link_search
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
 msgid "Review Status"
 msgstr "État de la vérification"
 
@@ -2330,6 +2331,7 @@ msgstr "Séquence"
 
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_link__session_id
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
 msgid "Session"
 msgstr "Session"
 
@@ -3105,14 +3107,14 @@ msgstr "%(count)s enregistrement(s) en attente de conversion de devise"
 #. module: usl_b2c
 #. odoo-python
 #: code:addons/usl_b2c/models/accounting.py:0
-msgid "Draft, awaiting review. Still open: %(gaps)s. Resolve them, then a B2C operator presses Mark Reviewed."
-msgstr "Brouillon, en attente de vérification. Reste à traiter : %(gaps)s. Après cela, un opérateur B2C clique sur « Marquer comme vérifié »."
+msgid "Resolve: %(gaps)s, then Refresh Evidenced Totals before Mark Reviewed."
+msgstr "À résoudre : %(gaps)s, puis actualisez les totaux avant « Marquer comme vérifié »."
 
 #. module: usl_b2c
 #. odoo-python
 #: code:addons/usl_b2c/models/accounting.py:0
-msgid "Draft, awaiting review. Every record has an accounting disposition, but coverage is not a review: a B2C operator checks the totals, then presses Mark Reviewed."
-msgstr "Brouillon, en attente de vérification. Chaque enregistrement a un traitement comptable, mais la couverture n'est pas une vérification : un opérateur B2C contrôle les totaux, puis clique sur « Marquer comme vérifié »."
+msgid "No open gaps. Check totals and evidence, then press Mark Reviewed."
+msgstr "Aucun écart ouvert. Contrôlez les totaux et les justificatifs, puis cliquez sur « Marquer comme vérifié »."
 
 #. module: usl_b2c
 #: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__state
@@ -3125,14 +3127,52 @@ msgid "What stands between this session and the next state. Coverage percentages
 msgstr "Ce qui sépare cette session de l'état suivant. Les taux de couverture mesurent les justificatifs ; passer de Brouillon à Vérifiée est une décision humaine qui ne découle jamais d'un pourcentage."
 
 #. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_session_label
+msgid "Session name for the review list. On narrow screens it also shows the short next step underneath, so no sideways scrolling is needed."
+msgstr "Nom de la session pour la liste de revue. Sur petit écran, la prochaine étape courte s'affiche dessous, sans défilement latéral."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_session_label
+msgid "Review Session Label"
+msgstr "Libellé de session de revue"
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_next_step_short
+msgid "The list-sized version of the next step: only what is missing. The form carries the full sentence."
+msgstr "La version courte de la prochaine étape pour les listes : seulement ce qui manque. Le formulaire porte la phrase complète."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_next_step_short
+msgid "Review Next Step Short"
+msgstr "Prochaine étape (courte)"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Lock the session"
+msgstr "Verrouillez la session"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Refresh the totals"
+msgstr "Actualisez les totaux"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Check totals, then Mark Reviewed"
+msgstr "Contrôlez les totaux, puis « Marquer comme vérifié »"
+
+#. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_next_step
 msgid "Review Next Step"
 msgstr "Prochaine étape de vérification"
 
 #. module: usl_b2c
 #: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
-msgid "Awaiting Review"
-msgstr "En attente de vérification"
+msgid "Refreshed Drafts"
+msgstr "Brouillons actualisés"
 
 #. module: usl_b2c
 #: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_status
@@ -3168,3 +3208,56 @@ msgstr "1 écart ouvert"
 #: code:addons/usl_b2c/models/accounting.py:0
 msgid "%(count)s open gaps"
 msgstr "%(count)s écarts ouverts"
+
+#. module: usl_b2c
+#: model:ir.actions.act_window,name:usl_b2c.action_b2c_session_review
+#: model:ir.ui.menu,name:usl_b2c.menu_b2c_session_review
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
+msgid "Monthly Review"
+msgstr "Revue mensuelle"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "With Gaps"
+msgstr "Avec écarts"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "To Refresh"
+msgstr "À actualiser"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_accounting_session_search
+msgid "Ready for Review"
+msgstr "Prêt pour vérification"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
+msgid "Next Step"
+msgstr "Prochaine étape"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
+msgid "Accounting Gaps"
+msgstr "Écarts comptables"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
+msgid "Product Gaps"
+msgstr "Écarts produit"
+
+#. module: usl_b2c
+#: model_terms:ir.ui.view,arch_db:usl_b2c.view_b2c_session_review_list
+msgid "Conversion Gaps"
+msgstr "Écarts de conversion"
+
+#. module: usl_b2c
+#: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_session_review
+msgid "No sessions match the selected filters. Choose another review filter or clear them."
+msgstr "Aucune session ne correspond aux filtres sélectionnés. Choisissez un autre filtre de revue ou retirez-les."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Choose a company you can access."
+msgstr "Choisissez une société à laquelle vous avez accès."
