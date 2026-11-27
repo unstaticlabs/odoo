@@ -272,6 +272,50 @@ test("leaving the page asks first while a voice note is failed or pending and no
     expect(leave()).toBe(false);
 });
 
+test("closing the page while recording a voice note keeps it for the next page", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([true]);
+    const partnerId = await openNote();
+    await record();
+    window.dispatchEvent(new Event("pagehide"));
+    let entries = [];
+    for (let turn = 0; turn < 20 && !entries.length; turn++) {
+        await advanceTime(50);
+        entries = await keptRecordings(user.userId);
+    }
+    expect(entries.length).toBe(1);
+    expect(entries[0].kind).toBe("voice_note");
+    expect(entries[0].destination).toMatchObject({ model: "res.partner", id: partnerId });
+    expect(composers.at(-1).uslVoice.mode).toBe("idle");
+    expect(uploads.length).toBe(0);
+});
+
+test("Undo of a note the browser could not store, with the composer busy, keeps the only copy", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([true]);
+    await openNote();
+    // The browser cannot store anything: the note exists only in memory.
+    patchWithCleanup(indexedDB, {
+        open() {
+            throw Error("no storage");
+        },
+    });
+    await record();
+    await click(".o-usl-voice-bar button[aria-label='Discard recording']");
+    await contains(".o_notification:contains('discarded')");
+    await record(); // the composer is busy again
+    await click(".o_notification button:contains('Undo')");
+    await contains(".o_notification:contains('not saved in this browser')");
+    const composer = composers.at(-1);
+    expect(composer.uslUnsafe()).toBe(true);
+    expect(uploads.length).toBe(0);
+    // It can still be uploaded to its record, without the composer.
+    await click(".o_notification button:contains('Upload to the record')");
+    await waitUntil(() => uploads.length === 1);
+    expect(uploads[0]).toMatchObject({ model: "res.partner", composer: false, voice: true });
+    await waitUntil(() => !composer.uslSpares.length);
+});
+
 test("a composer opened again for the record takes its pending voice note back", async () => {
     fakeMicrophone();
     fakeUploads([true]);

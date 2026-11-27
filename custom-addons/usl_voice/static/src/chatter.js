@@ -10,7 +10,7 @@ import { VoiceCapture } from "./capture";
 import { VoiceMeter } from "./meter";
 import {
     claimRecording, disownRecording, downloadRecording, forgetRecording, keepRecording, keptRecordings, newRecordingId,
-    offerUndo, ownRecording,
+    offerUndo, ownRecording, recordingTime,
 } from "./recording_store";
 import { uploadVoiceNote } from "./voice_note_upload";
 
@@ -33,13 +33,31 @@ patch(Composer.prototype, {
                 ev.returnValue = "";
             }
         });
+        // A phone often closes a page without beforeunload: what is being said is kept now.
+        useExternalListener(window, "pagehide", () => this.pageHideUslVoice());
         onMounted(() => this.adoptUslPending());
         onWillUnmount(() => this.suspendUslVoice());
     },
     /** A recording under way, or a finished one the browser could not store. */
     uslUnsafe() {
         return Boolean(this.uslCapture || (this.uslKept && !this.uslKept.persisted) ||
-            (this.uslPending && !this.uslPending.kept.persisted));
+            (this.uslPending && !this.uslPending.kept.persisted) || this.uslSpares?.length);
+    },
+    /** The page is going away: a recording under way is stopped and kept in this browser. */
+    pageHideUslVoice() {
+        const capture = this.uslCapture;
+        if (!capture) {
+            return;
+        }
+        this.uslCapture = null;
+        const file = this.uslVoice.mode === "recording" && capture.finish();
+        capture.discard();
+        this.uslVoice.mode = "idle";
+        if (file) {
+            // Offered again at the start of the next page (or at once if the page comes back).
+            const kept = this.holdUslVoice(file);
+            kept.saving.then(() => disownRecording(kept.id));
+        }
     },
     /**
      * A voice note uploaded as a pending attachment of this composer, whose composer was closed
@@ -118,7 +136,7 @@ patch(Composer.prototype, {
             destination: kept.destination,
         };
         ownRecording(kept.id);
-        keepRecording(kept.entry).then((ok) => (kept.persisted = ok));
+        kept.saving = keepRecording(kept.entry).then((ok) => (kept.persisted = ok));
         return kept;
     },
     /** Let the recording go, with ten seconds to change one's mind. */
@@ -143,9 +161,44 @@ patch(Composer.prototype, {
         const free = !this.uslGone && this.uslVoice.mode === "idle" && !this.uslCapture && !this.uslKept && !this.uslPending;
         if (free) {
             this.uploadUslVoice(kept);
+        } else if (kept.persisted) {
+            disownRecording(kept.id); // safe in the browser: offered as an unused voice note
         } else {
-            disownRecording(kept.id);
+            this.spareUslVoice(kept);
         }
+    },
+    /**
+     * The only copy of this voice note is in memory (the browser could not store it) and the
+     * composer is busy: it stays here, with Download and Upload, until one of them is used.
+     */
+    spareUslVoice(kept) {
+        this.uslSpares = [...(this.uslSpares || []), kept];
+        const release = () => {
+            this.uslSpares = this.uslSpares.filter((spare) => spare !== kept);
+            close();
+        };
+        const close = this.uslVoiceNotify.add(
+            _t("The voice note from %s is not saved in this browser. Download it or upload it to the record.", recordingTime(kept.at)),
+            {
+                type: "warning",
+                sticky: true,
+                buttons: [
+                    { name: _t("Download audio"), onClick: () => downloadRecording(kept.file, kept.at) },
+                    {
+                        name: _t("Upload to the record"),
+                        primary: true,
+                        onClick: async () => {
+                            if (await uploadVoiceNote(this.env, kept.destination, kept.file)) {
+                                release();
+                                await forgetRecording(kept.id);
+                            } else {
+                                this.uslVoiceNotify.add(_t("The voice note could not be uploaded. Your recording is kept."), { type: "warning" });
+                            }
+                        },
+                    },
+                ],
+            }
+        );
     },
     async startUslVoice() {
         if (this.uslVoice.mode !== "idle") {

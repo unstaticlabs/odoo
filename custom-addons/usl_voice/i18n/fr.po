@@ -336,3 +336,15 @@ msgstr "Plus tard"
 #: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Show the unused recordings"
 msgstr "Afficher les enregistrements non utilisés"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "The voice note from %s is not saved in this browser. Download it or upload it to the record."
+msgstr "La note vocale de %s n’est pas enregistrée dans ce navigateur. Téléchargez-la ou envoyez-la sur la fiche."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "Upload to the record"
+msgstr "Envoyer sur la fiche"
