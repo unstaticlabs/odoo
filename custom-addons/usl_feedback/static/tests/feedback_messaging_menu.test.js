@@ -410,8 +410,10 @@ test("draft keeps its default-selected page preview local until send", async () 
     expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Google Gemini receives your conversation/);
     expect(".o-usl-FeedbackPanel-sharing").toHaveText(/three JPEG or PNG images from your attachments and selected page preview/);
     await contains(".o-usl-FeedbackPanel-sharing summary").click();
+    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/stores your conversation so you can continue it/);
     expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/company, language, Odoo version/);
     expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/counts by stage and recent feedback titles/);
+    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/If Odoo Projects is connected, it can also read existing feedback reports to find duplicates/);
     expect.verifySteps(["start"]);
     await contains("#usl_feedback_message").edit("The page preview shows the issue.");
     await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();

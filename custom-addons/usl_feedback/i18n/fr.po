@@ -1900,20 +1900,20 @@ msgstr "Google Gemini reçoit votre conversation et peut analyser jusqu’à tro
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "What else does Gemini receive?"
-msgstr "Quelles autres informations reçoit Gemini ?"
+msgid "How does Gemini use my feedback?"
+msgstr "Comment Gemini utilise-t-il mon retour ?"
 
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Gemini receives your company, language, Odoo version and any page details you choose to share."
-msgstr "Gemini reçoit le nom de votre société, votre langue, la version d’Odoo et les détails de page que vous choisissez de partager."
+msgid "Gemini stores your conversation so you can continue it. It also receives your company, language, Odoo version and any page details you choose to share."
+msgstr "Gemini conserve votre conversation pour poursuivre l’échange. Il reçoit aussi le nom de votre société, votre langue, la version d’Odoo et les détails de page que vous choisissez de partager."
 
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "To find related feedback, Gemini receives counts by stage and recent feedback titles."
-msgstr "Pour repérer les retours similaires, Gemini reçoit le nombre de retours par étape et les titres de retours récents."
+msgid "Gemini receives counts by stage and recent feedback titles. If Odoo Projects is connected, it can also read existing feedback reports to find duplicates."
+msgstr "Gemini reçoit le nombre de retours par étape et les titres récents. Si la connexion à Odoo Projets est activée, il peut aussi consulter les retours existants pour repérer les doublons."
 
 #. module: usl_feedback
 #. odoo-javascript

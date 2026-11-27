@@ -135,9 +135,9 @@
                     <t t-if="state.assistantMode === 'gemini'">
                         <p class="mb-1">Google Gemini receives your conversation and may analyze up to three JPEG or PNG images from your attachments and selected page preview.</p>
                         <details class="mb-1">
-                            <summary>What else does Gemini receive?</summary>
-                            <p class="mb-1 mt-1">Gemini receives your company, language, Odoo version and any page details you choose to share.</p>
-                            <p class="mb-0">To find related feedback, Gemini receives counts by stage and recent feedback titles.</p>
+                            <summary>How does Gemini use my feedback?</summary>
+                            <p class="mb-1 mt-1">Gemini stores your conversation so you can continue it. It also receives your company, language, Odoo version and any page details you choose to share.</p>
+                            <p class="mb-0">Gemini receives counts by stage and recent feedback titles. If Odoo Projects is connected, it can also read existing feedback reports to find duplicates.</p>
                         </details>
                     </t>
                     <p t-elif="state.assistantMode === 'local'" class="mb-1">Odoo uses fixed local replies. Nothing is sent to Gemini.</p>
