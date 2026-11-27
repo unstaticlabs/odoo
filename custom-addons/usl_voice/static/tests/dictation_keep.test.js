@@ -462,3 +462,84 @@ test("an unused recording can be downloaded and discarded with Undo from the rec
     await waitUntil(() => !document.querySelector(".o_notification"));
     expect(await kept()).toEqual([]);
 });
+
+test("Undo keeps the recording as safe, or as unsafe, as it was", async () => {
+    const dictation = await mountDictation();
+    await dictateAndFail(dictation, field());
+    expect(dictation.unsafe()).toBe(false);
+    dictation.persisted = false; // the browser could not store it
+    dictation.persistence = Promise.resolve(false);
+    await click('[data-usl-action="discard"]');
+    await waitFor(".o_notification");
+    await click(".o_notification button:contains(Undo)");
+    await waitFor('[data-usl-action="retry"]');
+    expect(dictation.state.mode).toBe("retry");
+    expect(dictation.unsafe()).toBe(true);
+});
+
+test("a second Stop or an Escape while the recording is being kept does nothing", async () => {
+    const dictation = await mountDictation();
+    let open;
+    const gate = new Promise((resolve) => (open = resolve));
+    patchWithCleanup(VoiceCapture.prototype, {
+        async start() {},
+        finish() {
+            return clip();
+        },
+    });
+    patchWithCleanup(FieldDictation.prototype, {
+        listen() {},
+        async hold(file) {
+            await gate;
+            return super.hold(file);
+        },
+        async transcribe() {
+            throw Error("busy");
+        },
+    });
+    const input = field();
+    input.focus();
+    await dictation.record();
+    await waitUntil(() => dictation.state.mode === "recording");
+    const first = dictation.stop();
+    expect(dictation.state.mode).toBe("processing"); // not "recording": nothing left to stop or cancel
+    await dictation.stop(); // used to throw: the capture was already taken
+    const event = new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+    document.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    open();
+    await first;
+    expect(dictation.state.mode).toBe("retry");
+    expect(dictation.pendingAudio).toBeInstanceOf(File);
+});
+
+test("an unused recording the page cannot retry because it got busy is offered again", async () => {
+    const dictation = await mountDictation([earlier()]);
+    const retrying = dictation.retry("earlier");
+    dictation.state.mode = "starting"; // a dictation started while the lock was being taken
+    await retrying;
+    dictation.state.mode = "idle";
+    expect(Boolean(dictation.pendingAudio)).toBe(false);
+    await waitUntil(() => dictation.state.stored.length === 1);
+    expect((await kept()).map((entry) => entry.id)).toEqual(["earlier"]);
+});
+
+test("a recording kept in another database of the same browser is not offered", async () => {
+    const dictation = await mountDictation([earlier(), earlier({ id: "elsewhere", db: "another_database" })]);
+    expect(dictation.state.stored.map((entry) => entry.id)).toEqual(["earlier"]);
+});
+
+test("the recovery panel folds into a small count and opens again on a tap", async () => {
+    const dictation = await mountDictation([earlier()]);
+    await waitFor(".o-usl-stored");
+    expect(".o-usl-stored-pill").toHaveCount(0);
+    await click('.o-usl-stored [data-usl-action="collapseStored"]');
+    await waitFor(".o-usl-stored-pill");
+    expect(".o-usl-stored").toHaveCount(0);
+    expect(".o-usl-stored-pill").toHaveText("1");
+    // Folded away is not gone: the recording is still offered.
+    expect(dictation.state.stored.length).toBe(1);
+    await click(".o-usl-stored-pill");
+    await waitFor(".o-usl-stored");
+    expect(".o-usl-stored-pill").toHaveCount(0);
+});

@@ -29,6 +29,11 @@
     max-height: 45vh;
     overflow: auto;
 }
+// The recovery panel folded away: a small round count in the corner, one tap from coming back.
+.o-usl-stored-pill {
+    inset-inline-end: 1rem;
+    bottom: 1rem;
+}
 .o-usl-recovered-text {
     white-space: pre-wrap;
 }

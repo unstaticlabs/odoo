@@ -47,7 +47,7 @@
             </div>
         </div>
         <!-- A recording kept from an earlier page (reload, crash, logout, a tab the phone closed): offered again until used or discarded. -->
-        <div t-if="this.state.stored.length and this.state.mode === 'idle' and !this.state.recovered" class="o-usl-dictation o-usl-recovered o-usl-stored border rounded bg-view shadow p-3" role="status">
+        <div t-if="this.state.stored.length and this.state.mode === 'idle' and !this.state.recovered and !this.state.collapsed" class="o-usl-dictation o-usl-recovered o-usl-stored border rounded bg-view shadow p-3" role="status">
             <div class="fw-bold mb-1" t-esc="this.storedTitle"/>
             <p class="text-muted small mb-2" t-esc="this.storedBody"/>
             <button class="btn btn-primary btn-sm" data-usl-action="retry" t-att-data-usl-id="this.state.stored[0].id">
@@ -56,7 +56,13 @@
             </button>
             <button class="btn btn-link btn-sm ms-1" data-usl-action="download" t-att-data-usl-id="this.state.stored[0].id"><i class="fa fa-download me-1" aria-hidden="true"/>Download audio</button>
             <button class="btn btn-link btn-sm text-muted" data-usl-action="discard" t-att-data-usl-id="this.state.stored[0].id">Discard</button>
+            <button class="btn btn-link btn-sm text-muted" data-usl-action="collapseStored">Later</button>
         </div>
+        <!-- Out of the way, never gone: a tap brings the recordings back. -->
+        <button t-elif="this.state.stored.length and this.state.mode === 'idle' and !this.state.recovered" class="o-usl-dictation o-usl-stored-pill btn btn-primary btn-sm rounded-pill shadow"
+                data-usl-action="expandStored" title="Show the unused recordings" aria-label="Show the unused recordings">
+            <i class="fa fa-microphone me-1" aria-hidden="true"/><t t-esc="this.state.stored.length"/>
+        </button>
         <!-- The last words heard, in the field at the insertion point and in its own type, clipped
              at their start: where the text will go, but not yet the final text. -->
         <div t-if="this.state.preview and this.state.caption and this.state.mode !== 'idle' and !this.state.recovered" class="o-usl-dictation-caption"

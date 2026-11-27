@@ -20,7 +20,7 @@ import { uploadVoiceNote } from "./voice_note_upload";
  * keeps the focus, so their pointer events are handled here, first, and reach nobody else.
  * This module is loaded before any component is mounted, so these listeners run first.
  */
-const ACTIONS = ["record", "stop", "cancel", "stopWaiting", "retry", "download", "discard", "copyText"];
+const ACTIONS = ["record", "stop", "cancel", "stopWaiting", "retry", "download", "discard", "copyText", "collapseStored", "expandStored"];
 let mounted = null;
 for (const type of ["pointerdown", "mousedown", "touchstart", "pointerup", "mouseup", "touchend", "click"]) {
     window.addEventListener(type, (ev) => {
@@ -54,7 +54,7 @@ export class FieldDictation extends Component {
         this.caption = useRef("caption");
         this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", caption: "", clipped: false, recovered: "",
             // Why the recording waits: the worker is busy ("busy") or heard nothing ("silent").
-            reason: "busy", stored: [] });
+            reason: "busy", stored: [], collapsed: false });
         this.refreshStored = () => this.loadStored();
         keptBus.addEventListener("change", this.refreshStored);
         this.stopListening = listenOtherTabs(this.refreshStored);
@@ -160,7 +160,10 @@ export class FieldDictation extends Component {
     }
     /** The recordings kept in this browser that no screen is handling: the ones to offer again. */
     async loadStored() {
-        this.state.stored = (await keptRecordings(user.userId)).map(markRaw);
+        const store = this.env.services["mail.store"];
+        // A voice note whose pending attachment is still in this page belongs to its composer.
+        const pending = (entry) => Boolean(entry.attachmentId && store?.["ir.attachment"]?.get(entry.attachmentId));
+        this.state.stored = (await keptRecordings(user.userId)).filter((entry) => !pending(entry)).map(markRaw);
     }
     setTarget(element) {
         this.target = element;
@@ -259,11 +262,12 @@ export class FieldDictation extends Component {
         this.recordedAt = Date.now();
         this.persisted = false;
         ownRecording(id);
-        const kept = keepRecording(this.entry(id, file, this.recordedAt)).then((ok) => {
+        const kept = (this.persistence = keepRecording(this.entry(id, file, this.recordedAt)).then((ok) => {
             if (this.recordingId === id) {
                 this.persisted = ok;
             }
-        });
+            return ok;
+        }));
         // A slow disk never makes the writer wait for the transcription.
         await Promise.race([kept, new Promise((resolve) => setTimeout(resolve, 1000))]);
     }
@@ -294,7 +298,8 @@ export class FieldDictation extends Component {
         const kept = entry
             ? { id: entry.id, at: entry.createdAt }
             : { id: this.recordingId, at: this.recordedAt, file: this.pendingAudio, recovered: this.state.recovered,
-                reason: this.state.reason, destination: this.destination };
+                reason: this.state.reason, destination: this.destination, persisted: this.persisted,
+                persistence: this.persistence };
         if (!kept.id) {
             this.reset();
             return;
@@ -315,7 +320,13 @@ export class FieldDictation extends Component {
             this.recordingId = kept.id;
             this.pendingAudio = kept.file;
             this.recordedAt = kept.at;
-            this.persisted = true;
+            // As safe as it was: a recording the browser could not store is not safe after Undo either.
+            this.persisted = kept.persisted;
+            kept.persistence?.then((ok) => {
+                if (this.recordingId === kept.id) {
+                    this.persisted = ok;
+                }
+            });
             this.destination = kept.destination;
             this.state.reason = kept.reason;
             this.state.recovered = kept.recovered;
@@ -380,7 +391,7 @@ export class FieldDictation extends Component {
         }
     }
     async stop() {
-        if (this.state.mode !== "recording") {
+        if (this.state.mode !== "recording" || !this.capture) {
             return;
         }
         this.listening?.abort();
@@ -390,6 +401,9 @@ export class FieldDictation extends Component {
             this.reset();
             return;
         }
+        // Not "recording" any more while the recording is being kept: a second Stop or an Escape
+        // in that moment has nothing to stop or cancel.
+        this.setMode("processing");
         await this.hold(file);
         await this.retry();
     }
@@ -402,7 +416,11 @@ export class FieldDictation extends Component {
             }
             this.state.stored = this.state.stored.filter((stored) => stored !== entry);
             // Another tab may have taken this recording since the list was drawn.
-            if (!(await claimRecording(entry.id)) || this.state.mode !== "idle" || this.pendingAudio) {
+            if (!(await claimRecording(entry.id))) {
+                return;
+            }
+            if (this.state.mode !== "idle" || this.pendingAudio || this.state.recovered) {
+                disownRecording(entry.id); // the page got busy meanwhile: it waits with the others
                 return;
             }
             if (entry.kind === "voice_note") {
@@ -475,6 +493,12 @@ export class FieldDictation extends Component {
             this.notify.add(_t("The voice note could not be attached. Your recording is kept."), { type: "warning" });
             disownRecording(entry.id);
         }
+    }
+    collapseStored() {
+        this.state.collapsed = true;
+    }
+    expandStored() {
+        this.state.collapsed = false;
     }
     get storedBody() {
         const [entry, ...others] = this.state.stored;

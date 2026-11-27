@@ -1,5 +1,6 @@
 import { after, describe, expect, test } from "@odoo/hoot";
 import { advanceTime, animationFrame } from "@odoo/hoot-mock";
+import { waitUntil } from "@odoo/hoot-dom";
 import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { user } from "@web/core/user";
 import {
@@ -56,7 +57,16 @@ function wipeStorage() {
     });
 }
 
+/** Hoot's navigator.locks grants and holds nothing: take the browser's own (an iframe reaches it). */
+function realLocks() {
+    const frame = document.createElement("iframe");
+    document.body.append(frame);
+    after(() => frame.remove());
+    patchWithCleanup(navigator, { locks: frame.contentWindow.navigator.locks });
+}
+
 async function openNote() {
+    realLocks();
     await wipeStorage();
     after(wipeStorage);
     patchWithCleanup(Composer.prototype, {
@@ -212,5 +222,82 @@ test("a discarded voice note is freed when the time is up", async () => {
     await advanceTime(11_000);
     await contains(".o_notification", { count: 0 });
     await animationFrame();
+    expect(await keptRecordings(user.userId)).toEqual([]);
+});
+
+test("Undo does not take over a recording that was started since", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([true]);
+    await openNote();
+    await record();
+    await click(".o-usl-voice-bar button[aria-label='Discard recording']");
+    await contains(".o_notification:contains('discarded')");
+    // The writer starts another voice note, then remembers the first and presses Undo.
+    await record();
+    await click(".o_notification button:contains('Undo')");
+    await animationFrame();
+    expect(composers.at(-1).uslVoice.mode).toBe("recording");
+    expect(uploads.length).toBe(0);
+    await contains(".o-usl-voice-bar button[aria-label='Stop and preview']");
+    // The new recording still stops and uploads.
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    expect(uploads.length).toBe(1);
+    // The undone one is not lost: it is offered as an unused voice note.
+    const entries = await keptRecordings(user.userId);
+    expect(entries.length).toBe(1);
+    expect(entries[0].kind).toBe("voice_note");
+});
+
+test("leaving the page asks first while a voice note is failed or pending and not stored", async () => {
+    fakeMicrophone();
+    fakeUploads([false]);
+    await openNote();
+    const leave = () => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+    };
+    expect(leave()).toBe(false);
+    await record();
+    expect(leave()).toBe(true); // being recorded
+    await stop();
+    await contains(".o-usl-voice-bar:contains('Voice note not uploaded.')");
+    const composer = composers.at(-1);
+    await waitUntil(() => composer.uslKept.persisted);
+    expect(leave()).toBe(false); // failed, but safe in the browser's storage
+    composer.uslKept.persisted = false; // the browser could not store it
+    expect(leave()).toBe(true);
+    composer.uslKept.persisted = true;
+    expect(leave()).toBe(false);
+});
+
+test("a composer opened again for the record takes its pending voice note back", async () => {
+    fakeMicrophone();
+    fakeUploads([true]);
+    await openNote();
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    const first = composers.at(-1);
+    await first.uslPending.kept.saving; // the entry knows its pending attachment now
+    await click("button:text('Log note')"); // closed without sending
+    await contains(".o-mail-Composer", { count: 0 });
+    // The attachment is still the composer's in this page: no "not attached" offer, no duplicate.
+    await animationFrame();
+    expect(".o-usl-stored").toHaveCount(0);
+    // Opened again, the composer holds the attachment and the note is its own again.
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer");
+    const second = composers.at(-1);
+    await waitUntil(() => second.uslPending);
+    expect(second.uslPending.attachmentId).toBe(9001);
+    // Posting (which empties the composer's attachments) is the end of the browser copy.
+    second.props.composer.attachments.length = 0;
+    await animationFrame();
+    await animationFrame();
+    expect(second.uslPending).toBe(null);
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
     expect(await keptRecordings(user.userId)).toEqual([]);
 });

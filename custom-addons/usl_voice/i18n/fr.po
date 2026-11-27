@@ -324,3 +324,15 @@ msgstr "Votre enregistrement est conservé."
 #: code:addons/usl_voice/static/src/composer.xml:0
 msgid "Retry upload"
 msgstr "Réessayer l’envoi"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Later"
+msgstr "Plus tard"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Show the unused recordings"
+msgstr "Afficher les enregistrements non utilisés"

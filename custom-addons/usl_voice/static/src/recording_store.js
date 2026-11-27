@@ -1,5 +1,6 @@
 import { EventBus } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
+import { session } from "@web/session";
 
 /**
  * A finished recording is the one thing the writer cannot get back: it is kept in this browser
@@ -7,7 +8,7 @@ import { _t } from "@web/core/l10n/translation";
  * writer discards it. A reload, a crash, a logout or a phone that kills the tab loses nothing:
  * the next page offers it again.
  *
- * An entry is {id, kind: "dictation" | "voice_note", blob, createdAt, userId, destination?}.
+ * An entry is {id, kind: "dictation" | "voice_note", blob, createdAt, userId, db, destination?, attachmentId?}.
  * A voice note also names the record it was recorded for: {model, id, name}.
  */
 const DATABASE = "usl_voice";
@@ -90,7 +91,8 @@ export function newRecordingId() {
 
 /** @returns {Promise<boolean>} whether the recording is now safe in this browser */
 export async function keepRecording(entry) {
-    const { ok } = await transact("readwrite", (store) => store.put(entry));
+    // The same browser serves every database of the host: a recording belongs to the one it was made in.
+    const { ok } = await transact("readwrite", (store) => store.put({ db: session.db, ...entry }));
     changed();
     return ok;
 }
@@ -123,7 +125,7 @@ export async function keptRecordings(userId) {
     const { ok, result } = await transact("readonly", (store) => store.getAll());
     const locked = await lockedIds();
     return (ok ? result : [])
-        .filter((entry) => entry.userId === userId && !owned.has(entry.id) && !locked.has(lockName(entry.id)))
+        .filter((entry) => entry.userId === userId && entry.db === session.db && !owned.has(entry.id) && !locked.has(lockName(entry.id)))
         .map((entry) => ({ ...entry, blob: new File([entry.blob], "Voice.mp3", { type: "audio/mpeg" }) }))
         .sort((a, b) => b.createdAt - a.createdAt);
 }
