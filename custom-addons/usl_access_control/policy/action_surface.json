@@ -1383424,7 +1383424,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 579,
+          "line": 697,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383459,7 +1383459,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 545,
+          "line": 587,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383493,7 +1383493,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 550,
+          "line": 668,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383527,7 +1383527,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 810,
+          "line": 936,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383547,7 +1383547,7 @@
         "rpc:usl.document.check_access",
         "rpc:usl.document.search"
       ],
-      "digest": "95006575d5629456b4a83ff5f7c29edc9f310ef1a9b0c61217beb04fc3bb4c6c",
+      "digest": "2224fcc05f4bacfa0746425c3575d98fe5d4738bc778a8e76781b95859428a70",
       "guards": [],
       "key": "rpc:usl.document.mcp_get_versions",
       "kind": "rpc",
@@ -1383558,11 +1383558,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e5086e36e6068e5966795d4b1f6477e7b4c92c0a7d5978bdd805313b977ea085",
+      "runtime_digest": "6570c52f256af03ac368ad9a5d27ff154d77d87787043c8057a149e6048d1d5a",
       "sinks": [],
       "sources": [
         {
-          "line": 695,
+          "line": 813,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383593,7 +1383593,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 792,
+          "line": 918,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383624,7 +1383624,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 733,
+          "line": 859,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383654,7 +1383654,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 783,
+          "line": 909,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383681,7 +1383681,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 801,
+          "line": 927,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1383689,6 +1383689,40 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.document.check_access",
+        "rpc:usl.document.search"
+      ],
+      "digest": "58a76e7cd1752e2fa133d2759a70af25202608f221aa583b90c98c4403d31f59",
+      "guards": [],
+      "key": "rpc:usl.document.mcp_read_binary",
+      "kind": "rpc",
+      "method": "mcp_read_binary",
+      "model": "usl.document",
+      "modules": [
+        "usl_documents"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "153e9ec64e11e6a4b1d739c0bf3a93b07897e083d2cbb954c4cbf7c3aa2812d9",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 592,
+          "path": "custom-addons/usl_documents/models/document_mcp.py"
+        },
+        {
+          "path": "custom-addons/usl_documents/models/document_mcp.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:usl.document.check_access"
+      ]
     },
     {
       "abstract": false,
@@ -1383806,7 +1383840,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 318,
+          "line": 360,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1588688,13 +1588722,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 34,
+          "line": 71,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "b46b40af8d806da74340ead0aac4122b1b8814e889eaf7454700a173c66153a1",
+      "digest": "6971c1a5446cbc05dc7c4bb327999eb5151d2b9f9da4d01eab71b9434b7f9088",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1588703,13 +1588737,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "f2a3d83617646230b5dd3310204d0c816c5c9b78ceb125b1bac6a4d515454a0c",
+      "digest": "cd264d76e2afb75d7517a5310ff6d347cae235a4d1c76deaabfc162fc91c3cf4",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1588718,13 +1588752,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "227cf72db5296db3216785ded8664f96ceb79625cac80194282a6454bfb28e22",
+      "digest": "f0601822f073777c6f403aaef7932f339de6fba9753f88f9ec417a1b9ac0c673",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1588733,13 +1588767,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "5c92664e6b97fc979e89d98cbe81b4114953477bd32711d4a5c7ee5409e68d67",
+      "digest": "da15c7ed7f4c9751e1610713675b7a6ff27e609dc48e7b0a1ad288877251249a",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/account_move_send.py:account.move.send._hook_invoice_document_after_pdf_report_render:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1588748,7 +1588782,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 194,
+          "line": 241,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
@@ -1588763,7 +1588797,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 341,
+          "line": 390,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
@@ -1588778,13 +1588812,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 269,
+          "line": 318,
           "path": "addons/account_edi_ubl_cii/models/account_move_send.py"
         }
       ]
     },
     {
-      "digest": "cf8866376c7906e7968a686a66825619ab16c44a47053f23edd14aafbd775a86",
+      "digest": "cfdefb26d8f7680e4e18f66eecf918be9844488722e34a03d4bde456757f8c6e",
       "key": "sink:account_edi_ubl_cii:addons/account_edi_ubl_cii/models/ir_actions_report.py:ir.actions.report._render_qweb_pdf_prepare_streams:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1692672,7 +1692706,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 91,
+          "line": 98,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692687,7 +1692721,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 91,
+          "line": 98,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692702,7 +1692736,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 788,
+          "line": 795,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692717,7 +1692751,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 152,
+          "line": 159,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692732,7 +1692766,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 152,
+          "line": 159,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692747,7 +1692781,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 978,
+          "line": 985,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692762,7 +1692796,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 978,
+          "line": 985,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692777,7 +1692811,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 895,
+          "line": 902,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1692792,7 +1692826,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 895,
+          "line": 902,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1770073,7 +1770107,7 @@
       "manifest_sha256": "daaf4ee9455b2011774f85241d0995213be1c75f12a6fb1b5815c72cd4a6fa3a",
       "name": "account",
       "origin": "native",
-      "source_sha256": "a3a7c2f4dee892b03abd9b393de30e5b94bfee24bbac661886080191f2377170",
+      "source_sha256": "5260300ff4e7c49eec12f813ea8f5a2972935cca0dcec06b0a90f558ecddfc4e",
       "version": "1.6"
     },
     {
@@ -1770094,7 +1770128,7 @@
       "manifest_sha256": "8acd0ea5b88aff3eaa1579bb8daa97d7f5d38211f2410884e254bbc765292f83",
       "name": "account_edi_ubl_cii",
       "origin": "native",
-      "source_sha256": "31c59d34ef1bc98de8f785a2c50b032252ecbdf8ca7d241abcc5427d0ce3fbc2",
+      "source_sha256": "9130f01e20a681b560b334728ec1992793197942ae2323569d1a4020f887102e",
       "version": ""
     },
     {
@@ -1771099,11 +1771133,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "761a304fb65ab29cffc75fad8262b4044c28d4457d4fad0e21d5ec20e6a9a1bf",
+      "manifest_sha256": "8441b203d8544f2dcc125960ebd238995c4836580526795487b10b4c5f3469da",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "be0b0d946ca644e8981ade2aee194ea1c2f9f4012a24b33bd402e82bfb9cc9ea",
-      "version": "saas~19.3.1.10.7"
+      "source_sha256": "c181d74bd163631b43a44b60b8ade33dfbed55f73e8a5f3d3aed856aacd25ac3",
+      "version": "saas~19.3.1.10.8"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",

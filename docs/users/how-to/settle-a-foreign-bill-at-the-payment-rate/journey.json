@@ -31,7 +31,7 @@
       "run": "",
       "screenshot": "01-actions.png",
       "sha256": "aeb4f0b9316c2ccf69f5cbbc1e3ee1b2f8b62726cbf02216e94cf9f47abdac6c",
-      "text": "Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.",
+      "text": "Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.",
       "trigger": ".o_form_view .o_immediate_settlement_actions:has(.outstanding_credit_assign):has(.immediate_settlement_assign):has(.payment_rate_assign.btn-primary)"
     },
     {
@@ -41,7 +41,7 @@
       "run": "",
       "screenshot": null,
       "sha256": null,
-      "text": "**Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.",
+      "text": "Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.",
       "trigger": ".o_form_view .o_rebuild_payment_suggestion_detail .o_rebuild_payment_suggestion_best:contains('Best match')"
     },
     {
@@ -51,7 +51,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.",
+      "text": "Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.",
       "trigger": ".o_form_view .payment_rate_assign:not([disabled])"
     },
     {
