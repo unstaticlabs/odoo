@@ -320,6 +320,19 @@ def staging_runtime_evidence(
 
 
 class CohortContractTests(unittest.TestCase):
+    def test_database_client_preserves_the_literal_password(self):
+        from operations.cohort import database_environment
+
+        for prefix in ("ODOO", "PAPERLESS"):
+            with self.subTest(prefix=prefix), mock.patch.dict(os.environ, {
+                f"{prefix}_DB_HOST": "fixture-db", f"{prefix}_DB_PORT": "5432",
+                f"{prefix}_DB_NAME": "fixture", f"{prefix}_DB_USER": "fixture",
+                f"{prefix}_DB_PASSWORD": "  fixture $value # literal  ",
+            }):
+                command, environment = database_environment(prefix)
+                self.assertEqual(environment["PGPASSWORD"], "  fixture $value # literal  ")
+                self.assertNotIn(environment["PGPASSWORD"], command)
+
     def test_production_reconcile_requires_stopped_writer_receipt(self):
         arguments = build_parser().parse_args([
             "--targets", str(ROOT / "operations/targets-host"),
@@ -1289,6 +1302,8 @@ class CohortContractTests(unittest.TestCase):
 
             def run(self, command, *, check=True, input_text=None):
                 self.commands.append(command)
+                if command[-1] == "capabilities":
+                    return subprocess.CompletedProcess(command, 0, '{"prepared_odoo_database":true}', "")
                 if command[:2] == ["mktemp", "-d"]:
                     return subprocess.CompletedProcess(command, 0, "/tmp/usl-release-prepare.abc123\n", "")
                 if command[-2:] == ["config", "--services"]:
@@ -4027,6 +4042,26 @@ class CohortContractTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": "mutable:latest"}):
             with self.assertRaisesRegex(RuntimeError, "immutable"):
                 _operations_image(release)
+
+    def test_recovery_requires_a_capable_operations_image_without_database_access(self):
+        old = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "a" * 64
+        qualified = "ghcr.io/unstaticlabs/usl-odoo-backup@sha256:" + "b" * 64
+        release = {"components": {"backup-tool": {"digest_reference": old}}}
+        runner = mock.Mock()
+        for rc, output in ((2, ""), (0, "{}"), (0, "unknown"), (0, '{"prepared_odoo_database":1}')):
+            runner.run.return_value = subprocess.CompletedProcess([], rc, output, "")
+            with self.subTest(rc=rc, output=output), mock.patch.dict(os.environ, {}, clear=True):
+                with self.assertRaisesRegex(OperationsError, "USL_OPERATIONS_IMAGE"):
+                    stack_module._require_prepared_database_tool(runner, _operations_image(release))
+                args = runner.run.call_args.args[0]
+                self.assertEqual(args[-2:], [old, "capabilities"])
+                self.assertEqual(args[args.index("--network") + 1], "none")
+                self.assertNotIn("--volume", args)
+                self.assertNotIn("--env-file", args)
+        runner.run.return_value = subprocess.CompletedProcess([], 0, '{"prepared_odoo_database":true}', "")
+        with mock.patch.dict(os.environ, {"USL_OPERATIONS_IMAGE": qualified}):
+            stack_module._require_prepared_database_tool(runner, _operations_image(release))
+        self.assertEqual(runner.run.call_args.args[0][-2:], [qualified, "capabilities"])
 
     def test_mcp_runtime_authority_is_bound_to_pinned_gitops_ledger(self) -> None:
         target = load_target("staging", TARGETS)

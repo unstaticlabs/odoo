@@ -26,13 +26,13 @@ generated: true
 
 Utilisez le débit bancaire pour valoriser une facture fournisseur en devise, vérifiez le détail du règlement et retrouvez la valeur d’origine en cas d’erreur.
 
-1. Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Lorsqu’un débit du même fournisseur satisfait les critères de date et de taux, Odoo propose trois actions de rapprochement. L’action recommandée apparaît en couleur.
+1. Dans **Comptabilité > Fournisseurs > Factures**, ouvrez la facture comptabilisée. Sous **Paiements suggérés**, un rapprochement éligible propose **Ajouter**, **Régler** et **Corriger le taux initial**.
 
    ![Dans Comptabilité Fournisseurs Factures, ouvrez la facture comptabilisée](regler-une-facture-en-devise-au-taux-du-paiement/01-actions.png)
 
-2. Consultez **Meilleur rapprochement** pour identifier la ligne bancaire proposée et examiner les autres possibilités.
+2. Survolez la ligne **Meilleur rapprochement** ou placez-y le focus avec la touche Tab. L’infobulle indique la transaction bancaire et les éléments qui justifient le rapprochement.
 
-3. Si le débit justifie cette valorisation, cliquez sur **Utiliser le taux de paiement**. Odoo recalcule la valeur de la facture en devise de la société au taux observé sur le paiement.
+3. Choisissez **Corriger le taux initial** si les justificatifs montrent que le taux était erroné à la comptabilisation. Vérifiez le taux et les montants affichés avant de cliquer. Odoo corrige la facture et la rapproche du paiement.
 
 4. La facture passe à l’état payé. La ligne de règlement indique le taux de paiement et précise qu’aucun écart de change n’a été comptabilisé.
 

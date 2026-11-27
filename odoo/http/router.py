@@ -257,6 +257,7 @@ class Application:
         if hasattr(current_thread, 'uid'):
             del current_thread.uid
         current_thread.rpc_model_method = ''
+        current_thread.url = 'unmatched'
 
         if config['proxy_mode'] and environ.get("HTTP_X_FORWARDED_HOST"):
             # The ProxyFix middleware has a side effect of updating the
@@ -273,9 +274,8 @@ class Application:
 
             try:
                 _set_session_and_dbname(request)
-                current_thread.url = httprequest.url
-
                 if self.get_static_file(httprequest.path):
+                    current_thread.url = 'static'
                     response = serve_static(request)
                 elif request.db:
                     try:
@@ -323,6 +323,10 @@ class Application:
                 return exc.error_response(environ, start_response)
 
             finally:
+                endpoint = current_thread.url
+                if current_thread.rpc_model_method:
+                    endpoint += '#' + current_thread.rpc_model_method
+                environ['odoo.access_endpoint'] = endpoint
                 _request_stack.pop()
 
 
@@ -537,6 +541,11 @@ def _set_session_and_dbname(request: Request) -> None:
 def _set_request_dispatcher(request: Request, rule: werkzeug.routing.Rule):
     endpoint: Endpoint = rule.endpoint  # type: ignore
     routing = endpoint.routing
+    # A declared route includes placeholders, never the values from this request.
+    threading.current_thread().url = (
+        rule.rule if rule.rule in routing.get('routes', ())
+        else getattr(endpoint, '__qualname__', 'controller')
+    )
     dispatcher_cls = _dispatchers[routing['type']]
     if (not is_cors_preflight(request, endpoint)
         and not dispatcher_cls.is_compatible_with(request)):

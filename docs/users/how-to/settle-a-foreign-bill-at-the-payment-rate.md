@@ -25,13 +25,13 @@ generated: true
 
 Match a bill in a foreign currency to the company-currency debit the bank reports, value the bill at the rate the payment implies, and undo it if needed.
 
-1. Open the posted bill from **Accounting > Vendors > Bills**. When a bank line of the same partner matches it within the allowed days and rate deviation, the outstanding box offers three actions: the native **Add**, **Settle immediately** and **Use payment rate**, the recommended one in colour.
+1. Open the posted bill from **Accounting > Vendors > Bills**. Under **Suggested payments**, an eligible match offers **Add**, **Settle** and **Correct original rate**.
 
    ![Open the posted bill from Accounting Vendors Bills](settle-a-foreign-bill-at-the-payment-rate/01-actions.png)
 
-2. **Best match** names the bank line Odoo compared the bill with; open it when you want to see the other candidates.
+2. Hover over the row marked **Best match**, or use Tab to focus it. The explanation identifies the bank transaction and the evidence for this match.
 
-3. Choose **Use payment rate**. The bill is revalued at the rate the bank payment implies, so no exchange difference is written.
+3. Choose **Correct original rate** when the evidence shows the bill was valued incorrectly when first posted. Review the displayed rate and amounts before clicking. Odoo updates the bill and reconciles it with the payment.
 
 4. The bill is paid and a single line records the settlement: the mechanism, and **no FX** when nothing was booked for the exchange.
 
