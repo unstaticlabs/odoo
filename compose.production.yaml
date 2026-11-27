@@ -7,6 +7,19 @@ x-production-logging: &production-logging
 services:
   db:
     logging: *production-logging
+    # The release controller prepares new data volumes. This service only
+    # resumes an admitted generation, including one prepared by an older release.
+    environment: !override
+      PGUSER: ${ODOO_DB_USER:-odoo}
+      PGDATABASE: postgres
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        test -s "$${PGDATA}/PG_VERSION" || { echo "Restore the generation database before starting Odoo." >&2; exit 1; }
+        exec /usr/local/bin/docker-entrypoint.sh postgres
+    healthcheck:
+      test: ["CMD", "pg_isready"]
 
   odoo:
     # A qualified release is built explicitly as Dockerfile's distribution

@@ -2511,6 +2511,22 @@ def _operations_image(release: dict) -> str:
     return image
 
 
+def _require_prepared_database_tool(runner, image: str) -> None:
+    result = runner.run([
+        "docker", "run", "--rm", "--network", "none", "--read-only",
+        "--cap-drop", "ALL", "--security-opt", "no-new-privileges:true", image, "capabilities",
+    ], check=False)
+    try:
+        capability = json.loads(result.stdout) if result.returncode == 0 else {}
+    except ValueError:
+        capability = {}
+    if not isinstance(capability, dict) or capability.get("prepared_odoo_database") is not True:
+        raise RuntimeError(
+            "backup tool did not confirm prepared Odoo database support; "
+            "select a qualified immutable backup tool with USL_OPERATIONS_IMAGE"
+        )
+
+
 def _release_images(release: dict, mcp_authority: dict | None = None) -> list[str]:
     """Return Odoo-cohort images needed before a restore can start.
 
@@ -3203,6 +3219,7 @@ def _prepare_release_candidate(
     for image in _release_images(release, mcp_authority):
         _ensure_image(runner, image)
     tool_image = _operations_image(release)
+    _require_prepared_database_tool(runner, tool_image)
     candidate_bytes = _measure_candidate_bytes(target, runner, tool_image, current)
     capacity_after_pull = _require_restore_capacity(
         target, runner, "prepare image pull", candidate_bytes=candidate_bytes,
@@ -5314,6 +5331,48 @@ def _runtime_images(runner, identity: dict) -> dict[str, str]:
         raise RuntimeError("Compose image inventory is invalid") from error
 
 
+def _generation_database_entrypoint(database_key: str, database: dict, image: str) -> list[str]:
+    if database_key == "paperless":
+        return [
+            "--env", f"POSTGRES_USER={database['user']}", "--env", "POSTGRES_DB=postgres",
+            "--entrypoint", "/bin/bash", image, "-ceu",
+            f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
+            "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        ]
+    role = database["user"]
+    if database_key != "odoo" or not re.fullmatch(r"[A-Za-z_][A-Za-z_0-9-]{0,62}", role) or role == "postgres":
+        raise RuntimeError("Odoo requires a distinct application role")
+    if database["name"] in {"postgres", "template0", "template1"}:
+        raise RuntimeError("Odoo requires a dedicated application database")
+    initializer = Path(__file__).with_name("odoo_generation_init.sh").read_text(encoding="utf-8")
+    return [
+        "--env", "POSTGRES_USER=postgres", "--env", f"POSTGRES_DB={database['name']}",
+        "--env", "POSTGRES_INITDB_ARGS=--auth-local=peer --auth-host=scram-sha-256",
+        "--env", f"USL_PG_APP_USER={role}", "--env", f"USL_PG_APP_PASSWORD_KEY={database['password_key']}",
+        "--entrypoint", "/bin/bash", image, "-ceu",
+        'test ! -e "$PGDATA/PG_VERSION" || { echo "generation database already initialized" >&2; exit 1; }\n'
+        'export POSTGRES_PASSWORD="$(head -c 32 /dev/urandom | base64)"\n'
+        "set -o noclobber\ncat > /docker-entrypoint-initdb.d/90-usl-application.sh <<'USL_INIT'\n"
+        + initializer
+        + "USL_INIT\nchmod 755 /docker-entrypoint-initdb.d/90-usl-application.sh\n"
+        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+    ]
+
+
+def _ready_generation_database(runner, name: str, user: str) -> str:
+    # The image uses a socket-only server for initialization. TCP opens after
+    # the role, password, database and local operator mapping are all ready.
+    for _attempt in range(60):
+        ready = runner.run([
+            "docker", "exec", name, "pg_isready", "--host", "127.0.0.1",
+            "--username", user, "--dbname", "postgres",
+        ], check=False)
+        if ready.returncode == 0:
+            return name
+        time.sleep(1)
+    raise RuntimeError(f"generation database did not become ready: {name}")
+
+
 def _start_generation_database(
     target,
     runner,
@@ -5326,7 +5385,6 @@ def _start_generation_database(
 ) -> str:
     database = target.value["databases"][database_key]
     name = f"{target.project}-{generation}-{database_key}-db"
-    password_key = database["password_key"]
     runner.run(
         [
             "docker",
@@ -5344,28 +5402,12 @@ def _start_generation_database(
             alias,
             "--env-file",
             target.value["secrets"]["env_file"],
-            "--env",
-            f"POSTGRES_USER={database['user']}",
-            "--env",
-            "POSTGRES_DB=postgres",
             "--volume",
             f"{volume}:/var/lib/postgresql/data",
-            "--entrypoint",
-            "/bin/bash",
-            image,
-            "-ceu",
-            f'export POSTGRES_PASSWORD="${password_key}"; exec /usr/local/bin/docker-entrypoint.sh postgres',
+            *_generation_database_entrypoint(database_key, database, image),
         ],
     )
-    for _attempt in range(60):
-        ready = runner.run(
-            ["docker", "exec", name, "pg_isready", "--username", database["user"], "--dbname", "postgres"],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"generation database did not become ready: {name}")
+    return _ready_generation_database(runner, name, database["user"])
 
 
 def _materialize_command(
@@ -5402,6 +5444,8 @@ def _materialize_command(
         f"USL_RESTORE_GENERATION_CONFIRMED={generation}",
         "--env",
         f"USL_EXPECTED_RESTORE_CONFIRMATION={generation}",
+        "--env",
+        "USL_RESTORE_ODOO_PREPARED_DATABASE=1",
         *_database_environment(target),
         "--volume",
         f"{generation_root}/work:/cohort",
@@ -9612,28 +9656,11 @@ def _start_recovery_proof_database(
     command.extend([
         "--network", names["network"], "--network-alias", alias,
         "--env-file", runtime_env,
-        "--env", f"POSTGRES_USER={database['user']}",
-        "--env", "POSTGRES_DB=postgres",
         "--volume", f"{names['volumes'][database_key + '_postgres']}:/var/lib/postgresql/data",
-        "--entrypoint", "/bin/bash", images[target.value["services"][service_role]],
-        "-ceu",
-        f'export POSTGRES_PASSWORD="${database["password_key"]}"; '
-        "exec /usr/local/bin/docker-entrypoint.sh postgres",
+        *_generation_database_entrypoint(database_key, database, images[target.value["services"][service_role]]),
     ])
     runner.run(command)
-    name = names["containers"][role]
-    for _attempt in range(60):
-        ready = runner.run(
-            [
-                "docker", "exec", name, "pg_isready", "--username", database["user"],
-                "--dbname", "postgres",
-            ],
-            check=False,
-        )
-        if ready.returncode == 0:
-            return name
-        time.sleep(1)
-    raise RuntimeError(f"recovery proof database did not become ready: {database_key}")
+    return _ready_generation_database(runner, names["containers"][role], database["user"])
 
 
 def _recovery_proof_runtime_config(runner, identity: dict) -> dict:
@@ -10634,6 +10661,8 @@ def _recovery_proof_command_locked(
     perimeter_sha = None
     failure_armed = False
     try:
+        tool_image = _operations_image(release)
+        _require_prepared_database_tool(runner, tool_image)
         if backup is None:
             backup_run_id = f"proof-{proof_id}"
             persisted_backup = None
@@ -10677,7 +10706,6 @@ def _recovery_proof_command_locked(
         )
         rendered = _recovery_proof_runtime_config(runner, identity)
         images = {name: value["image"] for name, value in rendered["services"].items()}
-        tool_image = _operations_image(release)
         capacity = _recovery_proof_capacity(
             target, runner, tool_image, current_after_backup,
         )
