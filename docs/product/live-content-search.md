@@ -171,10 +171,20 @@ original task. The same read is available through
 `ok`, `empty`, `unavailable` (the model did not answer) or `disabled` (the deployment
 does not offer the search, so Home stops asking).
 
-The feature is off by default. On a database with the `vector` extension already
-installed, upgrade `usl_home`, then enable `USL_TASK_SEMANTIC_SEARCH=1` with the
-same Ollama endpoint, model and manifest digest used by Documents. The service
-checks the model identity before sending text, and remembers that check for five
+The feature is off by default. To activate it:
+
+1. The database image must ship pgvector. The generation initializer creates the
+   `vector` extension as the database superuser when the image offers it, and
+   release restores keep it, because the application role is not allowed to create
+   or comment on that extension itself. An image without pgvector behaves as before.
+2. Upgrade `usl_home`; its `init()` adds the vector column wherever the extension
+   exists.
+3. Give the GitOps `odoo` service `USL_TASK_SEMANTIC_SEARCH=1`,
+   `PAPERLESS_AI_LLM_EMBEDDING_ENDPOINT`, `PAPERLESS_AI_LLM_EMBEDDING_MODEL` and
+   `USL_OLLAMA_MANIFEST_SHA256`, with the same Ollama endpoint, model and manifest
+   digest used by Documents.
+
+The service checks the model identity before sending text, and remembers that check for five
 minutes in each worker, so a search makes one HTTP call. The background job indexes
 the first 2,048 characters of the title and the original description, up to 48 tasks
 each minute; a task with only a title is found too. The vector sits on the task's
