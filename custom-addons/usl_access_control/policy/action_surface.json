@@ -10692,7 +10692,7 @@
       ]
     },
     {
-      "digest": "799c97b52088cc1c2399f472e6a5f88829d1f822fb31187292784e8020107c83",
+      "digest": "9abff072ab5479aac47e6e1af1f9a46d3621ca91b08dce6d13f162707f486482",
       "guards": [],
       "key": "route:http:POST:/usl/voice/dictate",
       "kind": "route",
@@ -10702,7 +10702,7 @@
       "parents": [],
       "risk_flags": [],
       "route": "/usl/voice/dictate",
-      "runtime_digest": "0f1440630d69e1b4c331d0a5a65a89139304476ced4829f712eee309fb7faef7",
+      "runtime_digest": "58f7bc3d7469a3cafee1aaa65f93c8bfe6563e875589d9d3093863428e515cdd",
       "sinks": [],
       "sources": [
         {
@@ -1708111,7 +1708111,7 @@
       ]
     },
     {
-      "digest": "6bfaf7783d5b157d58474df241b1c0f0cda3d63dd6c4f4e0d01cbe012624617a",
+      "digest": "d1366556d27b8722d806fd3757a13669ab0dcaa983e83232ecc78f9e9c6fb85a",
       "key": "sink:usl_voice:custom-addons/usl_voice/speech.py:transcribe:external_call:1",
       "kind": "sink",
       "modules": [
@@ -1708120,7 +1708120,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 23,
+          "line": 29,
           "path": "custom-addons/usl_voice/speech.py"
         }
       ]
@@ -1770668,7 +1770668,7 @@
       "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
       "name": "usl_voice",
       "origin": "custom",
-      "source_sha256": "90aea3ab922d6950ffe4dd0dc5871f0c2faad43d48332361040709958516997e",
+      "source_sha256": "8ad6cff42566db583320f998147b6a9becd6bdd15f391383eae5f2c74320194e",
       "version": "saas~19.3.1.0.0"
     },
     {

@@ -188,6 +188,7 @@ false
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
+| **Native Medusa order ID** (`medusa_native_order_id`) | char |  | Retained native identity for new Medusa imports. Historical orders are left unchanged. |
 | **Superseded by** (`superseded_by_id`) | many2one → `b2c.order` |  | The order that states this same sale in full. A sale recorded twice is one sale, and the poorer record stops counting. |
 
 ## Destination VAT Return
