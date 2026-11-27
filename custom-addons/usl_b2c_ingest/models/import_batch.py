@@ -173,8 +173,8 @@ class B2cImportBatch(models.Model):
         batch._resolve(rows)
         batch._check_conflicts(rows)
         batch._check_order_money(rows)
-        batch.write(batch._period(rows))
-        batch.write({"state": "parsed", "report": batch._build_report()})
+        batch.write({**batch._period(rows), "state": "parsed"})
+        batch.report = batch._build_report()
 
     def _parse_output(self, records):
         """Write only generated rows and findings inside this batch's native read."""

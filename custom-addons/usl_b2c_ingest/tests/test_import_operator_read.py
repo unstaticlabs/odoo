@@ -83,6 +83,7 @@ class TestImportOperatorRead(TransactionCase):
             with patch.object(type(self.env["account.move"]), "_write", side_effect=AssertionError("Reading wrote Accounting")):
                 self.assertTrue(batch.action_parse())
             self.assertEqual(batch.state, "parsed")
+            self.assertNotIn("line(s) map to a product", batch.report)
             self.assertTrue(batch.row_ids)
             self.assertIn("order_money_missing", batch.issue_ids.mapped("kind"))
             self.assertEqual(batch.file_ids.ids, original_ids)
