@@ -114579,7 +114579,7 @@
         "rpc:project.task.message_unsubscribe": "64443b9d89a0f17b6ea18205d3cceed7362b5b47db841519c5170854aa033f97",
         "rpc:project.task.type.create": "093df0b08082bbfdeee559cf4352eed4af24e679164231698a6a66ddb4428be0",
         "rpc:project.task.type.write": "74f8669dcf77c2c8a51c6416a664e86596a3ed173589a0b2dd66597e307de8b6",
-        "rpc:project.task.write": "35937c5aaf544766a2fff9b95281d57d5e90025f7a44756125d89ff755e1d71d",
+        "rpc:project.task.write": "ff5262ecdeeee89cb7ee3c4115cfaa3ea0e3c59918b35f48616fa284d59010ef",
         "rpc:res.config.settings.set_values": "1024742b02f615ac18e038095f54af24c4b458a3ffdc8b7307294e1a257623f7"
       }
     },
@@ -208106,7 +208106,7 @@
       "rationale": "Task creation only normalizes an empty imported priority; existing follower, portal, assignee and company controls retain their previous scope.",
       "reversal_action": "rpc:project.task.unlink",
       "reviewed_digests": {
-        "rpc:project.task.create": "f073eca924039b085ece220eb1d15cefd8e0be63e12794f1b34541b28c8deae0"
+        "rpc:project.task.create": "9deb318b9fe8d9db20a0768fecb4231b55bbf3db2fb5bb8b2e8356cb16454a50"
       }
     },
     {
@@ -221765,6 +221765,135 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:orm_write:1": "4c977c0e7f38cf5dce6281f4ef507e0b207f6c0c97b0c3bbb9be9c8b41a0a958",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task._usl_reactivate_later_project_stages:sudo:1": "9a9e1c1252aaef58b99afb9cef21a9845e73389757fab0302a132a56af97ac4d"
       }
+    },
+    {
+      "action_keys": [
+        "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+      ],
+      "classification": "operational",
+      "consequence": "Refreshes at most 500 tasks in private, rebuildable search fragments and queue rows; no source business record is rewritten.",
+      "domain": "projects",
+      "evidence_id": "task-lexical-index-v1",
+      "id": "operational.projects.task_lexical_index.server_action",
+      "overrides": {},
+      "rationale": "Fixed native server action with normal native execution checks. It cannot author code, grant authority or change accounting, original messages, attachments or task content.",
+      "reviewed_digests": {
+        "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server": "974b01ad6bb23a02a836754bcd838e06b2515bfc71948d3eac11d51e8083dd64"
+      }
+    },
+    {
+      "action_keys": [
+        "cron:usl_project.ir_cron_usl_index_task_content"
+      ],
+      "classification": "system_internal",
+      "consequence": "Maintains only private derived task-search storage through the module lifecycle, native task write, or fixed scheduled action.",
+      "domain": "projects",
+      "evidence_id": "task-lexical-index-v1",
+      "id": "system_internal.projects.task_lexical_index.cron",
+      "overrides": {
+        "cron:usl_project.ir_cron_usl_index_task_content": {
+          "reachability_proof": "Scheduler-owned automatic entry; native manual trigger authority and the separately operational fixed server action remain unchanged."
+        }
+      },
+      "rationale": "The schema hook is api.private and all worker/queue helpers are private. Source data and current authority remain native; separate reviewed parents own any public invocation.",
+      "reviewed_digests": {
+        "cron:usl_project.ir_cron_usl_index_task_content": "2d8a2c25cd4600a74dbc9ccfd760b13defe715ce8978afdd68049aa8f8394e43"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Maintains only private derived task-search storage through the module lifecycle, native task write, or fixed scheduled action.",
+      "domain": "projects",
+      "evidence_id": "task-lexical-index-v1",
+      "id": "system_internal.projects.task_lexical_index.sink",
+      "overrides": {
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1": {
+          "reachability_proof": "Private bounded worker, refused by native get_public_method; callers are the exact reviewed cron and fixed server action for task-search maintenance."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2": {
+          "reachability_proof": "Private bounded worker, refused by native get_public_method; callers are the exact reviewed cron and fixed server action for task-search maintenance."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3": {
+          "reachability_proof": "Private bounded worker, refused by native get_public_method; callers are the exact reviewed cron and fixed server action for task-search maintenance."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1": {
+          "reachability_proof": "Private derived queue helper, refused by native get_public_method; callers are successful native task create/write and the module installation/reinstallation post_init_hook. Search never calls it."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2": {
+          "reachability_proof": "Private derived queue helper, refused by native get_public_method; callers are successful native task create/write and the module installation/reinstallation post_init_hook. Search never calls it."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1": {
+          "reachability_proof": "AST native super-call sink within the existing reviewed rpc:project.task.create; queue changes follow successful native authority checks."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1": {
+          "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2": {
+          "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3": {
+          "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4": {
+          "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5": {
+          "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": {
+          "reachability_proof": "AST native super-call sink within the existing reviewed rpc:project.task.write; queue changes follow successful native authority checks."
+        }
+      },
+      "rationale": "The schema hook is api.private and all worker/queue helpers are private. Source data and current authority remain native; separate reviewed parents own any public invocation.",
+      "reviewed_digests": {
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1": "a7deba55e6bcc14f4772f25107a6184b67923b06656776c9c2a2c6324734cd27",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2": "2aed4d84343690841e157a535082d0956691ce82f20048f5bce4ecaf4f0d6042",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3": "586da0f08938668707b04688c22dfabe8133f4f04f0e33ea5ea6f514cb511fc5",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1": "9667852f91c18b1c142d24f9494d0f0143672af4042be83dd52f8d90ef05d537",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2": "cdc00f199ba722cbf33a29b5e97019365cce26ccd99d412ae2ba8ccc1a0de5ad",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1": "a4a012cf49f1434ee5bfa61243bcddf2938058a8fcc783e516feeeb9590c5f5b",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1": "47a5d59deed4eb51428c85a2dabbf7d28b27250bb9db75c3c27f0225ea907f03",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2": "ccb35a87b3b55975215ca50b349fa6d623f85151d1087895a08c6987e5a1c366",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3": "a40d49525e5dba41c88ce25aa9e0218c629d936397820c28e9c65e496b18b248",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4": "3322ae1ef075b13ec17fab85d5f48144487653110ee03d17f2d56e13b6cb7190",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5": "6813c7816d48689c01c68c72257c9c79443d8b541124265fe65df4372dd501d3",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": "f90855cc888f30808f73f2f0fbba62b23a426a28a7aea8ac5fae06a2b27661b8"
+      }
+    },
+    {
+      "action_keys": [
+        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+      ],
+      "classification": "transport",
+      "consequence": "Opens only the exact reviewed fixed task-search maintenance action.",
+      "domain": "projects",
+      "evidence_id": "task-lexical-index-v1",
+      "id": "transport.projects.task_lexical_index.ui",
+      "overrides": {
+        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server": {
+          "targets": [
+            "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+          ]
+        }
+      },
+      "rationale": "The UI action contains no own mutation; the native server action owns execution and authority.",
+      "reviewed_digests": {
+        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server": "b4fc376827c87a5aafccf587991d8b062dde57750e5366772141ead5ee69e36d"
+      }
     }
   ],
   "evidence_families": {
@@ -222303,6 +222432,20 @@
         "custom-addons/usl_project/tests/test_task_github_reference.py",
         "custom-addons/usl_project/tests/test_task_github_reference_tour.py",
         "custom-addons/usl_project/static/tests/task_github_properties.test.js"
+      ]
+    },
+    "task-lexical-index-v1": {
+      "contract": "Native task writes enqueue only rebuildable search data; fixed maintenance publishes bounded source-field fragments. Ordinary search has no mutation, applies current field access and native task/company domains, and private helpers are not RPC entry points.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_projection_helpers_are_not_rpc_entry_points",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_search_does_not_write_the_projection_or_queue",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_rollback_restores_content_and_queue_together",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_current_field_permission_controls_already_indexed_content",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_current_task_rule_controls_already_indexed_content",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_selected_company_controls_already_indexed_content",
+        "scripts/odoo/task_search_concurrency_qa.py",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_repeated_module_initialization_keeps_ready_results_available",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_reinstallation_requeues_fragments_from_before_the_feature_was_disabled"
       ]
     },
     "task-navigation-20261014": {

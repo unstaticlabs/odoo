@@ -2779,6 +2779,10 @@
       "classification": "operational"
     },
     {
+      "action_key": "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server",
+      "classification": "operational"
+    },
+    {
       "action_key": "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server",
       "classification": "operational"
     },

@@ -26,6 +26,7 @@ Numbered decision records live in [`decisions/`](decisions/README.md).
 - [Content-platform payout billing](platform-billing.md)
 - [B2C sales, products and inventory](b2c-sales-inventory.md)
 - [Work management](work-management.md)
+- [Task content search](task-search.md)
 - [Find work by its contents](live-content-search.md)
 - [System boundaries](system-boundaries.md)
 - [Pocket ID SSO architecture](pocket-id-sso.md)

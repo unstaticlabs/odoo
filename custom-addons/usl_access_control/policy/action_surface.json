@@ -5313,6 +5313,28 @@
       "xmlid": "usl_mattermost.ir_cron_push_cards"
     },
     {
+      "digest": "2d8a2c25cd4600a74dbc9ccfd760b13defe715ce8978afdd68049aa8f8394e43",
+      "guards": [],
+      "key": "cron:usl_project.ir_cron_usl_index_task_content",
+      "kind": "cron",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a124659f2cb538fcd8ac6eebdba27420c5d1afd3d1782613f5e91b16c8414c84",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_project/data/task_search_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_project.ir_cron_usl_index_task_content"
+        }
+      ],
+      "xmlid": "usl_project.ir_cron_usl_index_task_content"
+    },
+    {
       "digest": "2c06d1a0ff7075d54b44b85a840ed96a40ce0372414d00e6954e1c9f330a6550",
       "guards": [],
       "key": "cron:usl_project.ir_cron_usl_reactivate_later_tasks",
@@ -898091,7 +898113,7 @@
         "rpc:project.task.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f073eca924039b085ece220eb1d15cefd8e0be63e12794f1b34541b28c8deae0",
+      "digest": "9deb318b9fe8d9db20a0768fecb4231b55bbf3db2fb5bb8b2e8356cb16454a50",
       "guards": [],
       "key": "rpc:project.task.create",
       "kind": "rpc",
@@ -898110,7 +898132,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2cedf25d71902573f582f23b854d2fe112095019c6f6e1edf29382f186df2e6e",
+      "runtime_digest": "1e76d671a1412e512720964ef434a1e28d9be049b8f573bfb56b5a4efbe5c675",
       "sinks": [
         "message_send",
         "orm_create",
@@ -898153,6 +898175,10 @@
         {
           "line": 604,
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "line": 72,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
           "path": "decorators.py"
@@ -898667,7 +898693,7 @@
           "path": "addons/project/models/project_task.py"
         },
         {
-          "line": 35,
+          "line": 36,
           "path": "custom-addons/usl_project/models/task_content_search.py"
         },
         {
@@ -902539,7 +902565,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 25,
+          "line": 26,
           "path": "custom-addons/usl_project/models/task_content_search.py"
         },
         {
@@ -908521,7 +908547,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "35937c5aaf544766a2fff9b95281d57d5e90025f7a44756125d89ff755e1d71d",
+      "digest": "ff5262ecdeeee89cb7ee3c4115cfaa3ea0e3c59918b35f48616fa284d59010ef",
       "guards": [],
       "key": "rpc:project.task.write",
       "kind": "rpc",
@@ -908542,10 +908568,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e42e5225f3c0ce6ed8aac36df1cee56c091db18496413967955a547fbf759d69",
+      "runtime_digest": "15ab63b40fef2b5704ca87926ce47ef7103a6ee289d26dc8339f1ad8487b3b31",
       "sinks": [
         "orm_create",
         "orm_write",
+        "raw_sql_mutation",
         "sudo"
       ],
       "sources": [
@@ -908594,6 +908621,10 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "line": 77,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        },
+        {
           "line": 99,
           "path": "addons/rating/models/rating_mixin.py"
         },
@@ -908611,6 +908642,9 @@
         },
         {
           "path": "custom-addons/usl_project/models/project_task.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
           "path": "odoo/addons/html_editor/models/html_field_history_mixin.py"
@@ -1568149,6 +1568183,24 @@
       "xmlid": "usl_mattermost.ir_cron_push_cards_ir_actions_server"
     },
     {
+      "digest": "974b01ad6bb23a02a836754bcd838e06b2515bfc71948d3eac11d51e8083dd64",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_project"
+      ],
+      "runtime_digest": "974b01ad6bb23a02a836754bcd838e06b2515bfc71948d3eac11d51e8083dd64",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+    },
+    {
       "digest": "875cd1258b28349ef70c4279f83ec97cb7206f9e69fc34e1af32bea3b81c694c",
       "guards": [
         "guard:automation.server_action.execute"
@@ -1699782,6 +1699834,207 @@
       ]
     },
     {
+      "digest": "a7deba55e6bcc14f4772f25107a6184b67923b06656776c9c2a2c6324734cd27",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 84,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "2aed4d84343690841e157a535082d0956691ce82f20048f5bce4ecaf4f0d6042",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 84,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "586da0f08938668707b04688c22dfabe8133f4f04f0e33ea5ea6f514cb511fc5",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 84,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "9667852f91c18b1c142d24f9494d0f0143672af4042be83dd52f8d90ef05d537",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 57,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "cdc00f199ba722cbf33a29b5e97019365cce26ccd99d412ae2ba8ccc1a0de5ad",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 57,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "a4a012cf49f1434ee5bfa61243bcddf2938058a8fcc783e516feeeb9590c5f5b",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 72,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "47a5d59deed4eb51428c85a2dabbf7d28b27250bb9db75c3c27f0225ea907f03",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "ccb35a87b3b55975215ca50b349fa6d623f85151d1087895a08c6987e5a1c366",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "a40d49525e5dba41c88ce25aa9e0218c629d936397820c28e9c65e496b18b248",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "3322ae1ef075b13ec17fab85d5f48144487653110ee03d17f2d56e13b6cb7190",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "6813c7816d48689c01c68c72257c9c79443d8b541124265fe65df4372dd501d3",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "f90855cc888f30808f73f2f0fbba62b23a426a28a7aea8ac5fae06a2b27661b8",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 77,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
       "digest": "c896412defd60b255557c4970ec72c9ca48212fd390b87527379cd5c04963b8c",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_reactivation.py:project.task.stage.personal.create:orm_create:1",
       "kind": "sink",
@@ -1763772,6 +1764025,25 @@
     },
     {
       "delegates": [
+        "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+      ],
+      "digest": "b4fc376827c87a5aafccf587991d8b062dde57750e5366772141ead5ee69e36d",
+      "key": "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_project"
+      ],
+      "runtime_digest": "b4fc376827c87a5aafccf587991d8b062dde57750e5366772141ead5ee69e36d",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_project.ir_cron_usl_index_task_content_ir_actions_server"
+    },
+    {
+      "delegates": [
         "server_action:usl_project.ir_cron_usl_reactivate_later_tasks_ir_actions_server"
       ],
       "digest": "e5ba38495bc7faf0deb288ebba43b94dcca006b6107b061e4ad5be38be14692f",
@@ -1768654,11 +1768926,11 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "e5c811ed75de17d013308817dc66a3f8fe4e04fd438ca77ce76638118ac1709a",
+      "manifest_sha256": "72d935fb7d192e9fbd92a2de9d958a9dc3643c86006a9dfd9e485e501d7f3f58",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "608780609079405497e23d245955e041d5f6e952898bb56c382a98e81e08bb29",
-      "version": "saas~19.3.1.0.21"
+      "source_sha256": "8d801a587fa5e540c2f39ab735b85dba16b496418cd482a0802bc2bb6905a5d7",
+      "version": "saas~19.3.1.0.22"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
