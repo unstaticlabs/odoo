@@ -1768583,11 +1768583,11 @@
       "version": "saas~19.3.1.5.1"
     },
     {
-      "manifest_sha256": "9592deb7b170ff1d928b4705553dae7988b320132bb14dca59cfcc6bd4d055be",
+      "manifest_sha256": "bfe545920c5b45266228e4a1ad2583d9f2f5291576b728acc975585b7a002263",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "c6aa2eb86af27f9f2895bbbf42f551be80153de2b246f8e6118fed55e942b6ab",
-      "version": "saas~19.3.1.3.2"
+      "source_sha256": "530c2f1d32978af623e60696cc83fc0dac23752e5cd23e061ed0d2e475ec8c32",
+      "version": "saas~19.3.1.3.3"
     },
     {
       "manifest_sha256": "e756e13b2f600132017bb524fe5676e31ce75a2475e3a439a71cda029f5544cc",
