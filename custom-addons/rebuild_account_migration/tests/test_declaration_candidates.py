@@ -203,6 +203,35 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         arch = self.env[action["res_model"]].get_views([action["views"][0]])["views"]["list"]["arch"]
         self.assertIn('name="partner_vat"', arch)
 
+    def test_vat_number_of_a_document_from_a_company_the_reader_cannot_access_stays_hidden(self):
+        other = self.env["res.company"].create({
+            "name": "Example other studio", "country_id": self.env.ref("base.fr").id,
+        })
+        self.env["account.chart.template"].try_loading("fr_comp", other, install_demo=False)
+        foreign = self.env["account.move"].with_company(other).with_context(no_vat_validation=True).create({
+            "move_type": "out_invoice", "invoice_date": "2026-05-04", "company_id": other.id,
+            "partner_id": self._des_customer("Example foreign customer", "ES00000000X").id,
+            "invoice_line_ids": [Command.create({"name": "Service", "price_unit": 10})],
+        })
+        reader = self.env["res.users"].with_context(no_reset_password=True, usl_governed_identity_provisioning=True).create({
+            "name": "Example company reader", "login": "example.company.reader",
+            "company_id": self.env.company.id, "company_ids": [Command.set(self.env.company.ids)],
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_manager")).ids)],
+        })
+        review = self.env["rebuild.account.declaration.candidate.review"].with_user(reader).create({
+            "kind": "des", "company_id": self.env.company.id, "date_from": "2026-05-01", "date_to": "2026-05-31",
+        })
+        line = self.env["rebuild.account.declaration.candidate.review.line"].with_user(reader).create({
+            "review_id": review.id, "move_id": foreign.id,
+        })
+        # A real request starts with an empty cache; cached values skip the access check.
+        self.env.invalidate_all()
+        try:
+            vat = line.partner_vat
+        except AccessError:
+            vat = False
+        self.assertFalse(vat)
+
     def test_review_documents_leads_while_the_des_is_only_a_proposal(self):
         form = self.env.ref("rebuild_account_migration.view_rebuild_account_declaration_form")
         arch = etree.fromstring(self.env["rebuild.account.declaration"].get_view(form.id)["arch"])

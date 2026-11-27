@@ -214,7 +214,7 @@ class DeclarationCandidateReviewLine(models.TransientModel):
     period = fields.Char(help="Declaration period the document belongs to: a month for DES, a year for DAS2.")
     partner_id = fields.Many2one("res.partner", string="Partner", help="Customer of the invoice or beneficiary of the payment.")
     partner_vat = fields.Char(
-        string="VAT number", related="move_id.commercial_partner_id.vat",
+        string="VAT number", related="move_id.commercial_partner_id.vat", compute_sudo=False,
         help="VAT number of the customer, the key of its line in the DES return.",
     )
     move_id = fields.Many2one("account.move", string="Document", help="Posted invoice, bill or payment entry to review.")
