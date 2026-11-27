@@ -64,13 +64,16 @@ admission gate depends on SBOM enforcement.
 
 Every installable product module records its version, dependencies, source
 digest and stored-model digest. Release construction fails for missing
-dependencies. Comparing two v3 releases yields one exact upgrade plan:
+dependencies. The upgrade plan compares these values across two v3 releases.
 
-- changed installed modules are upgraded;
-- installed product modules that depend on them are included;
-- a foundation change upgrades every affected installed product module;
-- an unknown installed module fails closed;
-- source or stored-model changes without a module version change fail closed.
+- A change to an installed module’s source or stored-model digest schedules an
+  upgrade even when the manifest version stays the same.
+- The plan also upgrades installed product modules that depend on the changed module.
+- A foundation change upgrades every affected installed product module.
+- An unknown installed module stops the plan.
+
+Increase the module version when the upgrade needs to run a versioned migration
+script. Odoo uses the version to select the script.
 
 The plan is applied by a one-shot Odoo command. The normal Compose definition
 does not contain a permanent `--update` list.
