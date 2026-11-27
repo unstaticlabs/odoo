@@ -100,4 +100,26 @@
             </xpath>
         </field>
     </record>
+
+    <record id="project_task_form_waiting_causes" model="ir.ui.view">
+        <field name="name">project.task.form.waiting.causes</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[1]" position="after"><widget name="usl_waiting_causes"/></xpath>
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="usl_waiting_reason_ids" invisible="1">
+                    <list><field name="kind"/><field name="reason"/><field name="target_model" force_save="1"/><field name="target_id" force_save="1"/><field name="lifted"/></list>
+                </field>
+            </xpath>
+        </field>
+    </record>
+    <record id="project_task_kanban_waiting_causes" model="ir.ui.view">
+        <field name="name">project.task.kanban.waiting.causes</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//t[@t-name='card']/main/field[@name='name']" position="after"><widget name="usl_waiting_causes" compact="1"/></xpath>
+        </field>
+    </record>
 </odoo>

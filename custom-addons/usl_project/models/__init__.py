@@ -11,3 +11,5 @@ from . import task_swimlane
 from . import task_github_reference
 
 from . import task_reactivation
+
+from . import task_waiting

@@ -221,6 +221,7 @@ class ProjectTask(models.Model):
             "project_id",
             "state",
             "depend_on_ids",
+            "usl_waiting_reason_ids",
             "parent_id",
             "active",
             "planned_date_begin",
@@ -256,13 +257,14 @@ class ProjectTask(models.Model):
             self.with_context(usl_skip_task_reactivation=_SKIP_REACTIVATION),
         ).write(vals)
 
+        tracked_tasks._usl_enforce_waiting_causes()
         events = defaultdict(set)
         if "state" in vals:
             for task in tracked_tasks:
                 previous = task_before[task.id]["state"]
                 if task.state != previous and task.state not in CLOSED_STATES:
                     events[task.id].add("reopened" if previous in CLOSED_STATES else "status_changed")
-        if "depend_on_ids" in vals:
+        if {"depend_on_ids", "usl_waiting_reason_ids"}.intersection(vals):
             for task in tracked_tasks:
                 if task_before[task.id]["blocked"] and not task.is_blocked_by_dependences():
                     events[task.id].add("unblocked")

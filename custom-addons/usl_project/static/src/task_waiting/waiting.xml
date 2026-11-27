@@ -1,0 +1,52 @@
+<templates xml:space="preserve">
+    <t t-name="usl_project.ExplainedTaskState" t-inherit="project.ProjectTaskStateSelection" t-inherit-mode="primary">
+        <xpath expr="//button[@title='This task is blocked by another unfinished task']" position="attributes"><attribute name="title">Waiting — see the recorded causes on this task</attribute></xpath>
+        <xpath expr="//span[@title='This task is blocked by another unfinished task']" position="attributes"><attribute name="title">Waiting — see the recorded causes on this task</attribute></xpath>
+    </t>
+    <t t-name="usl_project.WaitingDialog">
+        <Dialog title="title" size="'md'" bodyClass="'o_usl_waiting_dialog'">
+            <p class="text-muted">The task resumes after its last cause is lifted. Linked tasks resolve automatically when completed or cancelled; other records are lifted manually.</p>
+            <div t-if="state.error" class="alert alert-danger" role="alert" t-out="state.error"/>
+            <ul t-if="state.causes.length" class="list-unstyled mb-4">
+                <li t-foreach="state.causes" t-as="cause" t-key="cause.id || cause.reference?.id || cause_index" class="d-flex align-items-start gap-2 mb-2">
+                    <span class="flex-grow-1 text-break" t-att-class="{'text-decoration-line-through text-muted': state.lifted.includes(cause.id)}">
+                        <t t-if="cause.kind === 'external'" t-out="cause.reason"/>
+                        <button t-elif="cause.reference" type="button" class="btn btn-link text-start p-0" t-on-click="() => this.open(cause)" t-out="cause.reference.display_name"/>
+                        <t t-else="" t-out="cause.message"/>
+                        <small t-if="cause.kind === 'task'" class="d-block text-muted">Resolves with the linked task</small>
+                    </span>
+                    <button t-if="cause.id and !state.lifted.includes(cause.id)" type="button" class="btn btn-secondary btn-sm flex-shrink-0" t-att-disabled="state.busy" t-on-click="() => this.lift(cause)">Lift cause</button>
+                </li>
+            </ul>
+            <label class="form-label" for="usl_waiting_external">External cause</label>
+            <textarea id="usl_waiting_external" class="form-control mb-3" rows="2" t-model="state.text" placeholder="What are you waiting for?" t-att-disabled="state.busy"/>
+            <label class="form-label d-block">Or link blocking records</label>
+            <div class="d-flex flex-column flex-sm-row gap-2 mb-2">
+                <SelectMenu choices="state.models" value="state.model" onSelect.bind="selectModel" disabled="state.busy"/>
+                <div class="flex-grow-1"><AutoComplete sources="sources" placeholder.translate="Search records…" resetOnSelect="true"/></div>
+            </div>
+            <ul class="list-unstyled mb-0">
+                <li t-foreach="state.references" t-as="reference" t-key="reference.model + ':' + reference.id" class="d-flex align-items-center gap-2 py-1">
+                    <span class="flex-grow-1 text-break" t-out="reference.display_name"/>
+                    <button type="button" class="btn btn-link" title="Remove this record" t-att-disabled="state.busy" t-on-click="() => this.removeReference(reference_index)"><i class="fa fa-times"/></button>
+                </li>
+            </ul>
+            <t t-set-slot="footer">
+                <button type="button" class="btn btn-primary" t-att-disabled="state.busy || !canApply" t-on-click="save" title="The task resumes after its last cause is lifted. Linked tasks resolve automatically when completed or cancelled; other records are lifted manually."><t t-if="state.busy">Saving…</t><t t-else="">Apply</t></button>
+                <button type="button" class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="usl_project.WaitingCauses">
+        <div t-if="details and details.state === '04_waiting_normal' and (causes.length || details.legacy_unexplained)" class="o_usl_waiting_causes my-2" t-on-click.stop="">
+            <div class="small fw-bold"><i class="fa fa-hourglass-o me-1"/>Waiting for</div>
+            <ul t-if="visibleCauses.length" class="list-unstyled small mb-1">
+                <li t-foreach="visibleCauses" t-as="cause" t-key="cause.id || cause.reference?.id || cause_index" class="text-break" t-att-class="{'text-truncate': props.compact}">
+                    <t t-out="cause.reason || cause.reference?.display_name || cause.message"/>
+                </li>
+            </ul>
+            <p t-if="details.legacy_unexplained" class="small text-muted mb-1">No unresolved cause is recorded for this waiting task.</p>
+            <button t-if="details.can_change" type="button" class="btn btn-link p-0 small" t-on-click.stop="manage">Review causes<t t-if="causes.length &gt; visibleCauses.length"> (<t t-out="causes.length"/>)</t></button>
+        </div>
+    </t>
+</templates>

@@ -3253,6 +3253,65 @@
     },
     {
       "delegates": [
+        "rpc:project.task.get_waiting_details",
+        "rpc:project.task.search_waiting_references"
+      ],
+      "digest": "db72b8316853d5e2613ffc62031d7bcea9343f1cad3f70555ea831abde04c647",
+      "handler": "if",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/task_waiting/waiting.js:if:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 24,
+          "path": "custom-addons/usl_project/static/src/task_waiting/waiting.js"
+        },
+        {
+          "line": 32,
+          "path": "custom-addons/usl_project/static/src/task_waiting/waiting.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:project.task.action_open_waiting_reference"
+      ],
+      "digest": "c159cb193d0eabfa38c588e6bb9d8c6c6e011c7a5d631681c8343a9d8ec7dcd3",
+      "handler": "open",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/task_waiting/waiting.js:open:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 51,
+          "path": "custom-addons/usl_project/static/src/task_waiting/waiting.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:project.task.get_waiting_reference_models"
+      ],
+      "digest": "4d5ff3daff67c4b9b5ee013782d0442da5b7c612fb11ef6ddec4b0344620c9ed",
+      "handler": "setup",
+      "key": "client:usl_project:custom-addons/usl_project/static/src/task_waiting/waiting.js:setup:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_project"
+      ],
+      "sources": [
+        {
+          "line": 21,
+          "path": "custom-addons/usl_project/static/src/task_waiting/waiting.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:res.users.action_open_usl_sign_requests"
       ],
       "digest": "2b1199e7fe2fde01bf0748af1c1fc88f01568245f728b31f3811c8a6199801cb",
@@ -895286,6 +895345,44 @@
       "delegates": [
         "rpc:project.task.check_access",
         "rpc:project.task.ensure_one",
+        "rpc:project.task.write"
+      ],
+      "digest": "a97fd8ab8e461d985dba1910c83b0a9c7b940af5b7d072d3b85d91177fbbc8b5",
+      "guards": [],
+      "key": "rpc:project.task.action_lift_waiting_cause",
+      "kind": "rpc",
+      "method": "action_lift_waiting_cause",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6a188ce8ad06f31ebed66481e8875f2567ba1801db6e12acbe3fc58b48f1a50e",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
         "rpc:project.task.fields_get",
         "rpc:project.task.invalidate_recordset",
         "rpc:project.task.lock_for_update",
@@ -895514,6 +895611,43 @@
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.has_access",
+        "rpc:project.task.sudo",
+        "rpc:project.task.waiting.reason.search"
+      ],
+      "digest": "2664ba25fd111c9ee89c52ccdb05804b8f41bd85092ccebe7ab40331cb3bf3d1",
+      "guards": [],
+      "key": "rpc:project.task.action_open_waiting_reference",
+      "kind": "rpc",
+      "method": "action_open_waiting_reference",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "3e1d20193de18bcb6388356773337e9d917f812ab9d1251033c943611fbb2df2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 521,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.sudo"
+      ]
     },
     {
       "abstract": false,
@@ -895863,6 +895997,50 @@
       "transient": false,
       "unresolved_delegates": [
         "rpc:mail.activity.mixin.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.sudo",
+        "rpc:project.task.waiting.reason.flush_model",
+        "rpc:project.task.write"
+      ],
+      "digest": "3467b4d3c8c4b7a98343835abd56032dd87a1241fb9cb3a27644d84eaa5d4fc8",
+      "guards": [],
+      "key": "rpc:project.task.action_set_waiting",
+      "kind": "rpc",
+      "method": "action_set_waiting",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1d9c638620202cc76b1c65ae0c59761baf0d382010ef8c22dafe20a8a03c8700",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 414,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.sudo",
+        "rpc:project.task.waiting.reason.flush_model"
       ]
     },
     {
@@ -898086,12 +898264,13 @@
         "rpc:project.project.browse",
         "rpc:project.project.sudo",
         "rpc:project.task.browse",
+        "rpc:project.task.check_access",
         "rpc:project.task.has_field_access",
         "rpc:project.task.recurrence.create",
         "rpc:project.task.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f073eca924039b085ece220eb1d15cefd8e0be63e12794f1b34541b28c8deae0",
+      "digest": "78baf3a14dfeb26a3572480e8fe965e29cb099b6cbc997233ba343ae15d3e70b",
       "guards": [],
       "key": "rpc:project.task.create",
       "kind": "rpc",
@@ -898110,7 +898289,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "2cedf25d71902573f582f23b854d2fe112095019c6f6e1edf29382f186df2e6e",
+      "runtime_digest": "af273b1aeb3b4d767a1ae522d12faf92502033012cf8a13ab27bea5c99560f8c",
       "sinks": [
         "message_send",
         "orm_create",
@@ -898139,6 +898318,10 @@
           "path": "addons/mail/models/mail_thread.py"
         },
         {
+          "line": 366,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "line": 38,
           "path": "custom-addons/usl_project/models/project_task.py"
         },
@@ -898164,6 +898347,7 @@
         "rpc:project.project.browse",
         "rpc:project.project.sudo",
         "rpc:project.task.browse",
+        "rpc:project.task.check_access",
         "rpc:project.task.with_context",
         "rpc:usl.agent.sudo"
       ]
@@ -899236,6 +899420,83 @@
     {
       "abstract": false,
       "archiveable": true,
+      "delegates": [
+        "rpc:project.task.exists",
+        "rpc:project.task.has_access",
+        "rpc:project.task.sudo"
+      ],
+      "digest": "838e8d94fc3f6de1632f079f44acd53fe849103b05ae8d3249c64fca53b14956",
+      "guards": [],
+      "key": "rpc:project.task.get_waiting_details",
+      "kind": "rpc",
+      "method": "get_waiting_details",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7236686b06131b70b36ca7171aafb1ff9d1c3b1b633dde2681bbaf74469fa5c2",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 457,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.exists",
+        "rpc:project.task.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:ir.model.sudo",
+        "rpc:project.task.check_access",
+        "rpc:project.task.sudo"
+      ],
+      "digest": "5292facf5bc006236162f9777d3b051c13569e3e790c01a706e69d2142e8e263",
+      "guards": [],
+      "key": "rpc:project.task.get_waiting_reference_models",
+      "kind": "rpc",
+      "method": "get_waiting_reference_models",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "90fca0f43dac8f6cd7dbf669007b820727fd2b12f5db5829dd76eae2bac7e6fd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 552,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.model.sudo",
+        "rpc:project.task.check_access",
+        "rpc:project.task.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
       "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
       "guards": [],
       "key": "rpc:project.task.has_access",
@@ -899423,29 +899684,52 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "5f53248be1924d40dd1a62d42686de99aba005a9b987c67bd68231dab0a9c497",
+      "delegates": [
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.exists",
+        "rpc:project.task.has_access",
+        "rpc:project.task.sudo",
+        "rpc:project.task.waiting.reason.flush_model"
+      ],
+      "digest": "accdafd2d8ad8cb7a9220e2a45fd8791fd71e731a906f29f2f37dbfa4f39d064",
       "guards": [],
       "key": "rpc:project.task.is_blocked_by_dependences",
       "kind": "rpc",
       "method": "is_blocked_by_dependences",
       "model": "project.task",
       "modules": [
-        "project"
+        "project",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a42e688d22b3795182086d3d7b9d67dd655ff5143ffe615465b2854f991f4721",
-      "sinks": [],
+      "runtime_digest": "9b12102d56be9a83ae780d325f4f3601fd3fca6a5b82291e8f6522a02185189e",
+      "sinks": [
+        "sudo"
+      ],
       "sources": [
+        {
+          "line": 347,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
         {
           "line": 446,
           "path": "addons/project/models/project_task.py"
         },
         {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "path": "odoo/addons/project/models/project_task.py"
         }
       ],
-      "transient": false
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.ensure_one",
+        "rpc:project.task.exists",
+        "rpc:project.task.sudo",
+        "rpc:project.task.waiting.reason.flush_model"
+      ]
     },
     {
       "abstract": false,
@@ -899756,7 +900040,7 @@
           "path": "addons/project/models/project_task.py"
         },
         {
-          "line": 352,
+          "line": 354,
           "path": "custom-addons/usl_project/models/project_task.py"
         },
         {
@@ -900748,23 +901032,31 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "digest": "cc8402b745b8e129cc5911d30805ffc47608258767d69388b5a259592d1d15af",
       "guards": [],
       "key": "rpc:project.task.read",
       "kind": "rpc",
       "method": "read",
       "model": "project.task",
       "modules": [
-        "base"
+        "base",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "runtime_digest": "838bf956ed0388bd08421a515b7c35c2aa5b909c660a052f3f87cd84a1a971c5",
       "sinks": [],
       "sources": [
         {
           "line": 2733,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 288,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/orm/models.py"
@@ -902623,29 +902915,72 @@
     {
       "abstract": false,
       "archiveable": true,
-      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "digest": "aea9552e8cbc46bed4d3934583efa262fd3c8b579cbc1bba866ad035b1d7dcd4",
       "guards": [],
       "key": "rpc:project.task.search_read",
       "kind": "rpc",
       "method": "search_read",
       "model": "project.task",
       "modules": [
-        "base"
+        "base",
+        "usl_project"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "runtime_digest": "ba09015769c54c29b2fba18c06821bb8f06f68262e2cdae6981b4a749ec5e183",
       "sinks": [],
       "sources": [
         {
+          "line": 293,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "line": 5164,
           "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/orm/models.py"
         }
       ],
       "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": true,
+      "delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.sudo"
+      ],
+      "digest": "01dc4e44ed676f677e4d96497a2f1b571eb3da968932fb781b94992f64090885",
+      "guards": [],
+      "key": "rpc:project.task.search_waiting_references",
+      "kind": "rpc",
+      "method": "search_waiting_references",
+      "model": "project.task",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "22f85da155389689cd1299ffd7110a81bcb1f4a25082c35ccc50a5dd0a571b2c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 573,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.check_access",
+        "rpc:project.task.sudo"
+      ]
     },
     {
       "abstract": false,
@@ -908026,7 +908361,7 @@
           "path": "addons/rating/models/mail_thread.py"
         },
         {
-          "line": 308,
+          "line": 310,
           "path": "custom-addons/usl_project/models/project_task.py"
         },
         {
@@ -908185,6 +908520,1739 @@
     },
     {
       "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5205,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5216,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4954,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4832,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4889,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "57bdaca262310e5d6bc0ec485856058c8c57e2937121c211288ecc76ff2ec7e9",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "usl_access_control",
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f36f0e8ec94ddadd7b01901e905813456519e7fcc484e98d5a5d51a9059f1daa",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 143,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 603,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.env",
+        "rpc:project.task.waiting.reason.with_env",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 339,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.env",
+        "rpc:project.task.waiting.reason.with_env",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 799,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 699,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2772,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5132,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3249,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3238,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:project.task.waiting.reason.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3156,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 359,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:project.task.waiting.reason.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:project.task.waiting.reason.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2923,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.search"
+      ],
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 220,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 182,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.default_get",
+        "rpc:project.task.waiting.reason.fetch",
+        "rpc:project.task.waiting.reason.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1955,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6461,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.fetch",
+        "rpc:project.task.waiting.reason.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1943,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1362,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.fields_get",
+        "rpc:project.task.waiting.reason.search_count",
+        "rpc:project.task.waiting.reason.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1775,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.fields_get",
+        "rpc:project.task.waiting.reason.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1634,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5164,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.flush_model",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "ad0e5c4a91b75c9cfc0359107ec3fd9ee08963b583962c5c514e76152e421191",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control",
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb69af36307ab3007d5561e4d92f253ae8d6e02aafc9c2e0cb9d77f5436cce3",
+      "sinks": [
+        "orm_unlink",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 229,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 46,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 663,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.flush_model",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2787,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.ensure_one",
+        "rpc:project.task.waiting.reason.update_field_translations",
+        "rpc:res.lang.get_installed"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2174,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.formatted_read_group",
+        "rpc:project.task.waiting.reason.search",
+        "rpc:project.task.waiting.reason.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 346,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 319,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.create",
+        "rpc:project.task.waiting.reason.with_context",
+        "rpc:project.task.waiting.reason.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.browse",
+        "rpc:project.task.waiting.reason.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 135,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.onchange",
+        "rpc:project.task.waiting.reason.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.waiting.reason.search_count",
+        "rpc:project.task.waiting.reason.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.waiting.reason.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.flush_model",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "6f1df30a5ed801c67951c2b71117adb030e34be2c7c70cee4b33de0fbd81cffb",
+      "guards": [],
+      "key": "rpc:project.task.waiting.reason.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "project.task.waiting.reason",
+      "modules": [
+        "base",
+        "usl_access_control",
+        "usl_project"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c48a47bfa4ce01ef91575ba2582fa59f61b493ffded80a3b48e53f1783a9cf2f",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 195,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 632,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:project.task.browse",
+        "rpc:project.task.waiting.reason.check_access",
+        "rpc:project.task.waiting.reason.flush_model",
+        "rpc:project.task.waiting.reason.sudo",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
       "archiveable": true,
       "delegates": [
         "rpc:project.task.browse",
@@ -908258,18 +910326,19 @@
       "delegates": [
         "rpc:project.task.read"
       ],
-      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "digest": "cf1c09bb96c72d6616c0e5c3c50e645371184f4f0a34d49479c703ee1e5c084e",
       "guards": [],
       "key": "rpc:project.task.web_read",
       "kind": "rpc",
       "method": "web_read",
       "model": "project.task",
       "modules": [
+        "usl_project",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "runtime_digest": "5935b6c39d8e2e2a654ad3bb8316bf54a52030f26e7139849f2e0dc0724d3692",
       "sinks": [
         "sudo"
       ],
@@ -908277,6 +910346,13 @@
         {
           "line": 145,
           "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 297,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/addons/web/models/models.py"
@@ -908468,23 +910544,31 @@
         "rpc:project.task.search_count",
         "rpc:project.task.search_fetch"
       ],
-      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "digest": "d403132e47b3ae7c050969e8bcdab8114056035e48ceeebd46da169474c1e226",
       "guards": [],
       "key": "rpc:project.task.web_search_read",
       "kind": "rpc",
       "method": "web_search_read",
       "model": "project.task",
       "modules": [
+        "usl_project",
         "web"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "runtime_digest": "29f8d0234d71cfd78b018d3851d71c24a680b8677a6799df5c2e1ba6a0336811",
       "sinks": [],
       "sources": [
         {
+          "line": 302,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "line": 55,
           "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/addons/web/models/models.py"
@@ -908521,7 +910605,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "35937c5aaf544766a2fff9b95281d57d5e90025f7a44756125d89ff755e1d71d",
+      "digest": "df2b97575c204fa84268a1d02b0000be3a224ab759213934636c0e52d52e7bb3",
       "guards": [],
       "key": "rpc:project.task.write",
       "kind": "rpc",
@@ -908542,7 +910626,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "e42e5225f3c0ce6ed8aac36df1cee56c091db18496413967955a547fbf759d69",
+      "runtime_digest": "3e70feb0a9fb7b2bf03fa6a4e126b72133fa7f80b8a21cd6e11c311b9746cab3",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -908578,6 +910662,10 @@
           "path": "odoo/orm/models.py"
         },
         {
+          "line": 383,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        },
+        {
           "line": 406,
           "path": "addons/mail/models/mail_thread.py"
         },
@@ -908611,6 +910699,9 @@
         },
         {
           "path": "custom-addons/usl_project/models/project_task.py"
+        },
+        {
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         },
         {
           "path": "odoo/addons/html_editor/models/html_field_history_mixin.py"
@@ -1699320,7 +1701411,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 328,
+          "line": 330,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1699476,7 +1701567,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 352,
+          "line": 354,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1699494,7 +1701585,7 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 308,
+          "line": 310,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
@@ -1699512,13 +1701603,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 308,
+          "line": 310,
           "path": "custom-addons/usl_project/models/project_task.py"
         }
       ]
     },
     {
-      "digest": "d2b5470eb9f883f77fcf4a9b4d759420ec70da25a28424383bcb795782545061",
+      "digest": "468ce5fe476be96815d8387a6e15a1acbe11c2b917880f09a229396caa755216",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1699536,7 +1701627,7 @@
       ]
     },
     {
-      "digest": "5276efeb6794b98a7d5d7683730d14443a03e70802b741313055c1d05d637d41",
+      "digest": "6a85b3001b292afa8158db3340830fe3bc7ae6abff364b3b18151a5468800fdb",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1699554,7 +1701645,7 @@
       ]
     },
     {
-      "digest": "39beada77dd7831518bd9e70e833ffee304de2582200ce97e3985b14043012f1",
+      "digest": "327ba0bdcffc7fe904c8063a0038988f1f44462c0213f784352d8f1ef6eabdf4",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1699572,7 +1701663,7 @@
       ]
     },
     {
-      "digest": "ad7fb616d6cc2325b5ef4096d38f75593ebe51b0b3f5ce0c11d4539e2939ed6c",
+      "digest": "7ed8757f258b592a7d26621c6275087aa959076e5601a7ee7c1a7dd9804b34a1",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1699590,7 +1701681,7 @@
       ]
     },
     {
-      "digest": "ccc1ca6b2d3d00e40c523011a45edaedf16530ba562390e76fba69b48b3384e3",
+      "digest": "db57b4a4ea5ec43e1c28d30bcf2b7e9ceb5d172a062e69add93ff26971de82cc",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:5",
       "kind": "sink",
       "modules": [
@@ -1699608,7 +1701699,7 @@
       ]
     },
     {
-      "digest": "94246a5ac43a374f0cff2bc6422fa31680d13c7dd92adc66b622f757a45fcd5f",
+      "digest": "ed7659fa0fd183a96bb2a78da627401459fa5c68d3d98a30dcd462cb51dea051",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1699626,7 +1701717,7 @@
       ]
     },
     {
-      "digest": "86605eafad69dd2917a3cf254292eaf5ca7892d0c2cfa0def86526f59d6f7dcf",
+      "digest": "3444116ed1c3d3f243d3c64f73ac7930f7202d12abfebf08e884897fee540526",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1699644,7 +1701735,7 @@
       ]
     },
     {
-      "digest": "c85a3d1837e44a9ce47974008895942362689022b132725687722daf89740e32",
+      "digest": "79374e7bd782fa3e5066c2e4d3dcc179177da09c13216cbca8fbab861c354470",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1699662,7 +1701753,7 @@
       ]
     },
     {
-      "digest": "5405fc20b0935ff45c7b54d357dac20129d66f28a88184ce85c91497d30b9ce1",
+      "digest": "b9f3ab48c37b7bb1339e93c0638cf016bd86ed9a7cc59202ffb61cab7d343714",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4",
       "kind": "sink",
       "modules": [
@@ -1699680,7 +1701771,7 @@
       ]
     },
     {
-      "digest": "df8292a3ea5e920ac6a951ed7b234b9ff31c2070a3c1cddea4da69b2e92c50f1",
+      "digest": "498d15d137244fcb98f89724ddfe505084fde0c6a3cde946f3a8297282aebe21",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5",
       "kind": "sink",
       "modules": [
@@ -1699698,7 +1701789,7 @@
       ]
     },
     {
-      "digest": "a4fc08ebc79290853995ab1a142113e0a100f32e282135fea2b1ca673d6b2cd6",
+      "digest": "251e9c90e306e5f367f36432ff6065b86789432afc8b793b2de8623a94b691a4",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6",
       "kind": "sink",
       "modules": [
@@ -1699716,7 +1701807,7 @@
       ]
     },
     {
-      "digest": "19df5f263de29b9ce6b1aec9d0a7b098d73a2290a1e4f6beab9dd19065aebbcd",
+      "digest": "93a02d3b4226da8d593aaf73d3c489407e5caf6a47a4697ef3c8fe17be20d70c",
       "key": "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:7",
       "kind": "sink",
       "modules": [
@@ -1699850,6 +1701941,444 @@
         {
           "line": 64,
           "path": "custom-addons/usl_project/models/task_swimlane.py"
+        }
+      ]
+    },
+    {
+      "digest": "891edd19c0cada6bde26de2c42a0646b57cc4b262c142a84214c4b6bbc01dcc1",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task._usl_waiting_facts:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 321,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "5945f1c2bebef900cd01509144f7dce56abe74f007d6df5678757dc68fdc155d",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.action_lift_waiting_cause:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_lift_waiting_cause"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 442,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "5a40fee693c0e87fc507eab3b6678835eff4683725b66bc2053d68bb57beaad8",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.action_set_waiting:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_set_waiting"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 414,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "3353266d638692a0266299ffbce8cedcad429c57c9ada84f9ef97be38b565d74",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.action_set_waiting:orm_create:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_set_waiting"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 414,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "9d616bd77dabb670cf3457771f68dc8a150ca1e8b3bbd44dbe78d1031154dfea",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.action_set_waiting:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.action_set_waiting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 414,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "29dcd2349de8f20b4546eb059e520ac23de54f3f742f355dc24120a287b33388",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 366,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "a63f83045a484aed4f2f853a26d61a8487dc82679d8761eeb5f931f25b85e2a0",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.get_waiting_details:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.get_waiting_details"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 457,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "5c359aa6674e476fc70b05506a92d5b021a2add42a11762b0e152f49b79b48ae",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.get_waiting_reference_models:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.get_waiting_reference_models"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 552,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "eeef22a4955b2434ec248090666d41c49c7e5b9272c37ea794c1d6a15d07522a",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason._access_domain:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 62,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "ca7607fa7492ab9dfb7ec903cceef79150c9188ef5de2107caa37f9588b7e005",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason._structural_rows:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 177,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "d1f49efd5baa4ad4c9a88c859e06be18f2c4068f6d48c004cec1cef3710672f7",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason._unlink_dependency_if_last:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 183,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "64b0dc56e42241bde71cdba1a9c0f1b1d1e53481919f2c0c45d1b7a19c6b2619",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 143,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "a018ea36c705213907ea2e8f2e8d0e14ce4e999786dd79cb98e503b6ae189c54",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.create:orm_create:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 143,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "651e8d45ebf9ee72957f01a5316c9a6144928f1c779381dfd65a5a6b00245f46",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.create:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.create"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 143,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "e8cb68f11099a2cb722b9395b59ac8d5f88f69d575b6cca7cab6f8b4186cbb93",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.create:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.create"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 143,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "4088a200ef204e4e781a7d8d5d21df2b5fd31863dae870b4bb0fd6142ba897f0",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.unlink:orm_unlink:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.unlink"
+      ],
+      "sink_kind": "orm_unlink",
+      "sources": [
+        {
+          "line": 229,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "67bb233559d580810740393077438968a1df294914fe34f5a95554636d969ac1",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.unlink:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.unlink"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 229,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "b0e220cf68293e8b20aa6ed90e2e0263e44d38de454257ae5a96e18530c89fbc",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.unlink:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.unlink"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 229,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "be8ab2d38ba36fcb70d326ca43a6e9df231a7758505994d5bd736fb90b58ca30",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 195,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "672f1bddc7fc2680a37508bf778edd23ffadb2322c44e1c9abcd5f0c2f3ded54",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 195,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "cc9f9818dada5aa39166e0518bb9f970980c70eb0349c992dc89578fd8fffc42",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.write:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 195,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "9f822a6e671ad5b7de4ae2dfd814ee7f5cd071ccbf596f1f817da7edb4fd89cb",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.waiting.reason.write:orm_write:4",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.waiting.reason.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 195,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "40d4e63d9a9ee8da7ecc6adb7cfbe8d35d7646328a186950faac8f466e4ed65e",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 383,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "149d306c4a4110d2dd523c4cf2a6ebaeddfcab0a70d6f3a201ee026592cd126e",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 383,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
+        }
+      ]
+    },
+    {
+      "digest": "38a5ed75968e595ba15020ed8d17f7dd5674b8191e5f20ca7456b0fef4937fe3",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_waiting.py:project.task.write:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 383,
+          "path": "custom-addons/usl_project/models/task_waiting.py"
         }
       ]
     },
@@ -1768654,11 +1771183,11 @@
       "version": "saas~19.3.1.4.5"
     },
     {
-      "manifest_sha256": "e5c811ed75de17d013308817dc66a3f8fe4e04fd438ca77ce76638118ac1709a",
+      "manifest_sha256": "ebb486e25f401e837be16e58ead32407fc761bea847ee72483eaa5e08858d0cf",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "608780609079405497e23d245955e041d5f6e952898bb56c382a98e81e08bb29",
-      "version": "saas~19.3.1.0.21"
+      "source_sha256": "a0b144214ab10cb4a74a1289d8ea6c849276ff767f248ef336a25da8186aa783",
+      "version": "saas~19.3.1.0.24"
     },
     {
       "manifest_sha256": "fdc17bc172de42c3680d2f856c88ec910045db940de6d0fd31988944400cb74a",
