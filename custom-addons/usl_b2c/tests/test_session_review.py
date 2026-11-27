@@ -108,7 +108,7 @@ class TestB2cSessionReview(TransactionCase):
         for name in ("refund_company_amount", "fee_company_amount", "cogs_company_amount", "line_revenue_coverage_percent"):
             self.assertTrue(financial.xpath("//field[@name='%s']" % name))
         compact = self.env.ref("usl_b2c.view_b2c_session_review_list")._get_combined_arch()
-        for name in ("name", "review_status", "review_next_step_short", "pending_link_count", "pending_mapping_count", "pending_conversion_count"):
+        for name in ("review_session_label", "review_status", "review_next_step_short", "pending_link_count", "pending_mapping_count", "pending_conversion_count"):
             self.assertTrue(compact.xpath("//field[@name='%s']" % name))
         self.assertFalse(compact.xpath("//field[@name='review_next_step']"), "the list shows the short step; the form has the sentence")
 
@@ -118,8 +118,20 @@ class TestB2cSessionReview(TransactionCase):
         status = compact.xpath("//field[@name='review_status']")[0]
         self.assertEqual(status.get("widget"), "badge")
         self.assertTrue(status.get("decoration-warning") and status.get("decoration-success"))
+        self.assertIn("reviewed", status.get("decoration-success"))
+        self.assertNotIn("refreshed_at and not", status.get("decoration-success"), "awaiting review must not read as done")
+        self.assertIn("not refreshed_at", status.get("decoration-muted"))
+        self.assertIn("not pending_link_count", status.get("decoration-info"))
         for name in ("pending_link_count", "pending_mapping_count", "pending_conversion_count"):
             self.assertIn("not %s" % name, compact.xpath("//field[@name='%s']" % name)[0].get("invisible"))
+
+    def test_session_label_repeats_the_short_step_only_on_narrow_screens(self):
+        label = self.gaps[1].review_session_label
+        self.assertIn(self.gaps[1].name, label)
+        self.assertIn('class="d-md-none d-block text-muted">1 order line(s) not mapped<', label)
+        self.gaps[1].name = "<script>"
+        self.assertNotIn("<script>", self.gaps[1].review_session_label)
+        self.assertIn("&lt;script&gt;", self.gaps[1].review_session_label)
 
     def test_next_step_says_to_refresh_after_resolving_and_list_step_is_short(self):
         gap = self.gaps[1]

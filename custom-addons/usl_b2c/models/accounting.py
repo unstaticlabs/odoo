@@ -3,6 +3,8 @@ import hashlib
 from datetime import datetime, time
 from itertools import chain
 
+from markupsafe import Markup
+
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
@@ -149,6 +151,14 @@ class B2cAccountingSession(models.Model):
             "for lists. The sentence on the form says what to do about it."
         ),
     )
+    review_session_label = fields.Html(
+        compute="_compute_review_next_step",
+        sanitize=False,
+        help=(
+            "Session name for the review list. On narrow screens it also shows "
+            "the short next step underneath, so no sideways scrolling is needed."
+        ),
+    )
     review_next_step_short = fields.Char(
         compute="_compute_review_next_step",
         help=(
@@ -220,6 +230,7 @@ class B2cAccountingSession(models.Model):
         return domain
 
     @api.depends(
+        "name",
         "state",
         "refreshed_at",
         "pending_link_count",
@@ -299,6 +310,9 @@ class B2cAccountingSession(models.Model):
             session.review_status = status
             session.review_next_step = step
             session.review_next_step_short = short
+            session.review_session_label = Markup(
+                '<span>%s</span><small class="d-md-none d-block text-muted">%s</small>'
+            ) % (session.name or "", short)
 
     def action_refresh(self):
         for session in self:

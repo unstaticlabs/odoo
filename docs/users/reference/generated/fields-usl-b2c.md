@@ -80,6 +80,7 @@ false
 | **Review Next Step** (`review_next_step`) | char |  | What stands between this session and the next state. Coverage percentages measure evidence; moving from Draft to Reviewed is a person's decision and never follows from a percentage. |
 | **Review Next Step Short** (`review_next_step_short`) | char |  | The list-sized version of the next step: only what is missing. The form carries the full sentence. |
 | **Review Note** (`review_note`) | text |  |  |
+| **Review Session Label** (`review_session_label`) | html |  | Session name for the review list. On narrow screens it also shows the short next step underneath, so no sideways scrolling is needed. |
 | **Review Status** (`review_status`) | char |  | Short answer to "is this month incomplete, or just not reviewed?" for lists. The sentence on the form says what to do about it. |
 | **Reviewed At** (`reviewed_at`) | datetime |  |  |
 | **Reviewed By** (`reviewed_by_id`) | many2one → `res.users` |  |  |

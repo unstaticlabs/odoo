@@ -153,11 +153,12 @@
         <field name="priority">30</field>
         <field name="arch" type="xml">
             <list string="Monthly Review">
-                <field name="name" string="Session" class="text-wrap" width="260px"/>
+                <field name="review_session_label" string="Session" class="text-wrap" width="260px"/>
                 <field name="review_status" string="Review Status" widget="badge" width="150px"
                        decoration-warning="state == 'draft' and refreshed_at and (pending_link_count or pending_mapping_count or pending_conversion_count)"
-                       decoration-info="state == 'draft' and not refreshed_at"
-                       decoration-success="state == 'reviewed' or (state == 'draft' and refreshed_at and not pending_link_count and not pending_mapping_count and not pending_conversion_count)"/>
+                       decoration-muted="state == 'draft' and not refreshed_at"
+                       decoration-info="state == 'draft' and refreshed_at and not pending_link_count and not pending_mapping_count and not pending_conversion_count"
+                       decoration-success="state == 'reviewed'"/>
                 <field name="review_next_step_short" string="Next Step" class="text-wrap" width="420px"/>
                 <field name="pending_link_count" string="Accounting Gaps" width="110px" invisible="not refreshed_at or not pending_link_count"/>
                 <field name="pending_mapping_count" string="Product Gaps" width="100px" invisible="not refreshed_at or not pending_mapping_count"/>

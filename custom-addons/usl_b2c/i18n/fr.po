@@ -3127,6 +3127,16 @@ msgid "What stands between this session and the next state. Coverage percentages
 msgstr "Ce qui sépare cette session de l'état suivant. Les taux de couverture mesurent les justificatifs ; passer de Brouillon à Vérifiée est une décision humaine qui ne découle jamais d'un pourcentage."
 
 #. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_session_label
+msgid "Session name for the review list. On narrow screens it also shows the short next step underneath, so no sideways scrolling is needed."
+msgstr "Nom de la session pour la liste de revue. Sur petit écran, la prochaine étape courte s'affiche dessous, sans défilement latéral."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_session_label
+msgid "Review Session Label"
+msgstr "Libellé de session de revue"
+
+#. module: usl_b2c
 #: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_next_step_short
 msgid "The list-sized version of the next step: only what is missing. The form carries the full sentence."
 msgstr "La version courte de la prochaine étape pour les listes : seulement ce qui manque. Le formulaire porte la phrase complète."
