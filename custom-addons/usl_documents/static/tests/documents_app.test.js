@@ -1567,17 +1567,21 @@ function suggestionFixture() {
             ...document, can_edit: true, can_change_links: true, can_manage: false, versions: [], links: [],
             paperless_suggestions: suggestions,
         },
-        requests: [], updates: [],
+        requests: [], updates: [], workspaceReads: 0,
     };
-    onRpc("usl.document", "workspace_data", () => ({
-        ...emptyWorkspace, tags: tagRecords, documents: [{ ...document, tags: state.detail.tags }], count: 1,
-    }));
+    onRpc("usl.document", "workspace_data", () => {
+        state.workspaceReads++;
+        return { ...emptyWorkspace, tags: tagRecords, documents: [{ ...document, tags: state.detail.tags }], count: 1 };
+    });
     onRpc("usl.document", "document_detail", ({ kwargs }) => {
         state.requests.push(Boolean(kwargs.include_tag_scores));
         return state.detail;
     });
-    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
+    onRpc("usl.document", "update_archive_metadata", async ({ args }) => {
         state.updates.push(args[1]);
+        if (state.hold) {
+            await state.hold;
+        }
         if (args[1].tag_ids) {
             state.detail = {
                 ...state.detail,
@@ -1660,6 +1664,52 @@ test("rejecting a suggestion writes nothing and the keyboard can reject or accep
 });
 
 test.tags("desktop");
+test("a dismissal made while a save is pending stays dismissed", async () => {
+    const state = suggestionFixture();
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await contains(".o_usl_tag_ghost:eq(3) .o_usl_ghost_reject").click();
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match"]);
+    release();
+    await animationFrame();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
+    expect(ghostLabels()).toEqual(["Concert", "Literal match"]);
+});
+
+test.tags("desktop");
+test("Undo after leaving the document restores its tags and reloads the list", async () => {
+    const state = suggestionFixture();
+    onRpc("usl.document", "read", () => [{ id: 41, tag_ids: [42] }]);
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    await animationFrame();
+    const reads = state.workspaceReads;
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+    expect(state.workspaceReads).toBeGreaterThan(reads);
+});
+
+test.tags("desktop");
+test("Undo after leaving the document reports a failed restore", async () => {
+    const state = suggestionFixture();
+    onRpc("usl.document", "read", () => { throw makeServerError({ type: "AccessError", message: "No access" }); });
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
+    expect(".o_notification:last").toHaveText(/No access/);
+});
+
+test.tags("desktop");
 test("Add all writes every suggested tag in one save and undoes it in one save", async () => {
     const state = suggestionFixture();
     await openSuggestedDocument();
@@ -1704,8 +1754,11 @@ test("on a phone every suggestion control is at least 44px tall and nothing over
     )];
     expect(controls.length).toBeGreaterThan(8);
     for (const control of controls) {
-        expect(control.getBoundingClientRect().height).toBeGreaterThan(43.5);
+        // The hit area is a transparent pseudo-element, so the chip itself stays compact.
+        expect(parseFloat(getComputedStyle(control, "::before").height)).toBeGreaterThan(43.5);
     }
+    const ghost = document.querySelector(".o_usl_tag_ghost").getBoundingClientRect().height;
+    expect(ghost).toBeLessThan(36);
     const tags = document.querySelector(".o_usl_detail_tags");
     expect(tags.scrollWidth <= tags.clientWidth + 1).toBe(true);
 });

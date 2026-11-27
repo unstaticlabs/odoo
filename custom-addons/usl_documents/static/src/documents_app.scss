@@ -849,32 +849,68 @@
 }
 
 @media (max-width: 767.98px) {
-    // Phone: every control in a suggestion is at least 44px tall.
+    // Phone: a suggestion looks as tall as an applied chip. Its controls keep
+    // a 44px hit area through a transparent pseudo-element.
     .o_usl_tag_chip.o_usl_tag_ghost {
         max-width: 100%;
 
         .o_usl_ghost_accept,
         .o_usl_ghost_reject {
-            min-height: 2.75rem;
+            position: relative;
+
+            &::before {
+                position: absolute;
+                top: 50%;
+                right: 0;
+                left: 0;
+                height: 2.75rem;
+                transform: translateY(-50%);
+                content: "";
+            }
         }
 
         .o_usl_ghost_reject {
             min-width: 2.75rem;
             justify-content: center;
         }
-
-        .o_usl_ghost_score {
-            font-size: 0.75rem;
-        }
     }
 
     .o_usl_ghost_all {
-        min-height: 2.75rem;
+        position: relative;
+
+        &::before {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            left: 0;
+            height: 2.75rem;
+            transform: translateY(-50%);
+            content: "";
+        }
     }
 
-    .o_usl_field_suggestion .btn-link {
-        min-height: 2.75rem;
-        padding: 0 0.5rem !important;
+    .o_usl_field_suggestion {
+        flex-wrap: nowrap;
+
+        .o_usl_field_suggestion_label {
+            flex: 1 1 auto;
+        }
+
+        .btn-link {
+            position: relative;
+            flex: 0 0 auto;
+            padding: 0 0.25rem !important;
+
+            &::before {
+                position: absolute;
+                top: 50%;
+                right: 0;
+                left: 0;
+                height: 2.75rem;
+                transform: translateY(-50%);
+                content: "";
+            }
+        }
     }
 }
 

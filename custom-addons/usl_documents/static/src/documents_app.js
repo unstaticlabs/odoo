@@ -2749,8 +2749,6 @@ export class DocumentsWorkspaceView extends Component {
         this.state.savingFields[field] = true;
         const save = async () => {
             try {
-                const paperlessSuggestions =
-                    this.state.selected?.paperless_suggestions || [];
                 const value = await resolveValue();
                 const detail = await this.orm.call(
                     "usl.document",
@@ -2760,7 +2758,9 @@ export class DocumentsWorkspaceView extends Component {
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
-                        paperless_suggestions: paperlessSuggestions,
+                        // Keep what the user dismissed while this save was pending.
+                        paperless_suggestions:
+                            this.state.selected.paperless_suggestions || [],
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
@@ -2892,13 +2892,23 @@ export class DocumentsWorkspaceView extends Component {
 
     async undoSuggestedTags(documentId, addedIds, suggestions) {
         if (this.state.selected?.id !== documentId) {
-            const [{ tag_ids: current }] = await this.orm.read(
-                "usl.document", [documentId], ["tag_ids"]
-            );
-            await this.orm.call("usl.document", "update_archive_metadata", [
-                [documentId],
-                { tag_ids: current.filter((id) => !addedIds.includes(id)) },
-            ]);
+            try {
+                const [{ tag_ids: current }] = await this.orm.read(
+                    "usl.document", [documentId], ["tag_ids"]
+                );
+                await this.orm.call("usl.document", "update_archive_metadata", [
+                    [documentId],
+                    { tag_ids: current.filter((id) => !addedIds.includes(id)) },
+                ]);
+                await this.load();
+            } catch (error) {
+                this.notification.add(
+                    error.data?.message ||
+                        error.message ||
+                        _t("The tags could not be restored."),
+                    { type: "danger", sticky: true }
+                );
+            }
             return;
         }
         const remaining = (this.state.selected.tags || [])
