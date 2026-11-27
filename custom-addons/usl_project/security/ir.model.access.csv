@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_task_waiting_reason_internal_read,Task waiting cause internal reader,model_project_task_waiting_reason,base.group_user,1,0,0,0
-access_task_waiting_reason_project_user,Task waiting cause project writer,model_project_task_waiting_reason,project.group_project_user,1,1,1,1
-access_task_waiting_reason_portal,Task waiting cause portal collaborator,model_project_task_waiting_reason,base.group_portal,1,1,1,1

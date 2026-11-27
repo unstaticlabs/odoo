@@ -10,6 +10,7 @@ from .task_reactivation import RETURN_ORDER, RETURN_REASONS, RETURN_WRITE, check
 
 
 _SKIP_REACTIVATION = object()
+_WAITING = "04_waiting_normal"
 
 
 class ProjectTask(models.Model):
@@ -30,6 +31,24 @@ class ProjectTask(models.Model):
         compute="_compute_usl_dependency_date_warning",
     )
 
+    usl_waiting_reason = fields.Char(
+        string="Waiting for",
+        copy=False,
+        tracking=True,
+        help=(
+            "What this task is waiting for outside Odoo, such as a supplier quote or a "
+            "customer answer. A task with a reason is Waiting; clear it, or choose "
+            "In Progress, to resume. To wait for another task, use Blocked By."
+        ),
+    )
+    usl_waiting_partner_id = fields.Many2one(
+        "res.partner",
+        string="Waiting on",
+        copy=False,
+        tracking=True,
+        help="Who or what the task is waiting on, when it is a contact.",
+    )
+
     usl_return_reasons = fields.Json(readonly=True, copy=False)
     usl_project_return_badge = fields.Json(compute="_compute_usl_project_return_badge")
     usl_personal_return_badge = fields.Json(compute="_compute_usl_personal_return_badge")
@@ -37,7 +56,24 @@ class ProjectTask(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         check_return_write(self, vals_list)
+        vals_list = [
+            {**vals, "state": _WAITING}
+            if vals.get("usl_waiting_reason") and "state" not in vals else vals
+            for vals in vals_list
+        ]
         return super().create(vals_list)
+
+    @api.depends("usl_waiting_reason")
+    def _compute_state(self):
+        super()._compute_state()
+        for task in self.filtered("usl_waiting_reason"):
+            if task.state not in CLOSED_STATES:
+                task.state = _WAITING
+
+    def _usl_is_blocked(self):
+        """Blocked by an open task or by an external reason."""
+        self.ensure_one()
+        return bool(self.usl_waiting_reason) or self.is_blocked_by_dependences()
 
     @api.depends("usl_return_reasons", "stage_id", "active", "state", "project_id.active",
                  "project_id.type_ids.sequence", "project_id.type_ids.active", "project_id.type_ids.fold")
@@ -204,7 +240,7 @@ class ProjectTask(models.Model):
                 "stage_id": task.stage_id.id,
                 "project_id": task.project_id.id,
                 "state": task.state,
-                "blocked": task.is_blocked_by_dependences(),
+                "blocked": task._usl_is_blocked(),
                 "planned_date_begin": task.planned_date_begin,
                 "date_deadline": task.date_deadline,
             }
@@ -213,6 +249,10 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         check_return_write(self, [vals])
+        state = vals.get("state")
+        if state and state != _WAITING and "usl_waiting_reason" not in vals and any(self.mapped("usl_waiting_reason")):
+            # Choosing any other status resumes the task.
+            vals = {**vals, "usl_waiting_reason": False, "usl_waiting_partner_id": False}
         if self.env.context.get("usl_skip_task_reactivation") is _SKIP_REACTIVATION:
             return super().write(vals)
 
@@ -221,6 +261,7 @@ class ProjectTask(models.Model):
             "project_id",
             "state",
             "depend_on_ids",
+            "usl_waiting_reason",
             "parent_id",
             "active",
             "planned_date_begin",
@@ -237,7 +278,7 @@ class ProjectTask(models.Model):
             else self.browse().sudo()
         )
         dependent_blocked_before = {
-            task.id: task.is_blocked_by_dependences() for task in dependent_tasks
+            task.id: task._usl_is_blocked() for task in dependent_tasks
         }
         old_parents = tracked_tasks.sudo().parent_id
         new_parents = (
@@ -262,13 +303,13 @@ class ProjectTask(models.Model):
                 previous = task_before[task.id]["state"]
                 if task.state != previous and task.state not in CLOSED_STATES:
                     events[task.id].add("reopened" if previous in CLOSED_STATES else "status_changed")
-        if "depend_on_ids" in vals:
+        if {"depend_on_ids", "usl_waiting_reason"}.intersection(vals):
             for task in tracked_tasks:
-                if task_before[task.id]["blocked"] and not task.is_blocked_by_dependences():
+                if task_before[task.id]["blocked"] and not task._usl_is_blocked():
                     events[task.id].add("unblocked")
         if "state" in vals:
             for task in dependent_tasks:
-                if dependent_blocked_before[task.id] and not task.is_blocked_by_dependences():
+                if dependent_blocked_before[task.id] and not task._usl_is_blocked():
                     events[task.id].add("unblocked")
         if {"state", "parent_id", "active"}.intersection(vals):
             for parent in parents | tracked_tasks.sudo().parent_id:

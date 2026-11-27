@@ -730,3 +730,53 @@ msgstr "Son étape de projet est changée manuellement."
 #. odoo-javascript
 msgid "Reasons for return"
 msgstr "Motifs du retour"
+
+#. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_waiting_reason
+msgid "Waiting for"
+msgstr "En attente de"
+
+#. module: usl_project
+#: model:ir.model.fields,help:usl_project.field_project_task__usl_waiting_reason
+msgid ""
+"What this task is waiting for outside Odoo, such as a supplier quote or a "
+"customer answer. A task with a reason is Waiting; clear it, or choose In "
+"Progress, to resume. To wait for another task, use Blocked By."
+msgstr ""
+"Ce que la tâche attend en dehors d'Odoo, par exemple un devis fournisseur ou "
+"une réponse client. Une tâche avec un motif est En attente ; effacez-le, ou "
+"choisissez En cours, pour la reprendre. Pour attendre une autre tâche, "
+"utilisez Bloquée par."
+
+#. module: usl_project
+#: model:ir.model.fields,field_description:usl_project.field_project_task__usl_waiting_partner_id
+msgid "Waiting on"
+msgstr "Attendu de"
+
+#. module: usl_project
+#: model:ir.model.fields,help:usl_project.field_project_task__usl_waiting_partner_id
+msgid "Who or what the task is waiting on, when it is a contact."
+msgstr "De qui la tâche attend une réponse, lorsque c'est un contact."
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
+msgid "Waiting for…"
+msgstr "En attente de…"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
+msgid "Waiting on (contact)"
+msgstr "Attendu de (contact)"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_waiting/waiting.js:0
+#. odoo-javascript
+msgid "In Progress"
+msgstr "En cours"
+
+#. module: usl_project
+#: code:addons/usl_project/static/src/task_waiting/waiting.js:0
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_kanban_waiting_reason
+#. odoo-javascript
+msgid "Waiting"
+msgstr "En attente"
