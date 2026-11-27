@@ -1,6 +1,7 @@
 # Explained Task Waiting — synthetic QA
 
-Captured 27 November 2026 from final product source `e0651631a895f200a2e5e197cce515e4149749fe`.
+Captured and revalidated 27 November 2026 against final product source `6de352b34170c4b30bde9d79b170bbd0229615ac`.
+The three unchanged native Project/mobile/Kanban files are pixel-identical to the earlier `e0651631a895f200a2e5e197cce515e4149749fe` captures and were retained. Cause selection, withdrawn reference and final resumption were recaptured after the routing correction; visible fixture history/focus differs. All six final images and metadata were personally accepted by the lead before publication.
 The actor is an ordinary Project user. All records, names and messages are disposable synthetic fixtures.
 Desktop viewport: 1440×900, DPR2. Mobile viewport: 390×844, DPR3. Normal product assets were used.
 
