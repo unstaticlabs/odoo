@@ -1717,6 +1717,7 @@ msgstr "Meilleur rapprochement"
 #. odoo-python
 #: code:addons/usl_accounting/models/immediate_settlement.py:0
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__move_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__bill_id
 msgid "Bill"
 msgstr "Facture"
 
@@ -1740,6 +1741,7 @@ msgstr "Peut se lettrer"
 #: model_terms:ir.ui.view,arch_db:usl_accounting.purchase_mail_grouping_review_form
 #: model_terms:ir.ui.view,arch_db:usl_accounting.view_expense_post_bank_match_review
 #: model_terms:ir.ui.view,arch_db:usl_accounting.bank_ingestion_period_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -2067,6 +2069,8 @@ msgstr "Contribution nette"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__create_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__create_uid
 msgid "Created by"
 msgstr "Créé par"
 
@@ -2086,6 +2090,8 @@ msgstr "Créé par"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__create_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__create_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__create_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__create_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__create_date
 msgid "Created on"
 msgstr "Créé le"
 
@@ -2199,6 +2205,8 @@ msgstr "Estimation Odoo rejetée :"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__display_name model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__display_name model:ir.model.fields,field_description:usl_accounting.field_queue_job__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__display_name model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__display_name model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__display_name
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__display_name
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__display_name
 msgid "Display Name"
 msgstr "Nom d'affichage"
 
@@ -2673,6 +2681,8 @@ msgstr ""
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__id
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__id model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__id model:ir.model.fields,field_description:usl_accounting.field_queue_job__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__id model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__id model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__id model:ir.model.fields,field_description:usl_accounting.field_validate_account_move__id
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__id
 msgid "ID"
 msgstr "ID"
 
@@ -2822,6 +2832,8 @@ msgstr "Paiement disponible plus important"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_uid model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_uid model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_uid
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__write_uid
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__write_uid
 msgid "Last Updated by"
 msgstr "Mis à jour par"
 
@@ -2841,6 +2853,8 @@ msgstr "Mis à jour par"
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_expense_bank_match_wizard__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_account_bank_ingestion_period__write_date model:ir.model.fields,field_description:usl_accounting.field_account_reconciliation_review__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_candidate_wizard_line__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_host__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_pattern__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_mail_pdf_retrieval__write_date model:ir.model.fields,field_description:usl_accounting.field_usl_vendor_bill_merge_wizard__write_date
 #: model:ir.model.fields,field_description:usl_accounting.field_usl_purchase_mail_grouping_review__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__write_date
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__write_date
 msgid "Last Updated on"
 msgstr "Mis à jour le"
 
@@ -7018,6 +7032,7 @@ msgstr "Consultation en lecture seule. Fermez ces détails pour revenir à votre
 
 #. module: usl_accounting
 #: model_terms:ir.ui.view,arch_db:usl_accounting.vendor_bill_merge_inspection_form
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__mapping_ids
 msgid "Invoice lines"
 msgstr "Lignes de facture"
 
@@ -8165,3 +8180,331 @@ msgstr "Cette dépense ne fait pas partie de la revue en cours. Rouvrez la revue
 #: code:addons/usl_accounting/wizard/expense_post_confirmation.py:0
 msgid "The batch changed. Open it and choose Submit batch again."
 msgstr "Le lot a changé. Ouvrez-le et choisissez de nouveau Soumettre le lot."
+
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "%(reason)s The bill remains in its original company. %(recovery)s"
+msgstr "%(reason)s La facture reste dans sa société d’origine. %(recovery)s"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "A payment or reconciliation is linked. Review it in Accounting before changing company."
+msgstr "Un paiement ou un rapprochement est lié à cette facture. Vérifiez-le en comptabilité avant de changer de société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "A payment, bank statement or reconciliation is linked. Open the related transaction in Accounting and resolve its company before retrying. The bill and payment remain linked."
+msgstr "Un paiement, un relevé bancaire ou un rapprochement est lié à cette facture. Ouvrez l’opération en comptabilité et vérifiez sa société avant de réessayer. Le lien entre la facture et le paiement est conservé."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__analytic_distribution
+msgid "Analytic Distribution"
+msgstr "Répartition analytique"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Archive access still needs synchronization. Documents will retry the affected permissions."
+msgstr "Les droits d’accès à l’archive restent à synchroniser. L’application Documents réessaiera automatiquement."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+msgid "Back"
+msgstr "Retour"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_bill_company_transfer_line
+msgid "Bill line accounts in the destination company"
+msgstr "Comptes des lignes dans la société de destination"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_move_form_bill_company_transfer
+msgid "Change company"
+msgstr "Changer de société"
+
+#. module: usl_accounting
+#: model:ir.model,name:usl_accounting.model_usl_bill_company_transfer
+msgid "Change the company of a draft bill"
+msgstr "Changer la société d’une facture brouillon"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Choose a compatible destination account for %(line)s."
+msgstr "Choisissez un compte compatible dans la société de destination pour %(line)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Choose a different destination company."
+msgstr "Choisissez une autre société de destination."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Choose a purchase journal belonging to the destination company."
+msgstr "Choisissez un journal d’achats de la société de destination."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_bill_company_transfer__stage__choose
+msgid "Choose company"
+msgstr "Choisir la société"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Choose the destination payment terms so the installments can be recalculated."
+msgstr "Choisissez les conditions de paiement de la société de destination pour recalculer les échéances."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__consequences
+msgid "Consequences"
+msgstr "Effets du transfert"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__source_account_id
+msgid "Current account"
+msgstr "Compte actuel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__source_company_id
+msgid "Current company"
+msgstr "Société actuelle"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Current due dates: %(dates)s."
+msgstr "Échéances actuelles : %(dates)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__source_journal_id
+msgid "Current journal"
+msgstr "Journal actuel"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__source_term_id
+msgid "Current payment terms"
+msgstr "Conditions de paiement actuelles"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__source_tax_ids
+msgid "Current taxes"
+msgstr "Taxes actuelles"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__target_account_id
+msgid "Destination account"
+msgstr "Compte de destination"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__target_company_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__company_id
+msgid "Destination company"
+msgstr "Société de destination"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__fiscal_position_id
+msgid "Destination fiscal position"
+msgstr "Position fiscale de destination"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__journal_id
+msgid "Destination journal"
+msgstr "Journal de destination"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__term_id
+msgid "Destination payment terms"
+msgstr "Conditions de paiement de destination"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__target_tax_ids
+msgid "Destination taxes"
+msgstr "Taxes de destination"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Draft transferred from %(source)s to %(target)s."
+msgstr "Brouillon transféré de %(source)s vers %(target)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__invoice_line_id
+msgid "Invoice Line"
+msgstr "Ligne de facture"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__label
+msgid "Item"
+msgstr "Article"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Open a draft vendor bill or vendor credit note to change its company."
+msgstr "Ouvrez une facture ou un avoir fournisseur en brouillon pour changer sa société."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Open a new transfer from the bill you want to change."
+msgstr "Ouvrez un nouveau transfert depuis la facture à corriger."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Open a new transfer from the current bill."
+msgstr "Ouvrez un nouveau transfert depuis la facture actuelle."
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_bill_company_transfer__stage__map
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+msgid "Review accounts"
+msgstr "Vérifier les comptes"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+msgid "Review invoice line"
+msgstr "Vérifier la ligne de facture"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Review the analytic distribution for %(line)s in the destination company."
+msgstr "Vérifiez la répartition analytique de %(line)s dans la société de destination."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select a compatible destination journal, fiscal position and payment terms."
+msgstr "Choisissez un journal, une position fiscale et des conditions de paiement compatibles avec la société de destination."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select a line from the bill being transferred."
+msgstr "Choisissez une ligne de la facture à transférer."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select destination taxes or explicitly choose no tax for %(line)s."
+msgstr "Choisissez les taxes de destination pour %(line)s ou sélectionnez « Sans taxe »."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select the destination purchase taxes for %(line)s."
+msgstr "Choisissez les taxes d’achat de la société de destination pour %(line)s."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select the original and destination companies in your active companies."
+msgstr "Activez la société d’origine et la société de destination dans le sélecteur de sociétés."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select valid analytic accounts for %(line)s."
+msgstr "Choisissez des comptes analytiques valides pour %(line)s."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__snapshot
+msgid "Snapshot"
+msgstr "État au moment de l’aperçu"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__stage
+msgid "Stage"
+msgstr "Étape"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "The archive permissions have been restored."
+msgstr "Les droits d’accès d’origine à l’archive ont été rétablis."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "The bill changed since this preview. Review the current bill and its accounts again."
+msgstr "La facture a changé depuis cet aperçu. Vérifiez à nouveau la facture et ses comptes."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "The bill is being edited. Try again after the other edit finishes."
+msgstr "La facture est en cours de modification. Réessayez une fois la modification terminée."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "The bill keeps its reference, currency, quantities and prices. Original files stay with their current company."
+msgstr "La facture conserve sa référence, sa devise, ses quantités et ses prix. Les fichiers d’origine restent rattachés à leur société actuelle."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "The invoice lines changed. Open a fresh preview."
+msgstr "Les lignes de facture ont changé. Ouvrez un nouvel aperçu."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__transfer_id
+msgid "Transfer"
+msgstr "Transfert"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.view_bill_company_transfer_form
+msgid "Transfer draft"
+msgstr "Transférer le brouillon"
+
+#. module: usl_accounting
+#: model:ir.model.fields.selection,name:usl_accounting.selection__usl_bill_company_transfer__stage__done
+msgid "Transferred"
+msgstr "Transféré"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__remove_taxes
+msgid "Use no tax"
+msgstr "Sans taxe"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__warning
+msgid "Warning"
+msgstr "Avertissement"
+
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__analytic_distribution
+msgid "Analytic distribution"
+msgstr "Répartition analytique"
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__source_fiscal_position_id
+msgid "Current fiscal position"
+msgstr "Position fiscale actuelle"
+
+#. module: usl_accounting
+#: model:ir.model.fields,help:usl_accounting.field_usl_bill_company_transfer__source_fiscal_position_id
+msgid "Fiscal positions are used to adapt taxes and accounts for particular customers or sales orders/invoices. The default value comes from the customer."
+msgstr "Les positions fiscales sont utilisées pour adapter les taxes et les comptes à des clients particuliers ou à des commandes clients/factures. La valeur par défaut provient du client."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/wizard/bill_company_transfer.py:0
+msgid "Select the destination fiscal position or explicitly choose no fiscal position."
+msgstr "Choisissez la position fiscale de destination ou sélectionnez « Sans position fiscale »."
+
+#. module: usl_accounting
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer__remove_fiscal_position
+msgid "Use no fiscal position"
+msgstr "Sans position fiscale"

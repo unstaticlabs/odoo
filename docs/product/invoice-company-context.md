@@ -1,5 +1,39 @@
 # Read a company-change invoice context
 
+## Move a draft vendor bill to another company
+
+Activate both companies in the Odoo company selector. Open the draft vendor
+bill or credit note, select **Change company**, choose its destination and
+select **Review accounts**. Odoo proposes a destination purchase journal.
+Review the payment terms, fiscal position, account, taxes and analytic
+distribution. A line with taxes needs destination taxes or an explicit choice
+to remove them. Select **Transfer draft** to apply the result.
+
+The bill keeps its ID, supplier, reference, document currency, quantities and
+unit prices. Odoo recalculates the tax and installment lines in the destination
+company. The original files, archive links and source records keep their
+identities. The bill's chatter names the original and destination companies.
+A payment or bank transaction already linked to the bill needs a separate
+accounting decision. The transfer preserves that link and explains where to
+review it.
+
+An operator or delegated agent can follow the same steps through the native
+API. Call `account.move.action_change_bill_company`, set the returned wizard's
+`target_company_id`, then call `action_prepare_mapping`. Read or edit its
+destination journal, terms and `mapping_ids` before calling `action_apply`.
+After a lost reply, call `action_apply` again on the same wizard or read the
+bill by its original ID. A completed wizard returns the existing bill. A
+concurrent edit calls for a fresh preview.
+
+If an archive permission change fails during transfer, Odoo rolls back the
+bill and sends the original policy back to the affected archive records.
+The dialog reports whether access was restored immediately. When the archive
+is still unavailable, Documents retains the failed permission state and its
+normal synchronization retries it. A later rollback of the outer Odoo
+transaction also reapplies the policy from committed records.
+
+## Inspect a company change without opening the transfer
+
 `account.move.get_company_change_context(target_company_id, offset=0, limit=50)`
 returns native read-only facts for a human or delegated Agent considering an
 ordinary company change. It does not change the move or propose account or tax

@@ -1,7 +1,9 @@
 import logging
+from contextlib import contextmanager
+from contextvars import ContextVar
 from datetime import timedelta
 
-from odoo import Command, _, api, fields, models
+from odoo import SUPERUSER_ID, Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 
@@ -11,6 +13,7 @@ from .paperless_client import (
 )
 
 _logger = logging.getLogger(__name__)
+_permission_write_receipt = ContextVar("usl_document_permission_write_receipt", default=None)
 
 
 CONFIDENTIALITIES = [
@@ -1300,6 +1303,35 @@ class UslDocument(models.Model):
             "target": "new",
         }
 
+    @contextmanager
+    def _track_paperless_permission_writes(self):
+        """Remember actual provider attempts, including a lost acknowledgement."""
+        touched = set()
+        token = _permission_write_receipt.set(touched)
+        try:
+            yield touched
+        finally:
+            _permission_write_receipt.reset(token)
+            if touched:
+                registry = self.env.registry
+                document_ids = tuple(touched)
+
+                def restore_committed_access():
+                    # PostgreSQL already rolled back. Derive the provider ACL
+                    # from the committed archive, using the native synchronizer.
+                    with registry.cursor() as cr:
+                        env = api.Environment(cr, SUPERUSER_ID, {})
+                        env["usl.document"]._restore_paperless_permission_writes(document_ids)
+
+                self.env.cr.postrollback.add(restore_committed_access)
+
+    def _restore_paperless_permission_writes(self, touched):
+        """Provider writes survive SQL rollback. Push the restored policy again."""
+        documents = self.with_user(self.env.ref("base.user_root")).browse(list(touched)).exists()
+        documents.action_sync_permissions()
+        # Failed pushes retain their native failed state for the sync cron.
+        return any(document.permission_sync_state == "failed" for document in documents)
+
     def action_sync_permissions(self):
         self._require_manager()
         mappings = self.env["usl.paperless.user.mapping"].search([
@@ -1354,6 +1386,9 @@ class UslDocument(models.Model):
                 batch = documents[offset : offset + PERMISSION_SYNC_BATCH_SIZE]
                 client = batch[0]._paperless()
                 try:
+                    touched = _permission_write_receipt.get()
+                    if touched is not None:
+                        touched.update(batch.ids)
                     if len(batch) == 1:
                         client.set_document_permissions(
                             batch.paperless_id,

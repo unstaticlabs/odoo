@@ -142618,6 +142618,44 @@
       "delegates": [
         "rpc:account.move.check_access",
         "rpc:account.move.ensure_one",
+        "rpc:usl.bill.company.transfer.create"
+      ],
+      "digest": "e1e88a8cb8ce30951fe03d1b8666cd1b578fdfa6a609cbee6a50c4a009e19b7d",
+      "guards": [],
+      "key": "rpc:account.move.action_change_bill_company",
+      "kind": "rpc",
+      "method": "action_change_bill_company",
+      "model": "account.move",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4818d30ea052924587e94c15b2f994e08a0010647e6aaa72591f4c10375d0c7e",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 22,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ],
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.check_access",
+        "rpc:account.move.ensure_one",
         "rpc:usl.vendor.bill.merge.wizard.browse"
       ],
       "digest": "b15d0235e744d6c62de3ab755ded59637fb8e83bcf5736a48435f7e281cd1f7e",
@@ -1361919,6 +1361957,3513 @@
       ]
     },
     {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one",
+        "rpc:usl.bill.company.transfer.write"
+      ],
+      "digest": "2f5016336f8bd883293a6509b681bff1a91c1b05406f12964949d59ab9eff159",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.action_apply",
+      "kind": "rpc",
+      "method": "action_apply",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8e0ae9578ba96f41ac3f16973a19e64175aa31fe00fcf3f7a52782bf5ae32465",
+      "sinks": [
+        "message_send",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5205,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one",
+        "rpc:usl.bill.company.transfer.write"
+      ],
+      "digest": "52831dcc8ab6db79714e48b77ac43ec055a2a599cbe7b14e84ff0d8ce12b3df0",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.action_choose_company",
+      "kind": "rpc",
+      "method": "action_choose_company",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c7e063ff535105dcdd42437746d4f76e226ad14cad9329474f0306d9cb40fcd7",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 116,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.journal.with_company",
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one",
+        "rpc:usl.bill.company.transfer.write"
+      ],
+      "digest": "18cc2d2b8c5a05cf07bc6b4ffab0c4b31f67cac53bf9944fe8ab967db86d9c32",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.action_prepare_mapping",
+      "kind": "rpc",
+      "method": "action_prepare_mapping",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "10a99393284f7384fce238ef89b60acd48cb37f336beb25d52d8f945f54d9d81",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 92,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:account.journal.with_company",
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5216,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4954,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4832,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4889,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:account.move.browse",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "700f69f2a9080b69ecec0006800cb312b40fdd3f0166ac11aaad510466005663",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "usl_access_control",
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "45e0bc30ba83c00520bf982926babcb3201246a8b3985922b80e1db64f0262a9",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 50,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "line": 603,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:account.move.browse",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.bill.company.transfer.env",
+        "rpc:usl.bill.company.transfer.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 339,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.bill.company.transfer.env",
+        "rpc:usl.bill.company.transfer.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 799,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 699,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2772,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5132,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3249,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3238,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.bill.company.transfer.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3156,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 359,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.bill.company.transfer.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.bill.company.transfer.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2923,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.search"
+      ],
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.action_archive",
+      "kind": "rpc",
+      "method": "action_archive",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "235abd6cb4038dd6a2c42caf9de8eae77f16c7778621633c9823beb3bd840539",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5205,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.action_unarchive",
+      "kind": "rpc",
+      "method": "action_unarchive",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e7c3c156fbd16e6d970313b9bb9b3394d43b56dfb1627dd220be3a47a71c75e8",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5216,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.check_field_access",
+      "kind": "rpc",
+      "method": "check_field_access",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "6ea1f9fac0c6643412d04dd4d3c9c9ad70723c75a4fbf7d4aae0a10636bfeff1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2672,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.copy",
+      "kind": "rpc",
+      "method": "copy",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e2701f4de378a2041241c55d30da98574d537a17c9ced308c1a1aaa37d3704ff",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4954,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.copy_data",
+      "kind": "rpc",
+      "method": "copy_data",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1bcb637275cc868763d196999ce5a96ed738f7a52b0206f6fc826561249f3d13",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 4832,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.copy_translations",
+      "kind": "rpc",
+      "method": "copy_translations",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5675fce11d83c7502d5bcd12d8de06759f5cbccea4f69e7e4cac81fb5c2d6915",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 4889,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.create",
+      "kind": "rpc",
+      "method": "create",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a79380d40b5dff61e79107f94d350cf0315d5a53fe951768b0def1f53b725a0",
+      "sinks": [
+        "orm_create",
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3980,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 603,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "decorators.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.default_get",
+      "kind": "rpc",
+      "method": "default_get",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "5a254545bb7959b0d3f555c147fe3f5e60d3c5889fa39b3ab58165013561b62c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1298,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.export_data",
+      "kind": "rpc",
+      "method": "export_data",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "80bce7a82aa05b027a1d03304c15854a49afda0463cb1b81b1090b46ec7616ec",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 907,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.bill.company.transfer.line.env",
+        "rpc:usl.bill.company.transfer.line.with_env"
+      ],
+      "digest": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.fields_get",
+      "kind": "rpc",
+      "method": "fields_get",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "baa7a932d91057120b35e7a5c3e4b7e1e61836083fb2f0ffd1bdf6f6efd537db",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 2612,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 339,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo",
+        "rpc:usl.bill.company.transfer.line.env",
+        "rpc:usl.bill.company.transfer.line.with_env"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.get_property_definition"
+      ],
+      "digest": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.formatted_read_group",
+      "kind": "rpc",
+      "method": "formatted_read_group",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ad861b317e2d9b39640847bf88826fd861f2ecea91d0bb0b48322bc4c7a3a344",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 799,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.get_property_definition"
+      ],
+      "digest": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.formatted_read_grouping_sets",
+      "kind": "rpc",
+      "method": "formatted_read_grouping_sets",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a1a777e1dea172173a503fe308b5b857a127e825dc9152494d1614819d68834a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1648,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 699,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_base_url",
+      "kind": "rpc",
+      "method": "get_base_url",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "67d503784e6d6f7548d55a2cfdf3bdd45f8195b37ec1b1c9d0251a8dd98aaf30",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3258,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_empty_list_help",
+      "kind": "rpc",
+      "method": "get_empty_list_help",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "71d9d7f85cddd3babee74d68b9bf1373cea9a671db1deb8a5b5a71f7cc68dae4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2772,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_external_id",
+      "kind": "rpc",
+      "method": "get_external_id",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8ba5b2f03d09295cc21145c82fd52737b78a38b697ea7cdd704e2cedc9ae2ba",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5132,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_field_translations",
+      "kind": "rpc",
+      "method": "get_field_translations",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "24f016d8e2a430cf59d47b17206cb2e434bfbaac4046ef4d8a0ce4778d1af7f2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2927,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.sudo"
+      ],
+      "digest": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_formview_action",
+      "kind": "rpc",
+      "method": "get_formview_action",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f4edcfe3654b97ad72a319b821d294d1424decaa7390bc239027a6b78f9e970d",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3249,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_formview_id",
+      "kind": "rpc",
+      "method": "get_formview_id",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "95c1752af454541997c8ccf2725058469cf43a5fd4da850f3a10f7d5fd29fb27",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 3238,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_import_templates",
+      "kind": "rpc",
+      "method": "get_import_templates",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base_import"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "d8392d1f12eba5b1791ef6af27e90a1fc627cacbc6da374ac0ea04942331091a",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 86,
+          "path": "addons/base_import/models/base_import.py"
+        },
+        {
+          "path": "odoo/addons/base_import/models/base_import.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_metadata",
+      "kind": "rpc",
+      "method": "get_metadata",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9478f042e1ad35efe156f1cebf773332d56b07c5d5a63ce07e245dea08083a64",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3217,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_property_definition",
+      "kind": "rpc",
+      "method": "get_property_definition",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "1ac7b96c8c74abf184cdf2821627c7c899e14c965ece4dcc9af28468196b1217",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2303,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.bill.company.transfer.line.browse"
+      ],
+      "digest": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_view",
+      "kind": "rpc",
+      "method": "get_view",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0acf8bd48cd6c0a934eab7561db739e01d8bf0281b9acfeb6c0d80b806025011",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3156,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "line": 359,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:ir.ui.view.sudo",
+        "rpc:usl.bill.company.transfer.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:ir.actions.actions.get_bindings",
+        "rpc:ir.filters.get_filters",
+        "rpc:usl.bill.company.transfer.line.get_view"
+      ],
+      "digest": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.get_views",
+      "kind": "rpc",
+      "method": "get_views",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "28821b46e4ace196e2c4841baa399fd93e3de113f7b8a23e02a6ac1ebb808bb3",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2923,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.has_access",
+      "kind": "rpc",
+      "method": "has_access",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7dde4c8c80708d5316a9b4ba890ccf506ecf99b81b508323688f41a5583a122a",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3395,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.has_field_access",
+      "kind": "rpc",
+      "method": "has_field_access",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "799cce23243afb3ae60b8c02627890f175177862620a93c73cdf96aba995336e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2638,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.search"
+      ],
+      "digest": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.hierarchy_read",
+      "kind": "rpc",
+      "method": "hierarchy_read",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web_hierarchy"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "53fa4526fb68ef0dfeff75923fc2d934765dc9ae6f9c726a8962e047b4531ec1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 10,
+          "path": "addons/web_hierarchy/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web_hierarchy/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 220,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 182,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.check_access",
+        "rpc:usl.bill.company.transfer.line.default_get",
+        "rpc:usl.bill.company.transfer.line.fetch",
+        "rpc:usl.bill.company.transfer.line.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1955,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6461,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.check_access",
+        "rpc:usl.bill.company.transfer.line.fetch",
+        "rpc:usl.bill.company.transfer.line.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1943,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1362,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.fields_get",
+        "rpc:usl.bill.company.transfer.line.search_count",
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1775,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.fields_get",
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1634,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5164,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cb3a90a9ca4752d4aa8a98534ed1ffc659568c64c592a90eda2f67a36f67edd",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 46,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 663,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2787,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.browse",
+        "rpc:usl.bill.company.transfer.line.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.bill.company.transfer.line.ensure_one",
+        "rpc:usl.bill.company.transfer.line.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2174,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.browse",
+        "rpc:usl.bill.company.transfer.line.formatted_read_group",
+        "rpc:usl.bill.company.transfer.line.search",
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 346,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.browse",
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 319,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.browse",
+        "rpc:usl.bill.company.transfer.line.create",
+        "rpc:usl.bill.company.transfer.line.with_context",
+        "rpc:usl.bill.company.transfer.line.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.browse",
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 135,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.onchange",
+        "rpc:usl.bill.company.transfer.line.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.line.search_count",
+        "rpc:usl.bill.company.transfer.line.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.line.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.line.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.bill.company.transfer.line",
+      "modules": [
+        "base",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8023729d4ec15a34439ea54d89d3e037ea6897df9039b6ead204c787e60e7a1f",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 632,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.load",
+      "kind": "rpc",
+      "method": "load",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "aa42854816e20eef9f3bef4c8a7f7093ace251608e2835ac74c5b648ccdbb5a1",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 922,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.mail_allowed_qweb_expressions",
+      "kind": "rpc",
+      "method": "mail_allowed_qweb_expressions",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "db8fea907626f92f1ff6db9395f1e14164568b94e599a3998467f1cfebeb397c",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 220,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.mail_get_partner_fields",
+      "kind": "rpc",
+      "method": "mail_get_partner_fields",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "mail"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "a336a2519b3cd4da27cb4136737e46b9917505349b03486123f14e0c971a669e",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 182,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.name_create",
+      "kind": "rpc",
+      "method": "name_create",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e6630daa1f607675b91db65c230d53ad6df4b76fe10f88b2f49eca774d4948ee",
+      "sinks": [
+        "orm_create"
+      ],
+      "sources": [
+        {
+          "line": 1543,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.name_search",
+      "kind": "rpc",
+      "method": "name_search",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f70bce1e80cfd78fda12b36edcf68116ce8fbc3d07b0eee6a5888480a03ed0dd",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 1564,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.default_get",
+        "rpc:usl.bill.company.transfer.fetch",
+        "rpc:usl.bill.company.transfer.new"
+      ],
+      "digest": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.onchange",
+      "kind": "rpc",
+      "method": "onchange",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "bb63b0e5f4471bbe579f6bd9d01af667898fd0484a0b5bf5e725470a019f8433",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 1955,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "line": 6461,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.check_access",
+        "rpc:usl.bill.company.transfer.fetch",
+        "rpc:usl.bill.company.transfer.new"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.onchange"
+      ],
+      "digest": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.onchange_batch",
+      "kind": "rpc",
+      "method": "onchange_batch",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ea23ff314cc0eb80f6694e2cde1c27ec9b0ea33af0df59d0eacc21b25d53ad30",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1943,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.read",
+      "kind": "rpc",
+      "method": "read",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0d6c99c6016f86318429152c1963ab593f5a5c240600946465a0ace17820f327",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2733,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.formatted_read_group"
+      ],
+      "digest": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.read_progress_bar",
+      "kind": "rpc",
+      "method": "read_progress_bar",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "de4401e52e0cc988131fc11f0c347e20a6b4711220c1152b1a161d892da174a4",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1362,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.search",
+      "kind": "rpc",
+      "method": "search",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "471d7d3160921d01da2add1ddbec37ccea1d00f6e1d65854177a91687eb04403",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1403,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.search_count",
+      "kind": "rpc",
+      "method": "search_count",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "123617ed36078cbf6b54e9ac2229a2f8905d7189d3d85f5e9be5765bc082d666",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1387,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.fields_get",
+        "rpc:usl.bill.company.transfer.search_count",
+        "rpc:usl.bill.company.transfer.with_context"
+      ],
+      "digest": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.search_panel_select_multi_range",
+      "kind": "rpc",
+      "method": "search_panel_select_multi_range",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "8d1084cfaa7d7812902ea17cd937614b41c19556ff0370dff296111612ed17d2",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1775,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.fields_get",
+        "rpc:usl.bill.company.transfer.with_context"
+      ],
+      "digest": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.search_panel_select_range",
+      "kind": "rpc",
+      "method": "search_panel_select_range",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f15fd0ab0ecc4f8a69aaba36f4bfc1948dc54f91dcd58f43abedfa92db7414ad",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 1634,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.search_read",
+      "kind": "rpc",
+      "method": "search_read",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "e24e0149cc13b22ffe7216068d9cc91d4ad8abd145bb39a15322f2f205593b19",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 5164,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.unlink",
+      "kind": "rpc",
+      "method": "unlink",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "mail",
+        "usl_access_control"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cb3a90a9ca4752d4aa8a98534ed1ffc659568c64c592a90eda2f67a36f67edd",
+      "sinks": [
+        "orm_unlink",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3550,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 46,
+          "path": "addons/mail/models/models.py"
+        },
+        {
+          "line": 663,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "odoo/addons/mail/models/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:mail.activity.with_context",
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.update_field_translations",
+      "kind": "rpc",
+      "method": "update_field_translations",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ebb8d3f11a6eb5272e7826ecf89c2299f4e381db6db738774fca6a44ece50361",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 2756,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "digest": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.view_header_get",
+      "kind": "rpc",
+      "method": "view_header_get",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "b14c94c41cfa171935e3cd3c93d8c9d8a732e022b83229ff98e6f8563f7dd110",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2787,
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        },
+        {
+          "path": "odoo/addons/base/models/ir_ui_view.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.browse",
+        "rpc:usl.bill.company.transfer.name_search"
+      ],
+      "digest": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_name_search",
+      "kind": "rpc",
+      "method": "web_name_search",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "c432ba6a42dc18b2c8d36fc07d9fe66ab05e98d5bb4723f94b0e9a8cee8703a6",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 44,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.browse"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:res.lang.get_installed",
+        "rpc:usl.bill.company.transfer.ensure_one",
+        "rpc:usl.bill.company.transfer.update_field_translations"
+      ],
+      "digest": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_override_translations",
+      "kind": "rpc",
+      "method": "web_override_translations",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "65b2b80d23fbf97f4beb6aa63793a2192c87df69a6b13e5205874744728e18e7",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 2174,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.ensure_one"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.read"
+      ],
+      "digest": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_read",
+      "kind": "rpc",
+      "method": "web_read",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "0397df491af3e68dbf5a2c82620a77599e65baba4ec9661805e0dee10c669b41",
+      "sinks": [
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 145,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.browse",
+        "rpc:usl.bill.company.transfer.formatted_read_group",
+        "rpc:usl.bill.company.transfer.search",
+        "rpc:usl.bill.company.transfer.with_context"
+      ],
+      "digest": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_read_group",
+      "kind": "rpc",
+      "method": "web_read_group",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7cdc0dc7cd7348ca758ab89f1d40dd19c9157f3cd41788ad93bab7d62848bb5a",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 346,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.browse",
+        "rpc:usl.bill.company.transfer.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.web_read"
+      ],
+      "digest": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_resequence",
+      "kind": "rpc",
+      "method": "web_resequence",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "9fb7342771181391f3c6bae96f4df108874f3ce018d05005ab2e137ae42dc48b",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 319,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.browse",
+        "rpc:usl.bill.company.transfer.create",
+        "rpc:usl.bill.company.transfer.with_context",
+        "rpc:usl.bill.company.transfer.write"
+      ],
+      "digest": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_save",
+      "kind": "rpc",
+      "method": "web_save",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "112c33674d0668e62e51bf2c39467d97d7134617b41020fc6ed35aabba1fd575",
+      "sinks": [
+        "orm_create",
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 79,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.browse",
+        "rpc:usl.bill.company.transfer.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.with_context"
+      ],
+      "digest": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_save_multi",
+      "kind": "rpc",
+      "method": "web_save_multi",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "dd52456050d0b84dceed94a869936592107bb741e770b55c9a4086276fab48bb",
+      "sinks": [
+        "orm_write"
+      ],
+      "sources": [
+        {
+          "line": 135,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.with_context"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.onchange",
+        "rpc:usl.bill.company.transfer.web_save"
+      ],
+      "digest": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_save_offline",
+      "kind": "rpc",
+      "method": "web_save_offline",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "7157bb403b00929753ca73ce4a864b9439d5a301a3b402d27762c360eb2ca163",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 88,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.bill.company.transfer.search_count",
+        "rpc:usl.bill.company.transfer.search_fetch"
+      ],
+      "digest": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.web_search_read",
+      "kind": "rpc",
+      "method": "web_search_read",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "web"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "883780099f8b4e2da155770cd316e20a5df8d7684c348d772c1d3e594b840018",
+      "sinks": [],
+      "sources": [
+        {
+          "line": 55,
+          "path": "addons/web/models/models.py"
+        },
+        {
+          "path": "odoo/addons/web/models/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.bill.company.transfer.search_fetch"
+      ]
+    },
+    {
+      "abstract": false,
+      "archiveable": false,
+      "delegates": [
+        "rpc:usl.agent.sudo"
+      ],
+      "digest": "948c9b1a0a3ba3a5b54237b39e27bdd02497a96c6ccefd9c738287d7a2efa79d",
+      "guards": [],
+      "key": "rpc:usl.bill.company.transfer.write",
+      "kind": "rpc",
+      "method": "write",
+      "model": "usl.bill.company.transfer",
+      "modules": [
+        "base",
+        "usl_access_control",
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "4028e35b4c14dbfc2fe35ebade4b8a923d895a7dbd7b5a044e4ed3e954bb8465",
+      "sinks": [
+        "orm_write",
+        "sudo"
+      ],
+      "sources": [
+        {
+          "line": 3696,
+          "path": "odoo/orm/models.py"
+        },
+        {
+          "line": 55,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "line": 632,
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        },
+        {
+          "path": "odoo/orm/models.py"
+        }
+      ],
+      "transient": true,
+      "unresolved_delegates": [
+        "rpc:usl.agent.sudo"
+      ]
+    },
+    {
       "abstract": true,
       "archiveable": false,
       "digest": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
@@ -1363780,7 +1367325,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1409,
+          "line": 1444,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363815,7 +1367360,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1400,
+          "line": 1435,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363855,7 +1367400,7 @@
       ],
       "sources": [
         {
-          "line": 1133,
+          "line": 1136,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363895,7 +1367440,7 @@
       ],
       "sources": [
         {
-          "line": 1430,
+          "line": 1465,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363930,7 +1367475,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1245,
+          "line": 1248,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1363968,7 +1367513,7 @@
       ],
       "sources": [
         {
-          "line": 1235,
+          "line": 1238,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364003,7 +1367548,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1418,
+          "line": 1453,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364040,7 +1367585,7 @@
       ],
       "sources": [
         {
-          "line": 1260,
+          "line": 1263,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364121,7 +1367666,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 1391,
+          "line": 1426,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364263,7 +1367808,7 @@
       ],
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364305,7 +1367850,7 @@
       ],
       "sources": [
         {
-          "line": 1109,
+          "line": 1112,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1364326,7 +1367871,7 @@
         "rpc:usl.document.browse",
         "rpc:usl.paperless.user.mapping.search"
       ],
-      "digest": "3705885878f5ef2808e1854075825b52e73c1571cc62cdad936ca627073260f9",
+      "digest": "b7e8385383685a7f9c1a5531bfc6d73821d317f4cdfcbfd52e64b4e3b3a9f031",
       "guards": [],
       "key": "rpc:usl.document.action_sync_permissions",
       "kind": "rpc",
@@ -1364337,14 +1367882,14 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a5d20dd3c78c768e51d840a03358b18217634400e9a37abf26a124b5e9447338",
+      "runtime_digest": "7db0ec9ee5a1e690910da45d7e7d6f8b8ed87274dd9b557ea3521dc2c9abf66f",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1366551,7 +1370096,7 @@
           "path": "odoo/orm/models.py"
         },
         {
-          "line": 414,
+          "line": 417,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1396488,7 +1400033,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 844,
+          "line": 847,
           "path": "custom-addons/usl_documents/models/document.py"
         },
         {
@@ -1679899,6 +1683444,204 @@
       ]
     },
     {
+      "digest": "2fb8384d7d66a970bde9ddae6e2d8d06d3194b9e8ac271c16c874dbaa7a4f2c9",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:account.move.action_change_bill_company:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:account.move.action_change_bill_company"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 22,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "0bfa22bbd867ad4f408375951ccae1b582f654fd99bbd737e88c00ca9bf51fff",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:message_send:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "sink_kind": "message_send",
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "7c75e11e115345b379d85f6401bab620f74430ffaec896a59e9f50015586e5aa",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "1d764b96c0bcece8022f951f5a3c5ac388233e3639966ddecbebe96db50d8cd7",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "f9ae6b84aea76307216e2535201c339bf92a73095b4385bdff918cd584104323",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:orm_write:3",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "1e267efb02d4d911be9db6ec583a1adb05287f492e724746c03856dbfdece749",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:orm_write:4",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 151,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "0b6119c39e617c172429ff3aa3960ca0cd3b33db17d288e0af6c6bb5f8d5683f",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_choose_company:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_choose_company"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 116,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "033dd683cfe946e2844b39a77638f9f24c81e20658cd708c557b3958553d9af1",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_prepare_mapping"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 92,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "42ec4097e8f9fa1663db46792755699720356d2aa0822269d29a5fd0388ec812",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.action_prepare_mapping"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 92,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "1a8ed4262374c2dd0e3fbc7c7b52e22bbdcabf3c247e478f1e50f158913f8c99",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 50,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "3fc09319caddd287b63c0d6aeb6df9d285abf8f194478ad2d423d9d490eb33f4",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 55,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
       "digest": "9289fca952226ba3368cb5831e21c734672198fd7f766ad39f1a8240ad25d03a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard._usl_dispatch:orm_write:1",
       "kind": "sink",
@@ -1686220,7 +1689963,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 427,
+          "line": 430,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686235,7 +1689978,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 427,
+          "line": 430,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686250,7 +1689993,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 501,
+          "line": 504,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686265,7 +1690008,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 771,
+          "line": 774,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686280,7 +1690023,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 483,
+          "line": 486,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686295,7 +1690038,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 383,
+          "line": 386,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686310,7 +1690053,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 383,
+          "line": 386,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686325,7 +1690068,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 540,
+          "line": 543,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686340,7 +1690083,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 938,
+          "line": 941,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686355,7 +1690098,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 938,
+          "line": 941,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686370,7 +1690113,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 938,
+          "line": 941,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686385,7 +1690128,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 938,
+          "line": 941,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686400,7 +1690143,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 938,
+          "line": 941,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686415,7 +1690158,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 742,
+          "line": 745,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686430,7 +1690173,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 718,
+          "line": 721,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686445,7 +1690188,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1054,
+          "line": 1057,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686460,7 +1690203,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1054,
+          "line": 1057,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686475,7 +1690218,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1054,
+          "line": 1057,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686490,7 +1690233,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1054,
+          "line": 1057,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686505,7 +1690248,22 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1054,
+          "line": 1057,
+          "path": "custom-addons/usl_documents/models/document.py"
+        }
+      ]
+    },
+    {
+      "digest": "eb92048a65ead731772d877c7156b3367ae34f2b2816de3623073a8281ad8865",
+      "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._track_paperless_permission_writes:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_documents"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 1307,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686523,7 +1690281,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1133,
+          "line": 1136,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686541,7 +1690299,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1133,
+          "line": 1136,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686559,7 +1690317,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1133,
+          "line": 1136,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686577,7 +1690335,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1430,
+          "line": 1465,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686595,7 +1690353,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1235,
+          "line": 1238,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686613,7 +1690371,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1260,
+          "line": 1263,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686631,7 +1690389,7 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686649,7 +1690407,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686667,7 +1690425,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686685,7 +1690443,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686703,7 +1690461,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1183,
+          "line": 1186,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686721,7 +1690479,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 1109,
+          "line": 1112,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686739,7 +1690497,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1109,
+          "line": 1112,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686757,13 +1690515,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1109,
+          "line": 1112,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "6f7932705260eec70d432433d3177b3ed62bb3bfbc7e23013ba6df9e840e763f",
+      "digest": "85463ef350e928421dfcd24de86d3f5713c32aa81548cbc6d5026615d06ef2e2",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1686775,13 +1690533,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "316a5e7149cb5f2783843c69900606060fece7da8b2a06080574d5a9a8c3ccfe",
+      "digest": "04626b03235c7f05039ff14a2c35d56d5bd6bd66c9f7106a5e2f67446108468b",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1686793,13 +1690551,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "579560ae8bebd35adf1d1452a9d2905c549a66ded9d94f3796708f06ee4f2904",
+      "digest": "b13f0c161d7e927aaf130270ff9d7b6611aa8a22c91bd754f13408a1af4f4f15",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1686811,13 +1690569,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "291e641e7d25f19f78b57eb3f5ffc16be01853ce12430d04f92712eabc89fcba",
+      "digest": "2e4cd9fa2a610a8e0d9dee8ba9297ad4deb425d3a9cc45a39c4e82d7d60c957f",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1686829,13 +1690587,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "68444fd4bd4d3fae372f3edff01c219daecc9409e283a657d7de9483eff5384d",
+      "digest": "ee3d2b87637e617e26e3767331f1f33f1bc9ed0a762f19308519826b64c60d6b",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1686847,13 +1690605,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "ece81fb6a176a9776d7bb82ad1bcc6f21309862ca580a739c882717ba3d9246e",
+      "digest": "a3ac18486ffd744f1f57fe4054d59723341fddbfce1a8857317045e527e07c9e",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1686865,13 +1690623,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
     },
     {
-      "digest": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
+      "digest": "22dafb45a88b44adc651f7526741abaff0091ede7c7680e73db16a697b67de03",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3",
       "kind": "sink",
       "modules": [
@@ -1686883,7 +1690641,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 1303,
+          "line": 1335,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686901,7 +1690659,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 414,
+          "line": 417,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1686919,7 +1690677,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 844,
+          "line": 847,
           "path": "custom-addons/usl_documents/models/document.py"
         }
       ]
@@ -1758348,6 +1762106,81 @@
     },
     {
       "delegates": [
+        "rpc:usl.bill.company.transfer.action_apply"
+      ],
+      "digest": "705ac542744ef24df9f8f52cc479c8d1fea1fe719d8408fcc9a49258fe065c20",
+      "guards": [],
+      "key": "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_apply:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "f478373cc700be8831ca8b1e8ba6f4898bc46c767d29045e5d8aa111f9d4f2a7",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_bill_company_transfer_form"
+        }
+      ],
+      "xmlid": "usl_accounting.view_bill_company_transfer_form"
+    },
+    {
+      "delegates": [
+        "rpc:usl.bill.company.transfer.action_choose_company"
+      ],
+      "digest": "6c6ef9ee8bf61d54cde09eeb44fa494bab48be174a518aa95877a5d7c9e6cefc",
+      "guards": [],
+      "key": "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_choose_company:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "10077a45843f2f17460b663ad0c2c3581ef96c43696b5141098c719d57fadcd6",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_bill_company_transfer_form"
+        }
+      ],
+      "xmlid": "usl_accounting.view_bill_company_transfer_form"
+    },
+    {
+      "delegates": [
+        "rpc:usl.bill.company.transfer.action_prepare_mapping"
+      ],
+      "digest": "6e7790880284ed52387a8cfc7d6afb3717bd25840902fb49317d1156f8bb146b",
+      "guards": [],
+      "key": "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "870bb192381d5c8d0b38609f05a3945af963a34687ca214d78b67a4453b51053",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_bill_company_transfer_form"
+        }
+      ],
+      "xmlid": "usl_accounting.view_bill_company_transfer_form"
+    },
+    {
+      "delegates": [
         "rpc:usl.expense.bank.match.candidate.action_open_confirmation"
       ],
       "digest": "c8869d541d7cd366203e877f2f32c0dc024591cf07522ff0294167746b14dfe8",
@@ -1758570,6 +1762403,31 @@
         }
       ],
       "xmlid": "usl_accounting.view_hr_expense_form_linked_receipt"
+    },
+    {
+      "delegates": [
+        "rpc:account.move.action_change_bill_company"
+      ],
+      "digest": "2bcc65aee9f3215fc0c5c2e2bec2240bce6d270e8dde980cb4bdefa0285881a7",
+      "guards": [],
+      "key": "ui:usl_accounting.view_move_form_bill_company_transfer:button:object:action_change_bill_company:1",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "ed30c73c60630ab2e502e109e9726d70572aec44b2e9eddd0336a22493d89b35",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer_views.xml"
+        },
+        {
+          "path": "database:ir.ui.view:usl_accounting.view_move_form_bill_company_transfer"
+        }
+      ],
+      "xmlid": "usl_accounting.view_move_form_bill_company_transfer"
     },
     {
       "delegates": [
@@ -1768569,11 +1772427,11 @@
       "version": "saas~19.3.1.8.17"
     },
     {
-      "manifest_sha256": "4f9040bdb650a3982873d52a71c8754c677f302157b991c86118b5154e06524f",
+      "manifest_sha256": "13f99ef6d91bd5009a9be3a56c470e62c7041a5388244e7d588332fad104f00c",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "5e093707d432b228c2e4d3dabc0893e1c87bb8110790d4a4487ae2ff30da43b2",
-      "version": "saas~19.3.2.2.23"
+      "source_sha256": "108419679de58c62d6357525396e7fe413db887983f0e2337b08537cb9cd3940",
+      "version": "saas~19.3.2.2.24"
     },
     {
       "manifest_sha256": "d3991a85f02eca8b6b43179b39270cc15cfaf68325f4ff2181e354ccb01c4cf0",
@@ -1768604,11 +1772462,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "8441b203d8544f2dcc125960ebd238995c4836580526795487b10b4c5f3469da",
+      "manifest_sha256": "21fed61ac2d71992a260214853fd91c9d8bb6e04bcbe03d416754e146ca5416a",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "c181d74bd163631b43a44b60b8ade33dfbed55f73e8a5f3d3aed856aacd25ac3",
-      "version": "saas~19.3.1.10.8"
+      "source_sha256": "76c5d6a273a436fd0df3d9390414a941981344248493bccf2dfd80be336fd7f4",
+      "version": "saas~19.3.1.10.9"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
