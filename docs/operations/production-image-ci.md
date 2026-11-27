@@ -189,6 +189,13 @@ the renderer or fontTools, prepare a synthetic Factur-X through Odoo, extract
 its XML with `pdfdetach`, and validate the resulting PDF against veraPDF
 profile 3b. An embedded XML file alone does not establish PDF/A conformity.
 
+The Factur-X assembly step is shared by QWeb and the governed document
+renderer. Keep the PDF writer's XMP identification and binary-header handling
+together when updating the Odoo core patch. Qualify the final document with its
+declared PDF/A profile as well as the 3b baseline. For a configured QWeb invoice
+template, verify that the preview and the prepared delivery each include
+exactly one `factur-x.xml` and that the delivered XML matches the generated XML.
+
 To test an image already built for one architecture, run the following on a
 host with Docker and Poppler. The test renders two pages in both portrait and
 landscape, then checks every page's text, page numbers and embedded logo.

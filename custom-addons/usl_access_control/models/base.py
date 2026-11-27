@@ -219,18 +219,23 @@ class Base(models.AbstractModel):
         # Business records use the owner's personal follower/assignment rules;
         # shared records retain their native acting-identity relationships.
         # Both remain within the owner's current company and model access.
-        if "company_id" in self._fields:
-            company_domain = Domain(
-                [
-                    "|",
-                    ("company_id", "=", False),
-                    ("company_id", "in", sorted(allowed_companies)),
-                ],
-            )
-            owner_domain = Domain.AND([owner_domain, company_domain])
+        owner_domain = Domain.AND([
+            owner_domain, self._usl_agent_company_ceiling(allowed_companies),
+        ])
         if native_relationship:
             return owner_domain
         return self._usl_agent_union_domain(operation, owner_domain, allowed_companies)
+
+    @api.model
+    def _usl_agent_company_ceiling(self, allowed_companies):
+        """The records of the allowed companies, as a domain; true without a company."""
+        if "company_id" not in self._fields:
+            return Domain.TRUE
+        return Domain([
+            "|",
+            ("company_id", "=", False),
+            ("company_id", "in", sorted(allowed_companies)),
+        ])
 
     @api.model
     def _usl_agent_union_domain(self, operation, delegated_domain, allowed_companies):
@@ -244,15 +249,9 @@ class Base(models.AbstractModel):
         """
         own_model = self.with_context(allowed_company_ids=sorted(allowed_companies))
         own_domain = super(Base, own_model)._access_domain(operation)
-        if "company_id" in self._fields:
-            own_domain = Domain.AND([
-                own_domain,
-                Domain([
-                    "|",
-                    ("company_id", "=", False),
-                    ("company_id", "in", sorted(allowed_companies)),
-                ]),
-            ])
+        own_domain = Domain.AND([
+            own_domain, self._usl_agent_company_ceiling(allowed_companies),
+        ])
         return Domain.OR([delegated_domain, own_domain])
 
     @api.model

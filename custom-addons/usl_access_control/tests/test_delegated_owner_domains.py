@@ -320,6 +320,76 @@ class TestDelegatedOwnerDomains(HttpCase):
             "The native rule must reach the partner, or this test proves nothing.",
         )
 
+    def _two_company_agent(self):
+        # The owner's default company is A, the Agent's user defaults to B,
+        # and both belong to A and B.
+        both = self.company | self.other_company
+        agent = self.env["usl.agent"].with_user(self.owner).create({
+            "name": "[QA owner domains] Two companies", "purpose": "Assign tasks",
+            "company_id": self.other_company.id, "company_ids": [Command.set(both.ids)],
+            "access_mode": "read_write",
+            "delegated_group_ids": [Command.set(self.env.ref("project.group_project_user").ids)],
+        })
+        self.assertEqual(agent.user_id.company_id, self.other_company)
+        self.assertEqual(self.owner.company_id, self.company)
+        self.assertEqual(agent.user_id.company_ids, both)
+        return agent
+
+    def test_agent_scoped_to_one_company_sees_the_users_who_belong_to_it(self):
+        user = self._two_company_agent().user_id
+        people = self.owner | user
+        for company in (self.company, self.other_company):
+            with self.subTest(company=company.id):
+                users = self.env["res.users"].with_user(user).with_context(
+                    allowed_company_ids=company.ids,
+                )
+                self.assertEqual(users.search([("id", "in", people.ids)]), people)
+                people.with_user(user).with_context(allowed_company_ids=company.ids).check_access("read")
+
+    def test_agent_assigns_users_on_a_task_of_the_scoped_company(self):
+        agent = self._two_company_agent()
+        user = agent.user_id
+        people = self.owner | user
+        for company in (self.company, self.other_company):
+            with self.subTest(company=company.id):
+                access = UslAgentJson2Controller._check_agent_call(
+                    agent=agent, model_name="project.task", method_name="write", kwargs={},
+                )
+                context = UslAgentJson2Controller._agent_call_context(
+                    context={"allowed_company_ids": company.ids}, agent=agent,
+                    model_name="project.task", method_name="write", access=access,
+                )
+                project = self.env["project.project"].create({
+                    "name": f"[QA owner domains] Assign {company.id}", "company_id": company.id,
+                })
+                task = self.env["project.task"].create({
+                    "name": f"[QA owner domains] Assign {company.id}", "project_id": project.id,
+                })
+                project.message_subscribe(partner_ids=people.partner_id.ids)
+                self.env.flush_all()
+                task.with_user(user).with_context(context).write({
+                    "user_ids": [Command.set(people.ids)],
+                })
+                self.assertEqual(task.sudo().user_ids, people)
+
+    def test_agent_still_cannot_see_a_user_outside_the_scoped_company(self):
+        user = self._two_company_agent().user_id
+        outsider = self.env["res.users"].with_context(
+            no_reset_password=True, usl_governed_identity_provisioning=True,
+        ).create({
+            "name": "[QA owner domains] Outsider", "login": "qa.owner.domains.outsider",
+            "company_id": self.other_company.id, "company_ids": [Command.set(self.other_company.ids)],
+            "usl_identity_classification": "active",
+        })
+        self.env.flush_all()
+        users = self.env["res.users"].with_user(user)
+        scoped_a = users.with_context(allowed_company_ids=self.company.ids)
+        self.assertFalse(scoped_a.search([("id", "=", outsider.id)]))
+        with self.assertRaises(AccessError):
+            outsider.with_user(user).with_context(allowed_company_ids=self.company.ids).check_access("read")
+        scoped_b = users.with_context(allowed_company_ids=self.other_company.ids)
+        self.assertEqual(scoped_b.search([("id", "=", outsider.id)]), outsider)
+
     def test_writable_agent_writes_union_of_owner_and_own_access(self):
         writer, user = self._writer()
         shared = self.env["project.project"].create({

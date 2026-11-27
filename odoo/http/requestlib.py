@@ -388,7 +388,7 @@ class Request:
 
         # Create and expose a new request from the modified WSGI env
         httprequest = HTTPRequest(environ)
-        threading.current_thread().url = httprequest.url
+        threading.current_thread().url = 'unmatched'
         self.httprequest = httprequest
 
 
