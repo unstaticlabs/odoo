@@ -760,8 +760,13 @@ msgstr "De qui la tâche attend une réponse, lorsque c'est un contact."
 
 #. module: usl_project
 #: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
-msgid "Waiting for…"
-msgstr "En attente de…"
+msgid "What is it waiting for?"
+msgstr "Ce qu'elle attend (devis, réponse, livraison…)"
+
+#. module: usl_project
+#: code:addons/usl_project/models/project_task.py:0
+msgid "Say what this task is waiting for, or choose another status."
+msgstr "Indiquez ce que cette tâche attend, ou choisissez un autre statut."
 
 #. module: usl_project
 #: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
@@ -776,7 +781,16 @@ msgstr "En cours"
 
 #. module: usl_project
 #: code:addons/usl_project/static/src/task_waiting/waiting.js:0
-#: model_terms:ir.ui.view,arch_db:usl_project.project_task_kanban_waiting_reason
 #. odoo-javascript
 msgid "Waiting"
 msgstr "En attente"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_kanban_waiting_reason
+msgid "Task is waiting"
+msgstr "Tâche en attente"
+
+#. module: usl_project
+#: model_terms:ir.ui.view,arch_db:usl_project.project_task_form_waiting_reason
+msgid "Waiting reason"
+msgstr "Motif d'attente"

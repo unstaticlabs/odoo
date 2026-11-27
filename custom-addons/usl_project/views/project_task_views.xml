@@ -108,7 +108,10 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet/group[1]" position="before">
                 <div class="o_usl_waiting_reason d-flex flex-wrap gap-2 mb-3" invisible="state != '04_waiting_normal'">
-                    <field name="usl_waiting_reason" nolabel="1" class="flex-grow-1" placeholder="Waiting for…"/>
+                    <i class="fa fa-hourglass-o text-muted align-self-center" title="Waiting reason"/>
+                    <label for="usl_waiting_reason" class="o_usl_waiting_label text-muted align-self-center mb-0"/>
+                    <field name="usl_waiting_reason" nolabel="1" widget="usl_waiting_reason" class="flex-grow-1"
+                           placeholder="What is it waiting for?" required="state == '04_waiting_normal' and not depend_on_ids"/>
                     <field name="usl_waiting_partner_id" nolabel="1" class="o_usl_waiting_partner" placeholder="Waiting on (contact)" options="{'no_create': True}"/>
                 </div>
             </xpath>
@@ -122,7 +125,7 @@
             <xpath expr="//t[@t-name='card']/main/field[@name='name']" position="after">
                 <div t-if="record.state.raw_value === '04_waiting_normal' and record.usl_waiting_reason.raw_value"
                      class="o_usl_waiting_line text-muted small text-truncate">
-                    <i class="fa fa-hourglass-o me-1" title="Waiting"/><field name="usl_waiting_reason"/><t t-if="record.usl_waiting_partner_id.raw_value"> · <field name="usl_waiting_partner_id"/></t>
+                    <i class="fa fa-hourglass-o me-1" title="Task is waiting"/><field name="usl_waiting_reason"/><t t-if="record.usl_waiting_partner_id.raw_value"> · <field name="usl_waiting_partner_id"/></t>
                 </div>
             </xpath>
         </field>

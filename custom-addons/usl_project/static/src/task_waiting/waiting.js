@@ -1,5 +1,7 @@
+import { onMounted } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
+import { CharField, charField } from "@web/views/fields/char/char_field";
 import {
     ProjectTaskStateSelection,
     projectTaskStateSelection,
@@ -18,7 +20,8 @@ export class WaitingTaskState extends ProjectTaskStateSelection {
         const options = super.options;
         const data = this.props.record.data;
         if (data[this.props.name] === WAITING) {
-            if (data.usl_waiting_reason) {
+            // Also while the Waiting choice is unsaved, so it can be undone.
+            if (data.usl_waiting_reason || this.props.record.dirty) {
                 options.unshift([IN_PROGRESS, _t("In Progress")]);
             }
         } else if (this.props.viewType === "form" && !this.props.readonly) {
@@ -31,15 +34,25 @@ export class WaitingTaskState extends ProjectTaskStateSelection {
         if (value !== WAITING || this.props.viewType !== "form") {
             return super.updateRecord(value);
         }
-        // Do not save a Waiting task that has no reason yet: show the reason
-        // field, focus it, and let the normal form save record both together.
+        // Do not save a Waiting task that has no reason yet: the reason field
+        // appears, takes focus, and the form saves both together.
         await this.props.record.update({ [this.props.name]: value });
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        document
-            .querySelector(".o_form_view .o_field_widget[name='usl_waiting_reason'] input")
-            ?.focus();
     }
 }
+
+/** The reason input takes focus when Waiting was just chosen on this form. */
+export class WaitingReasonField extends CharField {
+    setup() {
+        super.setup();
+        onMounted(() => {
+            if (!this.props.record.data[this.props.name] && this.props.record.dirty) {
+                this.input.el?.focus();
+            }
+        });
+    }
+}
+
+registry.category("fields").add("usl_waiting_reason", { ...charField, component: WaitingReasonField });
 
 registry.category("fields").add(
     "project_task_state_selection",

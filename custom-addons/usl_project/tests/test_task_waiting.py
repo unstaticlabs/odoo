@@ -1,5 +1,5 @@
 from odoo import Command
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 WAITING = "04_waiting_normal"
@@ -104,6 +104,41 @@ class TestTaskWaitingReason(TransactionCase):
             lambda value: value.field_id.name == "usl_waiting_reason" and not value.new_value_char,
         )
         self.assertTrue(cleared, "Resuming is recorded as a cleared reason")
+
+    def test_waiting_needs_a_reason_or_an_open_dependency(self):
+        task = self._task()
+        with self.assertRaises(ValidationError):
+            task.state = WAITING
+        with self.assertRaises(ValidationError):
+            self._task(state=WAITING)
+        blocker = self._task(name="[QA] Blocker")
+        task.depend_on_ids = blocker
+        self.assertEqual(task.state, WAITING)
+        task.depend_on_ids = False
+        self.assertEqual(task.state, "01_in_progress")
+
+    def test_clearing_the_reason_by_hand_clears_the_contact(self):
+        task = self._task(usl_waiting_reason="Supplier quote", usl_waiting_partner_id=self.supplier.id)
+        task.usl_waiting_reason = False
+        self.assertFalse(task.usl_waiting_partner_id)
+        self.assertEqual(task.state, "01_in_progress")
+
+    def test_portal_collaborator_can_move_a_waiting_task_to_done(self):
+        project = self.env["project.project"].create({"name": "[QA] Shared project", "privacy_visibility": "portal"})
+        portal = new_test_user(
+            self.env, login="waiting.collaborator", groups="base.group_portal", context={"no_reset_password": True},
+        )
+        self.env["project.collaborator"].create({
+            "project_id": project.id, "partner_id": portal.partner_id.id, "limited_access": False,
+        })
+        task = self.env["project.task"].create({
+            "name": "[QA] Shared task", "project_id": project.id, "usl_waiting_reason": "Supplier quote",
+            "usl_waiting_partner_id": self.supplier.id,
+        })
+        task.with_user(portal).write({"state": "1_done"})
+        self.assertEqual(task.state, "1_done")
+        self.assertFalse(task.usl_waiting_reason)
+        self.assertFalse(task.usl_waiting_partner_id)
 
     def test_copy_does_not_carry_the_reason(self):
         task = self._task(usl_waiting_reason="Supplier quote", usl_waiting_partner_id=self.supplier.id)

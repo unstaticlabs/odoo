@@ -14,6 +14,8 @@ customer answer, without linking another Odoo task.
   any other field.
 - **Another task.** To wait for an Odoo task, keep using **Blocked By**.
 
+A Waiting task must have a reason or an open dependency: the form requires the reason, and Odoo refuses to store a Waiting task with neither. While the Waiting choice is unsaved, the status menu offers In Progress to undo it. Clearing the reason also clears the contact.
+
 A task is Waiting while a task it depends on is open **or** a reason is set.
 Clearing the reason does not resume a task whose dependencies are still open.
 A reason never reopens a Done or Cancelled task, and a copy never inherits it.

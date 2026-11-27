@@ -3,6 +3,7 @@ from datetime import UTC, timedelta
 from zoneinfo import ZoneInfo
 
 from odoo import _, api, fields, models, tools
+from odoo.exceptions import ValidationError
 
 from odoo.addons.project.models.project_task import CLOSED_STATES
 
@@ -70,10 +71,17 @@ class ProjectTask(models.Model):
             if task.state not in CLOSED_STATES:
                 task.state = _WAITING
 
+    @api.constrains("state", "usl_waiting_reason", "depend_on_ids")
+    def _check_usl_waiting_has_a_cause(self):
+        for task in self.sudo():
+            if task.state == _WAITING and not task.usl_waiting_reason and not task.is_blocked_by_dependences():
+                raise ValidationError(_("Say what this task is waiting for, or choose another status."))
+
     def _usl_is_blocked(self):
         """Blocked by an open task or by an external reason."""
         self.ensure_one()
-        return bool(self.usl_waiting_reason) or self.is_blocked_by_dependences()
+        task = self.sudo()  # collaborators may not read the reason field
+        return bool(task.usl_waiting_reason) or task.is_blocked_by_dependences()
 
     @api.depends("usl_return_reasons", "stage_id", "active", "state", "project_id.active",
                  "project_id.type_ids.sequence", "project_id.type_ids.active", "project_id.type_ids.fold")
@@ -249,10 +257,21 @@ class ProjectTask(models.Model):
 
     def write(self, vals):
         check_return_write(self, [vals])
-        state = vals.get("state")
-        if state and state != _WAITING and "usl_waiting_reason" not in vals and any(self.mapped("usl_waiting_reason")):
-            # Choosing any other status resumes the task.
-            vals = {**vals, "usl_waiting_reason": False, "usl_waiting_partner_id": False}
+        if not self.env.context.get("usl_resume_checked"):
+            state = vals.get("state")
+            if "usl_waiting_reason" in vals and not vals["usl_waiting_reason"] and "usl_waiting_partner_id" not in vals:
+                vals = {**vals, "usl_waiting_partner_id": False}
+            # Choosing any other status resumes the task. The reason is cleared
+            # as the system, so collaborators who cannot read or write it still can.
+            resume = (
+                self.sudo().filtered("usl_waiting_reason")
+                if state and state != _WAITING and "usl_waiting_reason" not in vals
+                else self.browse()
+            )
+            if resume:
+                result = self.with_context(usl_resume_checked=True).write(vals)
+                resume.write({"usl_waiting_reason": False, "usl_waiting_partner_id": False})
+                return result
         if self.env.context.get("usl_skip_task_reactivation") is _SKIP_REACTIVATION:
             return super().write(vals)
 
@@ -270,7 +289,7 @@ class ProjectTask(models.Model):
         if not event_fields.intersection(vals):
             return super().write(vals)
 
-        tracked_tasks = self.exists()
+        tracked_tasks = self.exists().sudo()  # bookkeeping reads fields collaborators cannot
         task_before = tracked_tasks._usl_reactivation_snapshot()
         dependent_tasks = (
             tracked_tasks.sudo().dependent_ids

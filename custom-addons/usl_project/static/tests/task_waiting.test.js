@@ -35,7 +35,7 @@ defineModels([WaitingProject, WaitingTask]);
 const formArch = `<form><sheet>
     <field name="name"/>
     <field name="state" widget="project_task_state_selection"/>
-    <field name="usl_waiting_reason" invisible="state != '04_waiting_normal'"/>
+    <field name="usl_waiting_reason" widget="usl_waiting_reason" invisible="state != '04_waiting_normal'" required="state == '04_waiting_normal'"/>
 </sheet></form>`;
 
 async function openStateMenu() {
@@ -52,6 +52,27 @@ test("choosing Waiting shows the reason field, focuses it and saves nothing yet"
     await contains(".o-dropdown--menu .dropdown-item:contains(Waiting)").click();
     expect(".o_field_widget[name=usl_waiting_reason] input").toHaveCount(1);
     expect(".o_field_widget[name=usl_waiting_reason] input").toBeFocused();
+});
+
+test("an unsaved Waiting choice can be undone with In Progress", async () => {
+    await mountView({ type: "form", resModel: "project.task", resId: 1, arch: formArch });
+    await openStateMenu();
+    await contains(".o-dropdown--menu .dropdown-item:contains(Waiting)").click();
+    await openStateMenu();
+    expect(".o-dropdown--menu .dropdown-item:contains(In Progress)").toHaveCount(1);
+    await contains(".o-dropdown--menu .dropdown-item:contains(In Progress)").click();
+    expect(".o_field_widget[name=usl_waiting_reason]").toHaveCount(0);
+});
+
+test("a Waiting task without a reason cannot be saved", async () => {
+    onRpc("project.task", "web_save", () => {
+        throw new Error("A reasonless Waiting task must not be saved");
+    });
+    await mountView({ type: "form", resModel: "project.task", resId: 1, arch: formArch });
+    await openStateMenu();
+    await contains(".o-dropdown--menu .dropdown-item:contains(Waiting)").click();
+    await contains(".o_form_button_save").click();
+    expect(".o_field_widget[name=usl_waiting_reason]").toHaveClass("o_field_invalid");
 });
 
 test("In Progress is offered while a reason is set, and only then", async () => {
