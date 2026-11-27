@@ -210,13 +210,24 @@ class ProjectTask(models.Model):
         messages = Domain("id", "in", query.select(query.table.res_id))
         return base & ~messages if operator.startswith("not ") else company_domain(self) & (base | messages)
 
+    def _usl_own_text_matches(self, text):
+        """The records of this set whose own title or description matches."""
+        if not self:
+            return self
+        own = super()._search_usl_search_text("ilike", text)
+        return self.with_context(active_test=False).search(Domain("id", "in", self.ids) & own)
+
     def _usl_matching_message_sources(self, query):
         text = _query_text(query, self.env)
         if not text or not self.has_access("read") or not self.has_field_access(self._fields["message_ids"], "read"):
             return {}
         ids = [record.id for record in self if type(record.id) is int]
         readable = self.with_context(active_test=False).search(company_domain(self) & Domain("id", "in", ids))
+        # A task whose own title or description matches is opened as a task. A
+        # chatter mention, often a copy of the title, must not take over its row.
+        readable -= readable._usl_own_text_matches(text)
         Message = self.env["mail.message"]
+        note_subtype_id = self.env["ir.model.data"]._xmlid_to_res_id("mail.mt_note", raise_if_not_found=False)
         result = {}
         for name in Message._usl_readable_task_message_fields():
             remaining = [record.id for record in readable if record.id not in result]
@@ -229,9 +240,16 @@ class ProjectTask(models.Model):
             """, native_query.select(native_query.table.id, native_query.table.res_id)))
             messages = Message.browse([row[0] for row in self.env.cr.fetchall()])
             for message in messages:
+                author = message.author_id._filtered_access("read")
                 result[message.res_id] = {
                     "kind": "message", "model": "mail.message", "id": message.id,
                     "field": name, "label": self.env._("Chatter message"),
+                    # What the reader needs to recognise the passage: who wrote
+                    # it, when, and whether it is a note, a message or a subject.
+                    "message_kind": "subject" if name == "subject" else (
+                        "note" if note_subtype_id and message.subtype_id.id == note_subtype_id else "message"),
+                    "author_name": author.display_name if author else "",
+                    "date": fields.Datetime.to_string(message.date) if message.date else "",
                     "excerpt": _source_excerpt(self.env, message[name] or "", text),
                     "url": "/mail/message/%s" % message.id,
                 }

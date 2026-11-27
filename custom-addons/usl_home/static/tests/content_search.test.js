@@ -2,7 +2,9 @@ import { expect, test } from "@odoo/hoot";
 import { Deferred, animationFrame, advanceTime } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 import { contains, mockService, mountWithCleanup, onRpc } from "@web/../tests/web_test_helpers";
-import { HomeContentSearch } from "../src/home/content_search";
+import { queryAllTexts } from "@odoo/hoot-dom";
+import { router, startRouter } from "@web/core/browser/router";
+import { HomeContentSearch, highlightParts } from "../src/home/content_search";
 
 defineMailModels();
 
@@ -19,7 +21,8 @@ test("local results remain usable while document contents are pending", async ()
     onRpc("usl.home.service", "search_documents", () => pending);
     await mountSearch("Amber");
     await animationFrame();
-    expect(".o_usl_search_result").toHaveText("Launch checklist\nAmber lantern specification");
+    expect(".o_usl_result_title").toHaveText("Launch checklist");
+    expect(".o_usl_result_excerpt").toHaveText("Amber lantern specification");
     expect(".o_usl_content_results").toHaveText(/Searching document contents/);
     pending.resolve(documents);
     await animationFrame();
@@ -101,7 +104,7 @@ test("live page overlaps keep one current row per record and preserve selection"
     await contains("#usl-home-content-search").press("ArrowUp");
     await contains(".o_usl_search_group > button.btn-link").click();
     expect(".o_usl_search_result").toHaveCount(9);
-    expect("#usl-home-search-result-project-task-6").toHaveText("Updated task 6\nAmber");
+    expect("#usl-home-search-result-project-task-6").toHaveText(/Updated task 6\s+Amber/);
     expect("#usl-home-search-result-project-task-6").toHaveAttribute("aria-selected", "true");
 });
 
@@ -112,7 +115,7 @@ test("task results remain available while other business categories are pending"
     onRpc("usl.home.service", "search_documents", () => documents);
     await mountSearch("Amber");
     await animationFrame();
-    expect(".o_usl_search_result").toHaveText("Partial task result\nAmber lantern specification");
+    expect(".o_usl_search_result").toHaveText(/Partial task result\s+Amber lantern specification/);
     expect('[role="status"]').toHaveText(/Searching records/);
     pending.resolve({ groups: [] });
     await animationFrame();
@@ -151,25 +154,52 @@ test("changing and clearing a query aborts superseded native search requests", a
     expect('[role="alert"]').toHaveCount(0);
 });
 
-test("chatter source is legible and keyboard opening rechecks its exact field", async () => {
+test("chatter source names its author and date, marks the terms and opens in the web client", async () => {
+    startRouter();
     const result = local("Prepare the Atelier Ambre visit");
     Object.assign(result.groups[0].records[0], {
-        excerpt: "The ivory linen prototype is ready for the visit.",
-        source: { kind: "message", id: 41, field: "body", label: "Chatter message" },
+        excerpt: "… bring the ivory Linen prototype ready for the visit …",
+        source: {
+            kind: "message", message_kind: "message", id: 41, field: "body", label: "Chatter message",
+            author_name: "Camille Aurore", date: "2026-11-27 09:30:00",
+        },
     });
     onRpc("usl.home.service", "search_records", () => result);
     onRpc("usl.home.service", "search_documents", () => documents);
     onRpc("usl.home.service", "get_search_result_action", ({ args }) => {
         expect(args).toEqual(["project.task", 5, 41, "body"]);
-        return { type: "ir.actions.act_url", url: "/mail/message/41", target: "self" };
+        return { type: "ir.actions.act_window", res_model: "project.task", res_id: 5, usl_highlight_message_id: 41 };
     });
-    mockService("action", { doAction: (action) => expect.step(action.url) });
+    mockService("action", {
+        doAction: (action) => expect.step(`${action.res_model}:${action.res_id}:${router.current.highlight_message_id}:${action.usl_highlight_message_id}`),
+    });
     await mountSearch("prototype linen");
     await animationFrame();
-    expect(".o_usl_search_result").toHaveText("Prepare the Atelier Ambre visit\nChatter message\nThe ivory linen prototype is ready for the visit.");
+    expect(".o_usl_result_source").toHaveText(/Camille Aurore · .*2026/);
+    expect(".o_usl_result_excerpt").toHaveText("“… bring the ivory Linen prototype ready for the visit …”");
+    expect(".o_usl_result_match").toHaveCount(2);
+    expect(queryAllTexts(".o_usl_result_match")).toEqual(["Linen", "prototype"]);
     await contains("#usl-home-content-search").press("ArrowDown");
     await contains("#usl-home-content-search").press("Enter");
-    expect.verifySteps(["/mail/message/41"]);
+    expect.verifySteps(["project.task:5:41:undefined"]);
+});
+
+test("notes and subjects are labelled differently from messages", async () => {
+    const result = local("Atelier Ambre visit");
+    result.groups[0].records[0].source = { kind: "message", message_kind: "note", id: 41, field: "body", label: "Chatter message", author_name: "Camille Aurore", date: "" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    await mountSearch("prototype");
+    await animationFrame();
+    expect(".o_usl_result_source").toHaveText("Note · Camille Aurore");
+});
+
+test("highlight marks accented and mixed-case words without producing markup", () => {
+    expect(highlightParts("Préparer le sémaphore", "semaphore PREPARER")).toEqual([
+        { text: "Préparer", match: true }, { text: " le ", match: false }, { text: "sémaphore", match: true },
+    ]);
+    expect(highlightParts("<b>x</b> amber", "amber")).toEqual([{ text: "<b>x</b> ", match: false }, { text: "amber", match: true }]);
+    expect(highlightParts("nothing", "")).toEqual([{ text: "nothing", match: false }]);
 });
 
 test("source excerpts remain plain text", async () => {

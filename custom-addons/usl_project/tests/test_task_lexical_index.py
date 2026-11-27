@@ -50,6 +50,24 @@ class TestTaskLexicalIndex(TransactionCase):
         self.assertEqual(self._search("replacement Violet"), task)
         self.assertFalse(self._search("Amber heliograph earlier"))
 
+    def test_portal_collaborator_edit_refreshes_the_search_text(self):
+        # Native write moves a portal user's description to a sudo write that
+        # bypasses this override, so the queue must be fed from the caller's
+        # values, not from what native code leaves behind in them.
+        portal = new_test_user(self.env, login="qa-lexical-portal", groups="base.group_portal")
+        self.project.privacy_visibility = "portal"
+        self.env["project.collaborator"].create({
+            "project_id": self.project.id, "partner_id": portal.partner_id.id,
+        })
+        task = self._task(description="Amber heliograph earlier")
+        self._index()
+        task.with_user(portal).write({"description": "<p>Violet semaphore replacement</p>"})
+        self.assertFalse(self._search("Amber heliograph earlier"))
+        self.assertEqual(self._search("Violet semaphore replacement"), task)
+        self._index()
+        self.assertEqual(self._search("replacement Violet"), task)
+        self.assertFalse(self._search("Amber heliograph earlier"))
+
     def test_rollback_restores_content_and_queue_together(self):
         task = self._task(description="Amber heliograph earlier")
         self._index()

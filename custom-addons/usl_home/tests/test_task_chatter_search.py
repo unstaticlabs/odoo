@@ -1,6 +1,6 @@
 from markupsafe import Markup
 
-from odoo import Command
+from odoo import Command, fields
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -54,6 +54,44 @@ class TestTaskChatterSearch(TransactionCase):
         self.assertIn("Amber", sources[0]["excerpt"])
         self.assertEqual(sources[0]["url"], "/mail/message/%s" % message.id)
         message.with_user(self.actor).check_access("read")
+
+    def test_source_names_author_date_and_kind(self):
+        task, message = self._fixture()
+        source = task.with_user(self.actor)._usl_matching_message_sources("heliograph Amber")[task.id]
+        self.assertEqual(source["message_kind"], "message")
+        self.assertEqual(source["author_name"], self.actor.partner_id.name)
+        self.assertEqual(source["date"], fields.Datetime.to_string(message.date))
+        note = task.with_user(self.actor).message_post(
+            body=Markup("<p>Violet semaphore rehearsal</p>"), subtype_xmlid="mail.mt_note",
+        )
+        self.env["mail.message"]._cron_usl_index_task_messages()
+        source = task.with_user(self.actor)._usl_matching_message_sources("semaphore Violet")[task.id]
+        self.assertEqual((source["id"], source["message_kind"]), (note.id, "note"))
+        subject = task.with_user(self.actor).message_post(
+            body=Markup("<p>Other</p>"), subject="Obsidian quarterly", subtype_xmlid="mail.mt_comment",
+        )
+        self.env["mail.message"]._cron_usl_index_task_messages()
+        source = task.with_user(self.actor)._usl_matching_message_sources("Obsidian quarterly")[task.id]
+        self.assertEqual((source["id"], source["message_kind"], source["field"]), (subject.id, "subject", "subject"))
+
+    def test_exact_title_match_beats_a_chatter_mention(self):
+        task, _message = self._fixture()
+        task.name = "Heliograph Amber launch plan"
+        task.with_user(self.actor).message_post(
+            body=Markup("<p>Copying the title: Heliograph Amber launch plan</p>"), subtype_xmlid="mail.mt_comment",
+        )
+        self.env["project.task"]._cron_usl_index_task_content()
+        self.env["mail.message"]._cron_usl_index_task_messages()
+        home = self.env["usl.home.service"].with_user(self.actor)
+        row, = home.search_records("Heliograph Amber launch plan", categories=["tasks"])["groups"][0]["records"]
+        self.assertEqual(row["id"], task.id)
+        self.assertIsNone(row["source"])
+        self.assertEqual(task.with_user(self.actor)._usl_matching_message_sources("Heliograph Amber launch plan"), {})
+        self.assertFalse(task.with_user(self.actor).with_context(
+            search_source_query="Heliograph Amber launch plan").usl_search_sources)
+        # A word that only the chatter holds still resolves to its message.
+        row, = home.search_records("Copying", categories=["tasks"])["groups"][0]["records"]
+        self.assertEqual(row["source"]["kind"], "message")
 
     def test_home_identifies_chatter_source_and_plain_text(self):
         task, message = self._fixture()
@@ -207,8 +245,13 @@ class TestTaskChatterSearch(TransactionCase):
         task, message = self._fixture()
         Home = self.env["usl.home.service"].with_user(self.actor)
         action = Home.get_search_result_action("project.task", task.id, message.id, "body")
-        self.assertEqual(action, {"type": "ir.actions.act_url", "url": "/mail/message/%s" % message.id, "target": "self"})
-        self.assertEqual(Home.get_search_result_action("project.task", task.id)["res_id"], task.id)
+        # In-app form with the message to highlight, not a page-reloading URL.
+        self.assertEqual(action["type"], "ir.actions.act_window")
+        self.assertEqual((action["res_model"], action["res_id"]), ("project.task", task.id))
+        self.assertEqual(action["usl_highlight_message_id"], message.id)
+        plain = Home.get_search_result_action("project.task", task.id)
+        self.assertEqual(plain["res_id"], task.id)
+        self.assertNotIn("usl_highlight_message_id", plain)
         with patch.object(self.env["mail.message"]._fields["body"], "groups", "base.group_system"), self.assertRaises(UserError):
             Home.with_context(qa_field_access_phase="restrict-jump-field").get_search_result_action("project.task", task.id, message.id, "body")
         rule = self.env["ir.rule"].create({

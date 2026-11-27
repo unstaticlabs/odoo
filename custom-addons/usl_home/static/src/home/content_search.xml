@@ -14,14 +14,19 @@
                 <div t-if="state.error" role="alert">Some records could not be searched. Results already found remain available. <button type="button" class="btn btn-link" t-on-click="search">Try again</button></div>
                 <t t-foreach="groups" t-as="group" t-key="group.key">
                     <section t-if="group.records.length" class="o_usl_search_group" t-att-data-category="group.key">
-                        <h2 class="h6 text-muted" t-esc="group.label"/>
-                        <button t-foreach="group.records" t-as="record" t-key="record.id" type="button" class="o_usl_search_result btn text-start w-100" t-att-class="{ 'active': state.selected === this.resultKey(record) }" t-att-id="this.resultDomId(record)" role="option" t-att-aria-selected="state.selected === this.resultKey(record) ? 'true' : 'false'" t-on-click="() => this.open(record)">
-                            <strong class="d-block" t-esc="record.title"/>
-                            <small t-if="record.context_label" class="d-block text-muted" t-esc="record.context_label"/>
-                            <small t-if="record.source" class="d-block text-muted" t-esc="record.source.label"/>
-                            <span t-if="record.excerpt" class="d-block text-muted small" t-esc="record.excerpt"/>
+                        <h2 class="o_usl_search_group_title" t-esc="group.label"/>
+                        <button t-foreach="group.records" t-as="record" t-key="record.id" type="button" class="o_usl_search_result text-start w-100" t-att-class="{ 'active': state.selected === this.resultKey(record) }" t-att-id="this.resultDomId(record)" role="option" t-att-aria-selected="state.selected === this.resultKey(record) ? 'true' : 'false'" t-on-click="() => this.open(record)">
+                            <span class="o_usl_result_title" t-esc="record.title"/>
+                            <span t-if="record.context_label" class="o_usl_result_meta" t-esc="record.context_label"/>
+                            <span t-if="record.source" class="o_usl_result_meta o_usl_result_source">
+                                <i t-att-class="record.source.message_kind === 'note' ? 'fa fa-sticky-note-o' : 'fa fa-comment-o'" aria-hidden="true"/>
+                                <t t-esc="this.sourceLabel(record.source)"/>
+                            </span>
+                            <span t-if="record.excerpt" class="o_usl_result_excerpt">
+                                <t t-if="record.source">“</t><t t-foreach="this.excerptParts(record)" t-as="part" t-key="part_index"><strong t-if="part.match" class="o_usl_result_match" t-esc="part.text"/><t t-else="" t-esc="part.text"/></t><t t-if="record.source">”</t>
+                            </span>
                         </button>
-                        <button t-if="group.has_more" t-att-disabled="group.loading || (group.key === 'documents' &amp;&amp; state.documentsLoading)" class="btn btn-link btn-sm" type="button" t-on-click="() => this.more(group)">More <t t-esc="group.label"/></button>
+                        <button t-if="group.has_more" t-att-disabled="group.loading || (group.key === 'documents' &amp;&amp; state.documentsLoading)" class="o_usl_search_more btn btn-link btn-sm" type="button" t-on-click="() => this.more(group)">More <t t-esc="group.label"/></button>
                     </section>
                 </t>
                 <p t-if="state.documentsLoading" class="text-muted" role="status">Searching document contents…</p>

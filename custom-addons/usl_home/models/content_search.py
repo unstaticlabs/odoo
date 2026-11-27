@@ -211,10 +211,14 @@ class HomeContentSearch(models.AbstractModel):
             )
             if not message:
                 raise UserError(self.env._("This message source is no longer available. Refresh the search and try again."))
-            return {"type": "ir.actions.act_url", "url": "/mail/message/%s" % message.id, "target": "self"}
-        return {
+        action = {
             "type": "ir.actions.act_window", "name": record.display_name,
             "res_model": model_name, "res_id": record.id,
             "views": [(False, "form")], "target": "current",
             "context": {key: value for key, value in self.env.context.items() if key in {"lang", "tz", "allowed_company_ids"}},
         }
+        if source_message_id is not None:
+            # Opened in the web client, so the breadcrumb and the page stay; the
+            # chatter scrolls to and highlights this message from the router state.
+            action["usl_highlight_message_id"] = message.id
+        return action
