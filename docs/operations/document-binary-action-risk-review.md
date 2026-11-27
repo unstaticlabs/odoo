@@ -7,12 +7,19 @@ a bearer grant, persisting a copy or changing a financial record.
 The method uses the existing document lookup and authorized binary descriptor.
 They enforce model and record access, selected companies, version ownership,
 linked-record access and confirmed archive permissions before storage is read.
-It never switches user, enables sudo, accepts a source URL or constructs new
-permissions. The storage client uses its existing fixed document download path
+Authorization uses the primary database, including deployments with read
+replicas, so a new request cannot authorize a withdrawn share from a lagging
+replica. This remains a read-only business operation; primary routing adds no
+write permission. It never switches user, enables sudo, accepts a source URL
+or constructs new permissions. The storage client uses its existing fixed document download path
 and version/variant parameters. Its network operation is a read.
 
 The response buffers at most 4 MiB and closes the native stream on success or
-failure. A non-complete response, incomplete length, excessive body or mismatch
+failure. The storage request explicitly asks for identity encoding and refuses
+any non-identity Content-Encoding before consuming the body. Mid-stream timeouts,
+socket failures and malformed HTTP framing return the safe incomplete-transfer
+business error, without a partial file or private upstream exception details.
+A non-complete response, incomplete length, excessive body or mismatch
 with a recognized archive checksum returns no file. The response always binds
 its actual byte count and SHA-256 to the same returned bytes. Historical MD5
 remains verifiable; absent or unrecognized archive checksums are explicitly
@@ -67,3 +74,28 @@ access shortcut.
 
 The native entry point is classified `read_only`. No other method, role or
 public controller acquires authority from this classification.
+
+## Primary authorization and interrupted-transfer follow-up
+
+Fresh document authorization is routed to the primary database for both native
+RPC transports, including installations configured with a read replica. The
+operation remains semantically read-only and keeps the same native delegation.
+No real replica-lag environment was created for qualification; the regression
+executes both native routing decisions against the installed model MRO.
+
+A clean Documents install exercises 318 test methods with zero failures or
+errors, including 67 desktop and 55 mobile component tests. Six optional
+full-product authority cases are identified explicitly rather than treated as
+passing in the reduced module closure; all six subsequently pass on the
+existing full 169-module registry. The primary-routing, encoded-response
+and interrupted-stream regressions reproduce four assertion failures and five
+unhandled transport errors on the original source and its literal test-only
+restoration. The restored grant and stream classes pass all 31 methods.
+
+Two additional current-state upgrades preserve the same frozen rows, financial
+fingerprints and exact attachment bytes. They are repeat upgrades of the
+existing QA registry, separate from the historical predecessor proof above.
+The current source also passes 1,205 script tests (39 explicit skips), French
+validation and normal asset compilation. Synthetic Agent and packaged-HTTP
+replays verify the exact original and archive bytes and refusal of withdrawn
+files, context and foreign-company access. No production files are used.

@@ -6767,3 +6767,8 @@ msgstr "Le contenu reçu ne correspond pas à la version choisie. Aucun fichier 
 #: code:addons/usl_documents/models/document_mcp.py:0
 msgid "The document transfer has no proof of completion. No file was returned. Retry when the archive provides a checksum or a complete framed response."
 msgstr "La réception complète du document ne peut pas être confirmée. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit une empreinte ou une réponse dont le transfert complet est vérifiable."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The archive returned a transformed file encoding. No file was returned. Retry when the archive serves the original bytes."
+msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit les octets d’origine."

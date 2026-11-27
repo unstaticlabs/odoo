@@ -221775,9 +221775,9 @@
       "domain": "documents_and_communications",
       "evidence_id": "documents-direct-binary-3751",
       "id": "read_only.documents.direct_binary_read",
-      "rationale": "Reviewed in docs/operations/document-binary-action-risk-review.md. Reuses native document/version/company/linked-record authority, bounded read-only archive streaming and actual byte integrity; no sudo, actor switch, arbitrary URL, mutation or generic grant.",
+      "rationale": "Reviewed in docs/operations/document-binary-action-risk-review.md. Reuses primary-database native document/version/company/linked-record authority, identity-only bounded archive streaming and actual byte integrity; safe incomplete-transfer errors, no sudo, actor switch, arbitrary URL, mutation or generic grant.",
       "reviewed_digests": {
-        "rpc:usl.document.mcp_read_binary": "435a353261f4aedba24e141a634eb9915f23926a9b9fc7fbd5927b028da754ef"
+        "rpc:usl.document.mcp_read_binary": "58a76e7cd1752e2fa133d2759a70af25202608f221aa583b90c98c4403d31f59"
       }
     }
   ],

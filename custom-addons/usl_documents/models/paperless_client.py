@@ -777,7 +777,7 @@ class PaperlessClient:
 
     @staticmethod
     def _binary_headers(*, range_header=None, if_range=None):
-        headers = {}
+        headers = {"Accept-Encoding": "identity"}
         if range_header is not None:
             value = str(range_header).strip()
             if len(value) > 200 or not re.fullmatch(

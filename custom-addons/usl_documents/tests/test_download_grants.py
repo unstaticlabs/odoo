@@ -196,8 +196,56 @@ class TestDocumentDownloadGrants(TransactionCase):
         self.assertEqual(result["size_bytes"], len(payload))
         self.assertIsNone(result["source_checksum_verified"])
         for body in (chunked[:-5], b"30\r\nshort"):
-            with self.subTest(body=body), self.assertRaises(http.client.IncompleteRead):
+            with self.subTest(body=body), self.assertRaisesRegex(ValidationError, "incomplete"):
                 self._binary_http_read(body, framing=b"Transfer-Encoding: chunked\r\n")
+
+    def test_binary_read_authorizes_on_primary_database(self):
+        from odoo.addons.rpc.controllers.json2 import WebJson2Controller
+        from odoo.addons.web.controllers.dataset import DataSet
+        request = MagicMock()
+        request.get_json_data.return_value = {"params": {
+            "model": "usl.document", "method": "mcp_read_binary",
+        }}
+        request.registry = self.env.registry
+        with patch("odoo.addons.web.controllers.dataset.request", request):
+            self.assertFalse(DataSet()._call_kw_readonly(None, None))
+        with patch("odoo.addons.rpc.controllers.json2.request", request):
+            self.assertFalse(WebJson2Controller()._web_json_2_rpc_readonly(None, {
+                "__model__": "usl.document", "__method__": "mcp_read_binary",
+            }))
+
+    def test_binary_read_rejects_encoded_representation_before_consuming_body(self):
+        self._binary_http_fixture = self._document()
+        for encoding in ("gzip", "br", "gzip, identity"):
+            with self.subTest(encoding=encoding), self.assertRaisesRegex(
+                ValidationError, "encoding|transformed",
+            ):
+                self._binary_http_read(
+                    b"encoded source", framing=(
+                        "Content-Length: 14\r\nContent-Encoding: " + encoding + "\r\n"
+                    ).encode(),
+                )
+        result = self._binary_http_read(
+            b"original", framing=b"Content-Length: 8\r\nContent-Encoding: identity\r\n",
+        )
+        self.assertEqual(result["size_bytes"], 8)
+
+    def test_binary_read_translates_interrupted_stream_without_private_details(self):
+        document, _version = self._document()
+        for failure in (TimeoutError("private-url"), OSError("private-token"),
+                        http.client.IncompleteRead(b"private-file-prefix", 42)):
+            stream = MagicMock(status=200, headers={})
+            def interrupted():
+                yield b"private-prefix"
+                raise failure
+            stream.iter_chunks.side_effect = interrupted
+            with self.subTest(error=type(failure).__name__):
+                with patch.object(
+                    PaperlessClient, "open_download", return_value=stream,
+                ), self.assertRaisesRegex(ValidationError, "incomplete") as caught:
+                    self.env["usl.document"].with_user(self.user).mcp_read_binary(document.id)
+                self.assertNotIn("private", str(caught.exception))
+                stream.close.assert_called()
 
     def test_binary_read_checks_actual_bytes_not_only_upstream_etag(self):
         with self.assertRaisesRegex(ValidationError, "match"):
@@ -564,6 +612,7 @@ class TestPaperlessDownloadStreaming(TransactionCase):
         self.assertIn("/api/documents/19/download/", binary_request.full_url)
         self.assertIn("version=version-2", binary_request.full_url)
         self.assertIn("original=true", binary_request.full_url)
+        self.assertEqual(request_headers["Accept-encoding"], "identity")
         self.assertEqual(request_headers["Range"], "bytes=0-131071")
         self.assertEqual(request_headers["If-range"], '"checksum"')
         self.assertEqual(request_headers["Authorization"], "Token server-only-token")
