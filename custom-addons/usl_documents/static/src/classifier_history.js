@@ -4,7 +4,6 @@ import { Component, onWillStart, useState } from "@odoo/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { formatDateTime } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
-import { formatFloat } from "@web/core/utils/numbers";
 
 export class ClassifierHistoryDialog extends Component {
     static template = "usl_documents.ClassifierHistoryDialog";
@@ -38,7 +37,7 @@ export class ClassifierHistoryDialog extends Component {
     }
 
     scoreSummary(event) {
-        const score = formatFloat(100 * event.score, { digits: [16, 1] });
+        const score = Math.round(100 * event.score);
         return _t("Score %s/100 · Minimum %s", score, event.minimum_score);
     }
 

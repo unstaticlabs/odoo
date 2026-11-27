@@ -727,18 +727,210 @@
         }
     }
 }
-.o_usl_paperless_suggestions {
-    padding: 0.75rem;
-    border: 1px solid var(--border-color, #dee2e6);
-    border-radius: 0.5rem;
-    background: color-mix(in srgb, var(--o-brand-primary, #714b67) 4%, transparent);
+.o_usl_ghost_caption {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--o-text-muted, #6b7280);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
 }
 
-.o_usl_paperless_suggestion {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+// A suggestion is a tag that has not been added yet: same pill, dashed edge.
+.o_usl_tag_chip.o_usl_tag_ghost {
+    --ghost-accent: var(--o-brand-primary, #714b67);
+    display: inline-flex;
+    max-width: 15rem;
+    align-items: stretch;
+    padding: 0;
+    background: color-mix(in srgb, var(--ghost-accent) 6%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--ghost-accent) 60%, transparent);
+    transition: background-color 0.12s ease, border-color 0.12s ease;
+
+    &:hover,
+    &:focus-within {
+        background: color-mix(in srgb, var(--ghost-accent) 12%, transparent);
+        border-style: solid;
+    }
+
+    .o_usl_ghost_accept,
+    .o_usl_ghost_reject {
+        display: inline-flex;
+        align-items: center;
+        margin: 0;
+        color: inherit;
+        font: inherit;
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+
+        &:disabled {
+            cursor: default;
+            opacity: 0.55;
+        }
+
+        &:focus-visible {
+            outline: 2px solid #2b6cb0;
+            outline-offset: -2px;
+            border-radius: 999px;
+        }
+    }
+
+    .o_usl_ghost_accept {
+        min-width: 0;
+        gap: 0.3rem;
+        padding: 0.18rem 0.25rem 0.18rem 0.55rem;
+
+        .fa-plus {
+            color: var(--ghost-accent);
+            font-size: 0.65rem;
+        }
+    }
+
+    .o_usl_ghost_reject {
+        padding: 0.18rem 0.55rem 0.18rem 0.3rem;
+        color: var(--o-text-muted, #6b7280);
+
+        &:hover {
+            color: #b42318;
+        }
+    }
+
+    .o_usl_ghost_score {
+        padding: 0 0.4rem;
+        font-size: 0.68rem;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        line-height: 1.35;
+        background: color-mix(in srgb, var(--ghost-accent) 16%, transparent);
+        border-radius: 999px;
+
+        &.is-rule {
+            font-style: italic;
+            font-weight: 500;
+        }
+    }
+}
+
+.o_usl_ghost_all {
+    padding: 0.18rem 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.o_usl_field_suggestion {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.35rem;
+    color: var(--o-text-muted, #6b7280);
+    font-size: 0.75rem;
+
+    .fa-magic {
+        color: var(--o-brand-primary, #714b67);
+    }
+
+    .o_usl_field_suggestion_caption {
+        white-space: nowrap;
+    }
+
+    .o_usl_field_suggestion_label {
+        min-width: 0;
+        overflow: hidden;
+        color: var(--o-main-text-color, #111827);
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .btn-link {
+        font-size: inherit;
+        font-weight: 600;
+    }
+}
+
+@media (max-width: 767.98px) {
+    // Phone: a suggestion looks as tall as an applied chip. Its controls keep
+    // a 44px hit area through a transparent pseudo-element.
+    .o_usl_tag_chip.o_usl_tag_ghost {
+        max-width: 100%;
+
+        .o_usl_ghost_accept,
+        .o_usl_ghost_reject {
+            position: relative;
+
+            &::before {
+                position: absolute;
+                top: 50%;
+                right: 0;
+                left: 0;
+                height: 2.75rem;
+                transform: translateY(-50%);
+                content: "";
+            }
+        }
+
+        .o_usl_ghost_reject {
+            min-width: 2.75rem;
+            justify-content: center;
+        }
+    }
+
+    .o_usl_ghost_all {
+        position: relative;
+
+        &::before {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            left: 0;
+            height: 2.75rem;
+            transform: translateY(-50%);
+            content: "";
+        }
+    }
+
+    .o_usl_field_suggestion {
+        flex-wrap: nowrap;
+
+        .fa-magic {
+            flex: 0 0 auto;
+        }
+
+        // The wand says what this is; the words stay for screen readers.
+        .o_usl_field_suggestion_caption {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+
+        .o_usl_field_suggestion_label {
+            flex: 1 1 auto;
+        }
+
+        .btn-link {
+            position: relative;
+            flex: 0 0 auto;
+            padding: 0 0.25rem !important;
+
+            &::before {
+                position: absolute;
+                top: 50%;
+                right: 0;
+                left: 0;
+                height: 2.75rem;
+                transform: translateY(-50%);
+                content: "";
+            }
+        }
+    }
 }
 
 .o_usl_batch_metadata_choices {

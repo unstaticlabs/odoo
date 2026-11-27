@@ -631,7 +631,7 @@ from paperless_ai.exceptions import LLMTimeoutError
             """from paperless_ai.exceptions import LLMProviderError
 from paperless_ai.exceptions import LLMTimeoutError
 from paperless_usl_ranges import ranged_file_response
-from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator, wants_tag_scores
+from paperless_usl_tag_scores import scored_cache_entry, suggested_tag_scores, unscored_cache_validator, wants_tag_scores
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
 from paperless_personal_ai.runtime import PersonalAIGenerationError
@@ -650,7 +650,7 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         (
             "        document_suggestions = get_suggestion_cache(doc.pk)\n",
             "        include_scores = wants_tag_scores(request)\n"
-            "        document_suggestions = None if include_scores else get_suggestion_cache(doc.pk)\n",
+            "        document_suggestions = None if include_scores else scored_cache_entry(get_suggestion_cache(doc.pk))\n",
         ),
         (
             '        resp_data = {\n            "correspondents": [',
@@ -663,8 +663,8 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         ),
         (
             "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
+            "        resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
             "        if include_scores:\n"
-            "            resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
             "            return Response(resp_data, headers={'Cache-Control': 'private, no-store'})\n"
             "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
         ),

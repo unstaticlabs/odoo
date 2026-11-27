@@ -57,8 +57,22 @@ class TestSuggestionTagScoresApi(APITestCase):
         read_cache.assert_not_called()
         write_cache.assert_not_called()
 
-    def test_existing_suggestion_contract_still_uses_legacy_cache(self):
-        cached = {"tags": [self.rule.pk]}
+    def test_ordinary_request_stores_the_scores_with_its_cached_suggestions(self):
+        with (
+            TemporaryDirectory() as directory,
+            override_settings(MODEL_FILE=Path(directory) / "classifier", CLASSIFIER_LANGUAGE=None),
+            patch("documents.views.get_suggestion_cache", return_value=None),
+            patch("documents.views.set_suggestions_cache") as write_cache,
+        ):
+            self.classifier.save()
+            response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(set(response.json()["tag_scores"]), {str(self.auto.pk)})
+        stored = write_cache.call_args.args[1]
+        self.assertEqual(set(stored["tag_scores"]), {self.auto.pk})
+
+    def test_cached_suggestions_with_scores_are_served_without_reading_the_model(self):
+        cached = {"tags": [self.auto.pk], "tag_scores": {self.auto.pk: 0.81}}
         with (
             patch("documents.views.get_suggestion_cache", return_value=SimpleNamespace(suggestions=cached)),
             patch("documents.views.refresh_suggestions_cache"),
@@ -66,8 +80,22 @@ class TestSuggestionTagScoresApi(APITestCase):
         ):
             response = self.client.get(self.path)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), cached)
+        self.assertEqual(response.json()["tag_scores"], {str(self.auto.pk): 0.81})
         load.assert_not_called()
+
+    def test_cache_entries_stored_before_scores_existed_are_recomputed(self):
+        legacy = {"tags": [self.rule.pk]}
+        with (
+            TemporaryDirectory() as directory,
+            override_settings(MODEL_FILE=Path(directory) / "classifier", CLASSIFIER_LANGUAGE=None),
+            patch("documents.views.get_suggestion_cache", return_value=SimpleNamespace(suggestions=legacy)),
+            patch("documents.views.set_suggestions_cache") as write_cache,
+        ):
+            self.classifier.save()
+            response = self.client.get(self.path)
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(set(response.json()["tag_scores"]), {str(self.auto.pk)})
+        write_cache.assert_called_once()
 
     def test_other_person_cannot_request_document_scores(self):
         self.document.owner = self.other
@@ -114,3 +142,11 @@ class TestHeldOutTagScores(SimpleTestCase):
             quality = evaluate(rows, threshold)
             observed.append((quality["correct"], quality["incorrect"], quality["missed"]))
         self.assertEqual(observed, [(11, 8, 2), (3, 2, 10), (1, 0, 12), (0, 0, 13)])
+        masonry = evaluate(rows, .7, tag_id=17)
+        self.assertEqual((masonry["correct"], masonry["missed"], masonry["false_positive_rows"]), (1, 5, [7, 12]))
+        self.assertEqual([examples[row - 1][0] for row in masonry["false_positive_rows"]], [
+            "orchestra concert in a window factory", "a note stuck to the window",
+        ])
+        music = evaluate(rows, .7, tag_id=41)
+        self.assertEqual((music["correct"], music["missed"], music["false_positive_rows"]), (2, 5, []))
+        self.assertIsNone(evaluate(rows, .85, tag_id=41)["precision"])

@@ -99,10 +99,42 @@ class SourceEvidence(models.Model):
                         "url": False,
                     })
                 except AccessError as error:
-                    if record._name == "hr.expense" and record.state not in {"draft", "submitted"}:
+                    if record._name != "hr.expense" or record.state in {"draft", "submitted"}:
+                        raise
+                    if record.account_move_id:
                         raise AccessError(_(
                             "Odoo no longer allows attachments on this approved expense. "
                             "Keep its original receipt; attach supplementary evidence to its accounting entry instead."
+                        )) from error
+                    if record.state == "refused":
+                        raise AccessError(_(
+                            "This expense was refused. To add a new receipt, a user with permission can return it "
+                            "to draft, attach the receipt and submit the expense again."
+                        )) from error
+                    bill = record.existing_bill_id
+                    # A many2one read names its target even when the caller cannot
+                    # open it, so an approver is still told which bill to look for.
+                    bill_name = record.read(["existing_bill_id"])[0]["existing_bill_id"][1] if bill else ""
+                    if record.state == "approved" and record.payment_mode == "company_account" and bill:
+                        if bill.has_access("write"):
+                            raise AccessError(_(
+                                "This expense is linked to vendor bill %(bill)s. Open the bill to attach additional evidence there. "
+                                "To replace this expense's own receipt, select one already attached to it, or a user with "
+                                "permission can return the expense to draft, attach the receipt and submit it again.",
+                                bill=bill_name,
+                            )) from error
+                        raise AccessError(_(
+                            "This expense is linked to vendor bill %(bill)s. An accountant, or someone with access to the bill, "
+                            "can attach additional evidence there. To replace this expense's own receipt, select one already "
+                            "attached to it, or a user with permission can return the expense to draft, attach the receipt "
+                            "and submit it again.",
+                            bill=bill_name,
+                        )) from error
+                    if record.state == "approved":
+                        raise AccessError(_(
+                            "This approved expense has no accounting entry yet. Select a receipt already attached to it. "
+                            "To add a new receipt, a user with permission can return it to draft, attach the receipt "
+                            "and submit the expense again."
                         )) from error
                     raise
             stored = attachment.raw
