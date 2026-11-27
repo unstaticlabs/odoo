@@ -32001,6 +32001,7 @@
     "rpc:account.move.button_create_landed_costs",
     "rpc:account.move.button_draft",
     "rpc:account.move.button_hash",
+    "rpc:account.move.change_bill_company",
     "rpc:account.move.configure_draft_vendor_bill",
     "rpc:account.move.copy",
     "rpc:account.move.copy_data",
