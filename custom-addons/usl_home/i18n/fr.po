@@ -1109,32 +1109,40 @@ msgstr "Utilisez un domaine de contenu ilike. Pour la pertinence de l’accueil,
 #. module: usl_home
 #. odoo-python
 #: code:addons/usl_home/models/task_semantics.py:0
-msgid "Related task descriptions"
-msgstr "Descriptions de tâches associées"
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Related by subject"
+msgstr "Sur ce sujet"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Tasks about this"
+msgstr "Tâches sur ce sujet"
 
 #. module: usl_home
 #. odoo-javascript
 #: code:addons/usl_home/static/src/home/content_search.xml:0
-msgid "Find tasks about this"
-msgstr "Chercher des tâches sur ce sujet"
+msgid "Similar topic"
+msgstr "Sujet proche"
 
 #. module: usl_home
 #. odoo-javascript
 #: code:addons/usl_home/static/src/home/content_search.xml:0
-msgid "Finding related task descriptions…"
-msgstr "Recherche de descriptions de tâches associées…"
+msgid "Looking for related tasks…"
+msgstr "Recherche de tâches sur ce sujet…"
 
 #. module: usl_home
 #. odoo-javascript
-#: code:addons/usl_home/static/src/home/content_search.xml:0
-msgid "Task suggestions are temporarily unavailable. You can still search by keyword."
-msgstr "Les suggestions de tâches sont momentanément indisponibles. La recherche par mot-clé reste accessible."
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Nothing matches “%(query)s” in %(company)s. Try fewer words or another spelling."
+msgstr "Rien ne correspond à « %(query)s » dans %(company)s. Essayez moins de mots ou une autre orthographe."
 
 #. module: usl_home
 #. odoo-javascript
-#: code:addons/usl_home/static/src/home/content_search.xml:0
-msgid "No additional task descriptions to show."
-msgstr "Aucune autre description de tâche à afficher."
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Nothing matches “%(query)s”. Try fewer words or another spelling."
+msgstr "Rien ne correspond à « %(query)s ». Essayez moins de mots ou une autre orthographe."
 
 #. module: usl_home
 #. odoo-javascript

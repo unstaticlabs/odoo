@@ -236,36 +236,127 @@ test("withdrawn message source does not open and offers refresh guidance", async
     expect(".o_usl_search_result").toHaveCount(1);
 });
 
-test("task suggestions start only on request and keep keyword results", async () => {
-    const pending = new Deferred();
-    onRpc("usl.home.service", "search_records", () => ({ ...local("Exact task"), offer_task_meaning: true }));
+const meaningGroup = (...records) => ({ status: "ok", group: { key: "task_meaning", label: "Related by subject", records } });
+const meaningTask = (id, title) => ({ model: "project.task", id, title, excerpt: `${title} description` });
+
+test("meaning search starts with the keyword search, in parallel, for two words", async () => {
+    const keywords = new Deferred();
+    const meaning = new Deferred();
+    onRpc("usl.home.service", "search_records", ({ kwargs }) => {
+        expect.step(`keyword:${kwargs.categories?.join(",") || "others"}`);
+        return kwargs.categories?.includes("tasks") ? keywords : { groups: [] };
+    });
     onRpc("usl.home.service", "search_documents", () => documents);
     onRpc("project.task", "search_by_meaning", ({ args }) => {
-        expect.step(args[0]);
-        return pending;
+        expect.step(`meaning:${args[0]}`);
+        return meaning;
     });
     await mountSearch("fix sound");
     await animationFrame();
-    expect.verifySteps([]);
-    await contains("button:contains('Find tasks about this')").click();
-    expect.verifySteps(["fix sound"]);
-    expect('.o_usl_search_result').toHaveCount(1);
-    pending.resolve({ status: "ok", group: { key: "task_meaning", label: "Related task descriptions", records: [
-        { model: "project.task", id: 5, title: "Exact task" }, { model: "project.task", id: 7, title: "Replace recording microphone" },
-    ] } });
+    // Both are in flight before either answered.
+    expect.verifySteps(["keyword:tasks,projects", "keyword:others", "meaning:fix sound"]);
+    keywords.resolve(local("Exact task"));
     await animationFrame();
-    expect('.o_usl_search_result').toHaveCount(2);
-    expect('[data-category="task_meaning"]').toHaveText(/Replace recording microphone/);
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect(".o_usl_search_skeleton").toHaveText(/Looking for related tasks/);
+    meaning.resolve(meaningGroup(meaningTask(7, "Replace recording microphone")));
+    await animationFrame();
+    expect(".o_usl_search_skeleton").toHaveCount(0);
+    expect(queryAllTexts(".o_usl_search_result .o_usl_result_title")).toEqual(["Exact task", "Replace recording microphone Similar topic"]);
 });
 
-test("an unavailable task model preserves exact results and permits retry", async () => {
-    onRpc("usl.home.service", "search_records", () => ({ ...local("Exact task"), offer_task_meaning: true }));
+test("related tasks are appended under a quiet subheader without moving the rows above", async () => {
+    const meaning = new Deferred();
+    onRpc("usl.home.service", "search_records", () => local("Exact task"));
     onRpc("usl.home.service", "search_documents", () => documents);
-    onRpc("project.task", "search_by_meaning", () => ({ status: "unavailable", group: {key: "task_meaning", records: []} }));
+    onRpc("project.task", "search_by_meaning", () => meaning);
+    await mountSearch("fix sound");
+    await animationFrame();
+    await contains("#usl-home-content-search").press("ArrowDown");
+    expect("#usl-home-search-result-project-task-5").toHaveAttribute("aria-selected", "true");
+    meaning.resolve(meaningGroup(meaningTask(5, "Exact task"), meaningTask(7, "Replace recording microphone"), meaningTask(8, "Studio audio check")));
+    await animationFrame();
+    // The duplicate is removed, the keyword row stays first and selected.
+    expect(queryAllTexts('[data-category="tasks"] .o_usl_result_title')).toEqual([
+        "Exact task", "Replace recording microphone Similar topic", "Studio audio check Similar topic",
+    ]);
+    expect(".o_usl_search_subgroup").toHaveText("Related by subject");
+    expect(".o_usl_search_subgroup").toHaveCount(1);
+    expect("#usl-home-search-result-project-task-5").toHaveAttribute("aria-selected", "true");
+    expect('[data-category="tasks"] .o_usl_search_group_title').toHaveText(/^tasks$/i);
+});
+
+test("without keyword tasks the group is about the subject", async () => {
+    onRpc("usl.home.service", "search_records", () => ({ groups: [] }));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => meaningGroup(meaningTask(7, "Replace recording microphone")));
+    await mountSearch("the studio is silent");
+    await animationFrame();
+    expect('[data-category="tasks"] .o_usl_search_group_title').toHaveText(/^tasks about this$/i);
+    expect(".o_usl_search_subgroup").toHaveCount(0);
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect(".o_usl_search_empty").toHaveCount(0);
+});
+
+test("an unreachable model is silent and keeps the keyword rows", async () => {
+    onRpc("usl.home.service", "search_records", () => local("Exact task"));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => ({ status: "unavailable", group: { key: "task_meaning", records: [] } }));
+    await mountSearch("fix sound");
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect(".o_usl_search_skeleton").toHaveCount(0);
+    expect('[role="alert"]').toHaveCount(0);
+    expect(".o_usl_content_results").not.toHaveText(/unavailable|Find tasks about this/);
+});
+
+test("a failing meaning call is silent too", async () => {
+    onRpc("usl.home.service", "search_records", () => local("Exact task"));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    mockService("orm", {
+        call(model, method, ...args) {
+            if (model === "project.task" && method === "search_by_meaning") {
+                return Promise.reject(new Error("model down"));
+            }
+            return super.call(model, method, ...args);
+        },
+    });
+    await mountSearch("fix sound");
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveCount(1);
+    expect(".o_usl_search_skeleton").toHaveCount(0);
+    expect('[role="alert"]').toHaveCount(0);
+});
+
+test("a deployment without meaning search is asked once and one short word is never sent", async () => {
+    onRpc("usl.home.service", "search_records", () => local("Exact task"));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", ({ args }) => {
+        expect.step(`meaning:${args[0]}`);
+        return { status: "disabled", group: { key: "task_meaning", records: [] } };
+    });
     await mountSearch("amber");
     await animationFrame();
-    await contains("button:contains('Find tasks about this')").click();
-    expect('.o_usl_search_result').toHaveCount(1);
-    expect('[role="status"]').toHaveText(/Task suggestions are temporarily unavailable/);
-    expect("button:contains('Find tasks about this')").toHaveCount(1);
+    expect.verifySteps([]);
+    await contains("#usl-home-content-search").edit("amber lantern");
+    await advanceTime(250);
+    await animationFrame();
+    expect.verifySteps(["meaning:amber lantern"]);
+    await contains("#usl-home-content-search").edit("another amber lantern");
+    await advanceTime(250);
+    await animationFrame();
+    expect.verifySteps([]);
+});
+
+test("the empty state waits for every stream, then names the company", async () => {
+    const meaning = new Deferred();
+    onRpc("usl.home.service", "search_records", () => ({ groups: [] }));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => meaning);
+    await mountSearch("zzz qqq");
+    await animationFrame();
+    expect(".o_usl_search_empty").toHaveCount(0);
+    meaning.resolve({ status: "empty", group: { key: "task_meaning", records: [] } });
+    await animationFrame();
+    expect(".o_usl_search_empty").toHaveText(/Nothing matches “zzz qqq” in .+\. Try fewer words or another spelling\./);
 });

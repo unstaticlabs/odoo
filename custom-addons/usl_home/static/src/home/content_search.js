@@ -5,6 +5,7 @@ import { _t } from "@web/core/l10n/translation";
 import { router } from "@web/core/browser/router";
 import { deserializeDateTime, formatDate } from "@web/core/l10n/dates";
 import { sprintf } from "@web/core/utils/strings";
+import { user } from "@web/core/user";
 
 /** Fold one character like the server does for matching: no case, no accent. */
 function foldChar(char) {
@@ -61,7 +62,10 @@ export class HomeContentSearch extends Component {
         this.notification = useService("notification");
         this.input = useRef("input");
         this.state = useState({ query: this.props.query || "", groups: [], documents: null, loading: false, documentsLoading: false, error: false, documentError: false, selected: null });
-        Object.assign(this.state, { offerTaskMeaning: false, taskMeaning: null, meaningStatus: null });
+        // Meaning-based task matches arrive beside the keyword results, never
+        // behind a click. A deployment without the feature is asked only once.
+        Object.assign(this.state, { meaning: [], meaningLoading: false });
+        this.meaningDisabled = false;
         this.generation = 0;
         this.requests = new Set();
         useSetupAction({
@@ -83,9 +87,28 @@ export class HomeContentSearch extends Component {
 
     get groups() {
         const groups = [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
-        if (this.state.taskMeaning) {
-            const shown = new Set(groups.flatMap((group) => group.records.map((record) => this.resultKey(record))));
-            groups.push({ ...this.state.taskMeaning, records: this.state.taskMeaning.records.filter((record) => !shown.has(this.resultKey(record))) });
+        const shown = new Set(groups.flatMap((group) => group.records.map((record) => this.resultKey(record))));
+        const related = this.state.meaning.filter((record) => !shown.has(this.resultKey(record)));
+        const index = groups.findIndex((group) => group.key === "tasks");
+        if (index < 0 && !related.length && !this.state.meaningLoading) {
+            return groups;
+        }
+        // Related tasks join the Tasks group after the keyword rows, so rows already
+        // on screen never move. Without keyword tasks the group is about the subject.
+        const tasks = index < 0
+            ? { key: "tasks", label: _t("Tasks"), offset: 0, has_more: false, records: [] }
+            : groups[index];
+        const merged = {
+            ...tasks,
+            label: !tasks.records.length && related.length ? _t("Tasks about this") : tasks.label,
+            relatedStart: tasks.records.length,
+            records: [...tasks.records, ...related],
+        };
+        if (index < 0) {
+            // Where the group sorts when keyword tasks exist: ahead of the others.
+            groups.unshift(merged);
+        } else {
+            groups[index] = merged;
         }
         return groups;
     }
@@ -132,7 +155,19 @@ export class HomeContentSearch extends Component {
     }
 
     get empty() {
-        return !this.state.loading && !this.state.documentsLoading && !this.state.error && !this.state.documentError && !this.results.length;
+        return !this.state.loading && !this.state.documentsLoading && !this.state.meaningLoading && !this.state.error && !this.state.documentError && !this.results.length;
+    }
+
+    get emptyMessage() {
+        const names = (user.activeCompanies || []).map((company) => company.name).filter(Boolean);
+        return names.length
+            ? sprintf(_t("Nothing matches “%(query)s” in %(company)s. Try fewer words or another spelling."), { query: this.state.query.trim(), company: names.join(", ") })
+            : sprintf(_t("Nothing matches “%(query)s”. Try fewer words or another spelling."), { query: this.state.query.trim() });
+    }
+
+    /** Two words, or one long enough to carry a meaning. */
+    asksMeaning(query) {
+        return !this.meaningDisabled && (query.split(/\s+/).filter(Boolean).length >= 2 || query.length >= 8);
     }
 
     inputChanged(event) {
@@ -141,7 +176,7 @@ export class HomeContentSearch extends Component {
         this.cancelRequests();
         this.state.groups = [];
         this.state.documents = null;
-        Object.assign(this.state, { offerTaskMeaning: false, taskMeaning: null, meaningStatus: null });
+        Object.assign(this.state, { meaning: [], meaningLoading: this.asksMeaning(this.state.query.trim()) });
         this.state.selected = null;
         this.state.error = false;
         this.state.documentError = false;
@@ -179,7 +214,7 @@ export class HomeContentSearch extends Component {
         const generation = ++this.generation;
         this.cancelRequests();
         const query = this.state.query.trim();
-        Object.assign(this.state, { groups: [], documents: null, offerTaskMeaning: false, taskMeaning: null, meaningStatus: null, selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
+        Object.assign(this.state, { groups: [], documents: null, meaning: [], meaningLoading: Boolean(query) && this.asksMeaning(query), selected: null, error: false, documentError: false, loading: Boolean(query), documentsLoading: Boolean(query) });
         if (!query) {
             return;
         }
@@ -190,7 +225,6 @@ export class HomeContentSearch extends Component {
             try {
                 const result = await this.request(this.orm.call("usl.home.service", "search_records", [query], kwargs));
                 if (generation === this.generation) {
-                    if (result.offer_task_meaning) { this.state.offerTaskMeaning = true; }
                     const groups = new Map(this.state.groups.map((group) => [group.key, group]));
                     for (const group of result.groups) {
                         groups.set(group.key, group);
@@ -213,6 +247,7 @@ export class HomeContentSearch extends Component {
             loadRecords({ categories: ["tasks", "projects"] }),
             loadRecords({ exclude_categories: ["tasks", "projects"] }),
             this.loadDocuments(query, generation),
+            this.loadMeaning(query, generation),
         ]);
     }
 
@@ -239,34 +274,39 @@ export class HomeContentSearch extends Component {
         }
     }
 
-    async findRelatedTasks() {
-        if (this.state.meaningStatus === "loading") { return; }
-        const generation = this.generation;
-        this.state.meaningStatus = "loading";
+    async loadMeaning(query, generation) {
+        if (!this.state.meaningLoading) {
+            return;
+        }
         try {
-            const result = await this.request(this.orm.call("project.task", "search_by_meaning", [this.state.query.trim()]));
+            const result = await this.request(this.orm.call("project.task", "search_by_meaning", [query]));
             if (generation === this.generation) {
-                this.state.taskMeaning = result.group;
-                this.state.meaningStatus = result.status;
+                this.meaningDisabled = result.status === "disabled";
+                this.state.meaning = result.status === "ok" ? result.group.records : [];
             }
         } catch {
-            if (generation === this.generation) { this.state.meaningStatus = "unavailable"; }
+            // Keyword results are already on screen; say nothing.
+        } finally {
+            if (generation === this.generation) {
+                this.state.meaningLoading = false;
+            }
         }
     }
 
     async more(group) {
-        if (group.loading) { return; }
-        group.loading = true;
+        const base = group.key === "documents" ? group : this.state.groups.find((old) => old.key === group.key);
+        if (!base || base.loading) { return; }
+        base.loading = true;
         if (group.key === "documents") {
             return this.loadDocuments(this.state.query.trim(), this.generation, group.offset + 5);
         }
         const generation = this.generation;
-        const offset = group.offset + 5;
+        const offset = base.offset + 5;
         try {
             const { groups } = await this.request(this.orm.call("usl.home.service", "search_records", [this.state.query.trim()], { categories: [group.key], offset }));
             if (generation === this.generation && groups[0]) {
                 const next = groups[0];
-                next.records = this.mergeRecords(group.records, next.records);
+                next.records = this.mergeRecords(base.records, next.records);
                 this.state.groups = this.state.groups.map((old) => old.key === group.key ? next : old);
             }
         } catch {
@@ -274,7 +314,7 @@ export class HomeContentSearch extends Component {
                 this.notification.add(_t("More results could not be loaded. Try again."), { type: "warning" });
             }
         } finally {
-            group.loading = false;
+            base.loading = false;
         }
     }
 

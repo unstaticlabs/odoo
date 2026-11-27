@@ -2,10 +2,12 @@
 
 Search in Home or choose **Content** in the native Tasks search bar. A readable
 task comment, shared note, or user correspondence subject/body can find its task
-after the scheduled refresh. Home identifies the message source and shows a
-short plain-text excerpt. Opening that result follows Odoo's existing message
-link into the task conversation. Ordinary task results keep their native form
-navigation.
+after the scheduled refresh. Home names the message source (its author, date and
+whether it is a message, a note or a subject) and shows a short quoted plain-text
+excerpt with the matched words in bold. Opening that result opens the task form in
+place, with the message highlighted in its conversation, without reloading the page.
+A task whose own title or description matches is shown as an ordinary task, even
+when its conversation repeats the same words, and opens its form without highlight.
 
 The first conversation slice covers `mail.message` records on tasks. It excludes
 native user notifications, tracking records, and automatic task-event

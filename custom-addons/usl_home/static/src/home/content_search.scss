@@ -63,4 +63,58 @@
     .o_usl_result_source i { margin-right: .25rem; }
     .o_usl_result_match { font-weight: 700; color: var(--o-main-text-color, #212529); }
     .o_usl_search_more { margin: 0 .5rem; padding: .25rem; }
+
+    .o_usl_search_subgroup {
+        margin: .5rem 0 0;
+        padding: .5rem .75rem .25rem;
+        font-size: .75rem;
+        font-weight: 600;
+        color: var(--usl-home-muted, #6c757d);
+    }
+    .o_usl_result_badge {
+        display: inline-block;
+        margin-left: .5rem;
+        padding: 0 .5rem;
+        border-radius: 1rem;
+        font-size: .7rem;
+        font-weight: 500;
+        line-height: 1.4rem;
+        color: var(--usl-home-muted, #6c757d);
+        background: var(--usl-home-soft, #f4f4f4);
+        white-space: nowrap;
+    }
+    .o_usl_search_skeleton {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        min-height: 44px;
+        margin: 0;
+        padding: .5rem .75rem;
+        font-size: .8125rem;
+    }
+    .o_usl_skeleton_bar {
+        flex: 0 0 5rem;
+        height: .75rem;
+        border-radius: .375rem;
+        background: linear-gradient(90deg, var(--usl-home-soft, #f4f4f4), color-mix(in srgb, var(--usl-home-muted, #6c757d) 22%, transparent), var(--usl-home-soft, #f4f4f4));
+        background-size: 200% 100%;
+        animation: o_usl_skeleton 1.2s ease-in-out infinite;
+    }
+    .o_usl_search_empty { padding: 1rem .75rem !important; }
+}
+
+@keyframes o_usl_skeleton {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_usl_content_search .o_usl_skeleton_bar { animation: none; }
+}
+
+@media (max-width: 575.98px) {
+    .o_usl_content_search {
+        // The badge wraps under the title on a narrow screen.
+        .o_usl_result_badge { display: table; margin: .25rem 0 0; }
+    }
 }

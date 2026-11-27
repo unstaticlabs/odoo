@@ -12,7 +12,7 @@ class TestTaskSemantics(TransactionCase):
         task = self.env['project.task'].create({'name': 'Amber workshop fixture'})
         with patch.dict('os.environ', {'USL_TASK_SEMANTIC_SEARCH': '0'}):
             meaning = service.env['project.task'].search_by_meaning('Amber workshop fixture')
-            self.assertEqual(meaning['status'], 'unavailable')
+            self.assertEqual(meaning['status'], 'disabled')
             self.assertFalse(meaning['group']['records'])
             lexical = service.search_records('Amber workshop fixture', categories=['tasks'])
             self.assertIn(task.id, [row['id'] for row in lexical['groups'][0]['records']])
@@ -35,13 +35,38 @@ class TestTaskSemantics(TransactionCase):
         # A fixture index can contain unrelated documents. Limit the background actor to this company.
         worker = Task.with_user(user).with_context(allowed_company_ids=company.ids)
         service = self.env['usl.home.service'].with_user(user).with_context(allowed_company_ids=company.ids)
-        def embed(model, texts):
+        def embed(model, texts, **options):
             return [[1.0, 0.0, *([0.0] * 1022)] if any(term in text for term in ('parcel', 'courier'))
                     else [0.8, 0.6, *([0.0] * 1022)] for text in texts]
         self.enterContext(patch.object(semantics, '_configured_model', return_value=('http://fixture.invalid', 'fixture', 'a' * 64)))
         self.enterContext(patch.object(semantics, '_embeddings', side_effect=embed))
         worker._cron_usl_embed_task_descriptions()
         return tasks, service
+
+    def test_title_only_task_is_found_by_meaning_and_text_has_both_parts(self):
+        from odoo.addons.usl_home.models import task_semantics as semantics
+        tasks, service = self._rank_fixture()
+        project = tasks[0].project_id
+        actor = service.env.user
+        title_only = self.env['project.task'].with_context(tracking_disable=True).create({
+            'name': 'Courier trace request', 'project_id': project.id, 'user_ids': [Command.link(actor.id)],
+        })
+        self.env['project.task']._cron_usl_index_task_content()
+        seen = []
+        def embed(model, texts, **options):
+            seen.extend(texts)
+            return [[1.0, 0.0, *([0.0] * 1022)] if any(term in text for term in ('parcel', 'courier', 'Courier'))
+                    else [0.8, 0.6, *([0.0] * 1022)] for text in texts]
+        with patch.object(semantics, '_embeddings', side_effect=embed):
+            service.env['project.task']._cron_usl_embed_task_descriptions()
+            rows = service.env['project.task'].search_by_meaning('who can trace the courier?', limit=5)['group']['records']
+        self.assertIn(title_only.id, [row['id'] for row in rows])
+        self.assertIn('Courier trace request', seen)
+
+    def test_embedding_text_joins_title_and_description(self):
+        text = self.env['project.task']._usl_embedding_text('  Parcel   trail ', '<p>The delivery company lost our parcel.</p>')
+        self.assertEqual(text, 'Parcel trail\n\nThe delivery company lost our parcel.')
+        self.assertEqual(self.env['project.task']._usl_embedding_text('Only a title', False), 'Only a title')
 
     def test_paraphrase_and_revocation_before_limit(self):
         from odoo.addons.usl_home.models import task_semantics as semantics
@@ -74,8 +99,38 @@ class TestTaskSemantics(TransactionCase):
         with patch.object(semantics, '_embeddings', return_value=None):
             self.assertEqual(service.env['project.task'].search_by_meaning('Who can trace the courier?')['status'], 'unavailable')
 
+    def test_attestation_is_remembered_so_a_second_query_makes_one_call(self):
+        from odoo.addons.usl_home.models import task_semantics as semantics
+        semantics._ATTESTED.clear()
+        self.addCleanup(semantics._ATTESTED.clear)
+        target = ('http://fixture.invalid', 'fixture', 'a' * 64)
+        vector = [1.0] + [0.0] * 1023
+        with patch('requests.Session') as session:
+            client = session.return_value.__enter__.return_value
+            client.get.return_value.status_code = 200
+            client.get.return_value.json.return_value = {'models': [{'name': 'fixture', 'digest': 'a' * 64}]}
+            client.post.return_value.status_code = 200
+            client.post.return_value.json.return_value = {'model': 'fixture', 'embeddings': [vector]}
+            self.assertEqual(semantics._embeddings(target, ['first'], interactive=True), [vector])
+            self.assertEqual((client.get.call_count, client.post.call_count), (1, 1))
+            self.assertEqual(semantics._embeddings(target, ['second'], interactive=True), [vector])
+            self.assertEqual((client.get.call_count, client.post.call_count), (1, 2))
+            # Interactive calls are bounded by the half-second connect and 1.5 s total budget.
+            for call in client.post.call_args_list:
+                connect, read = call.kwargs['timeout']
+                self.assertLessEqual(connect, 1)
+                self.assertLessEqual(read, semantics.INTERACTIVE_BUDGET)
+            # An answer from another model withdraws the attestation.
+            client.post.return_value.json.return_value = {'model': 'other', 'embeddings': [vector]}
+            self.assertIsNone(semantics._embeddings(target, ['third'], interactive=True))
+            self.assertEqual(semantics._embeddings(target, ['fourth'], interactive=True), None)
+            self.assertEqual(client.get.call_count, 2)
+
     def test_gateway_rejects_drift_before_sending_any_text(self):
+        from odoo.addons.usl_home.models import task_semantics as semantics
         from odoo.addons.usl_home.models.task_semantics import _embeddings
+        semantics._ATTESTED.clear()
+        self.addCleanup(semantics._ATTESTED.clear)
         with patch('requests.Session') as session:
             client = session.return_value.__enter__.return_value
             response = client.get.return_value
@@ -101,9 +156,9 @@ class TestTaskSemantics(TransactionCase):
         with patch.object(semantics, '_configured_model', return_value=('http://fixture.invalid', 'fixture', 'a' * 64)), patch.object(semantics, '_embeddings') as call:
             if Task._usl_has_vector_index():
                 with patch.object(type(Task), '_usl_has_vector_index', return_value=False):
-                    self.assertEqual(service.env['project.task'].search_by_meaning('studio')['status'], 'unavailable')
+                    self.assertEqual(service.env['project.task'].search_by_meaning('studio')['status'], 'disabled')
             else:
-                self.assertEqual(service.env['project.task'].search_by_meaning('studio')['status'], 'unavailable')
+                self.assertEqual(service.env['project.task'].search_by_meaning('studio')['status'], 'disabled')
                 Task._cron_usl_embed_task_descriptions()
             call.assert_not_called()
 
