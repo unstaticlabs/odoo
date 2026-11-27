@@ -678,7 +678,7 @@ false
 | **Item** (`label`) | char |  |  |
 | **Use no tax** (`remove_taxes`) | boolean |  |  |
 | **Scope Company** (`scope_company_ids`) | json |  | Both companies, so the destination's records can be read and chosen. |
-| **Current account** (`source_account_id`) | many2one → `account.account` |  |  |
+| **Current account** (`source_account_label`) | char |  |  |
 | **Current taxes** (`source_tax_ids`) | many2many → `account.tax` |  |  |
 | **Destination account** (`target_account_id`) | many2one → `account.account` |  |  |
 | **Destination taxes** (`target_tax_ids`) | many2many → `account.tax` |  |  |

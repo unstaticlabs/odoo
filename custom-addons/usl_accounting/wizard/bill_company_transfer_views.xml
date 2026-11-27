@@ -47,7 +47,7 @@
                         <field name="analytic_precision" column_invisible="True"/>
                         <field name="scope_company_ids" column_invisible="True"/>
                         <field name="label"/>
-                        <field name="source_account_id" optional="show" options="{'no_open': True}"/>
+                        <field name="source_account_label" optional="show"/>
                         <field name="target_account_id" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_ids', 'parent_of', company_id), ('active', '=', True)]" options="{'no_create': True, 'no_open': True}"/>
                         <field name="source_tax_ids" widget="many2many_tags" optional="show"/>
                         <field name="target_tax_ids" widget="many2many_tags" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_id', 'parent_of', company_id), ('type_tax_use', '=', 'purchase')]" options="{'no_create': True}"/>
@@ -58,7 +58,7 @@
                         <templates>
                             <t t-name="card">
                                 <strong><field name="label"/></strong>
-                                <div><field name="source_account_id"/> → <field name="target_account_id"/></div>
+                                <div><field name="source_account_label"/> → <field name="target_account_id"/></div>
                                 <field name="target_tax_ids" widget="many2many_tags"/>
                             </t>
                         </templates>
@@ -69,7 +69,7 @@
                         <field name="scope_company_ids" invisible="1"/>
                         <group>
                             <field name="label"/>
-                            <field name="source_account_id" options="{'no_open': True}"/>
+                            <field name="source_account_label"/>
                             <field name="target_account_id" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_ids', 'parent_of', company_id), ('active', '=', True)]" options="{'no_create': True}"/>
                             <field name="source_tax_ids" widget="many2many_tags"/>
                             <field name="target_tax_ids" widget="many2many_tags" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_id', 'parent_of', company_id), ('type_tax_use', '=', 'purchase')]" options="{'no_create': True}"/>

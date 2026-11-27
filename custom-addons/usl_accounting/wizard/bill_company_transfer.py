@@ -235,7 +235,7 @@ class BillCompanyTransferLine(models.TransientModel):
     transfer_id = fields.Many2one("usl.bill.company.transfer", ondelete="cascade", required=True)
     invoice_line_id = fields.Many2one("account.move.line", required=True, readonly=True, ondelete="cascade")
     label = fields.Char(related="invoice_line_id.name", string="Item", compute_sudo=False)
-    source_account_id = fields.Many2one(related="invoice_line_id.account_id", string="Current account", compute_sudo=False)
+    source_account_label = fields.Char(compute="_compute_source_account_label", string="Current account")
     source_tax_ids = fields.Many2many(related="invoice_line_id.tax_ids", string="Current taxes", compute_sudo=False)
     target_account_id = fields.Many2one("account.account", string="Destination account")
     target_tax_ids = fields.Many2many("account.tax", string="Destination taxes")
@@ -256,6 +256,13 @@ class BillCompanyTransferLine(models.TransientModel):
 
     def write(self, vals):
         return super(BillCompanyTransferLine, self._in_both_companies()).write(vals)
+
+    @api.depends("invoice_line_id", "invoice_line_id.account_id", "transfer_id.bill_id")
+    def _compute_source_account_label(self):
+        """Accountants read accounts by code: read the current account in the bill's own company."""
+        for item in self:
+            account = item.invoice_line_id.account_id.with_company(item.transfer_id.bill_id.company_id)
+            item.source_account_label = account.display_name or False
 
     @api.constrains("transfer_id", "invoice_line_id")
     def _check_selected_line(self):

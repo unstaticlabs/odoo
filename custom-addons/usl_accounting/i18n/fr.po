@@ -8241,7 +8241,7 @@ msgid "Consequences"
 msgstr "Effets du transfert"
 
 #. module: usl_accounting
-#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__source_account_id
+#: model:ir.model.fields,field_description:usl_accounting.field_usl_bill_company_transfer_line__source_account_label
 msgid "Current account"
 msgstr "Compte actuel"
 

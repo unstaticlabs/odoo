@@ -380,6 +380,8 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         scoped = wizard._in_both_companies()
         self.assertEqual(scoped.env.context["allowed_company_ids"], [self.target.id, bill.company_id.id])
         self.assertEqual(wizard.scope_company_ids[0], self.target.id)
+        source_code = self.company_data["default_account_expense"].code
+        self.assertTrue(wizard.mapping_ids.with_context(allowed_company_ids=scoped.env.context["allowed_company_ids"]).source_account_label.startswith(source_code))
         account = scoped.env["account.account"].browse(self.target_same_code.id)
         self.assertTrue(account.code)
         self.assertTrue(account.display_name.startswith(account.code))
@@ -397,7 +399,7 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         old_dates = sorted(bill.line_ids.filtered(lambda ln: ln.display_type == "payment_term").mapped("date_maturity"))
         wizard = self._mapping(bill)
         self.assertEqual(bill.company_id, source)
-        self.assertEqual(wizard.mapping_ids.source_account_id, self.company_data["default_account_expense"])
+        self.assertIn(self.company_data["default_account_expense"].name, wizard.mapping_ids.source_account_label)
         self.assertEqual(wizard.mapping_ids.source_tax_ids, self.company_data["default_tax_purchase"])
         wizard.action_apply()
         self.assertEqual((bill.company_id, bill.journal_id), (self.target, self.target_data["default_journal_purchase"]))
