@@ -221,6 +221,49 @@ class TestSourceEvidence(TestExpenseCommon):
         self.assertFalse(attachment.url)
         self.assertEqual((attachment.res_model, attachment.res_id), ("hr.expense", expense.id))
 
+    def test_approved_unposted_expense_can_select_or_correct_its_receipt(self):
+        for mode in ("own_account", "company_account"):
+            with self.subTest(payment_mode=mode):
+                expense = self._expense().with_user(self.expense_user_manager)
+                expense.payment_mode = mode
+                supplemental = expense.attach_source_evidence(**self._payload(
+                    b"%PDF-1.4\n[QA] Order information\n%%EOF",
+                    filename="qa-order-info.pdf", set_main_attachment=True,
+                ))
+                receipt = expense.attach_source_evidence(**self._payload())
+                expense.action_submit()
+                expense._do_approve()
+                self.assertEqual(expense.state, "approved")
+                self.assertFalse(expense.account_move_id)
+
+                fields = ["total_amount_currency", "company_id", "payment_mode", "tax_ids", "currency_id"]
+                financial_values = expense.read(fields)
+                result = expense.attach_source_evidence(source_attachment_id=receipt["attachment_id"], set_main_attachment=True)
+                self.assertTrue(result["reused"])
+                self.assertEqual(expense.message_main_attachment_id.id, receipt["attachment_id"])
+
+                original_ids = set(expense.attachment_ids.ids)
+                corrected = self._payload(b"%PDF-1.4\n[QA] Itemized receipt\n%%EOF", filename="qa-itemized.pdf", set_main_attachment=True)
+                messages = expense.message_ids.ids
+                with self.assertRaisesRegex(AccessError, "return it to draft"):
+                    expense.attach_source_evidence(**corrected)
+                self.assertEqual(expense.message_ids.ids, messages)
+                self.assertEqual(set(expense.attachment_ids.ids), original_ids)
+                self.assertEqual(expense.state, "approved")
+                self.assertEqual(expense.message_main_attachment_id.id, receipt["attachment_id"])
+
+                expense.action_reset()
+                self.assertEqual(expense.state, "draft")
+                added = expense.attach_source_evidence(**corrected)
+                expense.action_submit()
+                expense._do_approve()
+                self.assertEqual(expense.state, "approved")
+                self.assertEqual(expense.message_main_attachment_id.id, added["attachment_id"])
+                self.assertEqual(set(expense.attachment_ids.ids), original_ids | {added["attachment_id"]})
+                self.assertIn(supplemental["attachment_id"], original_ids)
+                self.assertEqual(expense.read(fields), financial_values)
+                self.assertFalse(expense.account_move_id)
+
     def test_settled_expense_keeps_native_attachment_rule_and_accounting_recovery(self):
         for mode in ("own_account", "company_account"):
             expense = self._expense().with_user(self.expense_user_manager)

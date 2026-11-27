@@ -99,7 +99,13 @@ class SourceEvidence(models.Model):
                         "url": False,
                     })
                 except AccessError as error:
-                    if record._name == "hr.expense" and record.state not in {"draft", "submitted"}:
+                    if record._name == "hr.expense" and record.state == "approved" and not record.account_move_id:
+                        raise AccessError(_(
+                            "This approved expense has no accounting entry yet. Select a receipt already attached to it. "
+                            "To add a new receipt, a user with permission must return it to draft, attach the receipt "
+                            "and submit the expense again."
+                        )) from error
+                    if record._name == "hr.expense" and record.account_move_id and record.state not in {"draft", "submitted"}:
                         raise AccessError(_(
                             "Odoo no longer allows attachments on this approved expense. "
                             "Keep its original receipt; attach supplementary evidence to its accounting entry instead."

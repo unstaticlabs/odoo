@@ -6668,6 +6668,11 @@ msgid "Odoo no longer allows attachments on this approved expense. Keep its orig
 msgstr "Odoo n’autorise plus l’ajout de pièces jointes sur cette note de frais approuvée. Conservez son justificatif original et joignez les preuves complémentaires à son écriture comptable."
 
 #. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This approved expense has no accounting entry yet. Select a receipt already attached to it. To add a new receipt, a user with permission must return it to draft, attach the receipt and submit the expense again."
+msgstr "Cette note de frais approuvée n’a pas encore d’écriture comptable. Sélectionnez un justificatif déjà joint à la note. Pour en ajouter un nouveau, une personne autorisée doit remettre la note en brouillon, joindre le justificatif et soumettre à nouveau la note."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid ""
 "Open this document in the Documents app to change its title, correspondent, "
