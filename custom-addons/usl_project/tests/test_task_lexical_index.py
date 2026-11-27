@@ -95,6 +95,28 @@ class TestTaskLexicalIndex(TransactionCase):
         self.assertEqual(self._search("maphore", active_test=False), task)
         self.assertFalse(self._search("ecarlate semaphore"))
 
+    def test_native_ligatures_match_before_and_after_publication(self):
+        if not self.env.registry.has_unaccent:
+            self.skipTest("Native SQL unaccent dictionary is not installed")
+        task = self._task(name="Cœur du réseau", description="Une œuvre collective")
+        for publish in (False, True):
+            if publish:
+                self._index()
+            for needle in ("coeur du reseau", "cœur du réseau", "oeuvre collective"):
+                with self.subTest(published=publish, needle=needle):
+                    self.assertEqual(self._search(needle), task)
+
+    def test_complete_long_description_and_its_neighbour_remain_searchable(self):
+        # A pasted catalogue has many different references. Terms near the
+        # beginning and end must still match in either order.
+        references = " ".join(f"catalogue{i:06d}" for i in range(75000))
+        catalogue = self._task(description=f"Introduction améthyste {references} conclusion vermeille")
+        neighbour = self._task(description="Ordinary turquoise planning")
+        self._index()
+        self.assertEqual(self._search("vermeille amethyste"), catalogue)
+        self.assertEqual(self._search("catalogue074999 catalogue000000"), catalogue)
+        self.assertEqual(self._search("planning turquoise"), neighbour)
+
     def test_count_grouping_and_negation_use_same_native_domain(self):
         task = self._task(description="Amber planning for heliograph launch")
         self._index()
@@ -145,10 +167,10 @@ class TestTaskLexicalIndex(TransactionCase):
         self.env.cr.execute("SET LOCAL enable_seqscan = off")
         self.env.cr.execute("""
             EXPLAIN SELECT task_id FROM usl_task_search_fragment
-            WHERE to_tsvector('simple', content) @@ plainto_tsquery('simple', 'heliograph Amber')
+            WHERE words @> ARRAY['heliograph', 'amber']
         """)
         plan = "\n".join(row[0] for row in self.env.cr.fetchall())
-        self.assertIn("usl_task_search_fragment_lexical_idx", plan)
+        self.assertIn("usl_task_search_fragment_words_idx", plan)
 
     def test_projection_helpers_are_not_rpc_entry_points(self):
         from odoo.exceptions import AccessError

@@ -13,11 +13,17 @@ search field also feeds the Tasks category on Home.
 ## Decision
 
 Project task titles and descriptions into private PostgreSQL fragments, separated
-by source field. Maintain a GIN full-text index using the `simple` configuration
+by source field. Maintain a GIN index over distinct words from the `simple` dictionary
 and a substring trigram index when PostgreSQL provides Odoo's native extension.
 Normalize whitespace, accents and HTML description text before indexing. A
 word-based match requires every query lexeme in the same source field; substring
 matching remains available. Search order remains the caller's native order.
+
+Only membership matters for this search. Storing words in an array lets large
+documents keep their full vocabulary. PostgreSQL limits the size of a single
+positional text-search vector to 1 MiB. For long text the indexer reads the
+same dictionary's individual tokens. When Odoo has a PostgreSQL accent
+dictionary, publication and lookup both use that dictionary.
 
 Create and relevant writes enqueue the task in their own transaction. A fixed
 one-minute scheduled action consumes at most 500 tasks using `FOR UPDATE SKIP

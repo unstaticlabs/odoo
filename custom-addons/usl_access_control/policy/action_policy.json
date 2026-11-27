@@ -221813,6 +221813,8 @@
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:6",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:7",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1"
       ],
       "classification": "system_internal",
@@ -221854,23 +221856,31 @@
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5": {
           "reachability_proof": "api.private schema hook, refused by native get_public_method; invoked through the existing native protected module lifecycle."
         },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:6": {
+          "reachability_proof": "Only the private native schema hook initializes derived task-search storage and requeues existing source records. Native public method lookup rejects this hook."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:7": {
+          "reachability_proof": "Only the private native schema hook initializes derived task-search storage and requeues existing source records. Native public method lookup rejects this hook."
+        },
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": {
           "reachability_proof": "AST native super-call sink within the existing reviewed rpc:project.task.write; queue changes follow successful native authority checks."
         }
       },
       "rationale": "The schema hook is api.private and all worker/queue helpers are private. Source data and current authority remain native; separate reviewed parents own any public invocation.",
       "reviewed_digests": {
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1": "a7deba55e6bcc14f4772f25107a6184b67923b06656776c9c2a2c6324734cd27",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2": "2aed4d84343690841e157a535082d0956691ce82f20048f5bce4ecaf4f0d6042",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3": "586da0f08938668707b04688c22dfabe8133f4f04f0e33ea5ea6f514cb511fc5",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1": "ae0ba1c43473776fb7d7fcac806de538f0123aa3f2515a9f6a9b13649b283896",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2": "6acc22e732b9aef217f7225ba1e228933b0bae553461b9d4b0f255a43feae8b9",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3": "51d343626b8413f93b03d53c3871e9149330aace74946abbf8d526b369de3f5e",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:1": "9667852f91c18b1c142d24f9494d0f0143672af4042be83dd52f8d90ef05d537",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._usl_queue_task_content:raw_sql_mutation:2": "cdc00f199ba722cbf33a29b5e97019365cce26ccd99d412ae2ba8ccc1a0de5ad",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1": "a4a012cf49f1434ee5bfa61243bcddf2938058a8fcc783e516feeeb9590c5f5b",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1": "47a5d59deed4eb51428c85a2dabbf7d28b27250bb9db75c3c27f0225ea907f03",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2": "ccb35a87b3b55975215ca50b349fa6d623f85151d1087895a08c6987e5a1c366",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3": "a40d49525e5dba41c88ce25aa9e0218c629d936397820c28e9c65e496b18b248",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4": "3322ae1ef075b13ec17fab85d5f48144487653110ee03d17f2d56e13b6cb7190",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5": "6813c7816d48689c01c68c72257c9c79443d8b541124265fe65df4372dd501d3",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1": "67f16cd404ddcc7a0ff5312e73f9d2eaa2b587a275abdf35c5a9c6bdc993cec2",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2": "1c3658323a5eb8054164cb94f9c6c7acfe7ba715e61c957edfa5dcd065c5b815",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3": "230b2ceb1a186dd7d54a93d52c4e44b9b4e0947761ba5a4627a6689f6e4876f1",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4": "a9bd70c127b997f4acd57504cb74d5a0825b6aab65c2fda1f9c23dd43687dd30",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5": "dfff1fa8ac732827f47338063827875c6f1a6dc467a8ffac6f6df33bd3ca1a31",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:6": "5e7907bd45dbcea9dd1919ba2aff440f86c757f681937184c06a83b88a9a3ff8",
+        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:7": "c5be578eee6e42d6fb91f00266e1f8c6a5f0b78d21cb6b922b792b3f0ce32fcf",
         "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": "f90855cc888f30808f73f2f0fbba62b23a426a28a7aea8ac5fae06a2b27661b8"
       }
     },
@@ -222445,7 +222455,9 @@
         "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_selected_company_controls_already_indexed_content",
         "scripts/odoo/task_search_concurrency_qa.py",
         "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_repeated_module_initialization_keeps_ready_results_available",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_reinstallation_requeues_fragments_from_before_the_feature_was_disabled"
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_reinstallation_requeues_fragments_from_before_the_feature_was_disabled",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_native_ligatures_match_before_and_after_publication",
+        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_complete_long_description_and_its_neighbour_remain_searchable"
       ]
     },
     "task-navigation-20261014": {

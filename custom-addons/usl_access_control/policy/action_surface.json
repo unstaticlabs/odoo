@@ -898177,7 +898177,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 72,
+          "line": 76,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
@@ -908621,7 +908621,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 77,
+          "line": 81,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         },
         {
@@ -1699834,7 +1699834,7 @@
       ]
     },
     {
-      "digest": "a7deba55e6bcc14f4772f25107a6184b67923b06656776c9c2a2c6324734cd27",
+      "digest": "ae0ba1c43473776fb7d7fcac806de538f0123aa3f2515a9f6a9b13649b283896",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:1",
       "kind": "sink",
       "modules": [
@@ -1699843,13 +1699843,13 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 84,
+          "line": 88,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
     },
     {
-      "digest": "2aed4d84343690841e157a535082d0956691ce82f20048f5bce4ecaf4f0d6042",
+      "digest": "6acc22e732b9aef217f7225ba1e228933b0bae553461b9d4b0f255a43feae8b9",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:2",
       "kind": "sink",
       "modules": [
@@ -1699858,13 +1699858,13 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 84,
+          "line": 88,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
     },
     {
-      "digest": "586da0f08938668707b04688c22dfabe8133f4f04f0e33ea5ea6f514cb511fc5",
+      "digest": "51d343626b8413f93b03d53c3871e9149330aace74946abbf8d526b369de3f5e",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task._cron_usl_index_task_content:raw_sql_mutation:3",
       "kind": "sink",
       "modules": [
@@ -1699873,7 +1699873,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 84,
+          "line": 88,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1699888,7 +1699888,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 57,
+          "line": 61,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1699903,7 +1699903,7 @@
       "sink_kind": "raw_sql_mutation",
       "sources": [
         {
-          "line": 57,
+          "line": 61,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1699921,13 +1699921,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 72,
+          "line": 76,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
     },
     {
-      "digest": "47a5d59deed4eb51428c85a2dabbf7d28b27250bb9db75c3c27f0225ea907f03",
+      "digest": "67f16cd404ddcc7a0ff5312e73f9d2eaa2b587a275abdf35c5a9c6bdc993cec2",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:1",
       "kind": "sink",
       "modules": [
@@ -1699945,7 +1699945,7 @@
       ]
     },
     {
-      "digest": "ccb35a87b3b55975215ca50b349fa6d623f85151d1087895a08c6987e5a1c366",
+      "digest": "1c3658323a5eb8054164cb94f9c6c7acfe7ba715e61c957edfa5dcd065c5b815",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:2",
       "kind": "sink",
       "modules": [
@@ -1699963,7 +1699963,7 @@
       ]
     },
     {
-      "digest": "a40d49525e5dba41c88ce25aa9e0218c629d936397820c28e9c65e496b18b248",
+      "digest": "230b2ceb1a186dd7d54a93d52c4e44b9b4e0947761ba5a4627a6689f6e4876f1",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:3",
       "kind": "sink",
       "modules": [
@@ -1699981,7 +1699981,7 @@
       ]
     },
     {
-      "digest": "3322ae1ef075b13ec17fab85d5f48144487653110ee03d17f2d56e13b6cb7190",
+      "digest": "a9bd70c127b997f4acd57504cb74d5a0825b6aab65c2fda1f9c23dd43687dd30",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:4",
       "kind": "sink",
       "modules": [
@@ -1699999,8 +1699999,44 @@
       ]
     },
     {
-      "digest": "6813c7816d48689c01c68c72257c9c79443d8b541124265fe65df4372dd501d3",
+      "digest": "dfff1fa8ac732827f47338063827875c6f1a6dc467a8ffac6f6df33bd3ca1a31",
       "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:5",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "5e7907bd45dbcea9dd1919ba2aff440f86c757f681937184c06a83b88a9a3ff8",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:6",
+      "kind": "sink",
+      "modules": [
+        "usl_project"
+      ],
+      "parents": [
+        "rpc:project.task.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 20,
+          "path": "custom-addons/usl_project/models/task_lexical_index.py"
+        }
+      ]
+    },
+    {
+      "digest": "c5be578eee6e42d6fb91f00266e1f8c6a5f0b78d21cb6b922b792b3f0ce32fcf",
+      "key": "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.init:raw_sql_mutation:7",
       "kind": "sink",
       "modules": [
         "usl_project"
@@ -1700029,7 +1700065,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 77,
+          "line": 81,
           "path": "custom-addons/usl_project/models/task_lexical_index.py"
         }
       ]
@@ -1768929,7 +1768965,7 @@
       "manifest_sha256": "72d935fb7d192e9fbd92a2de9d958a9dc3643c86006a9dfd9e485e501d7f3f58",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "8d801a587fa5e540c2f39ab735b85dba16b496418cd482a0802bc2bb6905a5d7",
+      "source_sha256": "aa1b57ed4000484a44b871b5eeaf7abdd290d4983c3427270cc1006b0c937d5a",
       "version": "saas~19.3.1.0.22"
     },
     {

@@ -7,7 +7,7 @@ neither projection data nor its work queue has a public model or RPC surface.
 from odoo import api, models
 from odoo.fields import Domain
 from odoo.tools import SQL, html2plaintext
-from odoo.tools.misc import remove_accents
+from .search_words import folded_text, lexical_words, prepare_fragment
 
 
 INDEXED_FIELDS = ("name", "description")
@@ -31,12 +31,16 @@ class ProjectTask(models.Model):
                 task_id integer NOT NULL REFERENCES project_task(id) ON DELETE CASCADE,
                 field_name varchar NOT NULL,
                 content text NOT NULL,
+                words text[],
                 PRIMARY KEY (task_id, field_name)
             )
         """)
+        # Upgrades from the earlier projection rebuild from authoritative text.
+        cr.execute("ALTER TABLE usl_task_search_fragment ADD COLUMN IF NOT EXISTS words text[]")
+        cr.execute("DROP INDEX IF EXISTS usl_task_search_fragment_lexical_idx")
         cr.execute("""
-            CREATE INDEX IF NOT EXISTS usl_task_search_fragment_lexical_idx
-            ON usl_task_search_fragment USING gin (to_tsvector('simple', content))
+            CREATE INDEX IF NOT EXISTS usl_task_search_fragment_words_idx
+            ON usl_task_search_fragment USING gin (words)
         """)
         if self.env.registry.has_trigram:
             cr.execute("""
@@ -50,7 +54,7 @@ class ProjectTask(models.Model):
             SELECT task.id FROM project_task task
             WHERE NOT EXISTS (
                 SELECT 1 FROM usl_task_search_fragment fragment
-                WHERE fragment.task_id = task.id
+                WHERE fragment.task_id = task.id AND fragment.words IS NOT NULL
             ) ON CONFLICT (task_id) DO NOTHING
         """)
 
@@ -105,12 +109,13 @@ class ProjectTask(models.Model):
         for task_id, name, description in rows:
             for field_name, value in zip(INDEXED_FIELDS, (name, description)):
                 text = html2plaintext(value or "") if field_name == "description" else value or ""
-                content = remove_accents(" ".join(text.split()))
+                content = " ".join(text.split())
                 if content:
+                    folded, words = prepare_fragment(self.env, content)
                     cr.execute("""
-                        INSERT INTO usl_task_search_fragment (task_id, field_name, content)
-                        VALUES (%s, %s, %s)
-                    """, (task_id, field_name, content))
+                        INSERT INTO usl_task_search_fragment (task_id, field_name, content, words)
+                        VALUES (%s, %s, %s, %s)
+                    """, (task_id, field_name, folded, words))
         cr.execute("DELETE FROM usl_task_search_queue WHERE task_id = ANY(%s)", (ids,))
 
     @api.model
@@ -120,20 +125,20 @@ class ProjectTask(models.Model):
         if not fields or not text or not self.has_access("read"):
             return Domain.FALSE
         self.flush_model(list(INDEXED_FIELDS))
-        live_text = text
-        text = remove_accents(text)
         indexed = Domain("id", "in", SQL("""
-            SELECT fragment.task_id FROM usl_task_search_fragment fragment
+            WITH needle AS MATERIALIZED (SELECT %s AS text),
+                 query AS MATERIALIZED (SELECT text, %s AS words FROM needle)
+            SELECT fragment.task_id FROM usl_task_search_fragment fragment, query
             WHERE fragment.field_name IN %s
               AND NOT EXISTS (
                   SELECT 1 FROM usl_task_search_queue pending
                   WHERE pending.task_id = fragment.task_id
               )
-              AND (to_tsvector('simple', fragment.content) @@ plainto_tsquery('simple', %s)
-                   OR fragment.content ILIKE %s)
-        """, fields, text, "%%" + text + "%%"))
+              AND ((cardinality(query.words) > 0 AND fragment.words @> query.words)
+                   OR fragment.content ILIKE ('%%' || query.text || '%%'))
+        """, folded_text(self.env.registry, text), lexical_words(SQL("needle.text")), fields))
         # Pending records remain available through the existing live contains
         # search. No search request mutates or refreshes the projection.
         pending = Domain("id", "in", SQL("SELECT task_id FROM usl_task_search_queue"))
-        live = Domain.OR([Domain(name, "ilike", live_text) for name in fields])
+        live = Domain.OR([Domain(name, "ilike", text) for name in fields])
         return indexed | (pending & live)
