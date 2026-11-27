@@ -114,3 +114,11 @@ class TestHeldOutTagScores(SimpleTestCase):
             quality = evaluate(rows, threshold)
             observed.append((quality["correct"], quality["incorrect"], quality["missed"]))
         self.assertEqual(observed, [(11, 8, 2), (3, 2, 10), (1, 0, 12), (0, 0, 13)])
+        masonry = evaluate(rows, .7, tag_id=17)
+        self.assertEqual((masonry["correct"], masonry["missed"], masonry["false_positive_rows"]), (1, 5, [7, 12]))
+        self.assertEqual([examples[row - 1][0] for row in masonry["false_positive_rows"]], [
+            "orchestra concert in a window factory", "a note stuck to the window",
+        ])
+        music = evaluate(rows, .7, tag_id=41)
+        self.assertEqual((music["correct"], music["missed"], music["false_positive_rows"]), (2, 5, []))
+        self.assertIsNone(evaluate(rows, .85, tag_id=41)["precision"])

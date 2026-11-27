@@ -878,6 +878,7 @@ class UslDocument(models.Model):
         document.check_access("read")
         archive_available = True
         paperless_suggestions = []
+        suggestions_loaded = False
         if check_archive:
             try:
                 document._paperless().compatibility()
@@ -886,6 +887,7 @@ class UslDocument(models.Model):
             if archive_available:
                 try:
                     paperless_suggestions = document._paperless_suggestion_values(include_tag_scores=include_tag_scores)
+                    suggestions_loaded = True
                 except PaperlessError as error:
                     _logger.info(
                         "Paperless suggestions are unavailable for document %s: %s",
@@ -970,6 +972,7 @@ class UslDocument(models.Model):
                 "retention_hold": document.retention_hold,
                 "archive_available": archive_available,
                 "paperless_suggestions": paperless_suggestions,
+                **({"tag_scores_available": suggestions_loaded} if include_tag_scores else {}),
                 "custom_fields": custom_field_values,
                 "can_edit": can_write and document.availability_state == "available",
                 "can_change_company": (

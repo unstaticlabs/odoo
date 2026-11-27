@@ -19,6 +19,7 @@ import { Dialog } from "@web/core/dialog/dialog";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { deserializeDate, serializeDate } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
+import { formatFloat } from "@web/views/fields/formatters";
 import { Pager } from "@web/core/pager/pager";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
@@ -2684,6 +2685,7 @@ export class DocumentsWorkspaceView extends Component {
                     this.state.selected = {
                         ...detail,
                         paperless_suggestions: paperlessSuggestions,
+                        tagScoreState: this.state.selected.tagScoreState === "ready" ? "ready" : undefined,
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
@@ -2703,6 +2705,38 @@ export class DocumentsWorkspaceView extends Component {
         };
         this.metadataSaveQueue = this.metadataSaveQueue.then(save, save);
         return this.metadataSaveQueue;
+    }
+
+    async reviewTagScores() {
+        const selected = this.state.selected;
+        if (!selected || selected.tagScoreState === "loading") {
+            return;
+        }
+        selected.tagScoreState = "loading";
+        try {
+            const detail = await this.rpc("usl.document", "document_detail", [selected.id], {
+                check_archive: true, include_tag_scores: true,
+            });
+            if (this.state.selected !== selected) {
+                return;
+            }
+            if (detail.archive_available === false || detail.tag_scores_available === false) {
+                selected.tagScoreState = "unavailable";
+                return;
+            }
+            selected.paperless_suggestions = detail.paperless_suggestions;
+            selected.tagScoreState = "ready";
+        } catch {
+            selected.tagScoreState = "unavailable";
+        }
+    }
+
+    tagScoreLabel(suggestion) {
+        const score = suggestion.classifier_score;
+        if (!Number.isFinite(score) || score < 0 || score > 1) {
+            return _t("No model score");
+        }
+        return _t("Score %s/100", formatFloat(score * 100, { digits: [16, 1] }));
     }
 
     async applyPaperlessSuggestion(suggestion) {

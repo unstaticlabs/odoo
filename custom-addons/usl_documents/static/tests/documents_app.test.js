@@ -1541,7 +1541,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
 });
 
 test.tags("desktop");
-test("Paperless suggestions stay reviewable and apply one at a time", async () => {
+test("reviewing real tag scores leaves the document unchanged until a tag is chosen", async () => {
     const suggestedTag = {
         id: 42,
         name: "Payroll",
@@ -1593,7 +1593,21 @@ test("Paperless suggestions stay reviewable and apply one at a time", async () =
         documents: [{ ...document, tags: detail.tags }],
         count: 1,
     }));
-    onRpc("usl.document", "document_detail", () => detail);
+    const requests = [];
+    onRpc("usl.document", "document_detail", ({ kwargs }) => {
+        requests.push(Boolean(kwargs.include_tag_scores));
+        if (!kwargs.include_tag_scores) {
+            return detail;
+        }
+        return {
+            ...detail,
+            paperless_suggestions: [
+                { ...suggestions[0], classifier_score: 0.861335 },
+                { kind: "tag", field: "tag_ids", record_id: 43, label: "Check manually" },
+                suggestions[1],
+            ],
+        };
+    });
     onRpc("usl.document", "update_archive_metadata", ({ args }) => {
         updates.push(args[1]);
         detail = {
@@ -1610,13 +1624,20 @@ test("Paperless suggestions stay reviewable and apply one at a time", async () =
     await animationFrame();
 
     expect(".o_usl_paperless_suggestion").toHaveCount(2);
+    expect(requests).toEqual([false]);
+    await contains("button", { text: "Review tag scores" }).click();
+    expect(requests).toEqual([false, true]);
+    expect(".o_usl_paperless_suggestion").toHaveCount(3);
+    expect(".o_usl_paperless_suggestions").toHaveText(/Score 86.1\/100/);
+    expect(".o_usl_paperless_suggestions").toHaveText(/No model score/);
+    expect(updates).toEqual([]);
     await contains(".o_usl_paperless_suggestion", { text: "Tag: Payroll" }).click();
     await animationFrame();
 
     expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
     expect(".o_usl_detail_tags").toHaveText(/Payroll/);
-    expect(".o_usl_paperless_suggestion").toHaveCount(1);
-    expect(".o_usl_paperless_suggestion").toHaveText(/Date: 2026-08-30/);
+    expect(".o_usl_paperless_suggestion").toHaveCount(2);
+    expect(".o_usl_paperless_suggestions").toHaveText(/Date: 2026-08-30/);
 });
 
 test.tags("desktop");

@@ -36,6 +36,21 @@ def train(single=False):
 
 
 class TestTagScores(TestCase):
+    def test_per_tag_review_points_to_false_positives_and_counts_missed_labels(self):
+        labelled = [
+            {"expected_tag_ids": [17, 41], "tag_scores": {"17": .88, "41": .1}},
+            {"expected_tag_ids": [41], "tag_scores": {"17": .90, "41": .95}},
+            {"expected_tag_ids": [17], "tag_scores": {}},
+            {"expected_tag_ids": [], "tag_scores": {"41": .99}},
+        ]
+        self.assertEqual(evaluate(labelled, .85, tag_id=17), {
+            "tag_id": 17, "documents": 4, "threshold": .85, "correct": 1, "incorrect": 1,
+            "missed": 1, "precision": .5, "recall": .5, "false_positive_rows": [2],
+        })
+        other = evaluate(labelled, .85, tag_id=41)
+        self.assertEqual(other["false_positive_rows"], [4])
+        self.assertIsNone(evaluate(labelled, 1, tag_id=17)["precision"])
+
     def test_independent_native_columns_and_visible_automatic_proposals(self):
         classifier = train()
         text = "window masonry orchestra"

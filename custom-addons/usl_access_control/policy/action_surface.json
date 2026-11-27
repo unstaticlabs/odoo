@@ -2949,11 +2949,11 @@
       ],
       "sources": [
         {
-          "line": 2526,
+          "line": 2527,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 3173,
+          "line": 3207,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1366710,7 +1366710,7 @@
         "rpc:res.partner.search",
         "rpc:usl.document.browse"
       ],
-      "digest": "4f844243a906fc62469fd8748fda72970d5683d5cfdfc7047f651615072b87a8",
+      "digest": "aef58f1d18a95b0b9bdd743a0c670b653ae7381adf6f6d9a3c3a2e92c7e550af",
       "guards": [],
       "key": "rpc:usl.document.document_detail",
       "kind": "rpc",
@@ -1366722,7 +1366722,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "88d8dc23817b5c6a95ff0805ee35186ed069331d7eac0d5ef73a53ac4a140078",
+      "runtime_digest": "4172f9122105f9eb4e0cb97a1f03e21fe9e81814370ca33e118368cb2259f2b8",
       "sinks": [
         "sudo"
       ],
@@ -1689678,7 +1689678,7 @@
       ]
     },
     {
-      "digest": "2ba3aa0668fa3d4b59b794245036f79ce1b84fb216237815975dbe1b1736fb01",
+      "digest": "5f27bb674ae4f928eebf82928f9baf01ea369d00fa6baf9bd61eb5a20938e582",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1689696,7 +1689696,7 @@
       ]
     },
     {
-      "digest": "565da6bce81d92ba9a21dea399f22b5d660af6f5de630e2a2400a0232236dc62",
+      "digest": "b4b700bd3cf9ef57f55d220f1d2a1488209edc35da9e6a771a7138a00bc2a99e",
       "key": "sink:usl_documents:custom-addons/usl_documents/models/document_workspace.py:usl.document.document_detail:sudo:2",
       "kind": "sink",
       "modules": [
@@ -1768573,7 +1768573,7 @@
       "manifest_sha256": "761a304fb65ab29cffc75fad8262b4044c28d4457d4fad0e21d5ec20e6a9a1bf",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "be0b0d946ca644e8981ade2aee194ea1c2f9f4012a24b33bd402e82bfb9cc9ea",
+      "source_sha256": "9185eff614c0f912ef5928a5af2cf45386f2a9fba68cfe4212f0fce4d20c3ce0",
       "version": "saas~19.3.1.10.7"
     },
     {

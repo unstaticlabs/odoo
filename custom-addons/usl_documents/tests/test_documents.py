@@ -1537,9 +1537,13 @@ class TestDocuments(TransactionCase):
             ),
         ):
             detail = document.document_detail(document.id, check_archive=True)
+            scored = document.document_detail(document.id, check_archive=True, include_tag_scores=True)
 
         self.assertTrue(detail["archive_available"])
         self.assertEqual(detail["paperless_suggestions"], [])
+        self.assertNotIn("tag_scores_available", detail)
+        self.assertTrue(scored["archive_available"])
+        self.assertFalse(scored["tag_scores_available"])
 
     def test_duplicate_checksum_reuses_archive_without_upload(self):
         content = b"identical supplier evidence"

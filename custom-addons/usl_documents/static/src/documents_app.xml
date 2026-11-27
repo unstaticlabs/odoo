@@ -975,15 +975,24 @@
                                       t-esc="state.selected.company || 'Needs attention'"/>
                             </div>
                         </div>
-                        <div t-if="state.selected.paperless_suggestions?.length"
+                        <div t-if="state.selected.paperless_suggestions?.length || state.selected.tagScoreState"
                              class="o_usl_paperless_suggestions mt-3"
                              aria-label="Paperless suggestions">
-                            <div class="d-flex align-items-baseline justify-content-between gap-2 mb-2">
+                            <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2 mb-2">
                                 <label class="form-label small fw-semibold mb-0">
                                     Suggested by Paperless
                                 </label>
-                                <span class="small text-muted">Review before applying.</span>
+                                <button t-if="state.selected.tagScoreState !== 'ready' &amp;&amp; state.selected.paperless_suggestions?.some((proposal) => proposal.kind === 'tag')"
+                                        type="button" class="btn btn-link btn-sm p-0"
+                                        t-att-disabled="state.selected.tagScoreState === 'loading'"
+                                        t-on-click="reviewTagScores">Review tag scores</button>
                             </div>
+                            <p t-if="state.selected.tagScoreState === 'ready'" class="small text-muted mb-2" role="status">
+                                <t t-if="state.selected.paperless_suggestions?.length">Higher scores mean a stronger match to the model. Choose a suggestion to apply it.</t>
+                                <t t-else="">No suggestions are available for this document.</t>
+                            </p>
+                            <p t-elif="state.selected.tagScoreState === 'unavailable'" class="small text-muted mb-2" role="status">Scores could not be loaded. Try again.</p>
+                            <p t-elif="state.selected.tagScoreState === 'loading'" class="small text-muted mb-2" role="status">Checking tag scores…</p>
                             <div class="d-flex flex-wrap gap-2">
                                 <button t-foreach="state.selected.paperless_suggestions"
                                         t-as="suggestion"
@@ -995,6 +1004,8 @@
                                     <i class="fa fa-magic me-1" aria-hidden="true"/>
                                     <span t-esc="paperlessSuggestionKindLabel(suggestion.kind)"/>:
                                     <span t-esc="suggestion.label"/>
+                                    <small t-if="state.selected.tagScoreState === 'ready' &amp;&amp; suggestion.kind === 'tag'"
+                                           class="d-block" t-esc="tagScoreLabel(suggestion)"/>
                                 </button>
                             </div>
                         </div>

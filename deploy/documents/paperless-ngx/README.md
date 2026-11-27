@@ -131,13 +131,16 @@ documents from the same series together when splitting training and evaluation.
 For each document, store its `tag_scores` and reviewed `expected_tag_ids` in
 a private JSON-lines file. Include every reviewed document, including rows
 with an empty score object or empty label list. Use the Paperless IDs for both
-columns. The evaluator only prints aggregate counts and rates.
+columns. By default the evaluator prints aggregate counts and rates.
 
 ```sh
 python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85
+python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85 --tag-id 17
 ```
 
-Precision answers how often the proposed tags above the threshold were right.
+With a tag ID the result also lists the one-based rows where that tag was
+incorrectly proposed. Review those rows in the private sample. Precision
+answers how often the proposed tags above the threshold were right.
 Recall answers how many of the expected tags the threshold recovered.
 With zero proposals precision is undefined. Review both measures and the
 number of examples before selecting an automatic policy. The scored API
