@@ -642,7 +642,6 @@ false
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
-| **Active Company** (`active_company_ids`) | json |  | The companies that were active when the dialog opened. |
 | **Bill** (`bill_id`) | many2one → `account.move` | yes |  |
 | **Blockers Html** (`blockers_html`) | html |  |  |
 | **Consequences** (`consequences`) | text |  |  |
@@ -651,6 +650,7 @@ false
 | **Has Blockers** (`has_blockers`) | boolean |  |  |
 | **Destination journal** (`journal_id`) | many2one → `account.journal` |  |  |
 | **Invoice lines** (`mapping_ids`) | one2many → `usl.bill.company.transfer.line` |  |  |
+| **Operator Company** (`operator_company_ids`) | json |  | Every company the operator can access, active in the selector or not. |
 | **Use no fiscal position** (`remove_fiscal_position`) | boolean |  |  |
 | **Scope Company** (`scope_company_ids`) | json |  | Both companies, so the destination's records can be read and chosen. |
 | **Snapshot** (`snapshot`) | char |  |  |
@@ -659,8 +659,7 @@ false
 | **Current journal** (`source_journal_id`) | many2one → `account.journal` |  |  |
 | **Current payment terms** (`source_term_id`) | many2one → `account.payment.term` |  |  |
 | **Stage** (`stage`) | selection | yes | Values: **Choose company**, **Review accounts**, **Transferred**. |
-| **Destination company** (`target_company_choice`) | selection |  |  |
-| **Destination company record** (`target_company_id`) | many2one → `res.company` |  |  |
+| **Destination company** (`target_company_id`) | many2one → `res.company` |  |  |
 | **Destination payment terms** (`term_id`) | many2one → `account.payment.term` |  |  |
 | **Warning** (`warning`) | text |  |  |
 
@@ -674,7 +673,7 @@ false
 | --- | --- | --- | --- |
 | **Analytic distribution** (`analytic_distribution`) | json |  |  |
 | **Analytic Precision** (`analytic_precision`) | integer |  |  |
-| **Destination company record** (`company_id`) | many2one → `res.company` |  |  |
+| **Destination company** (`company_id`) | many2one → `res.company` |  |  |
 | **Invoice Line** (`invoice_line_id`) | many2one → `account.move.line` | yes |  |
 | **Item** (`label`) | char |  |  |
 | **Use no tax** (`remove_taxes`) | boolean |  |  |

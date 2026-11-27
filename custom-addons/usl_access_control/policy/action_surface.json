@@ -145329,7 +145329,7 @@
         "rpc:res.company.browse",
         "rpc:res.company.sudo"
       ],
-      "digest": "26be5e110e422d02a85d68d6a4ac606c6fd2109c4ee4fac2293476e555a68a50",
+      "digest": "0b9c800f032a726a6ff392cb9dfeb4d3298bc9fba9f45635dd87ee8074610cad",
       "guards": [],
       "key": "rpc:account.move.change_bill_company",
       "kind": "rpc",
@@ -145340,7 +145340,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "b8778c065c15d32e707a4bcc7b5074e3d4cf67be2a7178f13e25f1b7faaaab47",
+      "runtime_digest": "ee07a3b0bf0d4e84995f9e0c475f16768aed7a3d0c67b7b9b5f3da3562f56c9f",
       "sinks": [
         "message_send",
         "orm_write",
@@ -145348,7 +145348,7 @@
       ],
       "sources": [
         {
-          "line": 357,
+          "line": 394,
           "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
         },
         {
@@ -1362235,7 +1362235,7 @@
         "rpc:usl.bill.company.transfer.with_context",
         "rpc:usl.bill.company.transfer.write"
       ],
-      "digest": "4ddda8563cbbe8e8dcebaa01997c67bc2f969e55811c5ed940b8ab6f4364db10",
+      "digest": "2e0dffd2ab812501d97e98fe5304bf6968d592caee8f6900fb9c43f3211868b6",
       "guards": [],
       "key": "rpc:usl.bill.company.transfer.action_apply",
       "kind": "rpc",
@@ -1362246,14 +1362246,13 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6366f862a43b37acfca9db81ef8269b28732ead77ebd7194f29f988249ae5ade",
+      "runtime_digest": "a463bd4551c550c921d7b7eef05d8c5d80c8e7da961283357e1b3d4207b78e6f",
       "sinks": [
-        "orm_write",
-        "sudo"
+        "orm_write"
       ],
       "sources": [
         {
-          "line": 221,
+          "line": 208,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1362319,7 +1362318,7 @@
       ],
       "sources": [
         {
-          "line": 171,
+          "line": 167,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1362341,7 +1362340,7 @@
         "rpc:usl.bill.company.transfer.ensure_one",
         "rpc:usl.bill.company.transfer.write"
       ],
-      "digest": "7d5aac15f63b9c2831bf7cd9a19c28829c4f0d201d49befb05df6b407f6db03d",
+      "digest": "eacb4806ddc2bfc019006a8f2258bcd52e05915637c23b0a453814c2b9a540b2",
       "guards": [],
       "key": "rpc:usl.bill.company.transfer.action_prepare_mapping",
       "kind": "rpc",
@@ -1362352,14 +1362351,14 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "4b5b3f710a9632838f56ad1223f29425f92d9da2dcce71e0531df6e1d74a1326",
+      "runtime_digest": "213d8236ded349b4861699fcb5a24af9dfe5c52e6ddbaf3e8abcd8437d22fd9a",
       "sinks": [
         "orm_create",
         "orm_write"
       ],
       "sources": [
         {
-          "line": 131,
+          "line": 124,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1362517,9 +1362516,10 @@
       "archiveable": false,
       "delegates": [
         "rpc:account.move.browse",
+        "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f69ca339acd9bd8fbe481e84631103eadb762ec2fccff1b6026e017978005fa6",
+      "digest": "ad231a8d8503c8c2b358aefb590175f22c1a3579e4604e21a4840ffd62bbf546",
       "guards": [],
       "key": "rpc:usl.bill.company.transfer.create",
       "kind": "rpc",
@@ -1362532,7 +1362532,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "7a4cc13ea069ea6611abaf2479bf20aefcab3bcb653022eb69c94128778d09f4",
+      "runtime_digest": "ddc2c672920c4521036b0f4a81840e4e7753890fc6a09c3025810b80d1f2cc3c",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -1362540,12 +1362540,12 @@
       ],
       "sources": [
         {
-          "line": 3980,
-          "path": "odoo/orm/models.py"
+          "line": 38,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
-          "line": 40,
-          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+          "line": 3980,
+          "path": "odoo/orm/models.py"
         },
         {
           "line": 603,
@@ -1362558,6 +1362558,7 @@
       "transient": true,
       "unresolved_delegates": [
         "rpc:account.move.browse",
+        "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
       ]
     },
@@ -1364579,7 +1364580,7 @@
           "path": "addons/web/models/models.py"
         },
         {
-          "line": 260,
+          "line": 254,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1364832,7 +1364833,7 @@
       ],
       "sources": [
         {
-          "line": 263,
+          "line": 257,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1365491,7 +1365492,7 @@
           "path": "addons/web/models/models.py"
         },
         {
-          "line": 62,
+          "line": 65,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1365752,7 +1365753,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 65,
+          "line": 68,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         },
         {
@@ -1680448,7 +1680449,7 @@
       ]
     },
     {
-      "digest": "c126500e4f2dfeaadd428114cd35785f622713589bdaea4933256f28c6c3be29",
+      "digest": "da5394978a150ddc4c73ebdf3722cf2c1b9272dfec718fc9f18b1a677486c89e",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move._company_transfer_blockers:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1680463,7 +1680464,7 @@
       ]
     },
     {
-      "digest": "08b56a7b3fbdf8b584e898eac5ad781a8c85450c49f216faacdc8903030075de",
+      "digest": "b46105d47c954b3d5fd6edce694f2bf0055fe2e85aed8f3c3cdc307b56bd3285",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move._company_transfer_destination:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1680472,28 +1680473,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 323,
+          "line": 359,
           "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "232d0f6e0948b526ff1ecceaf6c6c23856b939c38bd8af3703ab52b0d540549c",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move._company_transfer_proposed_taxes:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_accounting"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 161,
-          "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
-        }
-      ]
-    },
-    {
-      "digest": "b6e7e2b75ccacd26dec156a20a0ed6cc011aa5f1f953f7443a302f88af18d658",
+      "digest": "ac2a2ce9f80b9cd911468b440a0db7e83bfe7782f8af93fbbe7228836d5b986a",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move._company_transfer_scope:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1680502,7 +1680488,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 132,
+          "line": 153,
           "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
         }
       ]
@@ -1680526,7 +1680512,7 @@
       ]
     },
     {
-      "digest": "cf96e0a8ed86957a9429a67cd7d2482cee01a645d52f64310462f420604ddc86",
+      "digest": "093215210f3372b6a5e503ed591c9fc5134d63bb87bc955dd08b5792ed9295ae",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move.change_bill_company:message_send:1",
       "kind": "sink",
       "modules": [
@@ -1680538,13 +1680524,13 @@
       "sink_kind": "message_send",
       "sources": [
         {
-          "line": 357,
+          "line": 394,
           "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "7bf5fbfc4eb7cc1b67e2d672d341890a27c126b0330755b8a6ab09a9bbd1afc7",
+      "digest": "dabf759084a051e9b8250a3eea4db89b7b4db6193bb31c137e37812696224555",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/bill_company_transfer.py:account.move.change_bill_company:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1680556,7 +1680542,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 357,
+          "line": 394,
           "path": "custom-addons/usl_accounting/models/bill_company_transfer.py"
         }
       ]
@@ -1685842,22 +1685828,7 @@
       ]
     },
     {
-      "digest": "fc8b2f4045369067706b9735a2bf7837f311dc8a0f7cad1c1c724488583ada1d",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer._bill_action:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_accounting"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 207,
-          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
-        }
-      ]
-    },
-    {
-      "digest": "53ff648e436150d36d7641ec01c9456b81df89e857bb3742ab3a1b3e2f6b2e75",
+      "digest": "534f514f0e5e0942b6f33a529e0a47c4f9e9467d3d2c9c98dcdb8ca21c46c1ba",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer._both_companies:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1685866,14 +1685837,14 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 46,
+          "line": 48,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "ba43b55b51a741e83782bdf5c29ab32e2f93c1ad4ce2541686c0c3d6d81af0f6",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer._inverse_target_company_choice:sudo:1",
+      "digest": "9c6da588c83768311628bfa65e993f2ae594781b9bd89bbaf547e1b8d448246c",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer._compute_operator_companies:sudo:1",
       "kind": "sink",
       "modules": [
         "usl_accounting"
@@ -1685881,28 +1685852,13 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 91,
+          "line": 83,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "dd39d8ba8a2eb3543aac287c87574aa83e579621a712df74c90192a3214b94ed",
-      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer._target_company_choices:sudo:1",
-      "kind": "sink",
-      "modules": [
-        "usl_accounting"
-      ],
-      "sink_kind": "sudo",
-      "sources": [
-        {
-          "line": 81,
-          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
-        }
-      ]
-    },
-    {
-      "digest": "f35726c70583ceb150290e10935b5b87dbbe7f477281acbafd65837829bd4d57",
+      "digest": "70c526895991962c37bc6b4085d008242d35384154a53cdcafcb960c4175ecdf",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_apply:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1685914,7 +1685870,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 221,
+          "line": 208,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
@@ -1685932,13 +1685888,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 171,
+          "line": 167,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "30129d907d84adae3b42a9a1e05b382d2b7c50d13d05854a95106f96fb0a9e05",
+      "digest": "7527af227133a643d4e73004c800018c2beea03385623e92e0b6364d060e0f4f",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1685950,13 +1685906,13 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 131,
+          "line": 124,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "2ce0806a0c8b09a0568b3f65a179f71544901b9ac1be60efa6fe9a5db69e4ef2",
+      "digest": "2652db52b54f254a25c690cde786055eba266506d37a1b73a352f7469842dc7c",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.action_prepare_mapping:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1685968,13 +1685924,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 131,
+          "line": 124,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
     },
     {
-      "digest": "41a0e73f69fd7b2a0d79bd308e95c2f8681ab6fbc52fd50ec944f5c594f00fea",
+      "digest": "d6f10d14f3ba1f738949532d66ce719f7d18d294e38b77f05eae96bbf7c3aecb",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1685986,7 +1685942,25 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 40,
+          "line": 38,
+          "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
+        }
+      ]
+    },
+    {
+      "digest": "12c243dcc7a991f1c11387edb540f198b691db3749d5a4f745e6fc6db5fd5124",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/wizard/bill_company_transfer.py:usl.bill.company.transfer.create:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [
+        "rpc:usl.bill.company.transfer.create"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 38,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
@@ -1686004,7 +1685978,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 263,
+          "line": 257,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
@@ -1686022,7 +1685996,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 65,
+          "line": 68,
           "path": "custom-addons/usl_accounting/wizard/bill_company_transfer.py"
         }
       ]
@@ -1775994,7 +1775968,7 @@
       "manifest_sha256": "a6831aca894a6978275295706d7aa7f481d62233fd76c6d21224988b7e42bdbb",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "557b61e09910f01bd5866237e45be736ef076758beecb1a7b814f5d142c98e02",
+      "source_sha256": "8a216ce1e5d12a4518cc2131502d862a1ad8a861febe382cfe29fef8fcef6cf1",
       "version": "saas~19.3.2.2.25"
     },
     {
