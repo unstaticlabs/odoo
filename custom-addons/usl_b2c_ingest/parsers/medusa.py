@@ -146,16 +146,14 @@ def _line_identity(order_id, item, seen):
 
 
 def _item_values(item, currency):
-    unit_price = item["unit_price"]
-    qty = item["quantity"]
     return {
         "currency": currency,
         "original_sku": item["sku"],
         "original_name": item["product"],
         "original_variation": item["variant"],
-        "quantity": qty,
-        "unit_price": unit_price,
-        "subtotal_amount": item["total"] if item["total"] is not None else unit_price * qty,
+        "quantity": item["quantity"],
+        "unit_price": item["unit_price"],
+        "subtotal_amount": item["total"],
     }
 
 
@@ -172,13 +170,16 @@ def _read_item(row, prefix=""):
     product = text(row.get(f"{prefix}product"))
     if not sku and not product:
         return None
+    qty = quantity(row.get(f"{prefix}qty"))
+    unit_price = money(row.get(f"{prefix}unit_price"), default=Decimal("0"))
+    stated_total = money(row.get(f"{prefix}total"))
     return {
         "sku": sku,
         "product": product,
         "variant": text(row.get(f"{prefix}variant")),
-        "quantity": quantity(row.get(f"{prefix}qty")),
-        "unit_price": money(row.get(f"{prefix}unit_price"), default=Decimal("0")),
-        "total": money(row.get(f"{prefix}total")),
+        "quantity": qty,
+        "unit_price": unit_price,
+        "total": stated_total if stated_total is not None else unit_price * qty,
     }
 
 
@@ -220,10 +221,7 @@ def parse_orders(document):
             occurred_at=occurred_at,
             values=_header_values(row)
             | {
-                "subtotal_amount": sum(
-                    (item["total"] or item["unit_price"] * item["quantity"] for item in items),
-                    Decimal("0"),
-                ),
+                "subtotal_amount": sum((item["total"] for item in items), Decimal("0")),
                 "line_count": Decimal(len(items)),
             },
         )
