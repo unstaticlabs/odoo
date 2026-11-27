@@ -30,3 +30,4 @@ access_usl_document_quick_filter_accountant,usl.document.quick.filter.accountant
 access_usl_document_quick_filter_manager,usl.document.quick.filter.manager,model_usl_document_quick_filter,group_documents_manager,1,1,1,1
 access_usl_document_download_grant_manager,usl.document.download.grant.manager,model_usl_document_download_grant,group_documents_manager,1,0,0,0
 access_usl_document_download_grant_audit_manager,usl.document.download.grant.audit.manager,model_usl_document_download_grant_audit,group_documents_manager,1,0,0,0
+access_usl_document_tag_rule_wizard_user,usl.document.tag.rule.wizard.user,model_usl_document_tag_rule_wizard,group_documents_user,1,1,1,1

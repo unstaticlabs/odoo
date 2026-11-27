@@ -78,7 +78,7 @@
         "rpc:account.bank.statement.confirm.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
         "rpc:account.bank.statement.reopen.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
         "rpc:account.move.configure_draft_vendor_bill": "00318bfcf0af350aa91be8681a6c4e6917d241a7adbb4ef8ced84e541eca9d58",
-        "rpc:mail.message.write": "be2b26fedf76dd377fd9dd51b1761fc16fb26ec374a58451e004ed8e7b13d5d6",
+        "rpc:mail.message.write": "b623949f1299bdad3fc397038d2cb26b6bd1e6b98fab4975ee00e3b5ceb2fea9",
         "server_action:account.accountant_reset_to_draft_entries_action": "1a42c67d313bbba788c090e04c913a4b1a4007a58ebe429d972067d1d4df9edd",
         "server_action:account.action_account_confirm_payments": "f054db04ccd7bddbc80da432b0cf2545f5103032ea073ef03921dc3e64f667bd",
         "server_action:account.action_account_unreconcile": "7405abac6392964236412fd6f4b16ff43e62e44c92abe70ee1659af02d9cd9b4",
@@ -17204,7 +17204,7 @@
         "rpc:rebuild.account.closing.control.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
         "rpc:rebuild.account.closing.control.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
         "rpc:rebuild.account.closing.period.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
-        "rpc:rebuild.account.closing.period.action_open_closing_package": "b6468994777440bd84f23028e484d7c998ecb25b00f9269c64c5b9d68c563857",
+        "rpc:rebuild.account.closing.period.action_open_closing_package": "1f21aa8c074d7d3d5b6dbf999ec04e4e3a7a1050f559e874aefb7a951cc4dbdd",
         "rpc:rebuild.account.closing.period.action_open_declarations": "766c036e9530a12489d25b2c12567aa9bed4d641a3bed0253521c4a5798bb3d7",
         "rpc:rebuild.account.closing.period.action_open_snapshots": "9911754b691c4ea8edd0d914fa313ebb6199a5d3cf8e0b1f39a9a65cf41d02ac",
         "rpc:rebuild.account.closing.period.action_record_review_decision": "1a74d5bb98c0d8ceaf018c6358d617d33224b1b946448df17e9bd7001dfab1ce",
@@ -44525,7 +44525,7 @@
         "rpc:project.project.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:project.project.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
         "rpc:project.project.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
-        "rpc:project.project.search_count": "a67002da12611e0d823724843c2dddeb8eb62b62b546f4dd99b2fcdc0656664f",
+        "rpc:project.project.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
         "rpc:project.project.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
         "rpc:project.project.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
         "rpc:project.project.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
@@ -67491,7 +67491,7 @@
         "rpc:res.partner.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
         "rpc:res.partner.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
         "rpc:res.partner.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
-        "rpc:res.partner.search_count": "a67002da12611e0d823724843c2dddeb8eb62b62b546f4dd99b2fcdc0656664f",
+        "rpc:res.partner.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
         "rpc:res.partner.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
         "rpc:res.partner.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
         "rpc:res.partner.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
@@ -71002,9 +71002,9 @@
       "id": "read_only.work_management.live_content_search",
       "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked. Validated category exclusion partitions the same authorized catalog for progressive batches; activity matches stay in a native authorized subquery and identical property predicates retain exact owner scopes.",
       "reviewed_digests": {
-        "rpc:usl.home.service.get_search_result_action": "9b33af8a514ca1face45276ebf4fc558d1df69e2eb9d71245dfc7d45a198a677",
+        "rpc:usl.home.service.get_search_result_action": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
         "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
-        "rpc:usl.home.service.search_records": "51dfa449085c5fb7ad6f6ec5b0ab95c653e89c093e0465b98495da94d457402f"
+        "rpc:usl.home.service.search_records": "1276894379ac289a5c58f7be745d64ce72fde2cb747a413fe6799e3c1291b8bc"
       }
     },
     {
@@ -87968,7 +87968,7 @@
         "rpc:res.partner.button_account_peppol_check_partner_endpoint": "b55599c0af59e64f701c9e89a5cce8b2caf5bfbdf94eab91da16e30aa0e0f928",
         "rpc:res.partner.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
         "rpc:res.partner.message_post": "27cdef973a8e709b71a11ac7175d7363d81ef607a4f942b987d71028d6c9f72d",
-        "rpc:res.partner.write": "9957abb54ae9c7cb4a0124e53a696bf469ad3f61365e2e87979fb8bd6ca8772e",
+        "rpc:res.partner.write": "9b7f316a9250a37b40cc3ce80c2372e2442c29bf561eccc831736dbd9574c3fb",
         "rpc:res.users.action_usl_sync_expense_company_profiles": "4c12b196fcf3edfc27b3f2eec6651bd4416ede5143db0bcdf34470ad978f2c21",
         "rpc:sale.order.mcp_revise_own_message": "7ad1a612a46aad9c2814e60fb446e6d89f1d8f5d0c81921d55dbea5b6786334d",
         "rpc:sale.order.message_post": "e90513d80b72e72ec114bb28ee48200cd6dd5ad36c40beb099af9ec865b7c3a4",
@@ -106106,6 +106106,7 @@
           "reversal_action": "rpc:usl.document.action_set_starred"
         },
         "rpc:usl.document.action_sync_permissions": {
+          "evidence_id": "documents-native-reader-companies-20261127",
           "reversal_action": "rpc:usl.document.write"
         },
         "rpc:usl.document.activity_schedule": {
@@ -108920,7 +108921,7 @@
         "rpc:usl.document.action_preview": "0663e132d69ad84609dcfeb7269d33f0524fcecee90cee1f562ee98a181f41a1",
         "rpc:usl.document.action_set_library_visibility": "01065980293d85c184d64634b1fdbe95c312f941c3fab82c5e9da4cc4f28cbb6",
         "rpc:usl.document.action_set_starred": "f9ec67540d88ab5139d49420849a038642abb9a15bb211d14a5d6ebcc9fb847a",
-        "rpc:usl.document.action_sync_permissions": "3705885878f5ef2808e1854075825b52e73c1571cc62cdad936ca627073260f9",
+        "rpc:usl.document.action_sync_permissions": "475d1f6657b45d61074e1dae991218ff03d2a6ff5e6818fae2f677f553de0a90",
         "rpc:usl.document.activity_schedule": "56c65fee237c40079bd044ff520cdc8ad447da6ab44121cdf58f779eb18889df",
         "rpc:usl.document.activity_send_mail": "1cbc76ecc8ab82261803403f33eb4349eb62f13162c0103a3fec123fb55a97cc",
         "rpc:usl.document.context.tag.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
@@ -113037,7 +113038,6 @@
         "rpc:project.project.web_resequence",
         "rpc:project.project.web_save",
         "rpc:project.project.web_save_multi",
-        "rpc:project.project.web_search_read",
         "rpc:project.role.copy",
         "rpc:project.role.copy_data",
         "rpc:project.role.get_views",
@@ -113178,7 +113178,6 @@
         "rpc:project.task.web_resequence",
         "rpc:project.task.web_save",
         "rpc:project.task.web_save_multi",
-        "rpc:project.task.web_search_read",
         "rpc:project.template.create.wizard.action_create_project_from_so",
         "rpc:project.template.create.wizard.copy",
         "rpc:project.template.create.wizard.copy_data",
@@ -113489,9 +113488,6 @@
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.project.web_save_multi": {
-          "reversal_action": "rpc:project.project.write"
-        },
-        "rpc:project.project.web_search_read": {
           "reversal_action": "rpc:project.project.write"
         },
         "rpc:project.role.copy": {
@@ -113924,9 +113920,6 @@
         "rpc:project.task.web_save_multi": {
           "reversal_action": "rpc:project.task.write"
         },
-        "rpc:project.task.web_search_read": {
-          "reversal_action": "rpc:project.task.write"
-        },
         "rpc:project.template.create.wizard.action_create_project_from_so": {
           "reversal_action": "rpc:project.template.create.wizard.write"
         },
@@ -114227,7 +114220,6 @@
         "rpc:project.project.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:project.project.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:project.project.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:project.project.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.role.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:project.role.copy_data": "ab555b887ee9f28ce0f87642e68f8dc07b50cdb06fcd43d5dabae51319374007",
         "rpc:project.role.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -114368,7 +114360,6 @@
         "rpc:project.task.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:project.task.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:project.task.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:project.task.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:project.template.create.wizard.action_create_project_from_so": "b81c85f0c29ac4813ac9fd849c89e48a90137624f865004793b90c3b30f185ed",
         "rpc:project.template.create.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:project.template.create.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
@@ -114569,7 +114560,7 @@
         "rpc:mail.activity.create": "b8ffb279b6220831982315f4baef8e153ce840b0e6f67774944f89df2acebc40",
         "rpc:mail.activity.write": "6529168f1f82c27749498c601fae633b4f6c880dd1ea3ad20a260e6abba9277a",
         "rpc:project.project.action_view_tasks": "905758f2da62ea6ed0be8cbd04133fd7de57470a3e242e4e105f743401210e56",
-        "rpc:project.project.create": "09032f76e84a20ecdc6135e729bbcdcbcc1ddb7805cfc8554158afe123006139",
+        "rpc:project.project.create": "1120af2a7888d82287899ebfb5b281a8dee0684a80bc00314bb3dd3ebb85d261",
         "rpc:project.tags.create": "093df0b08082bbfdeee559cf4352eed4af24e679164231698a6a66ddb4428be0",
         "rpc:project.tags.unlink": "93961ff3da07d79778b4b0c32283d74fd2eb0e53e81e17815a9ef9a8e556c7df",
         "rpc:project.tags.write": "52d0bd853b91b61446e80a95dcaedb00b8d43009560bcd524d985a5f22b1c0d1",
@@ -114579,7 +114570,7 @@
         "rpc:project.task.message_unsubscribe": "64443b9d89a0f17b6ea18205d3cceed7362b5b47db841519c5170854aa033f97",
         "rpc:project.task.type.create": "093df0b08082bbfdeee559cf4352eed4af24e679164231698a6a66ddb4428be0",
         "rpc:project.task.type.write": "74f8669dcf77c2c8a51c6416a664e86596a3ed173589a0b2dd66597e307de8b6",
-        "rpc:project.task.write": "ff5262ecdeeee89cb7ee3c4115cfaa3ea0e3c59918b35f48616fa284d59010ef",
+        "rpc:project.task.write": "35937c5aaf544766a2fff9b95281d57d5e90025f7a44756125d89ff755e1d71d",
         "rpc:res.config.settings.set_values": "1024742b02f615ac18e038095f54af24c4b458a3ffdc8b7307294e1a257623f7"
       }
     },
@@ -125015,7 +125006,7 @@
         "rpc:mail.mail.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:mail.mail.unlink": "fcc4d2474690dab63a48aca54582c5987addb1bfef569316a8244c1290e84313",
         "rpc:mail.mail.write": "483f76584c805eff43ac93716563466063f8356ae6de428bf0018caa991c8fce",
-        "rpc:mail.message.create": "ae742e097c8e0195f58e42b266defb3c8f28852aa8d41c00bb5f7fa5e6d8e2cd",
+        "rpc:mail.message.create": "f027599593a883a7902c38e11ea4c2c37a3b051973fb4ae06c1d6e02f64ec3c1",
         "rpc:mail.message.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:mail.message.link.preview.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
         "rpc:mail.message.link.preview.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
@@ -129417,7 +129408,6 @@
         "rpc:res.partner.web_resequence",
         "rpc:res.partner.web_save",
         "rpc:res.partner.web_save_multi",
-        "rpc:res.partner.web_search_read",
         "rpc:res.role.copy",
         "rpc:res.role.copy_data",
         "rpc:res.role.get_views",
@@ -139151,9 +139141,6 @@
         "rpc:res.partner.web_save_multi": {
           "reversal_action": "rpc:res.partner.write"
         },
-        "rpc:res.partner.web_search_read": {
-          "reversal_action": "rpc:res.partner.write"
-        },
         "rpc:res.role.copy": {
           "reversal_action": "rpc:res.role.unlink"
         },
@@ -146078,7 +146065,6 @@
         "rpc:res.partner.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
         "rpc:res.partner.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:res.partner.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
-        "rpc:res.partner.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
         "rpc:res.role.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:res.role.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
         "rpc:res.role.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
@@ -158043,8 +158029,8 @@
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:orm_create:1": "85ce70471a976169b64ceb76a0805fcb8cf6588f3877b747222b7895485981ef",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._capture_accepted_snapshots:sudo:1": "7977d0e3e439706762819fdd58898a3c9f6d5b617b86e016259d9066b45a9a66",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._refresh_controls:orm_write:1": "4600462755907baa618b14aaf0132ca75b41b344d850513a3b33a5540df01041",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_create:1": "aa43b11a01cdc0c690a1932f0873c81722243bc85f7da2cee45fa5b8ea31a4dd",
-        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_write:1": "d726f0407f0b8a2381f0583e2d02f16868a39e131898ccce274b26c8c6a62c7a",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_create:1": "46c83c92629dc74139344cf5c77cab21613e5656b85ee4e81f5e0f942c31cc85",
+        "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period._upsert_period:orm_write:1": "c5c109657a7fa1602bfca0d5c06aa22d4fc21171916d9c0c107a37642ad207c8",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period.action_close_and_apply_lock_dates:orm_write:1": "444bea8477d5b01fc655db0997c6f82895b97ba6f32d627274e383b63bb8ffb5",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period.action_close_and_apply_lock_dates:orm_write:2": "3a0736ca8320f6aa6b4aaae5625286295327609fbb8643aa6e40e86a8571c5af",
         "sink:rebuild_account_migration:custom-addons/rebuild_account_migration/models/closing.py:rebuild.account.closing.period.action_mark_ready_to_close:orm_write:1": "69c7d637c445da5c65b5a9261aae261555fd23e89eefdef209d0b9380797af27",
@@ -166397,15 +166383,19 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1": {
@@ -166421,9 +166411,11 @@
           "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": {
@@ -166466,6 +166458,7 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_source:orm_create:1": {
@@ -166487,12 +166480,15 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": {
+          "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:1": {
@@ -167936,16 +167932,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._check_order_money:orm_write:1": "ae53561c2a68d42b1a65481f6467d38e5377eb3c586618e13c7a1259f68cf51a",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1": "f464ceae0aa651a130430224afc917d66da65694fb332ec48985cecd0745090f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": "7e52af0959b51a8f4e1d5b48739cf6d29d1f86fd4f444d138b9b821f7bb9b0fd",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "75aaa124795740391731c06c184b7c199778aa399b3e6ac10bcccc3f36d86aad",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": "4903e6d954bfd26df0d6fef5d2faa824bf9a5ee666f95028e33d293631066029",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": "cc97f256cf9b5e195f5a6794960d9ea0caf27c8d5db95b4b1d0537c4d95528d1",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": "e59b129bee22f64056651ff5f56ba80ee03644503bbda4d818ee3745fe19538c",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1": "859a738a24d1c7dced2e104482babac895bf740de218a75f41b68752b6f79dbc",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2": "df1a6df17354411a0b507afce6ef459f96738812dd66cce3d571b822f4e4ea06",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3": "e858a28235ff459151e3d79fbc49de7f2b4c239d4fd3d051fb6ac927897513d3",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": "90d954e175a8e4fb3d53caedb2c3476235932042d1448736294b0196cc468c4b",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1": "3498f773b0d41f069343fd2fe70f1041d4258ccb70dcb7db95f27bff51aef6bc",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:2": "acd174795ed70328f20a63da469ef4afad638936f5db31865e7629ca9b1b4627",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_reset:orm_write:1": "bbec2b2647fc3527c0cb80eefd86cf489795398791c4654c25d22112450cc360",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1": "4fee9138c926a03895646071776cc549718ac7c8f83d021429b6d388bf062a23",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": "b4b81e40c9f18e07fd7bf8ccb5290b5ce98ed203dcd86a29ea88824aa0bf880e",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": "6bffa8dbc1ff6700fbe8c0e7f6caa80320fc0050aa68412583d5cbc8a00e517a",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": "187e56414c9c4974d8102308d870cde9c9b71d8b01f5aeb22f62e9aec4bb9ab0",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": "428539ec7ad1546bcbd2370eb224ff5ad69302db7128ed1a49277eb293990d60",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": "4c3c1b593729493834c814d5f915a219ecb31aff74035f9bf19cf0d89d7cf065",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:orm_write:1": "3bc57367ac3cb49d5191cbc52c9e2dcf0efb420c5291e728c0a00ca128e308ea",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:1": "28b21e2f3ed9a0f7ec51ee4f69869c9651e1f4888864431002f6c871562e86e3",
@@ -167959,16 +167955,16 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch.action_resolve:orm_write:1": "be1bee5a09740d60bb90e7b9455c11e0716ce6172fc529e61a2705e15e11dbab",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._assert_channels_can_sell:orm_write:1": "e71da624b7e93a453bd7e6fc8d8e1638c38dd03572f29ce5e83350df2200cf16",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_lines:orm_create:1": "411607c4d67aeb2abf1b6e9c5300d080ac6c5e08ddd3f45abc24484edcccd050",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": "0390cf63a758bc05501f21ecdd16199ff555c2dac72dc1ed8340f6744598f5a8",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_order:orm_create:1": "212e69af0c70a853f7685b0e9a4eb9e15c7485097eab85789e9e53d89da6429b",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._commerce_source:orm_create:1": "df8a88d3e7ac386879021aea763f5b1602b04ab16639e6be1e43ac49ce719db2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:1": "4afb99765f5eee7eb2fe2ad648486c4a28960905279e2f7e6bcea23cdcc42c25",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:orm_write:2": "48f8f3824800893056ec0819919344117d07ea1f716192fcf996223c354b7190",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._deliver:sudo:1": "b35b8af4327b5f728b4dafb3ab84599f225f52353af967d7eb584f57f8bfc73c",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:orm_create:1": "8c9899a7a6667d6251868c7db5aa27999c2ea76195fc79720ad1f72b6e88067f",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._evidence:sudo:1": "7ad5828abf330997f50accdf3aabbd37d791577b3a4b31a39a5a46635a18bb74",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": "58b4306df6878baf98483b05742d30b5e647986d565207644521740f329bdf4c",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": "3aa399313ec39e5853ff6c464e8ea9ceb317cfaee656649c80394513885d5139",
-        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": "b21cce4532684ed1a5fe93f49d982bc237af59bebfdbfc07f15a0637f97a8400",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:1": "4ebd0e0c1904d5a465b34b8a824767e1195ad793f163d9e5fad94efbf7685f9b",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:2": "9f76400a1a91a25d1d222c0de5d60948cacb2b1e98f1d501ec0155a762d40388",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._materialise_order:orm_write:3": "a68df86d49c14d44cb0e6ab1d09fbaa1010af1d8795f6ca824947bd9843285e3",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:1": "021df3a5a9febd00376a1696359eaa86453ad87bc53dd5c6e66f99777a87e5a0",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._partner_for:orm_create:2": "a0a91745104fb0ec2e1f93e959ddffaa93696c461cb4b6be6fe19dee16937e44",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._pricelist:orm_create:1": "507823373d0f1ed3f0b6bd114c7c969b65d3aa7cbf68e3fb0efa0358ba547600",
@@ -169550,6 +169546,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.action_open_documents_workspace:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1",
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._compute_is_in_my_library:sudo:1",
@@ -173533,6 +173530,9 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": {
+          "reachability_proof": "Creates the calling tag editor’s temporary form only, underneath rpc:usl.paperless.tag.action_review_classifier_rule."
+        },
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
         },
@@ -176394,6 +176394,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1": "70f0254f387e43226b043a4cfac954abd0b15e1a9e799a0ef5ce9cd6ce6224a8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.action_open_documents_workspace:sudo:1": "11ff202ffda4c16b0434ed094f57d8ee831daf2bfa71750d34c5f7d70737e8d8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": "0ad2dde90aa3d9b06a6f59d83d2bdcf48cec8a65faf4942b4369ff6f2be38942",
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": "c49d7e38a587efb3532ef200338ebd042ca98711de68bde1495d0d8a3f20240c",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": "a8d95971d557be7da2686d518b3335e8f036ad4ccc2cc07bd8bedb9a7e94fd34",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:2": "54bbd2f9cf82f3ea63c0f1441ce02ad6242183d2208b27aa4780567cac332751",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._compute_is_in_my_library:sudo:1": "c6e4e7630245e9318a463819915ad0f0ff1f3cf24bf6da5611e7e670e5387f39",
@@ -176402,11 +176403,11 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._merge_original_timestamps:orm_write:1": "838d21d11e208440f108848e8509591b0ba0682d669402d687c302e2f6b37557",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._merge_original_timestamps:sudo:1": "6eaac0367ab11b133698367677d270a6b5c94aff40108708d05f7b4d79f0a233",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._personal_state_document_ids:sudo:1": "59918e73d5de23213a343b87491adcc7f5fffc4be61795ca8896a7e4f52ac050",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:orm_write:1": "b946647d3306820f303bd32483e786374601e14c1952e5e8376bd97a40b550be",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:1": "a0dc214883ed9d0927de2f6990a7ed4d259bbd4eaca10d7d2f43e76b745e864d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:2": "0a36cdd4df75f314fefbc1ec6eabae735b1c6a1c7fb9f191495fddce037b65df",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:3": "4b5165c915a18a0951064e602447244166f357863ebbd3abf360bcdc08c51131",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:4": "0fff1cb95971d1db317d233c8cb0cc5a178ec015d95ef26b1d1c21be98ae31fd",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:orm_write:1": "4627735d74b476f230b5914757d3e2fb14091f8a916efaeb1cfe5d30acbe0627",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:1": "832c4239e689a0a397a329b66ac144d963e5291fc6f3302690c4f5ce31e30b1d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:2": "96be620326394e25130760a7afb4cdd9fd2752421d08db08e2f91191ae4a9866",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:3": "9d3952dabb47c49cee9d2b325a3d3254070a9385cfb04767416a2a105772336d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._recompute_linked_record_access:sudo:4": "2f70fe0b57b51db488a80af688a462cc816607b2c7902f0a5ba099a36e5545c0",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._search_linked_employee:sudo:1": "852879b4cd2dd517d16ea4a060166322db81ae08178ab886f33f1f8585bf87ba",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._search_linked_record_ref:sudo:1": "3fa788070f77885d9cac49ed16e51ca4f46b6a78d2a6e43b638005cd6872200b",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._synchronize_versions:orm_create:1": "afd4d28f3d74cba5c7c9862f4d3bdaf47fd05ee4f6db931bd20d7aba2d03ccea",
@@ -176428,13 +176429,13 @@
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:orm_create:1": "b350af50c6fcbef8f6fcab2764a7bb7d3ee6515790c88cf3056f97fec3fdafd2",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:orm_write:1": "f97d0d5a101ab4e11a4bbd1543b682a9dbde46312ac68e041e0e4593499963e1",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_set_starred:sudo:1": "0104b2682be8458f62c053966221a2cdd8e3a7a31ee1b3c0a5457f816490d967",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1": "6f7932705260eec70d432433d3177b3ed62bb3bfbc7e23013ba6df9e840e763f",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2": "316a5e7149cb5f2783843c69900606060fece7da8b2a06080574d5a9a8c3ccfe",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3": "579560ae8bebd35adf1d1452a9d2905c549a66ded9d94f3796708f06ee4f2904",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4": "291e641e7d25f19f78b57eb3f5ffc16be01853ce12430d04f92712eabc89fcba",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1": "68444fd4bd4d3fae372f3edff01c219daecc9409e283a657d7de9483eff5384d",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2": "ece81fb6a176a9776d7bb82ad1bcc6f21309862ca580a739c882717ba3d9246e",
-        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "5e0e80b713e5dbbdd5f109ab6c0820923ad2f211d58d8c0671f8b53eae3fde37",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:1": "93672b46d2341f64e359dc4a854895422bfe3b1b7ad5c0df74b1b56426f48325",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:2": "108bda5e0cda9ddc4e74c45ec3c4fe3ad473ca9db640e752ccd103e8f89b563d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:3": "b90fcce3efbbda1c02082bca328b0dbea00eca8d84118e3b71b432bd8bf0d375",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:orm_write:4": "e5329f9807cd97bb940a7759ccc0ef899b9535e05dc9032275666317eb4e6908",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:1": "b12eba46df54a9b645331ceec9bf741f6c021b9f711e2a7e5a99eda19a8977e0",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:2": "bfe026633f426f28c6857d3b8fd0f95bb9838eec133847b4f41a4970ef78fe4d",
+        "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.action_sync_permissions:sudo:3": "a5052530a33ab9a41470ddb51bc4885d591cf78e90394098e642fcfc7af8201e",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.create:orm_create:1": "f83148114242df6b94bd08c8975f0f83e29e26180aceb64c6a42509e6ebcb13f",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document.write:orm_write:1": "1ffc3e0b7b5069ccd850b08aea1057e7e48b086749c86fad8c28b05d1c75a850",
         "sink:usl_documents:custom-addons/usl_documents/models/document_batch.py:usl.document._batch_refresh_archive_metadata:orm_write:1": "7d6898ac70c080d40f8f7a829180eeab94cb9d932a29ac1500d296f5c11677bc",
@@ -189348,8 +189349,8 @@
       "reviewed_digests": {
         "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:orm_write:1": "fe85b4629ba23b52162895842d6b441e3158c506160c8dbc1257fdb77afa5de1",
         "sink:usl_home:custom-addons/usl_home/hooks.py:ensure_distribution_update_channel:sudo:1": "1160ad75acbac4efe7de6b0cd18f3eab5f363f63d8d87c1a3408fd588e381059",
-        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": "61c13a58d83e0cb7d6efddd7df78fd727a4576039c549ad3dca68f6b5a17752b",
-        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": "f2601bfb41b06385aecb82056d4a8ea056e8f796387f719c77d97298c2b46bd6",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1": "6565d9938b8f44662f7f0e4075f44f6584e370c1288fb66e43727aa47a4c9d64",
+        "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1": "ad38e846cb9a44e1c5858c525c9867deb9582bcf7ac85dc4fe8e7d8f05671ad3",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:orm_create:1": "7b727ea35b84e3137e0cdb2402c04bc01c695ce39e81524425872ec9ff880f0a",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:1": "a5ff0cb0998c45b10a6244954d79b722178ed49a4e03601bf2e5344e6e2b2869",
         "sink:usl_home:custom-addons/usl_home/models/home_favorite.py:usl.home.favorite.add_current_destination:sudo:2": "327e618e755cd4f6cd498380e9582592324168981ca70480a8d0402ca66db7f1",
@@ -196627,12 +196628,14 @@
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1",
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_documents:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_partner:1",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_reject_suggested_partner:1",
         "ui:usl_documents.view_usl_paperless_document_type_form:button:object:action_open_documents:1",
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1",
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1",
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1",
         "ui:usl_documents.view_usl_paperless_user_mapping_list:button:object:action_mark_verified:1",
         "ui:usl_documents_b2c.view_b2c_accounting_session_documents:button:object:action_open_documents_workspace:1",
@@ -197868,6 +197871,11 @@
             "rpc:usl.document.smart.view.action_open_documents"
           ]
         },
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": {
+          "targets": [
+            "rpc:usl.document.tag.rule.wizard.action_save"
+          ]
+        },
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1": {
           "targets": [
             "rpc:usl.paperless.correspondent.action_accept_suggested_partner"
@@ -197896,6 +197904,11 @@
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1": {
           "targets": [
             "rpc:usl.paperless.tag.action_open_documents"
+          ]
+        },
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1": {
+          "targets": [
+            "rpc:usl.paperless.tag.action_review_classifier_rule"
           ]
         },
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1": {
@@ -198653,12 +198666,14 @@
         "ui:usl_documents.view_usl_document_link_form:button:object:action_open_record:1": "cf732f88cdd5717c3f65ffa39faf6454a24f96205d0dead6d38964b666069ad1",
         "ui:usl_documents.view_usl_document_link_list:button:object:action_open_record:1": "4a012a843a756b0506527014b48f8db45fb208b3d2ff691a8846c27ff737ad56",
         "ui:usl_documents.view_usl_document_smart_view_form:button:object:action_open_documents:1": "5413d8b23896cc2b2940f9bb8be0a5737e8816139a6451bf75bf5912a7de0043",
+        "ui:usl_documents.view_usl_document_tag_rule_wizard:button:object:action_save:1": "25b2b924998dc075c5974d888607522571ce2b507a5b87864688df8c5e12831b",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_accept_suggested_partner:1": "93f0bad2946bcb562c1151fd2d066efa70da84866135ef0387ea280364abab1f",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_documents:1": "952908ff873bba36c9c54e154458032953143b8d38099c551619afb2281e7906",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_open_partner:1": "d1081892dbef58e5123f205fba7c48dadc80acbccb9f779cc49246673caa6a5a",
         "ui:usl_documents.view_usl_paperless_correspondent_form:button:object:action_reject_suggested_partner:1": "8de8ab90f0a7d1ed250ad2c9c77d1c99a1f52bdfd4e5763f13738554273feee8",
         "ui:usl_documents.view_usl_paperless_document_type_form:button:object:action_open_documents:1": "f8bd41daeb48221e077879e334cf211eb21716d55aa9a27984d66cc0e5b47449",
         "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_open_documents:1": "363fed601902c6b20d1cf8a28dbf6bc39d151a27c79755de8d9fb6cd60cee399",
+        "ui:usl_documents.view_usl_paperless_tag_form:button:object:action_review_classifier_rule:1": "ff24beb9368148889156f6ab816369feafac73e1a853ae4330901f66d6cf244d",
         "ui:usl_documents.view_usl_paperless_user_mapping_form:button:object:action_mark_verified:1": "34cb968202e962d72a8d402de0fc30f8da353bacf76c40d699d2d3d74429a275",
         "ui:usl_documents.view_usl_paperless_user_mapping_list:button:object:action_mark_verified:1": "688da3b04ba41b75a0e6c24cbe552bf62c82ee0aa57dcfe55ad26d19eecee5b9",
         "ui:usl_documents_b2c.view_b2c_accounting_session_documents:button:object:action_open_documents_workspace:1": "28c0fff20601bab32f3a7c99c0d17f444c807ed89b4fe228c3af8b042916a4c3",
@@ -202789,6 +202804,7 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1"
       ],
@@ -202800,7 +202816,6 @@
       "overrides": {
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": {
           "targets": [
-            "rpc:usl.home.service.get_search_result_action",
             "rpc:usl.home.service.search_records"
           ]
         },
@@ -202812,6 +202827,11 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": {
           "targets": [
             "rpc:usl.home.service.search_documents"
+          ]
+        },
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.get_search_result_action"
           ]
         },
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": {
@@ -202827,9 +202847,10 @@
       },
       "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink. Fixed local batches and cancellation use native RPC promises; the named category loader forwards only to search_records, and partial result rendering adds no mutation sink.",
       "reviewed_digests": {
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "d4bcf29817685272243758c2b6e8de6d6c9db4f9334d8e167ccdee27dadba781",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "e310b9e9185620f7f0ac965bc796cae62a3cdb31b307404f7dd126302f6fa092",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": "1f22146774247720c0aa6dff88854a76d16438e4e3ea7515fb22915998830ea9",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": "e663c1c551ab15dfe08a5c1575d464e05c0b92a883f3e6c697504ae361e391ec",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "c6f89f06aa43c5df3ee4de9c90a668c3264167ece9309770e4d549c651991b3e",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1": "cf91808b8322c4b0937b69f6820ae28e4f8990d301dc2ac500d3b570176ee841"
       }
@@ -206728,7 +206749,7 @@
         "rpc:product.value.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:project.collaborator.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:project.milestone.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
-        "rpc:project.project.formatted_read_grouping_sets": "53324e5aeba571cf1ca98889e7020b9d0c4213b5d625e1dd7a73db1f7aaad70a",
+        "rpc:project.project.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:project.project.stage.delete.wizard.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:project.project.stage.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:project.role.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
@@ -206861,7 +206882,7 @@
         "rpc:res.lang.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:res.partner.bank.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:res.partner.category.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
-        "rpc:res.partner.formatted_read_grouping_sets": "d3b6d783780980896fbc8fbac2be4fb95e66b0c0ce0776105d73936ccb7d5c26",
+        "rpc:res.partner.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:res.partner.industry.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:res.role.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
         "rpc:res.session.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
@@ -208100,7 +208121,7 @@
       "rationale": "Task creation only normalizes an empty imported priority; existing follower, portal, assignee and company controls retain their previous scope.",
       "reversal_action": "rpc:project.task.unlink",
       "reviewed_digests": {
-        "rpc:project.task.create": "9deb318b9fe8d9db20a0768fecb4231b55bbf3db2fb5bb8b2e8356cb16454a50"
+        "rpc:project.task.create": "f073eca924039b085ece220eb1d15cefd8e0be63e12794f1b34541b28c8deae0"
       }
     },
     {
@@ -208225,7 +208246,7 @@
       "rationale": "The base create override removes default_user_ids before creation so an unrelated task assignee cannot be relinked to the new partner. Existing native ACL/company rules and ordinary creation history remain; no res.users authorization write is added.",
       "reversal_action": "rpc:res.partner.unlink",
       "reviewed_digests": {
-        "rpc:res.partner.create": "11b464cf4066dbf81f111ce9ed0eecc1d76e482acce6fd22883c8f8ccb59640a"
+        "rpc:res.partner.create": "5b17e05ef1120a113c3eae93bcea8f1d976db76a2809c3b53a80fbda26131c28"
       }
     },
     {
@@ -221306,7 +221327,7 @@
         "rpc:hr.employee.skill.action_new_certification": "953fd91751934c6b2ba82369040be5612785fcd1d369638d0ea313674bb2fc2a",
         "rpc:mrp.bom.preload_phantom_boms": "bc553303934e584c9658cbd0696d12dac30e374f1b040082dd9c7df8be42be49",
         "rpc:project.project.check_allow_billable_projects": "25a4a712c0e9ec8346584a8a2d1c4eab8769e3716e338dfe472c1858d243428d",
-        "rpc:project.project.write": "3c3ce8f4d030aa2b4a458a068c382e18b71d78514b266be597d4494c6017ec7a",
+        "rpc:project.project.write": "61f6aafe10ccc61c82dc38021de14d90b8974645f59435304147b18dae5961c6",
         "rpc:res.partner.autocomplete_by_field": "84fc0d0ca72229a2203476631dcb29377b67cf315aecab7d863460f9d51f1d22",
         "sink:account:addons/account/models/account_account.py:account.account._action_unmerge:sudo:1": "3d6041a9f6b4a3523de987698a53a949f9974f69f99e9ef6ae296ad220e8a074",
         "sink:account:addons/account/models/account_account.py:account.account._action_unmerge:sudo:2": "c2bc28136ab3c7224b1c668a17a53a9d431752218631c6bbfd7aec5ae3bb6ecd",
@@ -221776,652 +221797,172 @@
     },
     {
       "action_keys": [
-        "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
-      ],
-      "classification": "operational",
-      "consequence": "Refreshes at most 500 tasks in private, rebuildable search fragments and queue rows; no source business record is rewritten.",
-      "domain": "projects",
-      "evidence_id": "task-lexical-index-v1",
-      "id": "operational.projects.task_lexical_index.server_action",
-      "overrides": {},
-      "rationale": "Fixed native server action with normal native execution checks. It cannot author code, grant authority or change accounting, original messages, attachments or task content.",
-      "reviewed_digests": {
-        "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server": "974b01ad6bb23a02a836754bcd838e06b2515bfc71948d3eac11d51e8083dd64"
-      }
-    },
-    {
-      "action_keys": [
-        "cron:usl_project.ir_cron_usl_index_task_content"
-      ],
-      "classification": "system_internal",
-      "consequence": "Maintains only private derived task-search storage through the module lifecycle, native task write, or fixed scheduled action.",
-      "domain": "projects",
-      "evidence_id": "task-lexical-index-v1",
-      "id": "system_internal.projects.task_lexical_index.cron",
-      "overrides": {
-        "cron:usl_project.ir_cron_usl_index_task_content": {
-          "reachability_proof": "Scheduler-owned automatic entry; native manual trigger authority and the separately operational fixed server action remain unchanged."
-        }
-      },
-      "rationale": "The schema hook is api.private and all worker/queue helpers are private. Source data and current authority remain native; separate reviewed parents own any public invocation.",
-      "reviewed_digests": {
-        "cron:usl_project.ir_cron_usl_index_task_content": "2d8a2c25cd4600a74dbc9ccfd760b13defe715ce8978afdd68049aa8f8394e43"
-      }
-    },
-    {
-      "action_keys": [
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1"
-      ],
-      "classification": "system_internal",
-      "consequence": "Maintains only private derived task-search storage through the module lifecycle, native task write, or fixed scheduled action.",
-      "domain": "projects",
-      "evidence_id": "task-lexical-index-v1",
-      "id": "system_internal.projects.task_lexical_index.sink",
-      "overrides": {
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1": {
-          "reachability_proof": "AST native super-call sink within the existing reviewed rpc:project.task.create; queue changes follow successful native authority checks."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": {
-          "reachability_proof": "AST native super-call sink within the existing reviewed rpc:project.task.write; queue changes follow successful native authority checks."
-        }
-      },
-      "rationale": "The schema hook is api.private and all worker/queue helpers are private. Source data and current authority remain native; separate reviewed parents own any public invocation.",
-      "reviewed_digests": {
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.create:orm_create:1": "a4a012cf49f1434ee5bfa61243bcddf2938058a8fcc783e516feeeb9590c5f5b",
-        "sink:usl_project:custom-addons/usl_project/models/task_lexical_index.py:project.task.write:orm_write:1": "f90855cc888f30808f73f2f0fbba62b23a426a28a7aea8ac5fae06a2b27661b8"
-      }
-    },
-    {
-      "action_keys": [
-        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
-      ],
-      "classification": "transport",
-      "consequence": "Opens only the exact reviewed fixed task-search maintenance action.",
-      "domain": "projects",
-      "evidence_id": "task-lexical-index-v1",
-      "id": "transport.projects.task_lexical_index.ui",
-      "overrides": {
-        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server": {
-          "targets": [
-            "server_action:usl_project.ir_cron_usl_index_task_content_ir_actions_server"
-          ]
-        }
-      },
-      "rationale": "The UI action contains no own mutation; the native server action owns execution and authority.",
-      "reviewed_digests": {
-        "ui:usl_project.ir_cron_usl_index_task_content_ir_actions_server": "b4fc376827c87a5aafccf587991d8b062dde57750e5366772141ead5ee69e36d"
-      }
-    },
-    {
-      "action_keys": [
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.create:orm_create:1",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.write:orm_write:1",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.create:orm_create:1",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.write:orm_write:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:3"
-      ],
-      "classification": "system_internal",
-      "consequence": "Maintains only rebuildable task, project and contact search fragments and their transactional queues; native source CRUD authority is unchanged.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "system_internal.work_management.project_contact_lexical_index.sinks",
-      "overrides": {
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.create:orm_create:1": {
-          "reachability_proof": "Native super-call within the existing separately reviewed public create/write method, followed by transactional derived queue maintenance."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.write:orm_write:1": {
-          "reachability_proof": "Native super-call within the existing separately reviewed public create/write method, followed by transactional derived queue maintenance."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.create:orm_create:1": {
-          "reachability_proof": "Native super-call within the existing separately reviewed public create/write method, followed by transactional derived queue maintenance."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.write:orm_write:1": {
-          "reachability_proof": "Native super-call within the existing separately reviewed public create/write method, followed by transactional derived queue maintenance."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:3": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21": {
-          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:3": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:2": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        },
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:3": {
-          "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
-        }
-      },
-      "rationale": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs.",
-      "reviewed_digests": {
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.create:orm_create:1": "01020e4f95bed51bf8ace79dc2b6ec7ed0a07ec7521b1683f4cfe34618196834",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:project.project.write:orm_write:1": "f4234b3afdeb7311db81cf588e75260123958d5d85dc46fca9c7e6dcf6a0290e",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.create:orm_create:1": "01020e4f95bed51bf8ace79dc2b6ec7ed0a07ec7521b1683f4cfe34618196834",
-        "sink:usl_home:custom-addons/usl_home/models/project_contact_index.py:res.partner.write:orm_write:1": "f4234b3afdeb7311db81cf588e75260123958d5d85dc46fca9c7e6dcf6a0290e",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:1": "65ac8cd0c7b38fe4d853ed004486b1f59514881ae0e6ba1772cf1e85e5bab87c",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:2": "6cbad30824ff00b86186aa2ca0c7ce97cac963b67531c2397f7e0e01380f59b8",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:3": "0bc66ee1b6f0255536e2729d0bef0d2e5f78546dc1b01adc98549d0917268bd2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1": "c32637715c67c30a24b50be6b77781774c84605e80ddc30ce9fc3ef131249073",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10": "9dfa3c3359845d7d9c0b58dc6f1339c1e07c580b7655479cc3dfada56109ddc9",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11": "8fd08654083a1b52b655dfd6a6f89e459a106e651e0026f74ddbb2431bfce3db",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12": "1f07b73a31dd3f0b1a49efc7274e13973d59dbdd914610e888deb8e2d9a8b7cc",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13": "154ac370f50fd5f69e94843cb5a4ead7eaff0cbcf22b3159618387675142cdeb",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14": "dffc4b0860c10967c2215802496bc9dbed089dfa8fde789b4f16d2ac7c4905d5",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15": "1786968de4ad24fcd5727f5b07eff0fce1925542a5b5239354bf0b3f46e73b8e",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16": "37aa2edc9a2e2cd981fc43970b3f3fa85b049a21233bd809d2367ddf01b6b659",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17": "8e8a601a2576c790e1da0e5f0468e9689620e52371186b6c207685a79ea7a3eb",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18": "1bcc68c5e9de624f535b69b40311bb290c9f4d0624a5c2300b5a2fc42e2aab73",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19": "5efcb0a1804f436a89fb704b2992680d0a700244187e431bccb0dfc068da73dc",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2": "49e79020d97781d9eb326abb1aee4a41da472e16ef44cc09afb3626ca3f84e6c",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20": "1014f376eed14eef94dd64ca8f049c69c1760850eef201f5898ba0fa70f0efb2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21": "9b808db6ea7fdc48e624893420119b94d02a71b211026a726ed9d952a6a15ae3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3": "76753bd774e691dcf555afa599f4c2d65360424e4eae21d5356808e63d829687",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4": "c42d332d2b80311b38cc45611035912af4ad4f39af7e693bee8d82e99b6172b3",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5": "1d62e5345a50555fbb9ef7a2d3a99b34e27a37eecd5b63d92edb816b8294ed97",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6": "f5d6300596c99a8606cd3610ad5c0c5eaadbd61de2df4997c64ada228e5c7a16",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7": "1bdf629f818821186d00ce281735dd8a0d6ddd6d4dfbfed004321a3867f8e9e5",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8": "6cb6955f4cf24cc30811e6a7d8fa09b0c35c5bdac00491d5242bce24d03438b6",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9": "c3adafc0ef7397c044b13efe80329e131ce17066eb85938b05502d2e3091db89",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1": "b50fe75e3a1512a51f042f4012402f5c88de9536bb60df454726401f15c82657",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2": "9ed4f044edf1c2efdc8330b748eab047393e944846efc43d2bcb735215e23e49",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3": "5c12c90f43ba3b0ca2e761c1d5d6cdd508f4211a2317644ecd378beed3dc8967",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:1": "afb5a1b151e4ae2ccaa013600e61de0dd21b83de1b6520c7100baa9f0aca9cba",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:2": "9f52f9ca28e0afb030bcfd45b45b129f64a9e9f799eb4ea522f2c35fd63a8d47",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:3": "5f4e127a6ab6fb744997e86860c274b9c21e18123135311063592dcce2d6a611",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1": "240a0d5e6d28d597edd7c7247fc9635fbe35387ad6a9280e671a64a72e49195e",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2": "e838621e4e9f558d4aa8f551e7c799d7a6f043cb949dbffac7617cf6dff227de",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:1": "7a115201aa2e70fa6d989a593df6c0181eba0cd0552541624a5862b3c7296dfc",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:2": "4729196280ad8700b19cf2057b3a45f63da8e64d9833f75f33718f2832d1aa85",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:3": "5749ce9e92bf8f54d1d8d0dba465499fbb70f410954c5fdd92c574473964797a"
-      }
-    },
-    {
-      "action_keys": [
-        "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
-      ],
-      "classification": "operational",
-      "consequence": "Refreshes private rebuildable project search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "operational.work_management.project_lexical_index.server_action",
-      "overrides": {},
-      "rationale": "Fixed native server action retains native execution checks; it refreshes at most 500 derived rows without rewriting source records.",
-      "reviewed_digests": {
-        "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server": "cbec7edd66ce4d0a27584accf90ab501af8cbb56d595a2cae8c038099f84139e"
-      }
-    },
-    {
-      "action_keys": [
-        "cron:usl_home.ir_cron_usl_index_project_content"
-      ],
-      "classification": "system_internal",
-      "consequence": "Refreshes private rebuildable project search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "system_internal.work_management.project_lexical_index.cron",
-      "overrides": {
-        "cron:usl_home.ir_cron_usl_index_project_content": {
-          "reachability_proof": "Scheduler-owned private worker; native manual trigger authority and the separately reviewed fixed server action remain unchanged."
-        }
-      },
-      "rationale": "Scheduler-owned private worker; native manual trigger authority and the separately reviewed fixed server action remain unchanged.",
-      "reviewed_digests": {
-        "cron:usl_home.ir_cron_usl_index_project_content": "09b7b4b72b98ae0929178b85cbc7af197da4eee33bb52ee2c2e9c2ddcb468dd9"
-      }
-    },
-    {
-      "action_keys": [
-        "ui:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
-      ],
-      "classification": "transport",
-      "consequence": "Refreshes private rebuildable project search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "transport.work_management.project_lexical_index.ui",
-      "overrides": {
-        "ui:usl_home.ir_cron_usl_index_project_content_ir_actions_server": {
-          "targets": [
-            "server_action:usl_home.ir_cron_usl_index_project_content_ir_actions_server"
-          ]
-        }
-      },
-      "rationale": "Contains no own mutation and targets only the exact reviewed fixed server action.",
-      "reviewed_digests": {
-        "ui:usl_home.ir_cron_usl_index_project_content_ir_actions_server": "b186aefab49cb223c7829c93c24bfd2c4d9a0ce7bf729b21b662c793980030b9"
-      }
-    },
-    {
-      "action_keys": [
-        "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
-      ],
-      "classification": "operational",
-      "consequence": "Refreshes private rebuildable contact search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "operational.work_management.contact_lexical_index.server_action",
-      "overrides": {},
-      "rationale": "Fixed native server action retains native execution checks; it refreshes at most 500 derived rows without rewriting source records.",
-      "reviewed_digests": {
-        "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server": "57e8aa1d48d6f88155321441e5c1f86825f423277ecde4285a17e30abd4fd7e0"
-      }
-    },
-    {
-      "action_keys": [
-        "cron:usl_home.ir_cron_usl_index_contact_content"
-      ],
-      "classification": "system_internal",
-      "consequence": "Refreshes private rebuildable contact search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "system_internal.work_management.contact_lexical_index.cron",
-      "overrides": {
-        "cron:usl_home.ir_cron_usl_index_contact_content": {
-          "reachability_proof": "Scheduler-owned private worker; native manual trigger authority and the separately reviewed fixed server action remain unchanged."
-        }
-      },
-      "rationale": "Scheduler-owned private worker; native manual trigger authority and the separately reviewed fixed server action remain unchanged.",
-      "reviewed_digests": {
-        "cron:usl_home.ir_cron_usl_index_contact_content": "5a26b78b8a2acbf1912cacbc493ad8c7dcf43585cc619c8092816d0c39c93af0"
-      }
-    },
-    {
-      "action_keys": [
-        "ui:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
-      ],
-      "classification": "transport",
-      "consequence": "Refreshes private rebuildable contact search storage only.",
-      "domain": "work_management",
-      "evidence_id": "project-contact-lexical-index-v1",
-      "id": "transport.work_management.contact_lexical_index.ui",
-      "overrides": {
-        "ui:usl_home.ir_cron_usl_index_contact_content_ir_actions_server": {
-          "targets": [
-            "server_action:usl_home.ir_cron_usl_index_contact_content_ir_actions_server"
-          ]
-        }
-      },
-      "rationale": "Contains no own mutation and targets only the exact reviewed fixed server action.",
-      "reviewed_digests": {
-        "ui:usl_home.ir_cron_usl_index_contact_content_ir_actions_server": "2d00dd53d6d76c0c89358f10859b399a8379f3aeefc521cf517010933eed504b"
-      }
-    },
-    {
-      "action_keys": [
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:2",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:3",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._usl_queue_task_messages:raw_sql_mutation:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.create:orm_create:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:2",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:3",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:4",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:5",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:6",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:7",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.write:orm_write:1"
-      ],
-      "classification": "system_internal",
-      "consequence": "Maintains only rebuildable task-message fragments and transactional queue.",
-      "domain": "work_management",
-      "evidence_id": "task-chatter-lexical-sources-v1",
-      "id": "system_internal.work_management.task_chatter_index.sinks",
-      "overrides": {
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:1": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:2": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:3": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._usl_queue_task_messages:raw_sql_mutation:1": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.create:orm_create:1": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:1": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:2": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:3": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:4": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:5": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:6": {
-          "reachability_proof": "The private mail schema initialization creates derived search storage and queues existing task messages. Native RPC rejects this schema hook."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:7": {
-          "reachability_proof": "The private mail schema initialization creates derived search storage and queues existing task messages. Native RPC rejects this schema hook."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.write:orm_write:1": {
-          "reachability_proof": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write."
-        }
-      },
-      "rationale": "Private literal schema and bounded publication helpers have no public RPC entry. Queue maintenance follows successful native mail.message create/write or module initialization; super calls retain existing source authority and behavior. Only rebuildable private fragments and queue rows are mutated. No new source ACL, rule, sudo readback or source business write.",
-      "reviewed_digests": {
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:1": "f408b883451e4640be1924ec9e6b4b0ab02a3c4708e644a61b99aa29990ae267",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:2": "6bef82decdd3f91a81708329165126d429c2a289fea7c198d1708f38a53f734d",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:3": "dcdebe3ff58b852aebcfc9335744b955ff7cfdc15569fc18dbd351b05e8803fd",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._usl_queue_task_messages:raw_sql_mutation:1": "863d85323d4df2b7014678eb7080d9eb3c15f7b3dc72dc12147583549c57740e",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.create:orm_create:1": "219f367c0f9d41e5fe88863f98a467876cfdb5189b98c0f8ba20c1dcb1985769",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:1": "0a823fc17e06fc36e3ca007f26dcd8e6b3c8853c191758670cd816760a860001",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:2": "5fbcd871ecefa580e3a39ef3eee8a64def8926e094ba655a6c3334cd02207830",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:3": "a31df69aa56fd9f95a86f60db9fa60a31dbccd510553b36471145a521e440eea",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:4": "ab972b64e9440b4646e1ca68de6c2927442844bf8903cde403fba88fab7e716e",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:5": "aff3357aa1929d194ee91d43dee4e086980808e4087eb78ca0359a8a54e0f6ae",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:6": "9dda7573696d0499d8c04276c1da3e7fddec73dddebbda3944a13fd8a8b35f72",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:7": "4ade79f177da24a4c31a76be147e84cb8226fe163f3d996f8717db88be0d3703",
-        "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.write:orm_write:1": "96604517a99fb283c3e4a1a42cea8b33af1be1043d2d4280e6f97511930ded56"
-      }
-    },
-    {
-      "action_keys": [
-        "server_action:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
-      ],
-      "classification": "operational",
-      "consequence": "Refreshes only private rebuildable task-message search storage.",
-      "domain": "work_management",
-      "evidence_id": "task-chatter-lexical-sources-v1",
-      "id": "operational.work_management.task_chatter_index.server_action",
-      "overrides": {},
-      "rationale": "Fixed native server action retains native execution authority and invokes only the bounded500-message derived worker.",
-      "reviewed_digests": {
-        "server_action:usl_home.ir_cron_usl_index_task_messages_ir_actions_server": "3347761e6eb125d4ca8537c9dbd40ae498de046e530b95ca88a6f209e0ba9e0c"
-      }
-    },
-    {
-      "action_keys": [
-        "cron:usl_home.ir_cron_usl_index_task_messages"
-      ],
-      "classification": "system_internal",
-      "consequence": "Refreshes only private rebuildable task-message search storage.",
-      "domain": "work_management",
-      "evidence_id": "task-chatter-lexical-sources-v1",
-      "id": "system_internal.work_management.task_chatter_index.cron",
-      "overrides": {
-        "cron:usl_home.ir_cron_usl_index_task_messages": {
-          "reachability_proof": "Scheduler-owned private worker; native manual-trigger authority remains unchanged."
-        }
-      },
-      "rationale": "Scheduler-owned private worker; native manual-trigger authority remains unchanged.",
-      "reviewed_digests": {
-        "cron:usl_home.ir_cron_usl_index_task_messages": "8d2ea60873528abf8ba5a6396e283952822eb8e890fb7ff94542b1d6904af02e"
-      }
-    },
-    {
-      "action_keys": [
-        "ui:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
-      ],
-      "classification": "transport",
-      "consequence": "Refreshes only private rebuildable task-message search storage.",
-      "domain": "work_management",
-      "evidence_id": "task-chatter-lexical-sources-v1",
-      "id": "transport.work_management.task_chatter_index.ui",
-      "overrides": {
-        "ui:usl_home.ir_cron_usl_index_task_messages_ir_actions_server": {
-          "targets": [
-            "server_action:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
-          ]
-        }
-      },
-      "rationale": "Delegates only to the exact reviewed native fixed server action.",
-      "reviewed_digests": {
-        "ui:usl_home.ir_cron_usl_index_task_messages_ir_actions_server": "ae9cfacd61ed987daa3378edf6a16c66dd4b3124cfeec2efa9217724d3af3469"
-      }
-    },
-    {
-      "action_keys": [
-        "rpc:project.task.search_by_meaning"
+        "rpc:project.project.web_search_read",
+        "rpc:project.task.web_search_read"
       ],
       "classification": "read_only",
-      "consequence": "Returns the current reader’s accessible task descriptions and titles, ranked after native record rules and source field checks; the pinned local inference service reads the explicit query.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "read_only.work_management.task_meaning.rpc",
-      "rationale": "Returns the current reader’s accessible task descriptions and titles, ranked after native record rules and source field checks; the pinned local inference service reads the explicit query.",
+      "consequence": "Returns only the native authorized record selection, requested readable fields and bounded pagination/count metadata. No persistent mutation is performed by the reviewed native routine.",
+      "domain": "projects",
+      "evidence_id": "native-structured-query-readonly-v1",
+      "id": "read-only.projects.native-structured-queries",
+      "rationale": "Exact inherited addons/web/models/models.py web_search_read body declared @api.readonly. It delegates native search_fetch, web_read and result formatting; its reviewed digest is pinned individually. This decision does not apply to other models, changed overrides or any mutation.",
       "reviewed_digests": {
-        "rpc:project.task.search_by_meaning": "dd4e0b53152ae5b984c50ca13155283d820f68783b6053a9c7c149ca84dcb5a3"
+        "rpc:project.project.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
+        "rpc:project.task.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
       }
     },
     {
       "action_keys": [
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1"
+        "rpc:res.partner.web_search_read"
       ],
-      "classification": "transport",
-      "consequence": "Explicit click calls the same read-only search as a delegated reader.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "transport.work_management.task_meaning.client",
-      "overrides": {
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1": {
-          "targets": [
-            "rpc:project.task.search_by_meaning"
-          ]
-        }
-      },
-      "rationale": "Explicit click calls the same read-only search as a delegated reader.",
+      "classification": "read_only",
+      "consequence": "Returns only the native authorized record selection, requested readable fields and bounded pagination/count metadata. No persistent mutation is performed by the reviewed native routine.",
+      "domain": "system_framework",
+      "evidence_id": "native-structured-query-readonly-v1",
+      "id": "read-only.system_framework.native-structured-queries",
+      "rationale": "Exact inherited addons/web/models/models.py web_search_read body declared @api.readonly. It delegates native search_fetch, web_read and result formatting; its reviewed digest is pinned individually. This decision does not apply to other models, changed overrides or any mutation.",
       "reviewed_digests": {
-        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:findRelatedTasks:rpc:1": "13abe825ed9c9cb7c8a80f8ec5e2cd2a3507fcd51bce87f276fe0de9b99454f6"
+        "rpc:res.partner.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
       }
     },
     {
       "action_keys": [
-        "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
+        "rpc:usl.document.classifier_batch_documents",
+        "rpc:usl.document.classifier_tag_history",
+        "rpc:usl.document.tag.rule.wizard.action_archive",
+        "rpc:usl.document.tag.rule.wizard.action_unarchive",
+        "rpc:usl.document.tag.rule.wizard.check_field_access",
+        "rpc:usl.document.tag.rule.wizard.default_get",
+        "rpc:usl.document.tag.rule.wizard.export_data",
+        "rpc:usl.document.tag.rule.wizard.fields_get",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_grouping_sets",
+        "rpc:usl.document.tag.rule.wizard.get_base_url",
+        "rpc:usl.document.tag.rule.wizard.get_empty_list_help",
+        "rpc:usl.document.tag.rule.wizard.get_external_id",
+        "rpc:usl.document.tag.rule.wizard.get_field_translations",
+        "rpc:usl.document.tag.rule.wizard.get_formview_action",
+        "rpc:usl.document.tag.rule.wizard.get_formview_id",
+        "rpc:usl.document.tag.rule.wizard.get_import_templates",
+        "rpc:usl.document.tag.rule.wizard.get_metadata",
+        "rpc:usl.document.tag.rule.wizard.get_property_definition",
+        "rpc:usl.document.tag.rule.wizard.get_views",
+        "rpc:usl.document.tag.rule.wizard.has_access",
+        "rpc:usl.document.tag.rule.wizard.has_field_access",
+        "rpc:usl.document.tag.rule.wizard.hierarchy_read",
+        "rpc:usl.document.tag.rule.wizard.mail_allowed_qweb_expressions",
+        "rpc:usl.document.tag.rule.wizard.mail_get_partner_fields",
+        "rpc:usl.document.tag.rule.wizard.name_search",
+        "rpc:usl.document.tag.rule.wizard.read",
+        "rpc:usl.document.tag.rule.wizard.read_progress_bar",
+        "rpc:usl.document.tag.rule.wizard.search",
+        "rpc:usl.document.tag.rule.wizard.search_count",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_multi_range",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_range",
+        "rpc:usl.document.tag.rule.wizard.search_read",
+        "rpc:usl.document.tag.rule.wizard.view_header_get",
+        "rpc:usl.document.tag.rule.wizard.web_name_search",
+        "rpc:usl.document.tag.rule.wizard.web_read",
+        "rpc:usl.document.tag.rule.wizard.web_search_read"
+      ],
+      "classification": "read_only",
+      "consequence": "Reads scoped document tags, classifier batches or the editor’s transient form.",
+      "domain": "documents_and_communications",
+      "evidence_id": "document-classifier-review-2582",
+      "id": "read_only.documents_and_communications.classifier_review_2582",
+      "rationale": "The native access checks precede reads. Odoo filters documents and tag labels under the current user before returning batch details.",
+      "reviewed_digests": {
+        "rpc:usl.document.classifier_batch_documents": "bedb84b03a728c06a31fd0ca9618ec5d2d33410205af35409094b32ea8376755",
+        "rpc:usl.document.classifier_tag_history": "951f0a7a2a801b8514173d4b69812540d18495d23d4933e540e7dfa75fe5c923",
+        "rpc:usl.document.tag.rule.wizard.action_archive": "8768ffacd5ca89734b0f033310dae684fc59c022b8aa882605be4c76346bea38",
+        "rpc:usl.document.tag.rule.wizard.action_unarchive": "64750d71e58a1cb3779ef16d072432d29c957d68f35e69ee124dd4f89a01872b",
+        "rpc:usl.document.tag.rule.wizard.check_field_access": "1261ac2e8b9102c2c455af0922b0fd77bf128cce05859ed7d7691e7c7c63fe74",
+        "rpc:usl.document.tag.rule.wizard.default_get": "a6bd9ebc70fd74b6674357ab868687b08e28b22f1f90ce46328897badbd00a7b",
+        "rpc:usl.document.tag.rule.wizard.export_data": "9abc57bb2c47a63840dfa9a722c4daec180f005d22dcd7ad5c701e6981a0019f",
+        "rpc:usl.document.tag.rule.wizard.fields_get": "efb5dde15660aa5eed8239e5cee1d2a277af0dec938b02e2cd509100b5b318d3",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_group": "5e366291664c123166cc706747707594ce10a60cd1bd20d5135d54f22f257ff7",
+        "rpc:usl.document.tag.rule.wizard.formatted_read_grouping_sets": "960c9d45ab242494604996365e5c45b9c6a74b83e515b7f083695548e7bb5fe8",
+        "rpc:usl.document.tag.rule.wizard.get_base_url": "30feae162db0fdc1a09b87dbadabc453433fe2946c9bc2f452cab842286eacf8",
+        "rpc:usl.document.tag.rule.wizard.get_empty_list_help": "5f8fc95a65668aa83e7f32e886398bdfe784fe770f88d56f2b7eca8addd16b7c",
+        "rpc:usl.document.tag.rule.wizard.get_external_id": "9ef72cf1ed9c2017f3027d8de27801a8ee01f2ee90d4034f6604a6d1aba98212",
+        "rpc:usl.document.tag.rule.wizard.get_field_translations": "f1a46242576d48609f2fddb92bb627bb9e05f306f0763b4c35591114da9f2e69",
+        "rpc:usl.document.tag.rule.wizard.get_formview_action": "a43eb21e096fc618ec305f5d0f70e332b378d10a1c9285869099694f92e0e381",
+        "rpc:usl.document.tag.rule.wizard.get_formview_id": "9be387a6b3e3dfaef21595076eb8ae4edab96deadf73339cfe7a50047f6d68f9",
+        "rpc:usl.document.tag.rule.wizard.get_import_templates": "350858848df8934f16dd8c57b72bd8f6dbc3e08b7f92eac4a56193bc69f7c369",
+        "rpc:usl.document.tag.rule.wizard.get_metadata": "8017c0f88eb2ef7bdaa81d85cda7543a4df68410c6d82d3e0690a938cc17facd",
+        "rpc:usl.document.tag.rule.wizard.get_property_definition": "8279fb0db3b1137467a3500ae04e03a6167a532769103eed32adc91cd2019bd4",
+        "rpc:usl.document.tag.rule.wizard.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
+        "rpc:usl.document.tag.rule.wizard.has_access": "efe582802f138d583aced1b67b3e4b4affb19f8f91ee130e5a89e89fe99f3846",
+        "rpc:usl.document.tag.rule.wizard.has_field_access": "a930bb2c4e7a933add051d85fc56fa0233558e77fb0071e51e8e8cce92780e2e",
+        "rpc:usl.document.tag.rule.wizard.hierarchy_read": "72a3f0d4a041c8269c06bce5116e0b80bf8647d3160cb90263e4ebf32708e53d",
+        "rpc:usl.document.tag.rule.wizard.mail_allowed_qweb_expressions": "4a592af4cd23c3773e85a6b616ee8a9f18fc444d5e7dcd5111540d56b51992a0",
+        "rpc:usl.document.tag.rule.wizard.mail_get_partner_fields": "1b1bcffd472acb6a2bbe4c17055e680109fdf6f51f00b34b47380e32e69ba66b",
+        "rpc:usl.document.tag.rule.wizard.name_search": "45bb51564af96e99f69f6bd58803ec683e2a7e1e5b725697943204a8fe34f09d",
+        "rpc:usl.document.tag.rule.wizard.read": "c1246f8f400e5cb49760a0c6a2171433683acfde5ce0ddbbeb8d1663878a4890",
+        "rpc:usl.document.tag.rule.wizard.read_progress_bar": "288a4f0e96053ffced73d3efeb6284a96f4782fe2453ebe4c11abc91b288209d",
+        "rpc:usl.document.tag.rule.wizard.search": "72cd2aa7b6f194e929852ac4af13fc378736e443896c4d349cb7d923890bbce2",
+        "rpc:usl.document.tag.rule.wizard.search_count": "62fc728befbfff8f5b946603d95251043a8de02ef85f378137b2a74332d7a569",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_multi_range": "77bf0512f04440aa993a082b6e084fd8dfc1486df3ae0aa6865a135c1c8cbd5a",
+        "rpc:usl.document.tag.rule.wizard.search_panel_select_range": "23487bc4cdee6a3adc6d0fa47b5c3830fbc62d87b41303390053ef47ba4882f2",
+        "rpc:usl.document.tag.rule.wizard.search_read": "9035afb34d7c59ab7196870c16cf74830c5a08ed59a4e5020c1f798c5499f866",
+        "rpc:usl.document.tag.rule.wizard.view_header_get": "dfbc5aadca0f3aa9996271962238e5cf88cf6a0ef9ed1d7ffe4201eb705e72b1",
+        "rpc:usl.document.tag.rule.wizard.web_name_search": "f1722e8027440a7e5db4dd5198ce2a9152ed7a0e1e2d8ae900ec1c2c71b3f7e2",
+        "rpc:usl.document.tag.rule.wizard.web_read": "3530244a1f4c0d59a6c7a4dea5c533ef79b96d2858d086aa14c045104d5ee5c0",
+        "rpc:usl.document.tag.rule.wizard.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b"
+      }
+    },
+    {
+      "action_keys": [
+        "rpc:usl.document.tag.rule.wizard.action_save",
+        "rpc:usl.document.tag.rule.wizard.copy",
+        "rpc:usl.document.tag.rule.wizard.copy_data",
+        "rpc:usl.document.tag.rule.wizard.copy_translations",
+        "rpc:usl.document.tag.rule.wizard.create",
+        "rpc:usl.document.tag.rule.wizard.get_view",
+        "rpc:usl.document.tag.rule.wizard.load",
+        "rpc:usl.document.tag.rule.wizard.name_create",
+        "rpc:usl.document.tag.rule.wizard.onchange",
+        "rpc:usl.document.tag.rule.wizard.onchange_batch",
+        "rpc:usl.document.tag.rule.wizard.unlink",
+        "rpc:usl.document.tag.rule.wizard.update_field_translations",
+        "rpc:usl.document.tag.rule.wizard.web_override_translations",
+        "rpc:usl.document.tag.rule.wizard.web_read_group",
+        "rpc:usl.document.tag.rule.wizard.web_resequence",
+        "rpc:usl.document.tag.rule.wizard.web_save",
+        "rpc:usl.document.tag.rule.wizard.web_save_multi",
+        "rpc:usl.document.tag.rule.wizard.web_save_offline",
+        "rpc:usl.document.tag.rule.wizard.write",
+        "rpc:usl.document.undo_classifier_batch",
+        "rpc:usl.paperless.tag.action_review_classifier_rule"
       ],
       "classification": "operational",
-      "consequence": "Runs one fixed batch of the private rebuildable task-description index as the existing native scheduler identity.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "operational.work_management.task_meaning.server",
-      "rationale": "Runs one fixed batch of the private rebuildable task-description index as the existing native scheduler identity.",
+      "consequence": "Changes the editor’s temporary form, the selected learned tag rule, or eligible tag links from one existing batch.",
+      "domain": "documents_and_communications",
+      "evidence_id": "document-classifier-review-2582",
+      "id": "operational.documents_and_communications.classifier_review_2582",
+      "rationale": "Tag editors can change or disable the rule. Batch undo retains later manual changes and checks current document authority for every write. Files and source contents are preserved.",
       "reviewed_digests": {
-        "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": "db62b401e580f477c19d95dc973a9c70836beb351e18249404b1b4c02f46d7ab"
-      }
-    },
-    {
-      "action_keys": [
-        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
-      ],
-      "classification": "transport",
-      "consequence": "Dispatches to the fixed scheduler action.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "transport.work_management.task_meaning.ui",
-      "overrides": {
-        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": {
-          "targets": [
-            "server_action:usl_home.ir_cron_embed_task_descriptions_ir_actions_server"
-          ]
-        }
-      },
-      "rationale": "Dispatches to the fixed scheduler action.",
-      "reviewed_digests": {
-        "ui:usl_home.ir_cron_embed_task_descriptions_ir_actions_server": "b56afeeffb55c99660d61599ff0c80fdbb18639ebd678f35491c30a0c1457bd1"
-      }
-    },
-    {
-      "action_keys": [
-        "cron:usl_home.ir_cron_embed_task_descriptions"
-      ],
-      "classification": "system_internal",
-      "consequence": "Only the native scheduler and its separately reviewed manual action can launch this private batch.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "system_internal.work_management.task_meaning.cron",
-      "overrides": {
-        "cron:usl_home.ir_cron_embed_task_descriptions": {
-          "reachability_proof": "Scheduler-owned private worker; the separately reviewed, fixed native server action covers manual execution."
-        }
-      },
-      "rationale": "Only the native scheduler and its separately reviewed manual action can launch this private batch.",
-      "reviewed_digests": {
-        "cron:usl_home.ir_cron_embed_task_descriptions": "de5ac3430860efd06b8aac875223936d89fbfdb320737f852d1329b95244386a"
-      }
-    },
-    {
-      "action_keys": [
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1",
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1"
-      ],
-      "classification": "system_internal",
-      "consequence": "Initializes optional derived storage, updates it in bounded batches, and uses the deployment-configured internal model after validating its identity.",
-      "domain": "work_management",
-      "evidence_id": "task-description-meaning-3758",
-      "id": "system_internal.work_management.task_meaning.sinks",
-      "overrides": {
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": {
-          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
-        },
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1": {
-          "reachability_proof": "Private Python functions and Odoo initialization/cron methods have no native RPC exposure. The semantic search and fixed scheduler entry points are reviewed separately."
-        }
-      },
-      "rationale": "Initializes optional derived storage, updates it in bounded batches, and uses the deployment-configured internal model after validating its identity.",
-      "reviewed_digests": {
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:_embeddings:external_call:1": "c1c363e6d7801ee262ac41242db7a28968783038db6cab9a844a18a2ae45054c",
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task._cron_usl_embed_task_descriptions:raw_sql_mutation:1": "8b72c785022db3294ed4d0e462922d352a6ef9e1919c8c9fcb1de1a770408251",
-        "sink:usl_home:custom-addons/usl_home/models/task_semantics.py:project.task.init:raw_sql_mutation:1": "65fe0cfa2090cf8f694f75b5e0322dfbfa3dd45634468c21879942f4f7cbc51f"
+        "rpc:usl.document.tag.rule.wizard.action_save": "91ca7d689a82f4ec5c50c672512ee933dfe7b55e41848473dcbe9f462c45b353",
+        "rpc:usl.document.tag.rule.wizard.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
+        "rpc:usl.document.tag.rule.wizard.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
+        "rpc:usl.document.tag.rule.wizard.copy_translations": "1464a131a33d4045cd45d1373c636dcc3d9434a6d9d3cdc2d1e779c19b52be77",
+        "rpc:usl.document.tag.rule.wizard.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
+        "rpc:usl.document.tag.rule.wizard.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
+        "rpc:usl.document.tag.rule.wizard.load": "1cb60f15bd8725efd98a7849ce72775f98d570530ad819f4a88f695cbbf05451",
+        "rpc:usl.document.tag.rule.wizard.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
+        "rpc:usl.document.tag.rule.wizard.onchange": "7949a5868ee5770aba45c90d342bfb910c724e186dded59900b388d75fbfce53",
+        "rpc:usl.document.tag.rule.wizard.onchange_batch": "d3d43b141d1ae3ea1bc124868bb72e194bf54fa8a83e9bfbd5ba1a12c62245ce",
+        "rpc:usl.document.tag.rule.wizard.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
+        "rpc:usl.document.tag.rule.wizard.update_field_translations": "ce6e0d0ead281fa9476ee00889ec0a771fa5d325be6b10b5baf6c36a8bf79382",
+        "rpc:usl.document.tag.rule.wizard.web_override_translations": "5aaf1f75da0fa8582cce83724b382834112d4f74abe8fedbd7b78bd0afa67942",
+        "rpc:usl.document.tag.rule.wizard.web_read_group": "8f2541507dd6a68fbcde9ea77b4cf7ebb0f548aceab5533197a98ec98db221f1",
+        "rpc:usl.document.tag.rule.wizard.web_resequence": "b4d515daa6436f99940f53284033b12aa4e95c3f7c0f8522a4946768ef9f8c2c",
+        "rpc:usl.document.tag.rule.wizard.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
+        "rpc:usl.document.tag.rule.wizard.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
+        "rpc:usl.document.tag.rule.wizard.web_save_offline": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
+        "rpc:usl.document.tag.rule.wizard.write": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
+        "rpc:usl.document.undo_classifier_batch": "d9e8ac7a8124445c1f1d210c5c1c920f7f526652b49156fea64c5de37940f505",
+        "rpc:usl.paperless.tag.action_review_classifier_rule": "3586b1b85f4c560a8d5c45ae1e00d23342b761764cf427a858e39ad07939594b"
       }
     }
   ],
@@ -222527,6 +222068,14 @@
         "custom-addons/usl_access_control/tests/test_delegated_owner_domains.py::TestDelegatedOwnerDomains.test_notification_render_boundary_context_and_values"
       ]
     },
+    "document-classifier-review-2582": {
+      "contract": "Show rules and history with current object permissions. Require the current tag editor to change a threshold; removing a batch preserves unrelated labels, manual edits and restricted documents.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_classifier_rule_is_optional_and_uses_the_tag_editors_rights",
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_classifier_history_and_batch_obey_current_document_scope",
+        "deploy/documents/paperless-ngx/tests/test_tag_review.py::TestReviewedClassifierTags.test_undo_only_this_batch_and_keep_native_parent_used_by_another_child"
+      ]
+    },
     "documents-batch-metadata-20261014": {
       "contract": "Fixed current-actor per-document metadata edits use the sanctioned Paperless-authoritative path. Each selected document and active chosen item is authorized before a request. Remote effects are confirmed by identity-bound readback; a failed acknowledgement remains uncertain and a retry reads current remote state instead of repeating known success. Native cache/chatter attribution remains the caller; local savepoints never imply remote rollback.",
       "tests": [
@@ -222568,6 +222117,13 @@
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_canonical_tracked_operation_rejects_stale_local_state",
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_unattached_native_upload_cleanup_remains_available",
         "custom-addons/usl_documents/tests/test_attachment_local_removal.py::TestLocalAttachmentRemoval.test_native_task_upload_can_be_removed_without_archiving"
+      ]
+    },
+    "documents-native-reader-companies-20261127": {
+      "contract": "The Documents administrator synchronizes a readable, selected document. Linked-record membership and Paperless permissions reflect each mapped reader’s native rights across their own companies. Explicit synchronization repairs stale cached membership and preserves the rights of other native users.",
+      "tests": [
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_company_selection_preserves_native_readers_during_permission_sync",
+        "custom-addons/usl_documents/tests/test_documents.py::TestDocuments.test_company_access_loss_revokes_paperless_object_permission"
       ]
     },
     "draft-expense-correction-20261014": {
@@ -222796,6 +222352,15 @@
         "custom-addons/usl_mattermost/tests/test_api.py::TestMattermostApi.test_only_an_https_mattermost_url_is_used"
       ]
     },
+    "medusa-native-identities-2588-v1": {
+      "contract": "Explicit native Medusa order/item IDs are retained through the existing import flow. Historical/native item lines for one order are not matched by content; conflicting snapshots are refused with per-order recovery while distinct orders can coexist. Contradictory existing native identity and stale conflicting identity are refused. Native statuses are compared between identified snapshots and numeric facts are compared before JSON serialization. New Medusa identities use the existing protected provenance boundary and a company/native-ID uniqueness constraint; historical orders remain NULL and unchanged. Stale preview reuse links the complete order/item family. Existing source/company/model authority, batch atomicity and mutation classifications remain. Synthetic native response projection, replay, apply, French, state-only nonmutation, company and predecessor preservation evidence; no collection or automatic financial synchronization.",
+      "tests": [
+        "custom-addons/usl_b2c_ingest/tests/test_medusa_identity.py",
+        "custom-addons/usl_b2c_ingest/tests/test_import_batch.py",
+        "custom-addons/usl_b2c_ingest/tests/test_materialise.py",
+        "docs/product/medusa-identified-import.md"
+      ]
+    },
     "native-empty-crud-parity": {
       "contract": "Native empty create values lists and empty-record write/unlink calls, including inherited sudo calls reached by Accounting, preserve human no-op semantics without business or mutation-audit changes. Actual records, nonempty create dictionaries and public API authority remain guarded.",
       "tests": [
@@ -222817,6 +222382,13 @@
         "scripts/tests/test_action_risk_inventory.py::TestGroupingRuntimeFingerprint",
         "custom-addons/usl_access_control/tests/test_native_grouping_reads.py::TestNativeGroupingReads",
         "custom-addons/usl_project/tests/test_task_content_search.py::TestTaskContentSearch"
+      ]
+    },
+    "native-structured-query-readonly-v1": {
+      "contract": "The three exact inherited native web_search_read methods declared @api.readonly select records through native search_fetch, read the requested specification through web_read, and format/count the authorized result. Model, field, record, owner and company checks remain native. A changed override needs a fresh digest review; the method name grants nothing. Synthetic HTTP tests cover normal RO/RW reads, company and private-record scope, hidden fields, missing application and unchanged mutation rejection.",
+      "tests": [
+        "scripts/tests/test_native_structured_read_policy.py",
+        "custom-addons/usl_access_control/tests/test_native_structured_reads.py"
       ]
     },
     "notification-productivity-20261014": {
@@ -222858,14 +222430,6 @@
         "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_foreign_bank_import_defaults_to_reference_rate",
         "custom-addons/usl_platform_billing/tests/test_platform_billing.py::TestPlatformBilling.test_exchange_carryover_account_follows_actual_balance",
         "custom-addons/usl_platform_billing/tests/test_platform_billing_browser.py::TestPlatformBillingBrowser.test_operator_imports_a_bank_transaction_as_a_new_payout"
-      ]
-    },
-    "project-contact-lexical-index-v1": {
-      "contract": "Private own-field projections for tasks, projects and contacts. Successful native writes enqueue in the same transaction; bounded workers touch only derived storage. Every read applies current source field, record and selected-company authority, current language and native archive context; pending versions are read live without mutating search. The Python-only mixin is absent from the model registry and has no RPC entry point.",
-      "tests": [
-        "custom-addons/usl_home/tests/test_project_contact_index.py",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py",
-        "scripts/odoo/task_search_concurrency_qa.py"
       ]
     },
     "project-stage-reactivation-v1": {
@@ -222974,46 +222538,12 @@
         "custom-addons/usl_documents/tests/test_source_evidence.py::TestSourceEvidence"
       ]
     },
-    "task-chatter-lexical-sources-v1": {
-      "contract": "Derived task-comment, note and user-correspondence text. Native current mail, parent, field, owner and selected-company access precedes matching or excerpts. Pending edits use current source; search performs no DML. Source opening rechecks exact parent, field, eligibility and access. Automatic task tracking notifications are excluded for relevance, not authority.",
-      "tests": [
-        "custom-addons/usl_home/tests/test_task_chatter_search.py",
-        "custom-addons/usl_home/static/tests/content_search.test.js",
-        "scripts/odoo/task_chatter_concurrency_qa.py"
-      ]
-    },
-    "task-description-meaning-3758": {
-      "contract": "An internal reader explicitly searches task descriptions already indexed by the configured and verified internal model. Native field, record and selected-company access precede ranking. Stale fragments are excluded. The local index contains rebuildable data only. Ordinary text search does not invoke the task model.",
-      "tests": [
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_unconfigured_search_keeps_existing_task_results",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_paraphrase_and_revocation_before_limit",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_pending_edit_removes_old_match_and_pinned_model",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_gateway_rejects_drift_before_sending_any_text",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_extension_is_optional_and_never_calls_model_while_unavailable",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_other_selected_company_keeps_its_own_semantic_results",
-        "custom-addons/usl_home/tests/test_task_semantics.py::TestTaskSemantics.test_one_clear_result_and_no_unrelated_filler"
-      ]
-    },
     "task-github-reference-20261014": {
       "contract": "Install and version 13 upgrade copy one unambiguous valid legacy GitHub reference into an empty canonical field. Existing canonical values, raw legacy task properties and project definitions remain unchanged; native task permissions continue to govern ordinary edits.",
       "tests": [
         "custom-addons/usl_project/tests/test_task_github_reference.py",
         "custom-addons/usl_project/tests/test_task_github_reference_tour.py",
         "custom-addons/usl_project/static/tests/task_github_properties.test.js"
-      ]
-    },
-    "task-lexical-index-v1": {
-      "contract": "Native task writes enqueue only rebuildable search data; fixed maintenance publishes bounded source-field fragments. Ordinary search has no mutation, applies current field access and native task/company domains, and private helpers are not RPC entry points.",
-      "tests": [
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_projection_helpers_are_not_rpc_entry_points",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_search_does_not_write_the_projection_or_queue",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_rollback_restores_content_and_queue_together",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_current_field_permission_controls_already_indexed_content",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_current_task_rule_controls_already_indexed_content",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_selected_company_controls_already_indexed_content",
-        "scripts/odoo/task_search_concurrency_qa.py",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_repeated_module_initialization_keeps_ready_results_available",
-        "custom-addons/usl_project/tests/test_task_lexical_index.py::TestTaskLexicalIndex.test_reinstallation_requeues_fragments_from_before_the_feature_was_disabled"
       ]
     },
     "task-navigation-20261014": {

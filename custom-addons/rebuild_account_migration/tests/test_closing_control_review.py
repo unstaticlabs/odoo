@@ -24,6 +24,11 @@ class TestClosingControlReview(AccountTestInvoicingCommon):
     def test_saved_findings_keep_original_counts_when_read_in_french(self):
         self.env["res.lang"]._activate_lang("fr_FR")
         cases = [
+            ("reports", "3 of 8 required interactive report actions are available.", ("Rapports disponibles : 3 sur 8.",)),
+            ("reports", "Available reports: 7 of 8.", ("Rapports disponibles : 7 sur 8.",)),
+            ("fec", "FEC export is available for 27 posted move(s) in this closing period.",
+             ("Écritures comptabilisées sur la période : 27.",)),
+            ("fec", "Posted entries in the period: 0.", ("Écritures comptabilisées sur la période : 0.",)),
             ("document_completeness",
              "2 draft business document(s); 14 posted document(s) without a main attachment.",
              ("Factures et avoirs en brouillon : 2", "Comptabilisés sans pièce principale : 14")),
