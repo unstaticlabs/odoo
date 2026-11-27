@@ -131,12 +131,19 @@
                         </span>
                     </div>
                 </div>
-                <p class="small text-muted mb-0" role="note">
-                    <t t-if="state.assistantMode === 'gemini'">Gemini sees your message and preview.</t>
-                    <t t-elif="state.assistantMode === 'local'">Odoo uses fixed local replies. Nothing is sent to Gemini.</t>
-                    <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
-                    Files stay in Odoo. Your workspace can view the feedback.
-                </p>
+                <div t-if="state.phase === 'draft'" class="o-usl-FeedbackPanel-sharing small text-muted mb-2" role="note">
+                    <t t-if="state.assistantMode === 'gemini'">
+                        <p class="mb-1">Google Gemini receives your conversation and may analyze up to three JPEG or PNG images from your attachments and selected page preview.</p>
+                        <details class="mb-1">
+                            <summary>What else does Gemini receive?</summary>
+                            <p class="mb-1 mt-1">Gemini receives your company, language, Odoo version and any page details you choose to share.</p>
+                            <p class="mb-0">To find related feedback, Gemini receives counts by stage and recent feedback titles.</p>
+                        </details>
+                    </t>
+                    <p t-elif="state.assistantMode === 'local'" class="mb-1">Odoo uses fixed local replies. Nothing is sent to Gemini.</p>
+                    <p t-elif="state.assistantMode === 'off'" class="mb-1">The assistant is off. Odoo will still save your feedback.</p>
+                    <p class="mb-0">People with access to the feedback board can read your report and its files.</p>
+                </div>
                 <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
                     <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
                 </div>
