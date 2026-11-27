@@ -6671,8 +6671,8 @@ msgstr "Odoo n’autorise plus l’ajout de pièces jointes sur cette note de fr
 
 #. module: usl_documents
 #: code:addons/usl_documents/models/source_evidence.py:0
-msgid "This approved expense has no accounting entry yet. Select a receipt already attached to it. To add a new receipt, a user with permission must return it to draft, attach the receipt and submit the expense again."
-msgstr "Cette note de frais approuvée n’a pas encore d’écriture comptable. Sélectionnez un justificatif déjà joint à la note. Pour en ajouter un nouveau, une personne autorisée doit remettre la note en brouillon, joindre le justificatif et soumettre à nouveau la note."
+msgid "This approved expense has no accounting entry yet. Select a receipt already attached to it. To add a new receipt, a user with permission can return it to draft, attach the receipt and submit the expense again."
+msgstr "Cette note de frais approuvée n’a pas encore d’écriture comptable. Sélectionnez un justificatif déjà joint à la note. Pour en ajouter un nouveau, une personne autorisée peut remettre la note en brouillon, joindre le justificatif et soumettre à nouveau la note."
 
 #. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
@@ -6783,8 +6783,14 @@ msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fi
 #. module: usl_documents
 #. odoo-python
 #: code:addons/usl_documents/models/source_evidence.py:0
-msgid "This expense is linked to a vendor bill. Open the linked bill to attach the additional receipt."
-msgstr "Cette note de frais est liée à une facture fournisseur. Ouvrez la facture pour y joindre le justificatif supplémentaire."
+msgid "This expense is linked to vendor bill %(bill)s. Open the bill to attach additional evidence there. To replace this expense's own receipt, select one already attached to it, or a user with permission can return the expense to draft, attach the receipt and submit it again."
+msgstr "Cette note de frais est liée à la facture fournisseur %(bill)s. Ouvrez la facture pour y joindre des justificatifs supplémentaires. Pour remplacer le justificatif de la note de frais, sélectionnez-en un déjà joint, ou une personne autorisée peut la remettre en brouillon, joindre le justificatif et la soumettre à nouveau."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense is linked to vendor bill %(bill)s. An accountant, or someone with access to the bill, can attach additional evidence there. To replace this expense's own receipt, select one already attached to it, or a user with permission can return the expense to draft, attach the receipt and submit it again."
+msgstr "Cette note de frais est liée à la facture fournisseur %(bill)s. Une personne en charge de la comptabilité, ou ayant accès à la facture, peut y joindre des justificatifs supplémentaires. Pour remplacer le justificatif de la note de frais, sélectionnez-en un déjà joint, ou une personne autorisée peut la remettre en brouillon, joindre le justificatif et la soumettre à nouveau."
 
 #. module: usl_documents
 #. odoo-python

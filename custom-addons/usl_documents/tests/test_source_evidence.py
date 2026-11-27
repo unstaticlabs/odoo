@@ -241,10 +241,28 @@ class TestSourceEvidence(TestExpenseCommon):
                 expense._do_approve()
                 self.assertFalse(expense.account_move_id)
                 original = expense.attachment_ids
-                with self.assertRaisesRegex(AccessError, "linked to a vendor bill"):
+                # An approver cannot write the bill, so the message sends them to
+                # someone who can, and still offers the way to replace the receipt.
+                with self.assertRaises(AccessError):
+                    bill.with_user(self.expense_user_manager).attach_source_evidence(**self._payload())
+                with self.assertRaisesRegex(AccessError, r"linked to vendor bill .+An accountant, or someone with access") as caught:
                     expense.attach_source_evidence(**self._payload())
-                with self.assertRaisesRegex(AccessError, "liée à une facture fournisseur"):
+                self.assertIn(bill.display_name, str(caught.exception))
+                self.assertIn("select one already attached to it", str(caught.exception))
+                self.assertIn("return the expense to draft", str(caught.exception))
+                with self.assertRaisesRegex(AccessError, "liée à la facture fournisseur .+Une personne en charge de la comptabilité"):
                     expense.with_context(lang="fr_FR").attach_source_evidence(**self._payload())
+                # An accountant who can write the bill is told to open it.
+                accountant = mail_new_test_user(
+                    self.env, login=f"qa-evidence-accountant-{int(posted)}",
+                    groups="base.group_user,hr_expense.group_hr_expense_manager,account.group_account_invoice",
+                )
+                with self.assertRaisesRegex(AccessError, "Open the bill to attach additional evidence") as caught:
+                    expense.with_user(accountant).attach_source_evidence(**self._payload())
+                self.assertIn(bill.display_name, str(caught.exception))
+                # The correction path the message names really works.
+                selected = expense.attach_source_evidence(source_attachment_id=original.id, set_main_attachment=True)
+                self.assertTrue(selected["reused"])
                 self.assertEqual(expense.attachment_ids, original)
                 self.assertEqual(expense.state, "approved")
                 self.assertEqual(expense.existing_bill_id, bill)
@@ -255,6 +273,27 @@ class TestSourceEvidence(TestExpenseCommon):
                 self.assertEqual(expense.attachment_ids, original)
                 self.assertEqual(bill.read(["amount_total", "amount_residual"]), totals)
                 self.assertEqual(bill.state, "posted" if posted else "draft")
+
+    def test_refused_expense_with_linked_bill_is_told_to_reset_not_to_use_the_bill(self):
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice", "partner_id": self.partner_a.id,
+            "invoice_date": "2026-10-14",
+            "invoice_line_ids": [Command.create({"name": "Sample purchase", "price_unit": 54})],
+        })
+        expense = self._expense().with_user(self.expense_user_manager)
+        expense.write({"payment_mode": "company_account", "has_existing_bill": True, "existing_bill_id": bill.id})
+        expense.attach_source_evidence(**self._payload(
+            b"%PDF-1.4\n[QA] Initial purchase receipt\n%%EOF", set_main_attachment=True,
+        ))
+        expense.action_submit()
+        expense._do_refuse("Synthetic reviewer requested an itemized receipt.")
+        self.assertEqual(expense.existing_bill_id, bill)
+        with self.assertRaisesRegex(AccessError, "This expense was refused") as caught:
+            expense.attach_source_evidence(**self._payload())
+        self.assertNotIn("vendor bill", str(caught.exception))
+        expense.action_reset()
+        result = expense.attach_source_evidence(**self._payload())
+        self.assertIn(result["attachment_id"], expense.attachment_ids.ids)
 
     def test_refused_expense_can_gain_a_corrected_receipt_after_reset(self):
         self.env["res.lang"]._activate_lang("fr_FR")
