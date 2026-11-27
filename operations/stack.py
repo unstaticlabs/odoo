@@ -6518,6 +6518,39 @@ def _release_runtime_evidence(
     return value
 
 
+class _AdmissionCheckFailure(RuntimeError):
+    """Only predeclared diagnostic codes can enter the durable operations receipt."""
+
+    safe_summary = True
+
+    def __init__(self, report: dict, target) -> None:
+        schema = report.get("schema")
+        if schema not in ("usl-runtime-health/v1", "usl-runtime-smoke/v1"):
+            schema = "runtime gate"
+        public_codes = {
+            "odoo:http", "paperless:http", "mcp:http", "odoo:websocket",
+            "odoo:config-unreadable", "odoo:config-invalid", "odoo:config-mismatch",
+            "odoo:receipt-worker-capacity", "odoo:queue-job-not-loaded", "odoo:receipt-channel-capacity",
+            "receipt-fetcher:mtls", "receipt-fetcher:mtls-invalid",
+            "receipt-fetcher:containment", "receipt-fetcher:containment-invalid",
+            "ollama:identity", "cohort:readiness-evidence", "odoo:cron-policy",
+            "accounting:unbalanced", "odoo:empty-control", "odoo:failed-queue", "odoo:cron-failures",
+            "odoo:filestore-coverage", "paperless:empty-control", "paperless:missing-filename",
+            "paperless:original-coverage", "paperless:archive-missing", "paperless:thumbnails-missing",
+            "paperless:tantivy-missing", "paperless:vectors-missing", "release:admission-receipt",
+        }
+        public_codes.update(
+            f"{service}:{state}" for service in target.value["services"].values()
+            for state in ("not-running", "starting", "unhealthy", "network-boundary")
+        )
+        failures = report.get("failures")
+        reasons = sorted({
+            code if isinstance(code, str) and code in public_codes else "unclassified"
+            for code in failures
+        }) if isinstance(failures, list) else []
+        super().__init__(f"{schema} failed: {', '.join(reasons) or 'unclassified'}")
+
+
 def _gate(handler, target, targets: Path) -> dict:
     output = io.StringIO()
     arguments = argparse.Namespace(target=target.name, targets=targets, json=True)
@@ -6526,7 +6559,7 @@ def _gate(handler, target, targets: Path) -> dict:
     lines = [line for line in output.getvalue().splitlines() if line.strip()]
     value = json.loads(lines[-1]) if lines else {"status": "failed"}
     if status:
-        raise RuntimeError(f"{value.get('schema', 'runtime gate')} failed: {value.get('failures', [])}")
+        raise _AdmissionCheckFailure(value, target)
     return value
 
 
