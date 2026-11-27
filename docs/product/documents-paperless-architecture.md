@@ -58,8 +58,14 @@ account lifecycle.
 Odoo and Paperless have separate Pocket client IDs, secrets, and callbacks.
 Pocket proves identity but does not supply Odoo companies, Documents roles, or
 Paperless permissions. Odoo profiles assign exact Documents groups, and the
-server-side permission synchronizer writes the resulting per-document grants
-to the mapped numeric Paperless user. Disabling the Odoo user or Pocket link
+server-side permission synchronizer checks the linked record and document
+using each mapped reader's own Odoo permissions and companies. An administrator
+can switch the companies selected in their session and still synchronize the
+same grants for that reader. The synchronizer writes those per-document grants
+to the mapped numeric Paperless user. To repair a linked document with stale
+readers, a Documents administrator can run the existing permission sync on
+that document. It first refreshes access to the linked Odoo record.
+Disabling the Odoo user or Pocket link
 revokes those grants fail-closed. Paperless group synchronization is disabled.
 Paperless's documented social-account default group grants only the minimal
 model capabilities needed to load its UI, personal settings, and shared

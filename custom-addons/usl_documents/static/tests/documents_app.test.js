@@ -2707,3 +2707,39 @@ test("desktop preview keeps ordinary duplicate-route Back behavior", async () =>
     await contains(".modal .btn-close").click();
     expect(".o_usl_documents_detail").toHaveCount(0);
 });
+
+test.tags("desktop");
+test("classifier history reviews the visible batch and retries only its unfinished documents", async () => {
+    const doc = { id: 4101, name: "Recital notes", availability_state: "available", tags: [], link_count: 0,
+        access_error: false, review_state: "reviewed", can_edit: true, versions: [], links: [] };
+    let detailCalls = 0;
+    const undo = [];
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [doc], count: 1 }));
+    onRpc("usl.document", "document_detail", () => { detailCalls++; return doc; });
+    onRpc("usl.document", "classifier_tag_history", () => [{ tag: "Concerts", batch: "sample-run", score: .892,
+        minimum_score: 84, status: "applied", created: "2026-10-10T12:00:00Z" }]);
+    onRpc("usl.document", "classifier_batch_documents", () => [
+        { id: 4101, name: "Recital notes", tags: ["Concerts", "Programmes"] }, { id: 4102, name: "Stage notes", tags: ["Concerts"] }]);
+    onRpc("usl.document", "undo_classifier_batch", ({ args }) => {
+        const id = args[0][0];
+        undo.push(id);
+        if (id === 4102 && undo.length === 2) { throw new Error("Lost response"); }
+        return { removed: id === 4101 ? 1 : 0, preserved: 0 };
+    });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    await contains("button", { text: "Automatic tag history" }).click();
+    expect(".modal").toHaveText(/Score 89.2\/100/);
+    await contains(".modal button", { text: "Review batch" }).click();
+    expect(".modal").toHaveText(/Stage notes/);
+    expect(".modal").toHaveText(/Tags to remove: Concerts, Programmes/);
+    expect(undo).toEqual([]);
+    await contains(".modal button", { text: "Undo this batch" }).click();
+    await animationFrame();
+    expect(undo).toEqual([4101, 4102]);
+    await contains(".modal button", { text: "Undo this batch" }).click();
+    await animationFrame();
+    expect(undo).toEqual([4101, 4102, 4102]);
+    expect(".modal").toHaveText(/No remaining automatic change/);
+    expect(detailCalls).toBe(3);
+});

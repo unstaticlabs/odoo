@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import http.client
 import json
 import re
 from datetime import timedelta
@@ -588,10 +589,11 @@ class UslDocumentMcp(models.Model):
         return self._mcp_document_values(document)
 
     @api.model
-    @api.readonly
     def mcp_read_binary(self, document_id, *, document_version_id=None, variant="original"):
         """Read exact file bytes through the authenticated native authority.
 
+        Authorization must use the primary database, never replica-routed reads:
+        a newly withdrawn share must not be accepted through replication lag.
         The small-file path needs no bearer grant or second client connection.
         Larger files retain the existing streaming download workflow.
         """
@@ -608,6 +610,11 @@ class UslDocumentMcp(models.Model):
             if stream.status != 200:
                 raise ValidationError(_("The complete document file is unavailable. Try its download URL."))
             headers = {key.lower(): value for key, value in stream.headers.items()}
+            if headers.get("content-encoding", "identity").strip().lower() != "identity":
+                raise ValidationError(_(
+                    "The archive returned a transformed file encoding. No file was returned. "
+                    "Retry when the archive serves the original bytes.",
+                ))
             declared = headers.get("content-length")
             try:
                 declared_size = int(declared) if declared is not None else None
@@ -623,6 +630,10 @@ class UslDocumentMcp(models.Model):
             if not content or (declared_size is not None and declared_size != len(content)):
                 raise ValidationError(_("The document transfer is incomplete. No file was returned."))
             payload = bytes(content)
+        except (TimeoutError, OSError, http.client.HTTPException, PaperlessError):
+            raise ValidationError(_(
+                "The document transfer is incomplete. No file was returned.",
+            )) from None
         finally:
             stream.close()
         sha256 = hashlib.sha256(payload).hexdigest()
