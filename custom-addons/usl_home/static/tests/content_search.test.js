@@ -150,3 +150,58 @@ test("changing and clearing a query aborts superseded native search requests", a
     expect(".o_usl_search_result").toHaveCount(0);
     expect('[role="alert"]').toHaveCount(0);
 });
+
+test("chatter source is legible and keyboard opening rechecks its exact field", async () => {
+    const result = local("Prepare the Atelier Ambre visit");
+    Object.assign(result.groups[0].records[0], {
+        excerpt: "The ivory linen prototype is ready for the visit.",
+        source: { kind: "message", id: 41, field: "body", label: "Chatter message" },
+    });
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("usl.home.service", "get_search_result_action", ({ args }) => {
+        expect(args).toEqual(["project.task", 5, 41, "body"]);
+        return { type: "ir.actions.act_url", url: "/mail/message/41", target: "self" };
+    });
+    mockService("action", { doAction: (action) => expect.step(action.url) });
+    await mountSearch("prototype linen");
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveText("Prepare the Atelier Ambre visit\nChatter message\nThe ivory linen prototype is ready for the visit.");
+    await contains("#usl-home-content-search").press("ArrowDown");
+    await contains("#usl-home-content-search").press("Enter");
+    expect.verifySteps(["/mail/message/41"]);
+});
+
+test("source excerpts remain plain text", async () => {
+    const result = local("Atelier Ambre visit");
+    result.groups[0].records[0].excerpt = '<img src=x onerror="window.sourceLeak=true">';
+    result.groups[0].records[0].source = { kind: "message", id: 41, field: "body", label: "Chatter message" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    await mountSearch("prototype");
+    await animationFrame();
+    expect(".o_usl_search_result img").toHaveCount(0);
+    expect(".o_usl_search_result").toHaveText(/<img src=x/);
+});
+
+test("withdrawn message source does not open and offers refresh guidance", async () => {
+    const result = local("Atelier Ambre visit");
+    result.groups[0].records[0].source = { kind: "message", id: 41, field: "body", label: "Chatter message" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    mockService("orm", {
+        call(model, method, ...args) {
+            if (model === "usl.home.service" && method === "get_search_result_action") {
+                return Promise.reject(new Error("Source withdrawn"));
+            }
+            return super.call(model, method, ...args);
+        },
+    });
+    mockService("action", { doAction: () => { throw Error("Unexpected navigation"); } });
+    mockService("notification", { add: (message) => expect.step(message) });
+    await mountSearch("prototype");
+    await animationFrame();
+    await contains(".o_usl_search_result").click();
+    expect.verifySteps(["This record could not be opened. Refresh the search and try again."]);
+    expect(".o_usl_search_result").toHaveCount(1);
+});

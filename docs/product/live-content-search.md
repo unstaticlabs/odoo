@@ -17,7 +17,9 @@ available alongside these destinations.
 
 Tasks include readable text, HTML descriptions, native custom properties,
 selection labels, exact numeric/date values, accessible related record labels,
-and related activities. Property schemas follow native Properties authority:
+and related activities. Readable task conversations also provide message sources;
+see [task conversation search](task-chatter-search.md) for eligibility, refresh
+and native source opening. Property schemas follow native Properties authority:
 a readable task can supply its schema even when its Project is private. This
 metadata boundary does not grant access to the private Project's name or other
 business fields. Each property predicate remains bound to its own schema owner.
@@ -26,8 +28,9 @@ Home groups matches by the installed business app: Tasks, Projects, Documents,
 invoices and entries, accounting lines, expenses, contacts, sales orders,
 purchase orders, opportunities, bank transactions, products and inventory
 transfers. A category appears only when the caller can read its model. Local
-business search uses current native values; it has no duplicated index or cron
-refresh interval. Ordinary task descriptions remain searchable when they
+business search uses current native values. Tasks, projects and contacts also
+use rebuildable PostgreSQL lexical projections; their documented refresh and
+pending-source behavior apply. Ordinary task descriptions remain searchable when they
 discuss credentials, while credential fields/properties and binary/signature
 values are excluded.
 

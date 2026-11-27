@@ -3032,9 +3032,10 @@
     },
     {
       "delegates": [
+        "rpc:usl.home.service.get_search_result_action",
         "rpc:usl.home.service.search_records"
       ],
-      "digest": "e310b9e9185620f7f0ac965bc796cae62a3cdb31b307404f7dd126302f6fa092",
+      "digest": "d4bcf29817685272243758c2b6e8de6d6c9db4f9334d8e167ccdee27dadba781",
       "handler": "if",
       "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
       "kind": "client",
@@ -3044,6 +3045,10 @@
       "sources": [
         {
           "line": 119,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        },
+        {
+          "line": 199,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -3080,24 +3085,6 @@
       "sources": [
         {
           "line": 150,
-          "path": "custom-addons/usl_home/static/src/home/content_search.js"
-        }
-      ]
-    },
-    {
-      "delegates": [
-        "rpc:usl.home.service.get_search_result_action"
-      ],
-      "digest": "3f0592da92b3e4b1340a371af2a2a814ea4ad31584594c1aaf32703ab122d484",
-      "handler": "open",
-      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:open:rpc:1",
-      "kind": "client",
-      "modules": [
-        "usl_home"
-      ],
-      "sources": [
-        {
-          "line": 195,
           "path": "custom-addons/usl_home/static/src/home/content_search.js"
         }
       ]
@@ -5333,6 +5320,28 @@
         }
       ],
       "xmlid": "usl_home.ir_cron_usl_index_project_content"
+    },
+    {
+      "digest": "8d2ea60873528abf8ba5a6396e283952822eb8e890fb7ff94542b1d6904af02e",
+      "guards": [],
+      "key": "cron:usl_home.ir_cron_usl_index_task_messages",
+      "kind": "cron",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "743863d6286f71bcfcdb38247e7edf5779a5cba54c9616f4a8484c50109c5206",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_home/data/task_message_search_cron.xml"
+        },
+        {
+          "path": "database:ir.cron:usl_home.ir_cron_usl_index_task_messages"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_task_messages"
     },
     {
       "digest": "bea333df56786d9130d9835dc2acd0420950fe45777181310044ac3bd5116e93",
@@ -669280,7 +669289,7 @@
         "rpc:mail.message.with_context",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f027599593a883a7902c38e11ea4c2c37a3b051973fb4ae06c1d6e02f64ec3c1",
+      "digest": "ae742e097c8e0195f58e42b266defb3c8f28852aa8d41c00bb5f7fa5e6d8e2cd",
       "guards": [],
       "key": "rpc:mail.message.create",
       "kind": "rpc",
@@ -669290,11 +669299,12 @@
         "base",
         "mail",
         "mail_tracking",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a158f190c9a5d5128aa62ae01abe284edbb4edd40b6af753e18bdcf755326d7a",
+      "runtime_digest": "81c19b6cc4a018756ac19361ee94fda2dba83354ce1ec8883f347d455d1320f1",
       "sinks": [
         "orm_create",
         "orm_write",
@@ -669316,6 +669326,10 @@
         {
           "line": 768,
           "path": "addons/mail/models/mail_message.py"
+        },
+        {
+          "line": 87,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
         },
         {
           "path": "decorators.py"
@@ -679476,9 +679490,10 @@
       "delegates": [
         "rpc:mail.message.flush_recordset",
         "rpc:mail.message.mapped",
+        "rpc:project.task.invalidate_model",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "b623949f1299bdad3fc397038d2cb26b6bd1e6b98fab4975ee00e3b5ceb2fea9",
+      "digest": "be2b26fedf76dd377fd9dd51b1761fc16fb26ec374a58451e004ed8e7b13d5d6",
       "guards": [],
       "key": "rpc:mail.message.write",
       "kind": "rpc",
@@ -679488,13 +679503,15 @@
         "account",
         "base",
         "mail",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_home"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "34c338cd2795c641674f6054ed10b245c7d8c2635b7931c195f367f371bc0db7",
+      "runtime_digest": "12d4e5895e4ffaee783b231a0923baea8fc519958b23a2a25d4811acd49dc3bf",
       "sinks": [
         "orm_write",
+        "raw_sql_mutation",
         "sudo"
       ],
       "sources": [
@@ -679515,7 +679532,14 @@
           "path": "addons/mail/models/mail_message.py"
         },
         {
+          "line": 92,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        },
+        {
           "path": "custom-addons/usl_access_control/models/base.py"
+        },
+        {
+          "path": "custom-addons/usl_home/models/task_message_search.py"
         },
         {
           "path": "odoo/addons/account/models/mail_message.py"
@@ -679531,6 +679555,7 @@
       "unresolved_delegates": [
         "rpc:mail.message.flush_recordset",
         "rpc:mail.message.mapped",
+        "rpc:project.task.invalidate_model",
         "rpc:usl.agent.sudo"
       ]
     },
@@ -1423731,7 +1423756,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "07f5dddae4801067f010ac1144589769c2894835b16d336acbd02cca17d3ea46",
+      "digest": "9b33af8a514ca1face45276ebf4fc558d1df69e2eb9d71245dfc7d45a198a677",
       "guards": [],
       "key": "rpc:usl.home.service.get_search_result_action",
       "kind": "rpc",
@@ -1423742,11 +1423767,11 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "4ef7ff03766019953934c4eb66800d90a592e571365911ba77c6bf6148d74ea0",
+      "runtime_digest": "44fe1b1068f262ab5955efd5cfe3e1fb0406a5f0415299d931f8538248b1d486",
       "sinks": [],
       "sources": [
         {
-          "line": 162,
+          "line": 164,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424336,7 +1424361,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 141,
+          "line": 143,
           "path": "custom-addons/usl_home/models/content_search.py"
         },
         {
@@ -1424444,7 +1424469,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "b4ffce78d934d4aaa2706df0724e60094adeaf472f7faa7a4bc1a1a42ffaf7b5",
+      "digest": "d72b5713e1ffd0e3518adb5cca6c6f1cfbfd506137bb4e78f3acaef014b51111",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1424455,7 +1424480,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "6c4053aa2106a9060dbf06d450599f89c9b54997294ae4124fec6d99ebfcefb9",
+      "runtime_digest": "12b833d3ea2ae5d72a08395fa683478ed90f172d77f75b2bf00ad344a8a186ec",
       "sinks": [],
       "sources": [
         {
@@ -1568296,6 +1568321,24 @@
       "xmlid": "usl_home.ir_cron_usl_index_project_content_ir_actions_server"
     },
     {
+      "digest": "3347761e6eb125d4ca8537c9dbd40ae498de046e530b95ca88a6f209e0ba9e0c",
+      "guards": [
+        "guard:automation.server_action.execute"
+      ],
+      "key": "server_action:usl_home.ir_cron_usl_index_task_messages_ir_actions_server",
+      "kind": "server_action",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "3347761e6eb125d4ca8537c9dbd40ae498de046e530b95ca88a6f209e0ba9e0c",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
+        }
+      ],
+      "xmlid": "usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
+    },
+    {
       "digest": "ef483ad5c7c97a7202f1dd4a54c086d1011750eeedcdfbf58fb01d14b887aed8",
       "guards": [
         "guard:automation.server_action.execute"
@@ -1695612,7 +1695655,7 @@
       ]
     },
     {
-      "digest": "b2874fa675629a01b39efa5bbebf4db60358f80a2334724fee107e09153896dd",
+      "digest": "61c13a58d83e0cb7d6efddd7df78fd727a4576039c549ad3dca68f6b5a17752b",
       "key": "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1695627,7 +1695670,7 @@
       ]
     },
     {
-      "digest": "e0d0e89cd32914518ecb7e6a368defb91a3430c978520b798acd993ee361ee7c",
+      "digest": "f2601bfb41b06385aecb82056d4a8ea056e8f796387f719c77d97298c2b46bd6",
       "key": "sink:usl_home:custom-addons/usl_home/hooks.py:post_init_hook:sudo:1",
       "kind": "sink",
       "modules": [
@@ -1696004,6 +1696047,192 @@
         {
           "line": 8,
           "path": "custom-addons/usl_home/models/res_users.py"
+        }
+      ]
+    },
+    {
+      "digest": "bb82505bff1862d2c880aca9ef728886a9581677530bf3fe01c5c7e3e1b91926",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 99,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "294ea84cb857cc3865c2c8f270e7424ef45d0b88bbefcc50a236c7861133943f",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 99,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "44459e74568731f94e4ab3aa47433881ce39caa766152f38a47b99425ae08a1b",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._cron_usl_index_task_messages:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 99,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "863d85323d4df2b7014678eb7080d9eb3c15f7b3dc72dc12147583549c57740e",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message._usl_queue_task_messages:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 66,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "219f367c0f9d41e5fe88863f98a467876cfdb5189b98c0f8ba20c1dcb1985769",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.create:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.create"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 87,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "77090f9e48e41aa3a20ed9bc7662d544313c8c4adfe261c1c85a3fcdba32bae0",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 34,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "b210eae92adcfd4acf9a77bac5576be237082fd9842aac676c8302f768acfef8",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:2",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 34,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "abd23ec2947fab522f3167383d2defb0dce2adb0d480bd802e1028d1122b8755",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:3",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 34,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "f3d173017d027707284334fad77acca0bcae21de81de44fa650ab900a119e0af",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:4",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 34,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "6a829d30321adaba3bd6a111fc61cc56e70a25f884a21b0335d94e820f033c54",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.init:raw_sql_mutation:5",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.init"
+      ],
+      "sink_kind": "raw_sql_mutation",
+      "sources": [
+        {
+          "line": 34,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
+        }
+      ]
+    },
+    {
+      "digest": "96604517a99fb283c3e4a1a42cea8b33af1be1043d2d4280e6f97511930ded56",
+      "key": "sink:usl_home:custom-addons/usl_home/models/task_message_search.py:mail.message.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_home"
+      ],
+      "parents": [
+        "rpc:mail.message.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 92,
+          "path": "custom-addons/usl_home/models/task_message_search.py"
         }
       ]
     },
@@ -1763804,6 +1764033,25 @@
     },
     {
       "delegates": [
+        "server_action:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
+      ],
+      "digest": "ae9cfacd61ed987daa3378edf6a16c66dd4b3124cfeec2efa9217724d3af3469",
+      "key": "ui:usl_home.ir_cron_usl_index_task_messages_ir_actions_server",
+      "kind": "ui",
+      "modules": [
+        "usl_home"
+      ],
+      "runtime_digest": "ae9cfacd61ed987daa3378edf6a16c66dd4b3124cfeec2efa9217724d3af3469",
+      "sources": [
+        {
+          "path": "database:ir.actions.server:usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
+        }
+      ],
+      "ui_type": "ir.actions.server",
+      "xmlid": "usl_home.ir_cron_usl_index_task_messages_ir_actions_server"
+    },
+    {
+      "delegates": [
         "rpc:res.company.action_use_automatic_usl_ui_theme_color"
       ],
       "digest": "a488df27ba9e4326e39f71d47a432223c95e4adcf207df137b3e7e90cb3df0b4",
@@ -1769395,11 +1769643,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "6041ae40b62a2899d5159c7ba5043c71d5b375c69930feb2f7a76332cf5082ef",
+      "manifest_sha256": "c46506cf68fb7feae313fd5e7acbf88839a49c82972ea92791218a36ef3ffd3f",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "33ae0ad114d6ae92394fcfea5537e2f73f26a2bde51e6cb45958a44345487ad1",
-      "version": "saas~19.3.1.0.14"
+      "source_sha256": "056755b357c75227aa021d5c050d529cae692a99b35805e73182f962c257c9a6",
+      "version": "saas~19.3.1.0.15"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",

@@ -127,11 +127,13 @@ class HomeContentSearch(models.AbstractModel):
             domain = Domain("usl_search_text", "ilike", query) if model_name in {"project.task", "project.project", "res.partner"} else readable_content_domain(model, query)
             records = model.search(domain, limit=limit + 1, offset=offset, order="id desc")
             rows = []
+            sources = records[:limit]._usl_matching_message_sources(query) if model_name == "project.task" else {}
             for record in records[:limit]:
                 rows.append({
                     "model": model_name, "id": record.id,
                     "title": record.display_name,
-                    "excerpt": self._search_preview(record, query),
+                    "excerpt": sources[record.id]["excerpt"] if record.id in sources else self._search_preview(record, query),
+                    "source": sources.get(record.id),
                     "context_label": self._search_context_label(record),
                 })
             groups.append({"key": key, "label": label, "records": rows, "has_more": len(records) > limit, "offset": offset})
@@ -159,7 +161,7 @@ class HomeContentSearch(models.AbstractModel):
         return {"group": group}
 
     @api.model
-    def get_search_result_action(self, model_name, record_id):
+    def get_search_result_action(self, model_name, record_id, source_message_id=None, source_field=None):
         catalog = self._search_catalog()
         if model_name not in {model for model, _label in catalog.values()} or type(record_id) is not int:
             raise AccessError(self.env._("This search destination is not available."))
@@ -167,6 +169,20 @@ class HomeContentSearch(models.AbstractModel):
         record = model.search(company_domain(model) & Domain("id", "=", record_id), limit=1)
         if not record:
             raise UserError(self.env._("This record is no longer available in your selected companies."))
+        if source_message_id is not None or source_field is not None:
+            Message = self.env["mail.message"]
+            if (model_name != "project.task" or type(source_message_id) is not int
+                    or source_field not in Message._usl_readable_task_message_fields()
+                    or not record.has_field_access(record._fields["message_ids"], "read")):
+                raise UserError(self.env._("This message source is no longer available. Refresh the search and try again."))
+            message = Message.search(
+                Message._usl_task_conversation_domain()
+                & Domain("id", "=", source_message_id) & Domain("res_id", "=", record.id),
+                limit=1,
+            )
+            if not message:
+                raise UserError(self.env._("This message source is no longer available. Refresh the search and try again."))
+            return {"type": "ir.actions.act_url", "url": "/mail/message/%s" % message.id, "target": "self"}
         return {
             "type": "ir.actions.act_window", "name": record.display_name,
             "res_model": model_name, "res_id": record.id,

@@ -1065,3 +1065,30 @@ msgstr "Utilisez une recherche textuelle dans le contenu du projet."
 #: code:addons/usl_home/models/project_contact_index.py:0
 msgid "Use a text search for contact content."
 msgstr "Utilisez une recherche textuelle dans le contenu du contact."
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_project_task__usl_search_sources
+msgid "Search sources"
+msgstr "Sources de recherche"
+
+#. module: usl_home
+#: model:ir.model.fields,help:usl_home.field_project_task__usl_search_sources
+msgid "Readable chatter evidence for the explicit search_source_query context."
+msgstr "Éléments lisibles du fil de discussion pour le contexte explicite search_source_query."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/task_message_search.py:0
+msgid "Chatter message"
+msgstr "Message du fil de discussion"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+msgid "This message source is no longer available. Refresh the search and try again."
+msgstr "Ce message source n’est plus disponible. Actualisez la recherche et réessayez."
+
+#. module: usl_home
+#: model:ir.actions.server,name:usl_home.ir_cron_usl_index_task_messages_ir_actions_server
+msgid "Task chatter: refresh search index"
+msgstr "Messages des tâches : actualiser l’index de recherche"

@@ -192,7 +192,11 @@ export class HomeContentSearch extends Component {
 
     async open(record) {
         try {
-            const action = await this.orm.call("usl.home.service", "get_search_result_action", [record.model, record.id]);
+            const args = [record.model, record.id];
+            if (record.source?.kind === "message") {
+                args.push(record.source.id, record.source.field);
+            }
+            const action = await this.orm.call("usl.home.service", "get_search_result_action", args);
             await this.action.doAction(action);
         } catch {
             this.notification.add(_t("This record could not be opened. Refresh the search and try again."), { type: "warning" });

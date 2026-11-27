@@ -20,6 +20,7 @@ def ensure_distribution_update_channel(env):
 def post_init_hook(env):
     """Make Home the initial action for every existing internal user once."""
     ensure_distribution_update_channel(env)
+    env["mail.message"]._usl_queue_task_messages(all_records=True)
     env["project.project"]._usl_queue_content(all_records=True)
     env["res.partner"]._usl_queue_content(all_records=True)
     home_action = env.ref("usl_home.action_usl_home")
