@@ -14,8 +14,8 @@ journey: rapprocher-une-session-de-facturation-des-plateformes
 tour: usl_platform_billing_manager_journey
 source:
   - custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py
-screenshot_01-draft_png: 99925a2558d87eeb404246ce424e57671514cd34392a711348407b0f054bd113
-screenshot_02-paid_png: e921efa80d6378649d9450faed540b23ee514df13dba2d1198c6095eb7286651
+screenshot_01-draft_png: a80f1a33e09962b1a7a4cc603e097e70e5267d273bec9ced96add449c643a50f
+screenshot_02-paid_png: 0b0a2adedc24eb580805f5cae60e04bcedd437135b1a659fbf876810b25a1a29
 screenshot_03-moves_png: e541e913d1470c7dd3f24f1725e4bebbac818700a9254596a5d2617d5270f846
 generated: true
 ---
