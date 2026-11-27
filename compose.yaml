@@ -30,10 +30,11 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -47,10 +48,11 @@ services:
       POSTGRES_PASSWORD: ${ACCOUNTING_SOURCE_POSTGRES_PASSWORD:-odoo}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - accounting-source-postgres-data:/var/lib/postgresql/data
 
@@ -61,7 +63,7 @@ services:
     environment:
       USL_DEPLOYMENT_ENV: ${USL_DEPLOYMENT_ENV:-development}
       POSTGRES_IMAGE: ${POSTGRES_IMAGE:-postgres:16-bookworm}
-      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+      PAPERLESS_IMAGE: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.2}
       PAPERLESS_BASE_IMAGE: ${PAPERLESS_BASE_IMAGE:-ghcr.io/paperless-ngx/paperless-ngx@sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9}
       OLLAMA_IMAGE: ${OLLAMA_IMAGE:-ollama/ollama:0.40.17@sha256:ccc42bcd3d5fcf7ab0d532b300382154e1a4da56fc666bdb313b78ebdd912754}
       USL_OLLAMA_RUNTIME: ${USL_OLLAMA_RUNTIME:-container}
@@ -207,10 +209,11 @@ services:
       POSTGRES_PASSWORD: ${PAPERLESS_DB_PASSWORD:-paperless-change-me-dev-only}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
-      interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - paperless-postgres-data:/var/lib/postgresql/data
 
@@ -221,9 +224,11 @@ services:
     command: ["valkey-server", "--save", "60", "1", "--loglevel", "warning"]
     healthcheck:
       test: ["CMD", "valkey-cli", "ping"]
-      interval: 10s
       timeout: 5s
-      retries: 10
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - paperless-broker-data:/data
 
@@ -236,10 +241,11 @@ services:
       OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
     healthcheck:
       test: ["CMD", "ollama", "list"]
-      interval: 15s
       timeout: 10s
-      retries: 20
-      start_period: 15s
+      interval: 60s
+      retries: 3
+      start_period: 240s
+      start_interval: 5s
     volumes:
       - paperless-ollama-data:/root/.ollama
 
@@ -302,7 +308,7 @@ services:
 
   paperless-webserver:
     profiles: ["paperless"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.2}
     build:
       context: .
       dockerfile: deploy/documents/paperless-ngx/Dockerfile
@@ -382,10 +388,11 @@ services:
           for service in svc-webserver svc-worker svc-consumer svc-scheduler;
           do s6-svstat "/run/service/$$service" | grep -q '^up ' || exit 1;
           done
-      interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 90s
+      interval: 60s
+      retries: 3
+      start_period: 300s
+      start_interval: 5s
     volumes:
       - paperless-data:/usr/src/paperless/data
       - paperless-media:/usr/src/paperless/media
@@ -395,7 +402,7 @@ services:
 
   paperless-access-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.2}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -416,7 +423,7 @@ services:
 
   paperless-identity-init:
     profiles: ["paperless-admin"]
-    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.1}
+    image: ${PAPERLESS_IMAGE:-usl-paperless-ngx:3.5.1-usl.2}
     restart: "no"
     depends_on:
       paperless-webserver:
@@ -447,10 +454,11 @@ services:
       - --chromium-allow-list=file:///tmp/.*
     healthcheck:
       test: ["CMD-SHELL", "curl --fail --silent http://127.0.0.1:3000/health >/dev/null"]
-      interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      interval: 60s
+      retries: 3
+      start_period: 240s
+      start_interval: 5s
 
   paperless-tika:
     profiles: ["paperless"]
@@ -458,10 +466,11 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:9998/tika"]
-      interval: 30s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      interval: 60s
+      retries: 3
+      start_period: 240s
+      start_interval: 5s
 
   usl-document-renderer:
     profiles: ["document-renderer"]
@@ -520,10 +529,11 @@ services:
     cap_add: ["NET_BIND_SERVICE"]
     healthcheck:
       test: ["CMD", "step", "ca", "health", "--ca-url", "https://localhost:9000", "--root", "/home/step/certs/root_ca.crt"]
-      interval: 10s
       timeout: 5s
-      retries: 12
-      start_period: 10s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - ${USL_SIGN_STEP_CA_DIR:-./.secrets/sign/step-ca}:/home/step
 
@@ -565,10 +575,11 @@ services:
     cap_drop: ["ALL"]
     healthcheck:
       test: ["CMD-SHELL", "kill -0 1"]
-      interval: 10s
       timeout: 5s
-      retries: 12
-      start_period: 20s
+      interval: 60s
+      retries: 3
+      start_period: 90s
+      start_interval: 5s
     volumes:
       - ${USL_SIGN_DSS_SECRET_DIR:-./.secrets/sign/dss}:/run/usl-sign-dss:ro
 
@@ -595,9 +606,11 @@ services:
         hard: 256
     healthcheck:
       test: ["CMD", "/usr/local/bin/smokescreen", "--version"]
-      interval: 15s
       timeout: 5s
-      retries: 5
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     networks:
       - receipt-proxy
       - receipt-public
@@ -634,10 +647,11 @@ services:
         hard: 512
     healthcheck:
       test: ["CMD-SHELL", "kill -0 1"]
-      interval: 15s
       timeout: 5s
-      retries: 10
-      start_period: 20s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     volumes:
       - ${USL_RECEIPT_FETCHER_SECRET_DIR:-./.secrets/receipts/fetcher}:/run/secrets/receipt-fetcher:ro
       - receipt-control:/run/receipt-control
@@ -721,10 +735,11 @@ services:
       - "${ODOO_GEVENT_PORT:-8072}:8072"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8069/web/health?db_server_status=1', timeout=5).read()\""]
-      interval: 15s
       timeout: 5s
-      retries: 20
-      start_period: 30s
+      interval: 60s
+      retries: 3
+      start_period: 240s
+      start_interval: 5s
     volumes:
       - odoo-data:/var/lib/odoo
       - ./custom-addons:/mnt/custom-addons
@@ -795,10 +810,11 @@ services:
               catch (_) { process.exit(1); }
             });
           }).on('error', () => process.exit(1))
-      interval: 15s
       timeout: 5s
-      retries: 12
-      start_period: 20s
+      interval: 60s
+      retries: 3
+      start_period: 120s
+      start_interval: 5s
     labels:
       org.opencontainers.image.source: https://github.com/unstaticlabs/odoo-mcp.git
       org.opencontainers.image.revision: ${ODOO_MCP_RELEASE_COMMIT:-d6ef1e507af75f8ab4d295c52a0c3ce86821cabd}

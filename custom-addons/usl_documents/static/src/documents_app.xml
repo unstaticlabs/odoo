@@ -23,6 +23,40 @@
         </Dialog>
     </t>
 
+    <t t-name="usl_documents.ClassifierHistoryDialog">
+        <Dialog title="title" size="'md'">
+            <p class="fw-semibold text-break" t-esc="props.documentName"/>
+            <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
+            <t t-if="!state.batch">
+                <p t-if="!state.events.length &amp;&amp; !state.error" class="text-muted">No score-based tags have been applied to this document.</p>
+                <ol class="list-group list-group-flush" t-if="state.events.length">
+                    <li t-foreach="state.events" t-as="event" t-key="event_index" class="list-group-item py-2 px-0">
+                        <div class="d-flex justify-content-between gap-2"><strong t-esc="event.tag"/><span t-esc="description(event)"/></div>
+                        <small class="text-muted"><t t-esc="scoreSummary(event)"/> · <t t-esc="date(event.created)"/></small>
+                        <button t-if="props.canEdit &amp;&amp; event.status === 'applied'" type="button" class="btn btn-link btn-sm px-0 d-block" t-att-disabled="state.busy" t-on-click="() => this.review(event.batch)">Review batch</button>
+                    </li>
+                </ol>
+            </t>
+            <t t-else="">
+                <p t-if="state.documents.length">Undoing removes every automatic tag this run added to the documents below. Later manual changes are kept.</p>
+                <p t-else="" class="text-muted">No changes remain on documents you can edit.</p>
+                <ul class="list-group list-group-flush">
+                    <li t-foreach="state.documents" t-as="document" t-key="document.id" class="list-group-item px-0">
+                        <span t-esc="document.name"/>
+                        <span t-if="!state.results[document.id]" class="d-block small text-muted" t-esc="tagsToRemove(document)"/>
+                        <span t-if="state.results[document.id]" class="d-block small" role="status" t-esc="state.results[document.id].text"/>
+                    </li>
+                </ul>
+            </t>
+            <t t-set-slot="footer">
+                <button t-if="state.batch &amp;&amp; pendingDocuments.length" type="button" class="btn btn-primary" t-att-disabled="state.busy" t-on-click="undo">Undo this batch</button>
+                <button t-if="state.batch" type="button" class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="back">Back to history</button>
+                <button t-if="!state.batch &amp;&amp; state.error" type="button" class="btn btn-secondary" t-on-click="loadHistory">Try again</button>
+                <button type="button" class="btn btn-secondary" t-att-disabled="state.busy" t-on-click="props.close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+
     <t t-name="usl_documents.DocumentBatchDialog">
         <Dialog title="'Edit selected documents'" size="'md'">
             <p t-esc="selectionSummary"/>
@@ -1010,7 +1044,11 @@
                             </div>
                         </div>
                         <div class="o_usl_detail_tags mt-3">
-                            <label class="form-label small fw-semibold mb-2">Tags</label>
+                            <div class="d-flex align-items-baseline justify-content-between gap-2 mb-2">
+                                <label class="form-label small fw-semibold mb-0">Tags</label>
+                                <button t-if="state.selected.availability_state === 'available'" type="button"
+                                        class="btn btn-link btn-sm p-0" t-on-click="openClassifierHistory">Automatic tag history</button>
+                            </div>
                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                 <span t-foreach="state.selected.tags" t-as="tag"
                                       t-key="tag.id"
@@ -1063,7 +1101,7 @@
                         </div>
                     </section>
 
-                    <section class="border-top p-3">
+                    <section class="border-top p-3 o_usl_detail_linked_records" t-ref="linkedRecords">
                         <h6>Linked records</h6>
                         <div t-if="state.selected.links?.length" class="list-group">
                             <div t-foreach="state.selected.links" t-as="link" t-key="link.id"

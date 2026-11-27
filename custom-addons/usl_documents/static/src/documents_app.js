@@ -3,6 +3,7 @@
 import {
     Component,
     onMounted,
+    onPatched,
     onWillStart,
     onWillUnmount,
     onWillUpdateProps,
@@ -11,6 +12,7 @@ import {
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
+import { isMobileOS } from "@web/core/browser/feature_detection";
 import { Domain } from "@web/core/domain";
 import { router } from "@web/core/browser/router";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -36,6 +38,7 @@ import { getDefaultConfig } from "@web/views/view";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import {DocumentPreview} from "@usl_documents/document_preview";
 
+import { ClassifierHistoryDialog } from "./classifier_history";
 import { DocumentBatchDialog } from "./document_batch";
 import { LinkedRecordPreview } from "./linked_record_preview";
 
@@ -264,6 +267,10 @@ export class DocumentsWorkspaceView extends Component {
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
                 : null;
         this.listScroller = useRef("documentList");
+        this.linkedRecordsRef = useRef("linkedRecords");
+        this.pendingLinkedRecordsScroll = null;
+        onPatched(() => this.scrollToLinkedRecords());
+        onMounted(() => this.scrollToLinkedRecords());
         const storagePrefix = `usl_documents.workspace.${user.userId}`;
         this.globalStorageKey = `${storagePrefix}.global`;
         this.storageKey = `${storagePrefix}.${
@@ -1485,6 +1492,10 @@ export class DocumentsWorkspaceView extends Component {
 
     async handlePopState(event) {
         const historyState = event.state || {};
+        // Native mobile dialogs use a temporary Back trap, not a document route.
+        if (historyState.trapState) {
+            return;
+        }
         const routedState = historyState.nextState || {};
         const urlState = this.readUrlState();
         const targetsDocument = Boolean(
@@ -1539,6 +1550,38 @@ export class DocumentsWorkspaceView extends Component {
               : urlState.versionId;
         const documentId = Number(rawDocumentId) || null;
         const versionId = rawVersionId || null;
+        const previewHistory = this.previewHistory;
+        if (
+            previewHistory?.usesBackTrap &&
+            documentId === previewHistory.documentId &&
+            String(versionId || "") === String(previewHistory.versionId || "") &&
+            (previewHistory.open || previewHistory.awaitingReturn)
+        ) {
+            if (this.state.selected?.id !== previewHistory.documentId) {
+                // The access refresh could not reopen the document, so the
+                // user may no longer read it. Do not hide this return: leave
+                // the list as the only entry and drop the document route.
+                this.previewHistory = null;
+                this.cancelHistoryBack();
+                this.closingDetail = false;
+                this.hasLocalListHistory = false;
+                this.clearDetailState();
+                this.writeNavigationState("replace");
+                this.persistState();
+                this.restoreScroll();
+                return;
+            }
+            // Back dismisses the preview first. The native dialog's X also
+            // removes its trap with Back; neither operation closes the drawer.
+            previewHistory.returned = true;
+            if (!previewHistory.open && !browser.history.state?.trapState) {
+                this.previewHistory = null;
+            }
+            return;
+        }
+        if (previewHistory && !previewHistory.open) {
+            this.previewHistory = null;
+        }
         const isDuplicateOpenEntry =
             documentId &&
             documentId === this.state.selected?.id &&
@@ -1859,6 +1902,19 @@ export class DocumentsWorkspaceView extends Component {
             documentTypes: this.state.documentTypes,
             apply: (id, operation, ids) => this.rpc("usl.document", "apply_batch_archive_metadata", [[id], operation, ids]),
             refresh: () => this.refreshBatchMetadata(),
+        });
+    }
+
+    openClassifierHistory() {
+        const { id, name, can_edit: canEdit } = this.state.selected;
+        this.dialog.add(ClassifierHistoryDialog, {
+            documentName: name, canEdit,
+            history: () => this.rpc("usl.document", "classifier_tag_history", [[id]]),
+            documents: batch => this.rpc("usl.document", "classifier_batch_documents", [[id], batch]),
+            undo: (documentId, batch) => this.rpc("usl.document", "undo_classifier_batch", [[documentId], batch]),
+            refresh: async () => {
+                if (this.state.selected?.id === id) { await this.openDocumentById(id); }
+            },
         });
     }
 
@@ -2493,6 +2549,7 @@ export class DocumentsWorkspaceView extends Component {
                     }
                 }
                 this.persistState();
+                this.restoreLinkedRecordsPosition(document.id);
             }
         } catch (error) {
             this.notification.add(
@@ -3334,6 +3391,15 @@ export class DocumentsWorkspaceView extends Component {
 
     previewLink(link) {
         const documentId = this.state.selected.id;
+        const previewHistory = {
+            documentId,
+            versionId: this.state.selected.selected_version_id || null,
+            usesBackTrap: isMobileOS(),
+            open: true,
+            returned: false,
+            awaitingReturn: false,
+        };
+        this.previewHistory = previewHistory;
         this.addPreviewDialog(LinkedRecordPreview, {
             title: _t("Record preview"),
             resModel: link.model,
@@ -3342,6 +3408,25 @@ export class DocumentsWorkspaceView extends Component {
                 "usl.document", "action_open_linked_record", [[documentId], link.id], { preview: true },
             ),
             onUnavailable: () => this.refreshAfterLinkedAccessChange(documentId),
+        }, {
+            onClose: () => {
+                previewHistory.open = false;
+                // The native Back handler can close before or after this
+                // workspace receives the same popstate event.
+                previewHistory.awaitingReturn = previewHistory.usesBackTrap;
+                // The native listener may rearm its trap after close() returns,
+                // until Owl unmounts the dialog. Keep that final return scoped
+                // to this preview; clear it if Back already completed without one.
+                Promise.resolve().then(() => {
+                    if (this.previewHistory === previewHistory && previewHistory.returned &&
+                        !browser.history.state?.trapState) {
+                        this.previewHistory = null;
+                    }
+                });
+                if (!previewHistory.awaitingReturn && this.previewHistory === previewHistory) {
+                    this.previewHistory = null;
+                }
+            },
         });
     }
 
@@ -3375,8 +3460,44 @@ export class DocumentsWorkspaceView extends Component {
         await reloading;
     }
 
+    get linkedRecordsReturnKey() {
+        return `${this.storageKey}.linkedRecordsReturn`;
+    }
+
+    restoreLinkedRecordsPosition(documentId) {
+        // Back from a linked record lands on the same document. Bring the
+        // linked records into view instead of the top of the drawer.
+        try {
+            const stored = browser.sessionStorage.getItem(this.linkedRecordsReturnKey);
+            browser.sessionStorage.removeItem(this.linkedRecordsReturnKey);
+            if (Number(stored) === Number(documentId)) {
+                this.pendingLinkedRecordsScroll = Number(documentId);
+            }
+        } catch {
+            // Scroll position is a convenience only.
+        }
+    }
+
+    scrollToLinkedRecords() {
+        const documentId = this.pendingLinkedRecordsScroll;
+        const section = this.linkedRecordsRef.el;
+        if (!documentId || !section || this.state.selected?.id !== documentId) {
+            return;
+        }
+        this.pendingLinkedRecordsScroll = null;
+        section.scrollIntoView({ block: "start" });
+    }
+
     async openLink(link) {
         this.persistState();
+        try {
+            browser.sessionStorage.setItem(
+                this.linkedRecordsReturnKey,
+                String(this.state.selected.id)
+            );
+        } catch {
+            // Scroll position is a convenience only.
+        }
         const action = await this.rpc(
             "usl.document",
             "action_open_linked_record",

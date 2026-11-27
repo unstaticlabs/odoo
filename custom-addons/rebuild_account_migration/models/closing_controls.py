@@ -477,7 +477,7 @@ class RebuildAccountClosingControl(models.Model):
                 if control.code in ("reports", "fec"):
                     if control.status == "pass":
                         result = self.env._("Export available")
-                    finding = self.env._("Review file contents separately. Accepted files are listed under Accepted Snapshots.") + " " + (finding or "")
+                    finding = self.env._("Review file contents separately. Accepted files are listed under Accepted Snapshots.") + " " + control._localized_saved_finding()
                 elif control.code == "document_completeness":
                     finding = self.env._("Check Documents for supporting files that are not linked as the main attachment.") + " " + control._localized_saved_finding()
                 elif control.code == "issues":
@@ -610,7 +610,19 @@ class RebuildAccountClosingControl(models.Model):
     def _localized_saved_finding(self):
         """Render counts from older snapshots without refreshing the closing period."""
         summary = self.summary or ""
-        if self.code == "document_completeness":
+        if self.code == "reports":
+            counts = re.fullmatch(r"([0-9]+) of ([0-9]+) required interactive report actions are available\.", summary)
+            if not counts:
+                counts = re.fullmatch(r"Available reports: ([0-9]+) of ([0-9]+)\.", summary)
+            if counts:
+                return self.env._("Available reports: %(ready)s of %(total)s.", ready=counts[1], total=counts[2])
+        elif self.code == "fec":
+            count = re.fullmatch(r"FEC export is available for ([0-9]+) posted move\(s\) in this closing period\.", summary)
+            if not count:
+                count = re.fullmatch(r"Posted entries in the period: ([0-9]+)\.", summary)
+            if count:
+                return self.env._("Posted entries in the period: %(count)s.", count=count[1])
+        elif self.code == "document_completeness":
             counts = re.fullmatch(
                 r"([0-9]+) draft business document\(s\); ([0-9]+) posted document\(s\) without a main attachment\.",
                 summary,
