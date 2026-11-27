@@ -29,10 +29,12 @@
                 </span>
                 <button class="btn btn-link btn-sm text-muted rounded-circle" title="Cancel dictation (Esc)" aria-label="Cancel dictation" data-usl-action="cancel"><i class="oi oi-close" aria-hidden="true"/></button>
             </div>
-            <!-- The last words heard, clipped at their start: a caption, not the final text. -->
-            <div t-if="this.state.preview and this.state.mode !== 'idle'" class="o-usl-dictation-preview border rounded bg-view shadow-sm small text-muted ps-3 pe-2 py-1" title="Heard so far">
-                <span t-esc="this.state.preview"/>
-            </div>
+        </div>
+        <!-- The last words heard, in the field at the insertion point and in its own type, clipped
+             at their start: where the text will go, but not yet the final text. -->
+        <div t-if="this.state.preview and this.state.caption and this.state.mode !== 'idle' and !this.state.recovered" class="o-usl-dictation-caption"
+             t-att-class="{ 'o-usl-dictation-caption-clipped': this.state.clipped }" t-att-style="this.state.caption" t-custom-ref="caption" aria-hidden="true">
+            <span t-esc="this.state.preview"/>
         </div>
     </t>
 </templates>

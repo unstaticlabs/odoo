@@ -1,5 +1,5 @@
 import { expect, test } from "@odoo/hoot";
-import { caretRect, dictationTarget, captureTarget, wantsMicrophone } from "@usl_voice/dictation_target";
+import { captionBox, caretRect, dictationTarget, captureTarget, wantsMicrophone } from "@usl_voice/dictation_target";
 import { VoiceCapture } from "@usl_voice/capture";
 
 test("dictation preserves suffix and rejects a stale field", () => {
@@ -132,4 +132,33 @@ test("a preview sends only the last seconds, and nothing before a second is reco
     expect(capture.tail()).toBe(null);
     capture.encoder.dataBuffer = Array.from({ length: 100 }, () => new Int8Array(16_000));
     expect(capture.tail(20).size).toBe(320_000);
+});
+
+test("the words heard are written on the line of the insertion point, inside the field", () => {
+    const holder = document.createElement("div");
+    holder.style.cssText = "position:fixed;left:40px;top:40px;background-color:rgb(250, 250, 240)";
+    const input = document.createElement("input");
+    input.style.cssText = "width:400px;padding:0 10px;border:1px solid;font:italic 700 20px serif;background:transparent;color:rgb(1, 2, 3)";
+    holder.append(input);
+    document.body.append(holder);
+    try {
+        input.value = "Hello";
+        input.focus();
+        input.setSelectionRange(5, 5);
+        const caret = caretRect(input);
+        const box = input.getBoundingClientRect();
+        const words = captionBox(input, caret);
+        expect(words.left).toBe(caret.left);
+        expect(words.top).toBe(caret.top);
+        expect(Math.round(words.left + words.width)).toBe(Math.round(box.right - 11));
+        expect(words.font).toInclude("italic 700 20px");
+        expect(words.color).toBe("rgb(1, 2, 3)");
+        // The field is transparent: the words take the background seen behind it.
+        expect(words.background).toBe("rgb(250, 250, 240)");
+        // No room left after the insertion point: the whole line is used.
+        const full = captionBox(input, { ...caret, left: box.right - 30 });
+        expect(Math.round(full.left)).toBe(Math.round(box.left + 11));
+    } finally {
+        holder.remove();
+    }
 });

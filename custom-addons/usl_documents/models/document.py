@@ -1,9 +1,7 @@
 import logging
-from contextlib import contextmanager
-from contextvars import ContextVar
 from datetime import timedelta
 
-from odoo import SUPERUSER_ID, Command, _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 
@@ -13,7 +11,6 @@ from .paperless_client import (
 )
 
 _logger = logging.getLogger(__name__)
-_permission_write_receipt = ContextVar("usl_document_permission_write_receipt", default=None)
 
 
 CONFIDENTIALITIES = [
@@ -962,11 +959,11 @@ class UslDocument(models.Model):
                 linked_ids_by_model.setdefault(link.res_model, set()).add(link.res_id)
         readable_ids = {}
         for user in candidates:
+            reader_env = user._document_permission_reader_env()
             for model_name, record_ids in linked_ids_by_model.items():
                 try:
                     readable_ids[user.id, model_name] = set(
-                        self.env[model_name]
-                        .with_user(user)
+                        reader_env[model_name]
                         .search([("id", "in", list(record_ids))])
                         .ids,
                     )
@@ -1303,46 +1300,10 @@ class UslDocument(models.Model):
             "target": "new",
         }
 
-    @contextmanager
-    def _track_paperless_permission_writes(self):
-        """Remember actual provider attempts, including a lost acknowledgement."""
-        touched = set()
-        token = _permission_write_receipt.set(touched)
-        try:
-            yield touched
-        finally:
-            _permission_write_receipt.reset(token)
-            if touched:
-                self._reconcile_paperless_permissions_at_transaction_end(touched)
-
-    def _reconcile_paperless_permissions_at_transaction_end(self, touched):
-        cursor = self.env.cr
-        key = "usl_documents.transferred_bill_permissions"
-        pending = cursor.postcommit.data.get(key)
-        if pending is None:
-            registry = self.env.registry
-            pending = cursor.postcommit.data[key] = set()
-
-            def reconcile():
-                # An outer savepoint can undo a successful transfer and still commit.
-                # Read the final policy from a new transaction for either outcome.
-                with registry.cursor() as cr:
-                    env = api.Environment(cr, SUPERUSER_ID, {})
-                    env["usl.document"]._restore_paperless_permission_writes(pending)
-
-            cursor.postcommit.add(reconcile)
-            cursor.postrollback.add(reconcile)
-        pending.update(touched)
-
-    def _restore_paperless_permission_writes(self, touched):
-        """Provider writes survive SQL rollback. Push the restored policy again."""
-        documents = self.with_user(self.env.ref("base.user_root")).browse(list(touched)).exists()
-        documents.action_sync_permissions()
-        # Failed pushes retain their native failed state for the sync cron.
-        return any(document.permission_sync_state == "failed" for document in documents)
-
     def action_sync_permissions(self):
         self._require_manager()
+        self.check_access("read")
+        self._recompute_linked_record_access(sync_permissions=False)
         mappings = self.env["usl.paperless.user.mapping"].search([
             ("active", "=", True),
             ("sync_state", "=", "synchronized"),
@@ -1395,9 +1356,6 @@ class UslDocument(models.Model):
                 batch = documents[offset : offset + PERMISSION_SYNC_BATCH_SIZE]
                 client = batch[0]._paperless()
                 try:
-                    touched = _permission_write_receipt.get()
-                    if touched is not None:
-                        touched.update(batch.ids)
                     if len(batch) == 1:
                         client.set_document_permissions(
                             batch.paperless_id,
