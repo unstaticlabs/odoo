@@ -45,7 +45,7 @@ The 4-vCPU/8-GiB VPS uses versioned resource overlays. Production services
 receive higher CPU shares, memory reservations, and lower OOM scores. Production
 Odoo cannot consume swap: under host memory pressure its process memory is never
 swapped and other services are paged out first. Staging
-has lower CPU, memory, and PID ceilings, cannot consume swap, and is selected
+has lower CPU, memory, and PID ceilings, may be paged out to swap entirely, and is selected
 before production if the host reaches memory pressure. Every restored
 generation records the applicable overlay in its Compose provenance. Do not
 start either VPS stack without its environment-specific resource overlay.
