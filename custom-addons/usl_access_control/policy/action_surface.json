@@ -2938,9 +2938,10 @@
     {
       "delegates": [
         "rpc:usl.document.action_set_starred",
+        "rpc:usl.document.update_archive_metadata",
         "rpc:usl.document.upload_new_version"
       ],
-      "digest": "2a335262e698df07c79ed400e27c52876017b21d4b757e57b43134b63203b1d9",
+      "digest": "af872cc9b26214aa5652c0650aeefd8d3bdf49af075f8d72f5ba8002d56a52be",
       "handler": "if",
       "key": "client:usl_documents:custom-addons/usl_documents/static/src/documents_app.js:if:rpc:1",
       "kind": "client",
@@ -2949,11 +2950,15 @@
       ],
       "sources": [
         {
-          "line": 2598,
+          "line": 2603,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 3245,
+          "line": 2898,
+          "path": "custom-addons/usl_documents/static/src/documents_app.js"
+        },
+        {
+          "line": 3408,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1770553,11 +1770558,11 @@
       "version": "saas~19.3.1.1.5"
     },
     {
-      "manifest_sha256": "0fa9b6eec1dd1514e6e4692ba1613c6caa3eb73784708bd4cb45c7453fafe1c9",
+      "manifest_sha256": "baedaad58e2022924b9742852389b86a5bcca272304afd5d502ab2851b0d19a0",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "b85e64ab33c6614a44389bdc43c9ae4e77392101cd92311e04e38f92629788b6",
-      "version": "saas~19.3.1.11.2"
+      "source_sha256": "f9b7839efc2567c0a43c38354e749ec6b008aafc04a7053502332a448fd74560",
+      "version": "saas~19.3.1.11.3"
     },
     {
       "manifest_sha256": "0495b37d3341543b11dcc1b05c4e4918fc9c11e0e1ad8dd0eb6b5cff3e7c1926",
