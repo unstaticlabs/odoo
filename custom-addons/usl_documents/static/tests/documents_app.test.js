@@ -1631,7 +1631,7 @@ test("reviewing real tag scores leaves the document unchanged until a tag is cho
     expect(".o_usl_paperless_suggestions").toHaveText(/Score 86.1\/100/);
     expect(".o_usl_paperless_suggestions").toHaveText(/No model score/);
     expect(updates).toEqual([]);
-    await contains(".o_usl_paperless_suggestion", { text: "Tag: Payroll" }).click();
+    await contains(".o_usl_paperless_suggestion span", { text: "Payroll" }).click();
     await animationFrame();
 
     expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
