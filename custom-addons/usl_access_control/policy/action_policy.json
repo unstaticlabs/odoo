@@ -222588,6 +222588,22 @@
         "custom-addons/usl_project/static/tests/task_swimlane.test.js"
       ]
     },
+    "task-waiting-causes-20261127": {
+      "contract": "Native Task write records an external explanation or caller-readable typed reference atomically. Task dependencies resolve through native closure; other causes require explicit lifting. Every read/export/projection and opening rechecks current source and target authority on primary, with no hidden identity or permission propagation. Humans and managed Agents retain the same native role, owner and company boundaries; readonly identities cannot mutate. Cancel is inert, legacy unrelated edits work, and lifting the last cause reuses native Inbox/reactivation. The maintained Agent hidden-model API decision is preserved; a permitted synthetic business model with a simulated API refusal verifies the defense without reading a prohibited object.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_external_causes_resume_only_after_the_last_is_lifted",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_task_reference_uses_native_dependencies_and_resolution",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_reference_revocation_applies_to_ordinary_orm_and_projection",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_serializable_context_cannot_move_or_mutate_another_tasks_cause",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_read_projection_does_not_write_task_or_causes",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_current_company_scope_applies_to_source_and_target",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_writer_uses_native_causes_and_actor_attribution",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_readonly_actor_cannot_lift_even_with_forged_context",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_writer_follows_current_owner_reference_access",
+        "custom-addons/usl_project/static/tests/task_waiting.test.js",
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_reference_picker_preserves_existing_agent_api_read_refusal"
+      ]
+    },
     "transport-exact-targets-v1": {
       "contract": "Contains no direct mutation/external sink and delegates only to the declared exact classified targets.",
       "tests": [
@@ -222710,22 +222726,6 @@
       "tests": [
         "custom-addons/usl_voice/tests/test_voice.py",
         "custom-addons/usl_voice/static/tests/dictation_target.test.js"
-      ]
-    },
-    "task-waiting-causes-20261127": {
-      "contract": "Native Task write records an external explanation or caller-readable typed reference atomically. Task dependencies resolve through native closure; other causes require explicit lifting. Every read/export/projection and opening rechecks current source and target authority on primary, with no hidden identity or permission propagation. Humans and managed Agents retain the same native role, owner and company boundaries; readonly identities cannot mutate. Cancel is inert, legacy unrelated edits work, and lifting the last cause reuses native Inbox/reactivation. The maintained Agent hidden-model API decision is preserved; a permitted synthetic business model with a simulated API refusal verifies the defense without reading a prohibited object.",
-      "tests": [
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_external_causes_resume_only_after_the_last_is_lifted",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_task_reference_uses_native_dependencies_and_resolution",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_reference_revocation_applies_to_ordinary_orm_and_projection",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_serializable_context_cannot_move_or_mutate_another_tasks_cause",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_read_projection_does_not_write_task_or_causes",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_current_company_scope_applies_to_source_and_target",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_writer_uses_native_causes_and_actor_attribution",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_readonly_actor_cannot_lift_even_with_forged_context",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_managed_writer_follows_current_owner_reference_access",
-        "custom-addons/usl_project/static/tests/task_waiting.test.js",
-        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaiting.test_reference_picker_preserves_existing_agent_api_read_refusal"
       ]
     }
   },
