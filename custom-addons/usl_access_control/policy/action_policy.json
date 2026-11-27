@@ -19242,7 +19242,7 @@
         "ui:usl_accounting.view_bank_ingestion_form:button:object:action_correct_period:1": "8bfdcb178940eebeb1804c2c121e724b8f5a27afb433e877e23e87c78c30d5b0",
         "ui:usl_b2c.action_b2c_accounting_link": "8c9c7e04bcf6b2b2061fcaf09c1189cbaa8b30c822e7b62b942314aae63d7f03",
         "ui:usl_b2c.action_b2c_accounting_session": "7b88ac6ac202995ab0a55417095f3064aae4be3ff02b4a50d228ff1018c5588d",
-        "ui:usl_b2c.action_b2c_session_review": "d137b95ee5b2fd362b1abcf45e499b63f2650528bb2a8b55e73f8e380916fb88",
+        "ui:usl_b2c.action_b2c_session_review": "ccb6c7f0bd603d1e11817a1ed1ca5f35288f2187e90b529332702d481777bfe7",
         "ui:usl_tese_payroll.action_tese_payroll_accounts": "89d5e8fe8fcbe6b284dfb4930e75f57aa13f5a8ff48b7b4b0c14732fbf1b4823"
       }
     },

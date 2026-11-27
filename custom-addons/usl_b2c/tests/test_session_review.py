@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from odoo import Command
 from odoo.exceptions import AccessError
+from odoo.fields import Domain
 from odoo.tests import TransactionCase, new_test_user, tagged
 from odoo.tools.safe_eval import safe_eval
 
@@ -107,16 +108,65 @@ class TestB2cSessionReview(TransactionCase):
         for name in ("refund_company_amount", "fee_company_amount", "cogs_company_amount", "line_revenue_coverage_percent"):
             self.assertTrue(financial.xpath("//field[@name='%s']" % name))
         compact = self.env.ref("usl_b2c.view_b2c_session_review_list")._get_combined_arch()
-        for name in ("name", "review_status", "review_next_step", "pending_link_count", "pending_mapping_count", "pending_conversion_count"):
+        for name in ("name", "review_status", "review_next_step_short", "pending_link_count", "pending_mapping_count", "pending_conversion_count"):
             self.assertTrue(compact.xpath("//field[@name='%s']" % name))
+        self.assertFalse(compact.xpath("//field[@name='review_next_step']"), "the list shows the short step; the form has the sentence")
+
+    def test_list_marks_only_the_status_and_hides_zero_counts(self):
+        compact = self.env.ref("usl_b2c.view_b2c_session_review_list")._get_combined_arch()
+        self.assertFalse([a for a in compact.attrib if a.startswith("decoration-")], "no row-wide colour: every default row has a gap")
+        status = compact.xpath("//field[@name='review_status']")[0]
+        self.assertEqual(status.get("widget"), "badge")
+        self.assertTrue(status.get("decoration-warning") and status.get("decoration-success"))
+        for name in ("pending_link_count", "pending_mapping_count", "pending_conversion_count"):
+            self.assertIn("not %s" % name, compact.xpath("//field[@name='%s']" % name)[0].get("invisible"))
+
+    def test_next_step_says_to_refresh_after_resolving_and_list_step_is_short(self):
+        gap = self.gaps[1]
+        self.assertEqual(gap.review_next_step, "Resolve: 1 order line(s) not mapped, then Refresh Evidenced Totals before Mark Reviewed.")
+        self.assertEqual(gap.review_next_step_short, "1 order line(s) not mapped")
+        self.assertEqual(self.unrefreshed.review_next_step_short, "Refresh the totals")
+        self.assertEqual(self.ready.review_next_step_short, "Check totals, then Mark Reviewed")
+        self.assertEqual(self.reviewed.review_next_step_short, "Lock the session")
+
+    def test_default_review_list_drops_locked_sessions_but_keeps_reviewed_gaps(self):
+        locked_gap, reviewed_gap = self.gaps[4], self.gaps[5]
+        locked_gap.action_mark_reviewed()
+        locked_gap.action_lock()
+        reviewed_gap.action_mark_reviewed()
+        action = self.env.ref("usl_b2c.action_b2c_session_review").read()[0]
+        default = [self._filter(name[len("search_default_"):]) for name in safe_eval(action["context"]) if name.startswith("search_default_")]
+        domain = [("id", "in", self.gaps.ids)]
+        for part in default:
+            domain += part
+        rows = self.Session.with_user(self.reader).search(domain)
+        self.assertNotIn(locked_gap, rows)
+        self.assertIn(reviewed_gap, rows)
+        self.assertEqual(set(rows.ids), set((self.gaps - locked_gap).ids))
+
+    def test_category_filters_share_one_group_so_a_second_click_adds_rows(self):
+        arch = self.env.ref("usl_b2c.view_b2c_accounting_session_search")._get_combined_arch()
+        names = ("blocked_coverage", "needs_refresh", "ready_for_review")
+        group = {self._group_start(arch, n) for n in names}
+        self.assertEqual(len(group), 1, "the three review categories must sit in one filter group (OR)")
+        union = self.Session.with_user(self.reader).search(
+            [("id", "in", (self.gaps | self.unrefreshed | self.ready | self.reviewed | self.locked).ids)]
+            + list(Domain.OR([Domain(self._filter(n)) for n in names]))
+        )
+        self.assertEqual(set(union.ids), set((self.gaps | self.unrefreshed | self.ready).ids))
+
+    @staticmethod
+    def _group_start(arch, name):
+        node = arch.xpath("//filter[@name='%s']" % name)[0]
+        while node.getprevious() is not None and node.getprevious().tag == "filter":
+            node = node.getprevious()
+        return node.get("name")
 
     def test_filters_partition_native_evidence_without_approving_sessions(self):
         self.assertEqual(set(self._matching("blocked_coverage").ids), set(self.gaps.ids))
         self.assertEqual(self._matching("needs_refresh"), self.unrefreshed)
         self.assertEqual(self._matching("ready_for_review"), self.ready)
         arch = self.env.ref("usl_b2c.view_b2c_accounting_session_search")._get_combined_arch()
-        for name in ("needs_refresh", "ready_for_review"):
-            self.assertEqual(arch.xpath("//filter[@name='%s']" % name)[0].getprevious().tag, "separator")
         self.assertFalse(self.Session.search(self._filter("blocked_coverage") + self._filter("ready_for_review")))
         self.assertTrue(all(s.state == "draft" for s in self.gaps | self.unrefreshed | self.ready))
         self.assertEqual([(s.pending_link_count, s.pending_mapping_count, s.pending_conversion_count) for s in self.gaps],
@@ -164,6 +214,7 @@ class TestB2cSessionReview(TransactionCase):
         action = self.env.ref("usl_b2c.action_b2c_session_review").with_context(lang="fr_FR")
         self.assertEqual(action.name, "Revue mensuelle")
         self.assertIn("filtres sélectionnés", action.help)
+        self.assertEqual(self.gaps[1].with_context(lang="fr_FR").review_next_step, "À résoudre : 1 ligne(s) de commande non rapprochée(s), puis actualisez les totaux avant « Marquer comme vérifié ».")
 
 
     def test_managed_readers_use_native_company_scope(self):

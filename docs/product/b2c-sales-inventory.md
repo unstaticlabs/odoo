@@ -122,14 +122,16 @@ sessions, and manage access. Users outside the B2C groups have no model access.
 ## Monthly review
 
 Monthly Review opens the existing monthly sessions with a compact list and the
-native With Gaps filter selected. It puts the session, review status, next step
-and existing accounting, product-mapping and currency-conversion gaps together.
-The same search offers To Refresh for drafts with no recorded refresh, and
-Ready for Review for refreshed drafts with none of those known gaps. Native
-filters intersect the gap, refresh and ready categories; clear the current filter
-to change category. Adding Ready for Review to With Gaps returns no rows rather
-than including incomplete sessions. Refreshed Drafts remains the broader native
-filter and can include sessions with gaps.
+native With Gaps filter selected. With Gaps leaves out locked sessions, so a
+closed month with explained gaps does not stay in the list. Each row shows the
+session, a coloured review status badge, the short next step (only what is
+missing) and the accounting, product-mapping and currency-conversion gaps that
+are not zero; the full sentence, which ends with Refresh Evidenced Totals and
+Mark Reviewed, is on the form. The same search offers To Refresh for drafts with
+no recorded refresh, and Ready for Review for refreshed drafts with none of
+those known gaps. The three categories share one filter group, so selecting a
+second one adds its sessions to the list instead of emptying it. Refreshed Drafts
+remains the broader native filter and can include sessions with gaps.
 
 These are views of the latest evidenced session snapshot, not new measures or
 proof that all shop activity has been imported. A refreshed session remains a

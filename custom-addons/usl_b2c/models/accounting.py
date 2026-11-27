@@ -149,6 +149,13 @@ class B2cAccountingSession(models.Model):
             "for lists. The sentence on the form says what to do about it."
         ),
     )
+    review_next_step_short = fields.Char(
+        compute="_compute_review_next_step",
+        help=(
+            "The list-sized version of the next step: only what is missing. "
+            "The form carries the full sentence."
+        ),
+    )
     review_next_step = fields.Char(
         compute="_compute_review_next_step",
         help=(
@@ -227,6 +234,7 @@ class B2cAccountingSession(models.Model):
                 + session.pending_mapping_count
                 + session.pending_conversion_count
             )
+            short = ""
             if session.state == "locked":
                 status = self.env._("Locked")
                 step = self.env._(
@@ -235,6 +243,7 @@ class B2cAccountingSession(models.Model):
                 )
             elif session.state == "reviewed":
                 status = self.env._("Ready to lock")
+                short = self.env._("Lock the session")
                 step = self.env._(
                     "Reviewed by %(user)s. Next step: Lock the session "
                     "to freeze the month.",
@@ -242,6 +251,7 @@ class B2cAccountingSession(models.Model):
                 )
             elif not session.refreshed_at:
                 status = self.env._("Not refreshed")
+                short = self.env._("Refresh the totals")
                 step = self.env._(
                     "Not refreshed yet. Refresh the evidenced totals, "
                     "then review them.",
@@ -276,16 +286,19 @@ class B2cAccountingSession(models.Model):
                 else:
                     status = self.env._("Awaiting review")
                 if gaps:
+                    short = "; ".join(gaps)
                     step = self.env._(
-                        "Resolve: %(gaps)s. Then check totals and press Mark Reviewed.",
-                        gaps="; ".join(gaps),
+                        "Resolve: %(gaps)s, then Refresh Evidenced Totals before Mark Reviewed.",
+                        gaps=short,
                     )
                 else:
+                    short = self.env._("Check totals, then Mark Reviewed")
                     step = self.env._(
                         "No open gaps. Check totals and evidence, then press Mark Reviewed.",
                     )
             session.review_status = status
             session.review_next_step = step
+            session.review_next_step_short = short
 
     def action_refresh(self):
         for session in self:

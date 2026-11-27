@@ -3107,8 +3107,8 @@ msgstr "%(count)s enregistrement(s) en attente de conversion de devise"
 #. module: usl_b2c
 #. odoo-python
 #: code:addons/usl_b2c/models/accounting.py:0
-msgid "Resolve: %(gaps)s. Then check totals and press Mark Reviewed."
-msgstr "À résoudre : %(gaps)s. Contrôlez ensuite les totaux et cliquez sur « Marquer comme vérifié »."
+msgid "Resolve: %(gaps)s, then Refresh Evidenced Totals before Mark Reviewed."
+msgstr "À résoudre : %(gaps)s, puis actualisez les totaux avant « Marquer comme vérifié »."
 
 #. module: usl_b2c
 #. odoo-python
@@ -3125,6 +3125,34 @@ msgstr "Brouillon : totaux calculés, pas encore vérifiés par une personne. V�
 #: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_next_step
 msgid "What stands between this session and the next state. Coverage percentages measure evidence; moving from Draft to Reviewed is a person's decision and never follows from a percentage."
 msgstr "Ce qui sépare cette session de l'état suivant. Les taux de couverture mesurent les justificatifs ; passer de Brouillon à Vérifiée est une décision humaine qui ne découle jamais d'un pourcentage."
+
+#. module: usl_b2c
+#: model:ir.model.fields,help:usl_b2c.field_b2c_accounting_session__review_next_step_short
+msgid "The list-sized version of the next step: only what is missing. The form carries the full sentence."
+msgstr "La version courte de la prochaine étape pour les listes : seulement ce qui manque. Le formulaire porte la phrase complète."
+
+#. module: usl_b2c
+#: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_next_step_short
+msgid "Review Next Step Short"
+msgstr "Prochaine étape (courte)"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Lock the session"
+msgstr "Verrouillez la session"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Refresh the totals"
+msgstr "Actualisez les totaux"
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "Check totals, then Mark Reviewed"
+msgstr "Contrôlez les totaux, puis « Marquer comme vérifié »"
 
 #. module: usl_b2c
 #: model:ir.model.fields,field_description:usl_b2c.field_b2c_accounting_session__review_next_step
@@ -3215,8 +3243,8 @@ msgstr "Écarts de conversion"
 
 #. module: usl_b2c
 #: model_terms:ir.actions.act_window,help:usl_b2c.action_b2c_session_review
-msgid "No sessions match the selected filters. Clear them or choose another review filter."
-msgstr "Aucune session ne correspond aux filtres sélectionnés. Retirez-les ou choisissez un autre filtre de revue."
+msgid "No sessions match the selected filters. Choose another review filter or clear them."
+msgstr "Aucune session ne correspond aux filtres sélectionnés. Choisissez un autre filtre de revue ou retirez-les."
 
 #. module: usl_b2c
 #. odoo-python
