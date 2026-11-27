@@ -636,6 +636,11 @@ class UslDocumentMcp(models.Model):
             actual = hashlib.md5(payload, usedforsecurity=False).hexdigest()
         if verified and actual != source_checksum:
             raise ValidationError(_("The document bytes do not match the selected version. No file was returned."))
+        if not verified and declared_size is None and stream.transport_complete is not True:
+            raise ValidationError(_(
+                "The document transfer has no proof of completion. No file was returned. "
+                "Retry when the archive provides a checksum or a complete framed response.",
+            ))
         return {
             "document_id": document.id,
             "document_version_id": descriptor["version"].id,

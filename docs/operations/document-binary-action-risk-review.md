@@ -16,7 +16,13 @@ failure. A non-complete response, incomplete length, excessive body or mismatch
 with a recognized archive checksum returns no file. The response always binds
 its actual byte count and SHA-256 to the same returned bytes. Historical MD5
 remains verifiable; absent or unrecognized archive checksums are explicitly
-unverified. The connector independently checks size, SHA-256, document, selected
+unverified and require a matching Content-Length or native chunked decoding
+completed through its final terminator. A close-delimited HTTP/1.x EOF alone
+cannot distinguish a complete file from a nonempty prefix and is refused unless
+the selected version’s recognized source checksum verifies the exact bytes.
+Recognized checksums permit legitimate unframed responses without guessing a
+length. No ETag or received-prefix hash is treated as independent completeness
+proof. The connector independently checks size, SHA-256, document, selected
 version and variant before emitting a binary content block.
 
 Normal share withdrawal is exercised through native record link/unlink. A
@@ -35,11 +41,18 @@ access shortcut.
 
 ## Qualification
 
-- Native Documents module:313 test methods pass, including the new byte and
-  share/replacement cases and existing HTTP grant tests. Removing only the new
-  method reproduces six missing-method errors in the19-method grant class;
-  restored full-module qualification passes.
-- MCP:356 checks pass. The existing content tool retains its ordinary paginated
+- Initial canonical qualification: 313 Documents test methods passed, including
+  byte/share/replacement cases and existing HTTP grant tests. Removing only the
+  new method reproduced six missing-method errors in the 19-method grant class.
+  The completeness follow-up passes 315 methods on a clean standalone install;
+  five optional full-product authority cases are explicitly skipped there and
+  remain covered by the earlier canonical run. The new real HTTP/1.1 regression
+  rejects normal EOF prefixes without a recognized checksum, permits matching
+  SHA-256/MD5 and fully framed responses, and refuses truncated chunked bodies.
+  A test-only literal restoration of the prior method reproduces two failed
+  EOF subcases with zero errors; the exact restored grant/streaming classes
+  pass 28 methods on the 169-module canonical registry.
+- MCP: 357 checks pass. The existing content tool retains its ordinary paginated
   text contract and uses one native read for an explicit binary selection.
   Older-server unavailability, wrong version and digest mismatch return no file.
 - The module upgrade preserves original financial columns, frozen attachments,

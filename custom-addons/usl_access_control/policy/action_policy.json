@@ -221777,7 +221777,7 @@
       "id": "read_only.documents.direct_binary_read",
       "rationale": "Reviewed in docs/operations/document-binary-action-risk-review.md. Reuses native document/version/company/linked-record authority, bounded read-only archive streaming and actual byte integrity; no sudo, actor switch, arbitrary URL, mutation or generic grant.",
       "reviewed_digests": {
-        "rpc:usl.document.mcp_read_binary": "eed8e1669f813ee5022fdc1c134b70f28797ec85f9f91602996281d1a1a49241"
+        "rpc:usl.document.mcp_read_binary": "435a353261f4aedba24e141a634eb9915f23926a9b9fc7fbd5927b028da754ef"
       }
     }
   ],

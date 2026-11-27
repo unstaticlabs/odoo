@@ -1381333,7 +1381333,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 681,
+          "line": 686,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381402,7 +1381402,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 652,
+          "line": 657,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381436,7 +1381436,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 920,
+          "line": 925,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381471,7 +1381471,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 797,
+          "line": 802,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381502,7 +1381502,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 902,
+          "line": 907,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381533,7 +1381533,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 843,
+          "line": 848,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381563,7 +1381563,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 893,
+          "line": 898,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381590,7 +1381590,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 911,
+          "line": 916,
           "path": "custom-addons/usl_documents/models/document_mcp.py"
         },
         {
@@ -1381606,7 +1381606,7 @@
         "rpc:usl.document.check_access",
         "rpc:usl.document.search"
       ],
-      "digest": "eed8e1669f813ee5022fdc1c134b70f28797ec85f9f91602996281d1a1a49241",
+      "digest": "435a353261f4aedba24e141a634eb9915f23926a9b9fc7fbd5927b028da754ef",
       "guards": [],
       "key": "rpc:usl.document.mcp_read_binary",
       "kind": "rpc",
@@ -1381617,7 +1381617,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "87796a3713caa6dd07f82f44afb94c22c63ca8ac636e20d2eb5bb15e5fcf7741",
+      "runtime_digest": "32007aa1f33d2b555eea8c33c69e0355a9e33628ca712d5b14246c543591db47",
       "sinks": [],
       "sources": [
         {
@@ -1690615,7 +1690615,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 91,
+          "line": 98,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690630,7 +1690630,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 91,
+          "line": 98,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690645,7 +1690645,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 788,
+          "line": 795,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690660,7 +1690660,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 152,
+          "line": 159,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690675,7 +1690675,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 152,
+          "line": 159,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690690,7 +1690690,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 978,
+          "line": 985,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690705,7 +1690705,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 978,
+          "line": 985,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690720,7 +1690720,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 895,
+          "line": 902,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1690735,7 +1690735,7 @@
       "sink_kind": "external_call",
       "sources": [
         {
-          "line": 895,
+          "line": 902,
           "path": "custom-addons/usl_documents/models/paperless_client.py"
         }
       ]
@@ -1768607,7 +1768607,7 @@
       "manifest_sha256": "8441b203d8544f2dcc125960ebd238995c4836580526795487b10b4c5f3469da",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "14834a3016d23b0760dd79da16874b73bd3ff9da3dd511821ead5d2fd844a5fa",
+      "source_sha256": "413da99ef54aef1b52a3c08166baf14cf5e31d562bab8a2070e72897c0f76174",
       "version": "saas~19.3.1.10.8"
     },
     {

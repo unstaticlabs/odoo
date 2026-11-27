@@ -1,4 +1,5 @@
 import hashlib
+import http.client
 import urllib.error
 from datetime import timedelta
 from io import BytesIO
@@ -15,6 +16,7 @@ from odoo.addons.usl_documents.models.download_grant import (
 )
 from odoo.addons.usl_documents.models.paperless_client import PaperlessClient
 from odoo.addons.usl_documents.models.paperless_client import (
+    PaperlessBinaryStream,
     PaperlessCompatibilityError,
     PaperlessUnavailable,
 )
@@ -143,6 +145,59 @@ class TestDocumentDownloadGrants(TransactionCase):
         self.assertEqual(result["source_checksum_verified"], "sha256")
         self.assertEqual(before, self.env["usl.document.download.grant"].sudo().search_count([]))
         self.assertNotIn("url", result)
+
+    def _binary_http_read(self, body, *, checksum="unrecognized", framing=b""):
+        """Use the real HTTP/1.1 parser, including normal close-delimited EOF."""
+        document, version = self._binary_http_fixture
+        version.sudo().write({"checksum": checksum})
+        socket = MagicMock()
+        socket.makefile.return_value = BytesIO(
+            b"HTTP/1.1 200 OK\r\n" + framing + b"\r\n" + body,
+        )
+        response = http.client.HTTPResponse(socket)
+        response.begin()
+        stream = PaperlessBinaryStream(response)
+        with patch.object(PaperlessClient, "open_download", return_value=stream):
+            try:
+                return self.env["usl.document"].with_user(self.user).mcp_read_binary(document.id)
+            finally:
+                self.assertIsNone(stream._response)
+
+    def test_binary_read_rejects_unproven_close_delimited_prefix(self):
+        self._binary_http_fixture = self._document()
+        # A clean EOF is indistinguishable from a lost suffix in this framing.
+        for checksum in ("", "unknown-source-checksum"):
+            with self.subTest(checksum=checksum), self.assertRaisesRegex(
+                ValidationError, "completion|complete",
+            ):
+                self._binary_http_read(b"nonempty prefix", checksum=checksum)
+
+    def test_binary_read_accepts_proven_close_delimited_bytes(self):
+        self._binary_http_fixture = self._document()
+        payload = b"Synthetic complete original"
+        for algorithm in ("sha256", "md5"):
+            checksum = hashlib.new(algorithm, payload, usedforsecurity=False).hexdigest()
+            result = self._binary_http_read(payload, checksum=checksum)
+            self.assertEqual(result["size_bytes"], len(payload))
+            self.assertEqual(result["source_checksum_verified"], algorithm)
+        with self.assertRaisesRegex(ValidationError, "match"):
+            self._binary_http_read(payload[:-2], checksum=hashlib.sha256(payload).hexdigest())
+
+    def test_binary_read_accepts_complete_http_framing_without_source_hash(self):
+        self._binary_http_fixture = self._document()
+        payload = b"Synthetic complete original"
+        result = self._binary_http_read(
+            payload, framing=f"Content-Length: {len(payload)}\r\n".encode(),
+        )
+        self.assertEqual(result["size_bytes"], len(payload))
+        self.assertIsNone(result["source_checksum_verified"])
+        chunked = f"{len(payload):x}\r\n".encode() + payload + b"\r\n0\r\n\r\n"
+        result = self._binary_http_read(chunked, framing=b"Transfer-Encoding: chunked\r\n")
+        self.assertEqual(result["size_bytes"], len(payload))
+        self.assertIsNone(result["source_checksum_verified"])
+        for body in (chunked[:-5], b"30\r\nshort"):
+            with self.subTest(body=body), self.assertRaises(http.client.IncompleteRead):
+                self._binary_http_read(body, framing=b"Transfer-Encoding: chunked\r\n")
 
     def test_binary_read_checks_actual_bytes_not_only_upstream_etag(self):
         with self.assertRaisesRegex(ValidationError, "match"):

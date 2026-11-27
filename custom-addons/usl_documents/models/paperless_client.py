@@ -46,6 +46,7 @@ class PaperlessBinaryStream:
 
     def __init__(self, response):
         self._response = response
+        self.transport_complete = False
         status = getattr(response, "status", None)
         self.status = int(status if status is not None else response.getcode())
         self.headers = dict(response.headers.items())
@@ -66,6 +67,12 @@ class PaperlessBinaryStream:
                 raise PaperlessUnavailable(
                     "Paperless ended the document stream before completion.",
                 )
+            # HTTPResponse validates the final chunk terminator while reading.
+            # A close-delimited EOF alone cannot prove that a suffix was received.
+            self.transport_complete = (
+                self.expected_length is not None
+                or getattr(self._response, "chunked", False) is True
+            )
         finally:
             self.close()
 

@@ -6762,3 +6762,8 @@ msgstr "Le transfert du document est incomplet. Aucun fichier n’a été renvoy
 #: code:addons/usl_documents/models/document_mcp.py:0
 msgid "The document bytes do not match the selected version. No file was returned."
 msgstr "Le contenu reçu ne correspond pas à la version choisie. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has no proof of completion. No file was returned. Retry when the archive provides a checksum or a complete framed response."
+msgstr "La réception complète du document ne peut pas être confirmée. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit une empreinte ou une réponse dont le transfert complet est vérifiable."
