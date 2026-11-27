@@ -147,7 +147,12 @@ The controller initializes the Odoo database before loading a dump. The
 application owns its tables, can create schemas and trusted extensions, and
 uses its existing database credentials. PostgreSQL owns the database. Its
 administrative role uses the container's local peer-authenticated socket.
-Operator probes still connect locally as the application role.
+Operator probes still connect locally as the application role. For a restored
+single-database deployment, set the database name, its exact anchored filter
+and `list_db = False`. Odoo uses the application's CONNECT grant to find that
+database on a first visit. Verify a fresh browser session reaches the login
+form and the evented worker accepts its WebSocket handshake. A successful
+database health check alone only establishes a connection to PostgreSQL.
 
 The restore checks the new role and database before loading business objects.
 On a failed materialization, create a new generation using the existing

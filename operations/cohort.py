@@ -466,7 +466,9 @@ def database_environment(prefix: str) -> tuple[list[str], dict[str, str]]:
         "user": f"{prefix}_DB_USER",
         "password": f"{prefix}_DB_PASSWORD",
     }
-    values = {name: os.environ.get(key, "").strip() for name, key in keys.items()}
+    values = {name: os.environ.get(key, "").strip() for name, key in keys.items() if name != "password"}
+    # libpq uses the literal password, including leading or trailing spaces.
+    values["password"] = os.environ.get(keys["password"], "")
     if not all(values.values()):
         missing = [keys[name] for name, value in values.items() if not value]
         raise CohortError(f"database settings are missing: {', '.join(missing)}")
