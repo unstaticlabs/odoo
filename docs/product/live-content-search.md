@@ -73,13 +73,25 @@ predicates; fuzzy matching would need an explicit retrieval contract and its own
 quality and access qualification. The annotated synthetic FR/EN corpus is in
 `custom-addons/usl_home/tests/data/search_relevance.json`.
 
-Agents retain the existing concrete-model MCP search path: use `usl_search_text`
-on `project.task`, `project.project` or `res.partner`, with native companies,
-language and archive context. Task source explanations additionally require
-`search_source_query` and the readable `usl_search_sources` field. That path
-shares eligibility and source authority, but keeps the requested native model
-order; it does not acquire Home’s ranking. Abstract Home service delegation is
-not expanded by this change.
+Agents retain the existing concrete-model MCP search path. On `project.task`,
+`project.project` or `res.partner`, pass the `usl_search_text` content domain,
+`order: "usl_search_text"` and `context: {search_relevance_query: query}` with
+the same text. At the same identity, selected companies, language and archive
+context, this explicit order uses Home’s title ranking and ID tie breaker.
+Use `active_test: false` to match Home’s archive scope. The native field help
+advertises this option on supporting releases; older releases reject ordering
+by this virtual field and must not be presented as relevance-equivalent.
+
+The existing `odoo_search_records` tool forwards that native order and uses
+offset cursors for it. Ordinary ID, name or date orders remain unchanged,
+including ID-only keyset cursors. Task source explanations additionally require
+`search_source_query` and the readable `usl_search_sources` field. No new MCP
+tool or abstract Home service delegation is introduced. Native model/field
+rights, companies and source revocation apply before ordering. The shared
+compiler reads only the current readable own title; a hidden title falls back
+to descending ID. The explicit relevance query must be non-empty and at most
+2,048 characters. This ordering does not expand the matching domain or apply
+fuzzy correction.
 
 ## Access and navigation
 
