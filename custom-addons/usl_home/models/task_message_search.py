@@ -9,6 +9,7 @@ from odoo.tools import SQL, html2plaintext
 from odoo.tools.misc import remove_accents
 
 from odoo.addons.usl_project.models.content_search import company_domain
+from odoo.addons.usl_project.models.search_words import folded_text, lexical_words, prepare_fragment
 
 
 def _query_text(value, env):
@@ -19,11 +20,34 @@ def _query_text(value, env):
     return value.strip()
 
 
-def _source_excerpt(value, query):
+def _source_excerpt(env, value, query):
     plain = " ".join(html2plaintext(value or "").split())
-    folded = remove_accents(plain).casefold()
-    positions = [folded.find(term) for term in re.findall(r"\w+", remove_accents(query).casefold())]
-    start = max(0, min((p for p in positions if p >= 0), default=0) - 65)
+    if len(plain) <= 240:
+        return plain
+    # Keep positions in the original string. Folding a character such as œ
+    # can expand its length, so a position in folded text cannot slice plain.
+    words = list(re.finditer(r"\w+", plain))
+    terms = re.findall(r"\w+", query)
+    folded_terms = [remove_accents(term).casefold() for term in terms]
+    hit = None
+    for word in words:
+        folded = remove_accents(word.group()).casefold()
+        if any(term in folded for term in folded_terms):
+            hit = word
+            break
+    if hit is None and words and terms and env.registry.has_unaccent:
+        env.cr.execute("""
+            SELECT pos FROM unnest(%s::text[]) WITH ORDINALITY AS source(word, pos)
+            WHERE EXISTS (
+                SELECT 1 FROM unnest(%s::text[]) AS query(term)
+                WHERE strpos(lower(unaccent(word)), lower(unaccent(term))) > 0
+            )
+            ORDER BY pos LIMIT 1
+        """, ([word.group() for word in words], terms))
+        row = env.cr.fetchone()
+        if row:
+            hit = words[row[0] - 1]
+    start = max(0, (hit.start() if hit else 0) - 65)
     return ("…" if start else "") + plain[start:start + 240] + ("…" if len(plain) > start + 240 else "")
 
 
@@ -47,8 +71,12 @@ class MailMessage(models.Model):
             )
         """)
         self.env.cr.execute("""
-            CREATE INDEX IF NOT EXISTS usl_task_message_search_lexical_idx
-            ON usl_task_message_search_fragment USING gin (to_tsvector('simple', content))
+            ALTER TABLE usl_task_message_search_fragment ADD COLUMN IF NOT EXISTS words text[]
+        """)
+        self.env.cr.execute("DROP INDEX IF EXISTS usl_task_message_search_lexical_idx")
+        self.env.cr.execute("""
+            CREATE INDEX IF NOT EXISTS usl_task_message_search_words_idx
+            ON usl_task_message_search_fragment USING gin (words)
         """)
         if self.env.registry.has_trigram:
             self.env.cr.execute("""
@@ -59,7 +87,7 @@ class MailMessage(models.Model):
             INSERT INTO usl_task_message_search_queue (message_id)
             SELECT source.id FROM mail_message source WHERE source.model = 'project.task'
               AND NOT EXISTS (SELECT 1 FROM usl_task_message_search_fragment fragment
-                              WHERE fragment.message_id = source.id)
+                              WHERE fragment.message_id = source.id AND fragment.words IS NOT NULL)
             ON CONFLICT (message_id) DO NOTHING
         """)
 
@@ -111,11 +139,11 @@ class MailMessage(models.Model):
         cr.execute("DELETE FROM usl_task_message_search_fragment WHERE message_id = ANY(%s)", (ids,))
         for message_id, subject, body in rows:
             for name, value in (("subject", subject), ("body", html2plaintext(body or ""))):
-                content = remove_accents(" ".join((value or "").split()))
+                content, words = prepare_fragment(self.env, " ".join((value or "").split()))
                 cr.execute("""
-                    INSERT INTO usl_task_message_search_fragment (message_id, field_name, content)
-                    VALUES (%s, %s, %s)
-                """, (message_id, name, content))
+                    INSERT INTO usl_task_message_search_fragment (message_id, field_name, content, words)
+                    VALUES (%s, %s, %s, %s)
+                """, (message_id, name, content, words))
         cr.execute("DELETE FROM usl_task_message_search_queue WHERE message_id = ANY(%s)", (ids,))
         self.env["project.task"].invalidate_model(["usl_search_sources"])
 
@@ -146,13 +174,15 @@ class MailMessage(models.Model):
             return self._search(domain & Domain.FALSE)
         self.flush_model(["body", "subject", "model", "res_id", "message_type"])
         indexed = Domain("id", "in", SQL("""
-            SELECT fragment.message_id FROM usl_task_message_search_fragment fragment
+            WITH needle AS MATERIALIZED (SELECT %s AS text),
+                 query AS MATERIALIZED (SELECT text, %s AS words FROM needle)
+            SELECT fragment.message_id FROM usl_task_message_search_fragment fragment, query
             WHERE fragment.field_name IN %s
               AND NOT EXISTS (SELECT 1 FROM usl_task_message_search_queue pending
                               WHERE pending.message_id = fragment.message_id)
-              AND (to_tsvector('simple', fragment.content) @@ plainto_tsquery('simple', %s)
-                   OR fragment.content ILIKE %s)
-        """, names, remove_accents(text), "%%" + remove_accents(text) + "%%"))
+              AND ((cardinality(query.words) > 0 AND fragment.words @> query.words)
+                   OR fragment.content ILIKE ('%%' || query.text || '%%'))
+        """, folded_text(self.env.registry, text), lexical_words(SQL("needle.text")), names))
         pending = Domain("id", "in", SQL("SELECT message_id FROM usl_task_message_search_queue"))
         live = Domain.OR([Domain(name, "ilike", text) for name in names])
         if task_ids is not None:
@@ -202,7 +232,7 @@ class ProjectTask(models.Model):
                 result[message.res_id] = {
                     "kind": "message", "model": "mail.message", "id": message.id,
                     "field": name, "label": self.env._("Chatter message"),
-                    "excerpt": _source_excerpt(message[name] or "", text),
+                    "excerpt": _source_excerpt(self.env, message[name] or "", text),
                     "url": "/mail/message/%s" % message.id,
                 }
         return result

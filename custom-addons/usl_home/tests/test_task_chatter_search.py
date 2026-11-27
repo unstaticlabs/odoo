@@ -67,6 +67,28 @@ class TestTaskChatterSearch(TransactionCase):
         self.assertIn("Amber", rows[0]["excerpt"])
         self.assertNotIn("<p>", rows[0]["excerpt"])
 
+    def test_long_chatter_keeps_distant_words_and_returns_the_source(self):
+        task, message = self._fixture()
+        vocabulary = " ".join(f"registre{i:06d}" for i in range(75000))
+        message.body = Markup("<p>%s</p>") % vocabulary
+        self.env["mail.message"]._cron_usl_index_task_messages()
+        query = "registre074999 registre000000"
+        self.assertEqual(self._search(query), task)
+        source, = task.with_user(self.actor).with_context(search_source_query=query).usl_search_sources
+        self.assertEqual(source["id"], message.id)
+        self.assertIn("registre000000", source["excerpt"])
+
+    def test_ligature_match_returns_its_original_chatter_passage(self):
+        if not self.env.registry.has_unaccent:
+            self.skipTest("Native SQL unaccent dictionary is not installed")
+        task, message = self._fixture()
+        message.body = Markup("<p>%s</p>") % ("Préambule " * 70 + "Une œuvre à relire.")
+        self.env["mail.message"]._cron_usl_index_task_messages()
+        self.assertEqual(self._search("oeuvre"), task)
+        source, = task.with_user(self.actor).with_context(search_source_query="oeuvre").usl_search_sources
+        self.assertEqual(source["id"], message.id)
+        self.assertIn("œuvre", source["excerpt"])
+
     def _search(self, text="heliograph Amber", **context):
         return self.env["project.task"].with_user(self.actor).with_context(**context).search([
             ("usl_search_text", "ilike", text),

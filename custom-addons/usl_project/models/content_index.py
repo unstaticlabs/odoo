@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from odoo import models
 from odoo.fields import Domain
 from odoo.tools import SQL, html2plaintext
-from odoo.tools.misc import remove_accents
+from .search_words import folded_text, lexical_words, prepare_fragment
 
 
 @dataclass(frozen=True)
@@ -67,9 +67,11 @@ class ContentIndexMixin(models.AbstractModel):
                     PRIMARY KEY (task_id, field_name)
                 )
             """)
+            cr.execute("ALTER TABLE usl_task_search_fragment ADD COLUMN IF NOT EXISTS words text[]")
+            cr.execute("DROP INDEX IF EXISTS usl_task_search_fragment_lexical_idx")
             cr.execute("""
-                CREATE INDEX IF NOT EXISTS usl_task_search_fragment_lexical_idx
-                ON usl_task_search_fragment USING gin (to_tsvector('simple', content))
+                CREATE INDEX IF NOT EXISTS usl_task_search_fragment_words_idx
+                ON usl_task_search_fragment USING gin (words)
             """)
             if self.env.registry.has_trigram:
                 cr.execute("""
@@ -80,7 +82,7 @@ class ContentIndexMixin(models.AbstractModel):
                 INSERT INTO usl_task_search_queue (task_id)
                 SELECT source.id FROM project_task source
                 WHERE NOT EXISTS (SELECT 1 FROM usl_task_search_fragment fragment
-                                  WHERE fragment.task_id = source.id)
+                                  WHERE fragment.task_id = source.id AND fragment.words IS NOT NULL)
                 ON CONFLICT (task_id) DO NOTHING
             """)
         elif self._name == "project.project":
@@ -98,9 +100,11 @@ class ContentIndexMixin(models.AbstractModel):
                     PRIMARY KEY (project_id, field_name, language)
                 )
             """)
+            cr.execute("ALTER TABLE usl_project_search_fragment ADD COLUMN IF NOT EXISTS words text[]")
+            cr.execute("DROP INDEX IF EXISTS usl_project_search_fragment_lexical_idx")
             cr.execute("""
-                CREATE INDEX IF NOT EXISTS usl_project_search_fragment_lexical_idx
-                ON usl_project_search_fragment USING gin (to_tsvector('simple', content))
+                CREATE INDEX IF NOT EXISTS usl_project_search_fragment_words_idx
+                ON usl_project_search_fragment USING gin (words)
             """)
             if self.env.registry.has_trigram:
                 cr.execute("""
@@ -111,7 +115,7 @@ class ContentIndexMixin(models.AbstractModel):
                 INSERT INTO usl_project_search_queue (project_id)
                 SELECT source.id FROM project_project source
                 WHERE NOT EXISTS (SELECT 1 FROM usl_project_search_fragment fragment
-                                  WHERE fragment.project_id = source.id)
+                                  WHERE fragment.project_id = source.id AND fragment.words IS NOT NULL)
                 ON CONFLICT (project_id) DO NOTHING
             """)
         elif self._name == "res.partner":
@@ -129,9 +133,11 @@ class ContentIndexMixin(models.AbstractModel):
                     PRIMARY KEY (partner_id, field_name)
                 )
             """)
+            cr.execute("ALTER TABLE usl_contact_search_fragment ADD COLUMN IF NOT EXISTS words text[]")
+            cr.execute("DROP INDEX IF EXISTS usl_contact_search_fragment_lexical_idx")
             cr.execute("""
-                CREATE INDEX IF NOT EXISTS usl_contact_search_fragment_lexical_idx
-                ON usl_contact_search_fragment USING gin (to_tsvector('simple', content))
+                CREATE INDEX IF NOT EXISTS usl_contact_search_fragment_words_idx
+                ON usl_contact_search_fragment USING gin (words)
             """)
             if self.env.registry.has_trigram:
                 cr.execute("""
@@ -142,7 +148,7 @@ class ContentIndexMixin(models.AbstractModel):
                 INSERT INTO usl_contact_search_queue (partner_id)
                 SELECT source.id FROM res_partner source
                 WHERE NOT EXISTS (SELECT 1 FROM usl_contact_search_fragment fragment
-                                  WHERE fragment.partner_id = source.id)
+                                  WHERE fragment.partner_id = source.id AND fragment.words IS NOT NULL)
                 ON CONFLICT (partner_id) DO NOTHING
             """)
 
@@ -193,21 +199,22 @@ class ContentIndexMixin(models.AbstractModel):
 
     def _usl_insert_fragment(self, projection, record_id, name, content, language):
         self._usl_validate_projection(projection)
+        folded, words = prepare_fragment(self.env, content)
         if self._name == "project.task":
             self.env.cr.execute("""
-                INSERT INTO usl_task_search_fragment (task_id, field_name, content)
-                VALUES (%s, %s, %s)
-            """, (record_id, name, content))
+                INSERT INTO usl_task_search_fragment (task_id, field_name, content, words)
+                VALUES (%s, %s, %s, %s)
+            """, (record_id, name, folded, words))
         elif self._name == "project.project":
             self.env.cr.execute("""
-                INSERT INTO usl_project_search_fragment (project_id, field_name, content, language)
-                VALUES (%s, %s, %s, %s)
-            """, (record_id, name, content, language))
+                INSERT INTO usl_project_search_fragment (project_id, field_name, content, language, words)
+                VALUES (%s, %s, %s, %s, %s)
+            """, (record_id, name, folded, language, words))
         elif self._name == "res.partner":
             self.env.cr.execute("""
-                INSERT INTO usl_contact_search_fragment (partner_id, field_name, content)
-                VALUES (%s, %s, %s)
-            """, (record_id, name, content))
+                INSERT INTO usl_contact_search_fragment (partner_id, field_name, content, words)
+                VALUES (%s, %s, %s, %s)
+            """, (record_id, name, folded, words))
 
     def _usl_refresh_projection(self, projection):
         """Publish a bounded batch under the queue locks in the caller transaction."""
@@ -231,7 +238,7 @@ class ContentIndexMixin(models.AbstractModel):
                 translations = value.items() if self._fields[name].translate and isinstance(value, dict) else [("", value)]
                 for language, translated_value in translations:
                     text = html2plaintext(translated_value or "") if self._fields[name].type == "html" else translated_value or ""
-                    content = remove_accents(" ".join(text.split()))
+                    content = " ".join(text.split())
                     # An empty explicit translation must still suppress en_US.
                     if not content and not language:
                         continue
@@ -257,14 +264,16 @@ class ContentIndexMixin(models.AbstractModel):
                 )
             )""", current, projection.fragments, projection.identity, projection.identity, current)
         indexed = Domain("id", "in", SQL("""
-            SELECT fragment.%s FROM %s fragment
+            WITH needle AS MATERIALIZED (SELECT %s AS text),
+                 query AS MATERIALIZED (SELECT text, %s AS words FROM needle)
+            SELECT fragment.%s FROM %s fragment, query
             WHERE fragment.field_name IN %s %s
               AND NOT EXISTS (SELECT 1 FROM %s pending WHERE pending.%s = fragment.%s)
-              AND (to_tsvector('simple', fragment.content) @@ plainto_tsquery('simple', %s)
-                   OR fragment.content ILIKE %s)
-        """, projection.identity, projection.fragments, fields, language,
-            projection.queue, projection.identity, projection.identity,
-            remove_accents(text), "%%" + remove_accents(text) + "%%"))
+              AND ((cardinality(query.words) > 0 AND fragment.words @> query.words)
+                   OR fragment.content ILIKE ('%%' || query.text || '%%'))
+        """, folded_text(self.env.registry, text), lexical_words(SQL("needle.text")),
+            projection.identity, projection.fragments, fields, language,
+            projection.queue, projection.identity, projection.identity))
         pending = Domain("id", "in", SQL("SELECT %s FROM %s", projection.identity, projection.queue))
         live = Domain.OR([Domain(name, "ilike", text) for name in fields])
         return indexed | (pending & live)

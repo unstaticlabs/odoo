@@ -41,6 +41,25 @@ class TestProjectContactIndex(TransactionCase):
         self._refresh("res.partner")
         self.assertEqual(self._results("contacts", "semaphore Ivory"), contact.ids)
 
+    def test_long_project_and_contact_notes_keep_distant_search_words(self):
+        vocabulary = " ".join(f"article{i:06d}" for i in range(75000))
+        for model in ("project.project", "res.partner"):
+            with self.subTest(model=model):
+                record = self._record(model, f"Reliure {vocabulary} colophon")
+                self._refresh(model)
+                self.assertEqual(self._search(model, "colophon reliure"), record)
+                self.assertEqual(self._search(model, "article074999 article000000"), record)
+
+    def test_project_and_contact_ligatures_survive_indexing(self):
+        if not self.env.registry.has_unaccent:
+            self.skipTest("Native SQL unaccent dictionary is not installed")
+        for model in ("project.project", "res.partner"):
+            with self.subTest(model=model):
+                record = self._record(model, "Manuscrit de l’œuvre reliée")
+                self.assertEqual(self._search(model, "oeuvre reliee"), record)
+                self._refresh(model)
+                self.assertEqual(self._search(model, "oeuvre reliee"), record)
+
     def _record(self, model, text="Coral planning for the heliograph launch", **values):
         field = "description" if model == "project.project" else "comment"
         return self.env[model].create({
