@@ -323,6 +323,45 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         bill.change_bill_company(self.target.id, accepted, confirm=True, preview_id=ready["preview_id"])
         self.assertEqual((bill.company_id, bill.amount_total), (self.target, 102.85))
 
+    def test_a_destination_rate_changed_after_the_preview_needs_a_new_preview(self):
+        Tax = self.env["account.tax"]
+        twenty = Tax.create({"name": "Synthetic 20", "amount": 20, "type_tax_use": "purchase", "company_id": self.target.id})
+        self.target_data["default_tax_purchase"].amount = 21
+        product = self.env["product.product"].create({"name": "Rehearsal hour", "supplier_taxes_id": [Command.set(twenty.ids)]})
+        bill = self._bill(taxed=True, product=product)
+        source = bill.company_id
+        mapping = {"accept_total_change": True}
+        preview = bill.change_bill_company(self.target.id, mapping)
+        self.assertEqual([tax["id"] for tax in preview["proposal"]["lines"][0]["to"]["taxes"]], twenty.ids)
+        twenty.amount = 25
+        with self.assertRaisesRegex(UserError, "differ"):
+            bill.change_bill_company(self.target.id, mapping, confirm=True, preview_id=preview["preview_id"])
+        self.assertEqual(bill.company_id, source)
+
+    def test_a_grouped_tax_is_never_matched_by_its_own_rate(self):
+        Tax = self.env["account.tax"]
+        def group(company, name, rates):
+            children = Tax.create([{"name": "%s %s" % (name, rate), "amount": rate, "type_tax_use": "purchase",
+                                    "company_id": company.id} for rate in rates])
+            return Tax.create({"name": name, "amount_type": "group", "type_tax_use": "purchase", "company_id": company.id,
+                               "children_tax_ids": [Command.set(children.ids)]})
+        source_group = group(self.company_data["company"], "Mixed", (10, 5))
+        group(self.target, "Mixed", (20, 5))
+        bill = self._bill()
+        bill.invoice_line_ids.tax_ids = source_group
+        preview = bill.change_bill_company(self.target.id)
+        self.assertEqual((preview["status"], [item["code"] for item in preview["unresolved"]]), ("needs_input", ["tax"]))
+
+    def test_partial_deductibility_is_kept_in_the_destination_preview(self):
+        bill = self._bill(taxed=True)
+        bill.invoice_line_ids.deductible_percentage = 0.75
+        destination = bill.change_bill_company(self.target.id)["destination"]
+        full = self._bill(taxed=True).change_bill_company(self.target.id)["destination"]
+        self.assertEqual(full["tax_groups"][0]["amount"], 12.75)
+        self.assertEqual(full["tax_groups"][0]["non_deductible_tax_amount"], 0.0)
+        self.assertEqual(destination["tax_groups"][0]["non_deductible_tax_amount"], bill.tax_totals["subtotals"][0]["tax_groups"][0]["non_deductible_tax_amount_currency"])
+        self.assertEqual(destination["tax_groups"][0]["non_deductible_tax_amount"], -3.19)
+
     def test_editing_a_destination_tax_refreshes_the_summary(self):
         bill = self._bill(taxed=True)
         wizard = self._mapping(bill)

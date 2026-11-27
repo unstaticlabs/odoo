@@ -198,7 +198,12 @@ class AccountMove(models.Model):
             return line.tax_ids, True
         chosen = Tax
         for tax in line.tax_ids:
+            if tax.amount_type == "group":
+                # A group's rate comes from its children: leave it to an explicit choice.
+                chosen = None
+                break
             same = Tax.search([
+                ("amount_type", "!=", "group"),
                 *Tax._check_company_domain(target), ("type_tax_use", "=", "purchase"), ("active", "=", True),
                 ("amount", "=", tax.amount), ("amount_type", "=", tax.amount_type),
                 ("price_include", "=", tax.price_include),
@@ -340,12 +345,16 @@ class AccountMove(models.Model):
 
     # ------------------------------------------------------------ description
 
-    def _company_transfer_stamp(self, target, plan):
+    def _company_transfer_stamp(self, target, plan, destination=None):
         """The bill as seen, the destination, the caller and every resolved choice."""
         resolved = [plan["journal"].id, plan["fiscal_position"].id, plan["term"].id,
                     [[item["line"].id, item["account"].id, sorted(item["taxes"].ids),
                       json.dumps(item["analytic_distribution"], sort_keys=True)] for item in plan["lines"]]]
-        payload = json.dumps([self._vendor_bill_merge_snapshot(), target.id, self.env.uid, resolved], sort_keys=True)
+        # A tax rate or payment term edited over there changes the outcome without changing any id.
+        outcome = destination and [destination["amount_untaxed"], destination["amount_tax"], destination["amount_total"],
+                                   destination["tax_groups"], destination["due_dates"]]
+        payload = json.dumps([self._vendor_bill_merge_snapshot(), target.id, self.env.uid, resolved, outcome],
+                             sort_keys=True, default=str)
         return hashlib.sha256(payload.encode()).hexdigest()
 
     def _company_transfer_describe(self):
@@ -378,6 +387,7 @@ class AccountMove(models.Model):
         values = {
             "move_type": self.move_type, "company_id": target.id, "partner_id": self.partner_id.id,
             "currency_id": self.currency_id.id, "invoice_date": self.invoice_date, "date": self.date,
+            "invoice_currency_rate": self.invoice_currency_rate,
             "journal_id": plan["journal"].id, "fiscal_position_id": plan["fiscal_position"].id,
             "invoice_payment_term_id": plan["term"].id,
             **({} if plan["term"] else {"invoice_date_due": self.invoice_date_due}),
@@ -385,6 +395,7 @@ class AccountMove(models.Model):
                 "display_type": "product", "name": item["line"].name, "account_id": item["account"].id,
                 "quantity": item["line"].quantity, "price_unit": item["line"].price_unit,
                 "discount": item["line"].discount, "tax_ids": [Command.set(item["taxes"].ids)],
+                "deductible_percentage": item["line"].deductible_percentage,
                 "product_id": item["line"].product_id.id, "product_uom_id": item["line"].product_uom_id.id,
             }) for item in plan["lines"]],
         }
@@ -397,7 +408,8 @@ class AccountMove(models.Model):
             "amount_untaxed": totals.get("base_amount_currency"), "amount_tax": totals.get("tax_amount_currency"),
             "amount_total": totals.get("total_amount_currency"),
             "tax_groups": [{"name": group.get("group_name"), "amount": group.get("tax_amount_currency"),
-                            "base": group.get("base_amount_currency")}
+                            "base": group.get("base_amount_currency"),
+                            "non_deductible_tax_amount": group.get("non_deductible_tax_amount_currency", 0.0)}
                            for subtotal in totals.get("subtotals", []) for group in subtotal.get("tax_groups", [])],
             "due_dates": sorted(({"date": str(key["date_maturity"]), "amount": abs(amounts["amount_currency"])}
                                  for key, amounts in terms if key.get("date_maturity")), key=lambda due: due["date"]),
@@ -440,12 +452,10 @@ class AccountMove(models.Model):
             except UserError as error:
                 unresolved.append({"code": "invalid_choice", "message": str(error),
                                    "next_step": _("Correct the mapping and preview again.")})
-        token = bill._company_transfer_stamp(target, plan)
-        if confirm and values:
-            bill._company_transfer_check_total(unresolved, bill._company_transfer_destination(plan, target), mapping)
+        destination = bill._company_transfer_destination(plan, target) if values else None
+        token = bill._company_transfer_stamp(target, plan, destination)
+        bill._company_transfer_check_total(unresolved, destination, mapping)
         if not confirm:
-            destination = bill._company_transfer_destination(plan, target) if values else None
-            bill._company_transfer_check_total(unresolved, destination, mapping)
             return bill._company_transfer_preview(source, target, blockers, unresolved, plan, destination, before, token)
         problems = blockers + unresolved
         if problems:
