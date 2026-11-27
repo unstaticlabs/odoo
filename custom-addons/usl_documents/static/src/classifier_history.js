@@ -18,6 +18,10 @@ export class ClassifierHistoryDialog extends Component {
         this.env.dialogData.dismiss = () => this.pending;
     }
 
+    get title() {
+        return _t("Automatic tag history");
+    }
+
     async loadHistory() {
         this.state.error = "";
         try {

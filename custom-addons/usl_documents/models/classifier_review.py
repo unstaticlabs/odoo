@@ -24,6 +24,7 @@ class PaperlessTag(models.Model):
         return {
             "type": "ir.actions.act_window", "name": _("Classifier rule"),
             "res_model": wizard._name, "res_id": wizard.id, "view_mode": "form", "target": "new",
+            "context": {"dialog_size": "medium"},
         }
 
 

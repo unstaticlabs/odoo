@@ -176398,7 +176398,7 @@
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin._document_refresh_linked_access:sudo:1": "70f0254f387e43226b043a4cfac954abd0b15e1a9e799a0ef5ce9cd6ce6224a8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.action_open_documents_workspace:sudo:1": "11ff202ffda4c16b0434ed094f57d8ee831daf2bfa71750d34c5f7d70737e8d8",
         "sink:usl_documents:custom-addons/usl_documents/models/business_record.py:usl.document.link.mixin.write:orm_write:1": "0ad2dde90aa3d9b06a6f59d83d2bdcf48cec8a65faf4942b4369ff6f2be38942",
-        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": "03516ad41777885871792072f81893d3cf0729aadf8dd6e642e7e6525bb32624",
+        "sink:usl_documents:custom-addons/usl_documents/models/classifier_review.py:usl.paperless.tag.action_review_classifier_rule:orm_create:1": "c49d7e38a587efb3532ef200338ebd042ca98711de68bde1495d0d8a3f20240c",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:1": "a8d95971d557be7da2686d518b3335e8f036ad4ccc2cc07bd8bedb9a7e94fd34",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._accessible_active_links_by_document:sudo:2": "54bbd2f9cf82f3ea63c0f1441ce02ad6242183d2208b27aa4780567cac332751",
         "sink:usl_documents:custom-addons/usl_documents/models/document.py:usl.document._compute_is_in_my_library:sudo:1": "c6e4e7630245e9318a463819915ad0f0ff1f3cf24bf6da5611e7e670e5387f39",
@@ -221936,7 +221936,7 @@
         "rpc:usl.document.tag.rule.wizard.web_save_offline": "8885cc7183a852896fe624d1f79e4af943989091ce11f46a8aa325f40cfafb29",
         "rpc:usl.document.tag.rule.wizard.write": "fb1c84eaabed5992e8be1eba8dc96b7b28d3c68bc87fecd3e116abf35e25dd2a",
         "rpc:usl.document.undo_classifier_batch": "d9e8ac7a8124445c1f1d210c5c1c920f7f526652b49156fea64c5de37940f505",
-        "rpc:usl.paperless.tag.action_review_classifier_rule": "8462aa7c9527a39e6ce7be17f3879c3ae276671a0dca30926b6175de8ed9601f"
+        "rpc:usl.paperless.tag.action_review_classifier_rule": "3586b1b85f4c560a8d5c45ae1e00d23342b761764cf427a858e39ad07939594b"
       }
     }
   ],

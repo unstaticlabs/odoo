@@ -24,7 +24,7 @@
     </t>
 
     <t t-name="usl_documents.ClassifierHistoryDialog">
-        <Dialog title="'Automatic tag history'" size="'md'">
+        <Dialog title="title" size="'md'">
             <p class="fw-semibold text-break" t-esc="props.documentName"/>
             <div t-if="state.error" class="alert alert-warning" role="alert" t-esc="state.error"/>
             <t t-if="!state.batch">

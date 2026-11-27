@@ -6776,6 +6776,7 @@ msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fi
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+#: code:addons/usl_documents/static/src/classifier_history.js:0
 msgid "Automatic tag history"
 msgstr "Historique des étiquettes automatiques"
 
