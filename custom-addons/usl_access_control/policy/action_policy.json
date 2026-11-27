@@ -5096,7 +5096,7 @@
             "model": "res.company",
             "operation": "unlink"
           },
-          "rationale": "Existing irreversible/native company deletion authority and all native FK constraints remain unchanged. Only after successful native deletion, clean this company\u2019s own hr.expense aliases using the native optional-alias lifecycle pattern; failed deletion preserves complete stored company and alias rows."
+          "rationale": "Existing irreversible/native company deletion authority and all native FK constraints remain unchanged. Only after successful native deletion, clean this company’s own hr.expense aliases using the native optional-alias lifecycle pattern; failed deletion preserves complete stored company and alias rows."
         },
         "rpc:res.currency.unlink": {
           "action_name": "permanently delete res.currency",
@@ -84667,7 +84667,7 @@
         },
         "rpc:validate.account.move.validate_move": {
           "evidence_id": "draft-post-match-20261014",
-          "rationale": "Native validation runs first with its existing authority, scheduling and hashing behavior. Only this workflow\u2019s exact singleton bill context receives a UI-only validation marker and any optional native setup action; ordinary wizard results and native reversal remain unchanged. Cancel/X invokes no validation or continuation.",
+          "rationale": "Native validation runs first with its existing authority, scheduling and hashing behavior. Only this workflow’s exact singleton bill context receives a UI-only validation marker and any optional native setup action; ordinary wizard results and native reversal remain unchanged. Cancel/X invokes no validation or continuation.",
           "reversal_action": "rpc:validate.account.move.write"
         },
         "rpc:validate.account.move.web_override_translations": {
@@ -156377,13 +156377,13 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:1": {
-          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:2": {
-          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/invoicing.py:b2c.import.batch.action_invoice:orm_write:3": {
-          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_invoice, whose only ordinary entry point is rpc:b2c.import.batch.action_invoice — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._refund_to_clearing:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -156392,19 +156392,19 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:1": {
-          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch.action_reconcile:orm_write:2": {
-          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_reconcile, whose only ordinary entry point is rpc:b2c.import.batch.action_reconcile — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_create:1": {
-          "reachability_proof": "This sink is inside action_compute, whose only ordinary entry point is rpc:b2c.oss.return.action_compute \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_compute, whose only ordinary entry point is rpc:b2c.oss.return.action_compute — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_compute:orm_write:1": {
-          "reachability_proof": "This sink is inside action_compute, whose only ordinary entry point is rpc:b2c.oss.return.action_compute \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_compute, whose only ordinary entry point is rpc:b2c.oss.return.action_compute — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/oss_return.py:b2c.oss.return.action_mark_filed:orm_write:1": {
-          "reachability_proof": "This sink is inside action_mark_filed, whose only ordinary entry point is rpc:b2c.oss.return.action_mark_filed \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_mark_filed, whose only ordinary entry point is rpc:b2c.oss.return.action_mark_filed — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._conversion_entry:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -156419,10 +156419,10 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch._withdraw_answered_findings:orm_write:1": {
-          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/processor_conversion.py:b2c.import.batch.action_convert_receipts:orm_write:1": {
-          "reachability_proof": "This sink is inside action_convert_receipts, whose only ordinary entry point is rpc:b2c.import.batch.action_convert_receipts \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_convert_receipts, whose only ordinary entry point is rpc:b2c.import.batch.action_convert_receipts — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch._fee_bill:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -156440,13 +156440,13 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:1": {
-          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:2": {
-          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/settlement.py:b2c.import.batch.action_bill_fees:orm_write:3": {
-          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_bill_fees, whose only ordinary entry point is rpc:b2c.import.batch.action_bill_fees — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch._stated_transfers:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -156464,10 +156464,10 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch.action_post_transfers:orm_write:1": {
-          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/transfers.py:b2c.import.batch.action_post_transfers:orm_write:2": {
-          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_post_transfers, whose only ordinary entry point is rpc:b2c.import.batch.action_post_transfers — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch._pay_from_wallet:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -156494,10 +156494,10 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:1": {
-          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/wallet.py:b2c.import.batch.action_settle_wallet:orm_write:2": {
-          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_settle_wallet, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_wallet — classified and reviewed in its own right."
         },
         "sink:usl_documents_accounting:custom-addons/usl_documents_accounting/models/bank_statement.py:account.bank.ingestion.file._archive_or_reconcile_bank_evidence:orm_write:1": {
           "reachability_proof": "This private/helper AST sink has no runtime RPC, controller, UI, client, server-action, or cron entry key."
@@ -166391,7 +166391,7 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._gather_issue:orm_write:1": {
-          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -166409,16 +166409,16 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1": {
-          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:2": {
-          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_reset:orm_write:1": {
-          "reachability_proof": "This sink is inside action_reset, whose only ordinary entry point is rpc:b2c.import.batch.action_reset \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_reset, whose only ordinary entry point is rpc:b2c.import.batch.action_reset — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1": {
-          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
@@ -166427,16 +166427,16 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": {
-          "reachability_proof": "This sink is inside action_add_missing_value, whose only ordinary entry point is rpc:b2c.import.issue.action_add_missing_value \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_add_missing_value, whose only ordinary entry point is rpc:b2c.import.issue.action_add_missing_value — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:orm_write:1": {
-          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:1": {
-          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_supersede_duplicate:sudo:2": {
-          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_supersede_duplicate, whose only ordinary entry point is rpc:b2c.import.issue.action_supersede_duplicate — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/lifecycle.py:b2c.import.batch._cancel_as_stated:sudo:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -166454,10 +166454,10 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch.action_confirm_mappings:orm_write:1": {
-          "reachability_proof": "This sink is inside action_confirm_mappings, whose only ordinary entry point is rpc:b2c.import.batch.action_confirm_mappings \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_confirm_mappings, whose only ordinary entry point is rpc:b2c.import.batch.action_confirm_mappings — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/mapping.py:b2c.import.batch.action_resolve:orm_write:1": {
-          "reachability_proof": "This sink is inside action_resolve, whose only ordinary entry point is rpc:b2c.import.batch.action_resolve \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_resolve, whose only ordinary entry point is rpc:b2c.import.batch.action_resolve — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch._assert_channels_can_sell:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -166526,19 +166526,19 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:1": {
-          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:2": {
-          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/materialise.py:b2c.import.batch.action_apply:orm_write:3": {
-          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_apply, whose only ordinary entry point is rpc:b2c.import.batch.action_apply — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/readiness.py:b2c.import.batch.action_check_readiness:orm_write:1": {
-          "reachability_proof": "This sink is inside action_check_readiness, whose only ordinary entry point is rpc:b2c.import.batch.action_check_readiness \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_check_readiness, whose only ordinary entry point is rpc:b2c.import.batch.action_check_readiness — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/readiness.py:b2c.import.batch.action_settle_catalog_taxes:orm_write:1": {
-          "reachability_proof": "This sink is inside action_settle_catalog_taxes, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_catalog_taxes \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_settle_catalog_taxes, whose only ordinary entry point is rpc:b2c.import.batch.action_settle_catalog_taxes — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch._link_fulfilment:orm_write:1": {
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
@@ -166559,7 +166559,7 @@
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.batch, each classified separately."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/supplier.py:b2c.import.batch.action_fetch_fulfilment:orm_write:1": {
-          "reachability_proof": "This sink is inside action_fetch_fulfilment, whose only ordinary entry point is rpc:b2c.import.batch.action_fetch_fulfilment \u2014 classified and reviewed in its own right."
+          "reachability_proof": "This sink is inside action_fetch_fulfilment, whose only ordinary entry point is rpc:b2c.import.batch.action_fetch_fulfilment — classified and reviewed in its own right."
         },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/parsers/etsy.py:parse_order_items:orm_write:1": {
           "reachability_proof": "This is a module-level function in the file-format readers, bound to no model and exposed by no registry entry; it is reached only from rpc:b2c.import.batch.action_parse."
@@ -187777,12 +187777,12 @@
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:message_send:1": {
           "evidence_id": "expense-batch-bank-review-3240",
           "rationale": "Record the submission only after the reviewed batch transition has actually succeeded.",
-          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor\u2019s normal batch and expense rights are checked before the native transition."
+          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor’s normal batch and expense rights are checked before the native transition."
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch._record_submission:orm_write:1": {
           "evidence_id": "expense-batch-bank-review-3240",
           "rationale": "Record the submission only after the reviewed batch transition has actually succeeded.",
-          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor\u2019s normal batch and expense rights are checked before the native transition."
+          "reachability_proof": "This private helper is reachable through native batch submit or create-and-submit and through the employee-payment or bank-match continuation of a verified batch review. The selected draft set and the actor’s normal batch and expense rights are checked before the native transition."
         },
         "sink:usl_expense_batch:custom-addons/usl_expense_batch/models/expense_batch.py:usl.expense.batch.action_approve:message_send:1": {
           "reachability_proof": "This AST sink is not an Odoo RPC/controller entry point; its exact reviewed parent action keys are: rpc:usl.expense.batch.action_approve"
@@ -205024,12 +205024,12 @@
           "reachability_proof": "Private native gateway hook has no independent RPC/controller/UI action. Elevated lookup is read-only and limited to aliases already present in actual native routes, including archived owners. A server-created typed object selects existing target-company employees; plain JSON/string markers and arbitrary company defaults cannot activate routing. Native route processing remains the sole creator."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_create:1": {
-          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company\u2019s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
-          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company\u2019s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
+          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
+          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company._inverse_expense_alias_name:orm_write:1": {
-          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company\u2019s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
-          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company\u2019s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
+          "rationale": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged.",
+          "reachability_proof": "Private computed-field inverse reached by ordinary company/settings writes only. It creates or renames this company’s native hr.expense alias after native company and mail.alias ACLs, with exact owner/model and unique-pointer validation. Empty names disable only that owned alias; the global alias is unchanged."
         },
         "sink:usl_accounting:custom-addons/usl_accounting/models/company_expense_alias.py:res.company.unlink:orm_unlink:1": {
           "rationale": "This AST sink is not independently dispatchable; it belongs to reviewed protected rpc:res.company.unlink. The elevated lookup reads only hr.expense aliases whose native parent model and IDs are these companies. Alias deletion occurs only after native company deletion succeeds; native FK/authority refusal preserves current, detached and global alias rows. This follows native optional-alias lifecycle cleanup.",
@@ -207091,7 +207091,7 @@
       "domain": "security_and_administration",
       "evidence_id": "delegated-owner-domain-context",
       "id": "system_internal.delegated_owner_rule_resolution",
-      "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative. Reviewed 2026-11-26: the owner domain is now OR-ed with the Agent's own native access domain (Valentin: \"il faut que la permission s'\u00e9tende, que ce soit l'union de ce \u00e0 quoi l'agent a acc\u00e8s et de ce que moi j'ai acc\u00e8s\"). The added branch is native core _access_domain for the Agent UID without sudo, in the same owner-permitted companies, after the unchanged delegation, hidden-model and read-only gates.",
+      "rationale": "Native Odoo compiles security domains under sudo with active_test=False and the actual caller search_domain. Deferred native full optimization binds computed rule searches to the current owner while operation-specific owner predicates preserve record access and writes. Existing delegation, owner/company, field, readonly and protected controls remain authoritative. Reviewed 2026-11-26: the owner domain is now OR-ed with the Agent's own native access domain (Valentin: \"il faut que la permission s'étende, que ce soit l'union de ce à quoi l'agent a accès et de ce que moi j'ai accès\"). The added branch is native core _access_domain for the Agent UID without sudo, in the same owner-permitted companies, after the unchanged delegation, hidden-model and read-only gates.",
       "reachability_proof": "Private Base._access_domain is called by native ORM access checks, not an ordinary public RPC/controller/UI/scheduled action. Its sudo recordset is confined to native domain optimization and never used for returned Agent records.",
       "reviewed_digests": {
         "sink:usl_access_control:custom-addons/usl_access_control/models/base.py:base._access_domain:sudo:1": "814ca671bd6cb4a5f440867bada669de1a6510651549ace91fae7695b78876cb"
@@ -208061,7 +208061,7 @@
       "domain": "commerce_and_fulfilment",
       "evidence_id": "operational-authorized-workflow-v1",
       "id": "upstream-20261030-76ba818af201629c",
-      "rationale": "Reviewed MRO base.copy_data \u2192 product.template.copy_data \u2192 sale_purchase.product.template.copy_data builds dictionaries and Command.create relation tuples. The current scanner incorrectly marks that tuple constructor orm_create. Retain the prior non-read-only Agent allowlist behavior pending separate scanner-specificity maintenance; do not claim unlink is an inverse or add a new authority gate.",
+      "rationale": "Reviewed MRO base.copy_data → product.template.copy_data → sale_purchase.product.template.copy_data builds dictionaries and Command.create relation tuples. The current scanner incorrectly marks that tuple constructor orm_create. Retain the prior non-read-only Agent allowlist behavior pending separate scanner-specificity maintenance; do not claim unlink is an inverse or add a new authority gate.",
       "reviewed_digests": {
         "rpc:product.template.copy_data": "5ed12761a3af41539fd24fb8e1f796297cd6946f6c8c889e354c1fd375502eb0"
       }
@@ -214475,7 +214475,7 @@
         "rpc:wizard.open.tax.balances.web_save_offline"
       ],
       "classification": "transport",
-      "consequence": "Replays an offline request through the model\u2019s existing onchange and save operations.",
+      "consequence": "Replays an offline request through the model’s existing onchange and save operations.",
       "evidence_id": "upstream-sync-20261125",
       "id": "upstream-20261125-offline-save",
       "overrides": {
@@ -220994,7 +220994,7 @@
           "classification": "operational",
           "consequence": "Resolves suggested recipients in the thread and can create a contact.",
           "domain": "documents_and_communications",
-          "rationale": "Resolves the thread using the caller\u2019s access before looking up its recipients. Only the native contact manager group may create missing contacts."
+          "rationale": "Resolves the thread using the caller’s access before looking up its recipients. Only the native contact manager group may create missing contacts."
         },
         "rpc:hr.employee.action_cancel_departure": {
           "classification": "operational",
@@ -221018,7 +221018,7 @@
           "classification": "read_only",
           "consequence": "Indicates whether the project is linked to a product or sales order.",
           "domain": "projects",
-          "rationale": "Both lookups use the caller\u2019s access and return only the boolean that informs the billing form."
+          "rationale": "Both lookups use the caller’s access and return only the boolean that informs the billing form."
         },
         "rpc:project.project.write": {
           "classification": "operational",
@@ -221108,7 +221108,7 @@
         },
         "sink:account_peppol_response:addons/account_peppol_response/models/res_partner.py:res.partner._peppol_fill_participant_supported_documents:sudo:1": {
           "classification": "system_internal",
-          "consequence": "Updates the partner\u2019s provider-derived supported-document cache only after format lookup, in the selected company context.",
+          "consequence": "Updates the partner’s provider-derived supported-document cache only after format lookup, in the selected company context.",
           "domain": "accounting",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The sudo call at res.partner._peppol_fill_participant_supported_documents in addons/account_peppol_response/models/res_partner.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221136,7 +221136,7 @@
         },
         "sink:hr:addons/hr/models/hr_employee.py:hr.employee.action_cancel_departure:sudo:1": {
           "classification": "system_internal",
-          "consequence": "Reads and reopens only the matching non-fixed-term contract while cancelling this employee\u2019s scheduled departure.",
+          "consequence": "Reads and reopens only the matching non-fixed-term contract while cancelling this employee’s scheduled departure.",
           "domain": "people_and_payroll",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The sudo call at hr.employee.action_cancel_departure in addons/hr/models/hr_employee.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221171,7 +221171,7 @@
         },
         "sink:hr_expense:addons/hr_expense/wizard/hr_expense_split_wizard.py:hr.expense.split.wizard.action_split_expense:sudo:1": {
           "classification": "system_internal",
-          "consequence": "Copies a selected source attachment to its newly created split expense draft using the wizard\u2019s established authority.",
+          "consequence": "Copies a selected source attachment to its newly created split expense draft using the wizard’s established authority.",
           "domain": "accounting",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The sudo call at hr.expense.split.wizard.action_split_expense in addons/hr_expense/wizard/hr_expense_split_wizard.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221199,7 +221199,7 @@
         },
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py:account.edi.xml.ubl_21_fr._import_prepare_missing_customer_create_values:orm_write:1": {
           "classification": "system_internal",
-          "consequence": "Builds the values for the caller\u2019s missing-customer creation step using the received or extracted endpoint.",
+          "consequence": "Builds the values for the caller’s missing-customer creation step using the received or extracted endpoint.",
           "domain": "accounting",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The orm_write call at account.edi.xml.ubl_21_fr._import_prepare_missing_customer_create_values in addons/l10n_fr_pdp/models/account_edi_xml_ubl_21_fr.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221220,14 +221220,14 @@
         },
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/models/res_partner.py:res.partner._peppol_fill_participant_supported_documents:sudo:1": {
           "classification": "system_internal",
-          "consequence": "Updates the partner\u2019s provider-derived supported-document cache only after format lookup, in the selected company context.",
+          "consequence": "Updates the partner’s provider-derived supported-document cache only after format lookup, in the selected company context.",
           "domain": "accounting",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The sudo call at res.partner._peppol_fill_participant_supported_documents in addons/l10n_fr_pdp/models/res_partner.py is evaluated within that method and has no standalone RPC or HTTP entry."
         },
         "sink:l10n_fr_pdp:addons/l10n_fr_pdp/wizard/account_move_send_wizard.py:account.move.send.wizard._get_peppol_checkbox_addendum_disable_reason:orm_write:3": {
           "classification": "system_internal",
-          "consequence": "Derives the display reason from existing send configuration and the partner\u2019s verification data.",
+          "consequence": "Derives the display reason from existing send configuration and the partner’s verification data.",
           "domain": "accounting",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The orm_write call at account.move.send.wizard._get_peppol_checkbox_addendum_disable_reason in addons/l10n_fr_pdp/wizard/account_move_send_wizard.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221241,14 +221241,14 @@
         },
         "sink:mail:addons/mail/models/mail_activity_mixin.py:mail.activity.mixin.write:orm_write:1": {
           "classification": "system_internal",
-          "consequence": "After the normal authorized record write, queues recomputation of the related activities\u2019 derived document names.",
+          "consequence": "After the normal authorized record write, queues recomputation of the related activities’ derived document names.",
           "domain": "documents_and_communications",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The orm_write call at mail.activity.mixin.write in addons/mail/models/mail_activity_mixin.py is evaluated within that method and has no standalone RPC or HTTP entry."
         },
         "sink:mail:addons/mail/models/mail_activity_mixin.py:mail.activity.mixin.write:sudo:1": {
           "classification": "system_internal",
-          "consequence": "After the normal authorized record write, queues recomputation of the related activities\u2019 derived document names.",
+          "consequence": "After the normal authorized record write, queues recomputation of the related activities’ derived document names.",
           "domain": "documents_and_communications",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The sudo call at mail.activity.mixin.write in addons/mail/models/mail_activity_mixin.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221262,7 +221262,7 @@
         },
         "sink:purchase_stock:addons/purchase_stock/__init__.py:_post_init_hook:orm_write:3": {
           "classification": "system_internal",
-          "consequence": "Runs the company-scoped picking type assignment during the purchase_stock module\u2019s installation.",
+          "consequence": "Runs the company-scoped picking type assignment during the purchase_stock module’s installation.",
           "domain": "inventory_and_manufacturing",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The orm_write call at _post_init_hook in addons/purchase_stock/__init__.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221276,7 +221276,7 @@
         },
         "sink:sale_project:addons/sale_project/models/project_project.py:project.project._unlink_billable_products:orm_write:1": {
           "classification": "system_internal",
-          "consequence": "Clears project and template links on service products visible and writable under the caller\u2019s ACLs.",
+          "consequence": "Clears project and template links on service products visible and writable under the caller’s ACLs.",
           "domain": "projects",
           "rationale": "This exact call site executes only inside its owning workflow and inherits its caller, record, company and authority checks.",
           "reachability_proof": "The orm_write call at project.project._unlink_billable_products in addons/sale_project/models/project_project.py is evaluated within that method and has no standalone RPC or HTTP entry."
@@ -221861,7 +221861,13 @@
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5",
@@ -221929,8 +221935,26 @@
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15": {
           "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
         },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
+        },
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2": {
           "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21": {
+          "reachability_proof": "Private initialization of task, project and contact search projections. Each concrete model validates its own store; only the native module schema hook can call the initializer."
         },
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3": {
           "reachability_proof": "Private Python-inherited mixin is not a registered model; all eight helpers are refused by native get_public_method on all three concrete models. Literal schema mutations are reached only from api.private native initialization. Queue mutations follow successful native create/write or module post_init. Fixed bounded workers publish only private fragments and queue rows. The two conservative ORM forwarding edges call these private projection helpers; no source business write occurs."
@@ -221996,29 +222020,35 @@
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:1": "65ac8cd0c7b38fe4d853ed004486b1f59514881ae0e6ba1772cf1e85e5bab87c",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:2": "6cbad30824ff00b86186aa2ca0c7ce97cac963b67531c2397f7e0e01380f59b8",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_delete_fragments:raw_sql_mutation:3": "0bc66ee1b6f0255536e2729d0bef0d2e5f78546dc1b01adc98549d0917268bd2",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1": "bc1b5f24f14153dc87d8d95b68f0fc923f5dce8b9dd3ee9d0becbc30beecd690",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10": "742c9d3547b34ea966f77f65294e76b8613a65ee4db7302ddc177bf503bcd707",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11": "a12e739b0352eae189c0e66f5a2fc6e818aa32dd58794d9e981909f2cc0ebaa9",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12": "a329bbc0978fd2d46113217bae61301c595f0c05dd6317d7a3bfdde5a57fa851",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13": "046f2993e586864bd70cc908883a7d2f42c5f127a95ee0dbdeb294240b94071d",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14": "6f80e80a1a1783f46dfc014e623843f7625b3fdd5f347a7c62ae5a2a5db330fa",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15": "42accd6a957f3f073d328bd37342ab80e937a72794e85c18fda6f2f0fe445238",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2": "102886179842d314ca9163a10d715ebc31c2892163041caca640af5e216fa363",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3": "6b75b26889f4b0a969c9c5745badf7b1ee9c574f2884f8fdce7b6083441fb506",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4": "4030fc17b4ee09a99e1f5314724251877ad7435360123caa9c933da237c7c474",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5": "3eb012aba29933a01334efde8118869b76df73bdad459e6ffe207f282067bb9a",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6": "a14a8a07ea6da6f82cb848fdebc7b6969b3850006b3ec4524ad61fb7179909d4",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7": "2c11142fbf46440771d70d2f7776e42b41327908f31b71fdaa08bf909cb412ae",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8": "77e0898b7f32153c6531626ef1372d2e006eab83568629b29f4d45311442fedc",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9": "ea1bdf1918baebc4407b8396c97f2531db21401e7c155390a1e3050a268f6742",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1": "7bf4a9c3fb587f8b63a81e53986fff8eba3442cf4f1590b4208478e4360a8cb1",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2": "fdae22101a356794c7d82c59ea2c54a5cfc2fd05f96e1e037dca7a78407bdb2d",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3": "491967e2339e7b2a72c19bdcf3b11f781c8d14b8b17791a6edfb3b3cab1f6793",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:1": "c32637715c67c30a24b50be6b77781774c84605e80ddc30ce9fc3ef131249073",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:10": "9dfa3c3359845d7d9c0b58dc6f1339c1e07c580b7655479cc3dfada56109ddc9",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:11": "8fd08654083a1b52b655dfd6a6f89e459a106e651e0026f74ddbb2431bfce3db",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:12": "1f07b73a31dd3f0b1a49efc7274e13973d59dbdd914610e888deb8e2d9a8b7cc",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:13": "154ac370f50fd5f69e94843cb5a4ead7eaff0cbcf22b3159618387675142cdeb",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:14": "dffc4b0860c10967c2215802496bc9dbed089dfa8fde789b4f16d2ac7c4905d5",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:15": "1786968de4ad24fcd5727f5b07eff0fce1925542a5b5239354bf0b3f46e73b8e",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:16": "37aa2edc9a2e2cd981fc43970b3f3fa85b049a21233bd809d2367ddf01b6b659",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:17": "8e8a601a2576c790e1da0e5f0468e9689620e52371186b6c207685a79ea7a3eb",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:18": "1bcc68c5e9de624f535b69b40311bb290c9f4d0624a5c2300b5a2fc42e2aab73",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:19": "5efcb0a1804f436a89fb704b2992680d0a700244187e431bccb0dfc068da73dc",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:2": "49e79020d97781d9eb326abb1aee4a41da472e16ef44cc09afb3626ca3f84e6c",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:20": "1014f376eed14eef94dd64ca8f049c69c1760850eef201f5898ba0fa70f0efb2",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:21": "9b808db6ea7fdc48e624893420119b94d02a71b211026a726ed9d952a6a15ae3",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:3": "76753bd774e691dcf555afa599f4c2d65360424e4eae21d5356808e63d829687",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:4": "c42d332d2b80311b38cc45611035912af4ad4f39af7e693bee8d82e99b6172b3",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:5": "1d62e5345a50555fbb9ef7a2d3a99b34e27a37eecd5b63d92edb816b8294ed97",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:6": "f5d6300596c99a8606cd3610ad5c0c5eaadbd61de2df4997c64ada228e5c7a16",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:7": "1bdf629f818821186d00ce281735dd8a0d6ddd6d4dfbfed004321a3867f8e9e5",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:8": "6cb6955f4cf24cc30811e6a7d8fa09b0c35c5bdac00491d5242bce24d03438b6",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_initialize_projection:raw_sql_mutation:9": "c3adafc0ef7397c044b13efe80329e131ce17066eb85938b05502d2e3091db89",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:1": "b50fe75e3a1512a51f042f4012402f5c88de9536bb60df454726401f15c82657",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:2": "9ed4f044edf1c2efdc8330b748eab047393e944846efc43d2bcb735215e23e49",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_insert_fragment:raw_sql_mutation:3": "5c12c90f43ba3b0ca2e761c1d5d6cdd508f4211a2317644ecd378beed3dc8967",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:1": "afb5a1b151e4ae2ccaa013600e61de0dd21b83de1b6520c7100baa9f0aca9cba",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:2": "9f52f9ca28e0afb030bcfd45b45b129f64a9e9f799eb4ea522f2c35fd63a8d47",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_queue_projection:raw_sql_mutation:3": "5f4e127a6ab6fb744997e86860c274b9c21e18123135311063592dcce2d6a611",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1": "bb33ab569985afcc60ae554e1c6eaffb1d598688e857abd11b191b9840ae496a",
-        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2": "020229d673b610b0902f3c03307751c486fcf37f74b87426aa74811893b2ebc6",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:1": "240a0d5e6d28d597edd7c7247fc9635fbe35387ad6a9280e671a64a72e49195e",
+        "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_refresh_projection:orm_write:2": "e838621e4e9f558d4aa8f551e7c799d7a6f043cb949dbffac7617cf6dff227de",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:1": "7a115201aa2e70fa6d989a593df6c0181eba0cd0552541624a5862b3c7296dfc",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:2": "4729196280ad8700b19cf2057b3a45f63da8e64d9833f75f33718f2832d1aa85",
         "sink:usl_project:custom-addons/usl_project/models/content_index.py:usl.content.index.mixin._usl_remove_queue:raw_sql_mutation:3": "5749ce9e92bf8f54d1d8d0dba465499fbb70f410954c5fdd92c574473964797a"

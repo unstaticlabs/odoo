@@ -7,6 +7,10 @@ order, accents are normalized, and descriptions are searched as plain text.
 Substring matches are retained, including incomplete words. A multiword lexical
 match must occur within one source field. Native list ordering is unchanged.
 
+On databases with Odoo's native accent dictionary, a search for `coeur` also
+finds `cœur` before and after indexing. Long descriptions remain searchable
+from beginning to end, including when the search terms are far apart.
+
 The title and description of each changed task are queued transactionally. The
 scheduled action **Tasks: refresh search index** processes up to 500 tasks each
 minute. Pending tasks remain searchable through live native contains matching;
