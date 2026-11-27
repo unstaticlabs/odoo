@@ -16,6 +16,15 @@ def unscored_cache_validator(validator):
     return validate
 
 
+def scored_cache_entry(entry):
+    # Entries cached before scores were stored carry none. Recompute them once
+    # instead of showing a proposal whose score is unknown.
+    suggestions = getattr(entry, "suggestions", None)
+    if isinstance(suggestions, dict) and "tag_scores" in suggestions:
+        return entry
+    return None
+
+
 def suggested_tag_scores(classifier, content, matched_tags):
     auto_ids = {tag.pk for tag in matched_tags if tag.matching_algorithm == tag.MATCH_AUTO}
     if not auto_ids or classifier is None or classifier.tags_classifier is None:

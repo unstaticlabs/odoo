@@ -20,6 +20,12 @@ class SpeechUnavailable(Exception):
     pass
 
 
+class SpeechBusy(SpeechUnavailable):
+    def __init__(self, retry_after):
+        super().__init__()
+        self.retry_after = retry_after
+
+
 def transcribe(data, mimetype, lang=None, patience=0):
     """Return the spoken text. ``lang`` is the speaker's own language, used when unsure.
 
@@ -50,7 +56,7 @@ def transcribe(data, mimetype, lang=None, patience=0):
                     break
                 pause = min(max(int(pause), 1), 5)
                 if time.monotonic() + pause > deadline:
-                    break
+                    raise SpeechBusy(pause)
                 time.sleep(pause)
             if response.status_code != 200:
                 raise SpeechUnavailable()

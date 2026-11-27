@@ -6,6 +6,9 @@ import { queryAllTexts } from "@odoo/hoot-dom";
 import { router, startRouter } from "@web/core/browser/router";
 import { HomeContentSearch, highlightParts } from "../src/home/content_search";
 
+/** Visible texts with whitespace collapsed: on a phone the badge wraps onto its own line. */
+const texts = (selector) => queryAllTexts(selector).map((text) => text.replace(/\s+/g, " ").trim());
+
 defineMailModels();
 
 const local = (title) => ({ groups: [{ key: "tasks", label: "Tasks", offset: 0, has_more: false, records: [{ model: "project.task", id: 5, title, excerpt: "Amber lantern specification" }] }] });
@@ -262,7 +265,7 @@ test("meaning search starts with the keyword search, in parallel, for two words"
     meaning.resolve(meaningGroup(meaningTask(7, "Replace recording microphone")));
     await animationFrame();
     expect(".o_usl_search_skeleton").toHaveCount(0);
-    expect(queryAllTexts(".o_usl_search_result .o_usl_result_title")).toEqual(["Exact task", "Replace recording microphone Similar topic"]);
+    expect(texts(".o_usl_search_result .o_usl_result_title")).toEqual(["Exact task", "Replace recording microphone Similar topic"]);
 });
 
 test("related tasks are appended under a quiet subheader without moving the rows above", async () => {
@@ -277,7 +280,7 @@ test("related tasks are appended under a quiet subheader without moving the rows
     meaning.resolve(meaningGroup(meaningTask(5, "Exact task"), meaningTask(7, "Replace recording microphone"), meaningTask(8, "Studio audio check")));
     await animationFrame();
     // The duplicate is removed, the keyword row stays first and selected.
-    expect(queryAllTexts('[data-category="tasks"] .o_usl_result_title')).toEqual([
+    expect(texts('[data-category="tasks"] .o_usl_result_title')).toEqual([
         "Exact task", "Replace recording microphone Similar topic", "Studio audio check Similar topic",
     ]);
     expect(".o_usl_search_subgroup").toHaveText("Related by subject");
