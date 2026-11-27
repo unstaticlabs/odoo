@@ -1771220,7 +1771220,7 @@
       "manifest_sha256": "ebb486e25f401e837be16e58ead32407fc761bea847ee72483eaa5e08858d0cf",
       "name": "usl_project",
       "origin": "custom",
-      "source_sha256": "a0b144214ab10cb4a74a1289d8ea6c849276ff767f248ef336a25da8186aa783",
+      "source_sha256": "b65f73c19369b6d0b5cd40411c2b0b4a6daa04d10944c31dcd7680495d14721a",
       "version": "saas~19.3.1.0.24"
     },
     {

@@ -33,9 +33,9 @@ defineModels([WaitingProject, WaitingCause, WaitingTask]);
 
 const relation = `<field name="usl_waiting_reason_ids" invisible="1"><list><field name="kind"/><field name="reason"/>
     <field name="target_model" force_save="1"/><field name="target_id" force_save="1"/><field name="lifted"/></list></field>`;
-async function mountTask() {
+async function mountTask(details = { id: 1, causes: [] }) {
     onRpc("project.task", "get_waiting_reference_models", () => [{ model: "project.task", label: "Task" }]);
-    onRpc("project.task", "get_waiting_details", () => ({ schema: "usl-task-waiting/v1", tasks: [{ id: 1, causes: [] }] }));
+    onRpc("project.task", "get_waiting_details", () => ({ schema: "usl-task-waiting/v1", tasks: [details] }));
     onRpc("project.task", "search_waiting_references", () => [{ model: "project.task", id: 7, display_name: "Synthetic checklist" }]);
     await mountView({ type: "form", resModel: "project.task", resId: 1,
         arch: `<form><sheet><field name="name"/><field name="project_id"/>
@@ -149,4 +149,23 @@ test("a Kanban cause action needs no editing subview and uses one native write",
     await contains(".modal-footer .btn-primary").click();
     expect(".modal").toHaveCount(0);
     expect.verifySteps(["one native write"]);
+});
+
+test("stored causes and native dependencies with the same numeric id remain distinct", async () => {
+    const details = { id: 1, state: "04_waiting_normal", has_open_causes: true, can_change: true,
+        causes: [
+            { id: 7, kind: "external", lifted: false, is_blocking: true, reason: "Synthetic same-number external cause" },
+            { id: false, kind: "task", lifted: false, is_blocking: true,
+                reference: { model: "project.task", id: 7, display_name: "Synthetic checklist", state: "01_in_progress" } },
+        ] };
+    WaitingTask._records[0].state = "04_waiting_normal";
+    WaitingTask._records[0].usl_waiting_details = details;
+    await mountTask(details);
+    expect(".o_usl_waiting_causes li").toHaveCount(2);
+    expect(".o_usl_waiting_causes").toHaveText(/Synthetic same-number external cause.*Synthetic checklist/s);
+    await contains(".o_usl_waiting_causes button").click();
+    expect(".modal-body li").toHaveCount(2);
+    expect(".modal-body").toHaveText(/Synthetic same-number external cause.*Synthetic checklist/s);
+    await contains(".modal-footer .btn-secondary").click();
+    expect(".modal").toHaveCount(0);
 });
