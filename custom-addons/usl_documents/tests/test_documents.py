@@ -1526,6 +1526,70 @@ class TestDocuments(TransactionCase):
             self.assertEqual(ordinary, compatible)
         self.assertFalse(document.tag_ids)
 
+    def test_classifier_rule_is_optional_and_uses_the_tag_editors_rights(self):
+        tag = self._tag(19001, "Concert programmes", matching_algorithm="6")
+        with (
+            patch.object(PaperlessClient, "tag_score_rule", return_value={"minimum_score": None}) as read,
+            patch.object(PaperlessClient, "set_tag_score_rule") as save,
+        ):
+            action = tag.with_user(self.user).action_review_classifier_rule()
+            wizard = self.env[action["res_model"]].with_user(self.user).browse(action["res_id"])
+            self.assertFalse(wizard.use_score)
+            self.assertFalse(wizard.minimum_score)
+            save.assert_not_called()
+            wizard.write({"use_score": True, "minimum_score": "101"})
+            with self.assertRaises(ValidationError):
+                wizard.action_save()
+            save.assert_not_called()
+            wizard.minimum_score = "87"
+            wizard.action_save()
+            save.assert_called_once_with(19001, 87)
+            wizard.use_score = False
+            wizard.action_save()
+            self.assertEqual(save.call_args.args, (19001, None))
+            with self.assertRaises(AccessError):
+                tag.with_user(self.accountant).action_review_classifier_rule()
+            read.assert_called_once_with(19001)
+
+    def test_classifier_history_and_batch_obey_current_document_scope(self):
+        batch = "6229df3b-d21a-4b06-bd44-c1fc58b4ffa9"
+        document = self._document(19101, name="Concert")
+        hidden = self._document(19102, company_id=self.company_b.id)
+        other = self._document(19103)
+        tag = self._tag(19104, "Music", matching_algorithm="6")
+        event = {"tag_id": tag.paperless_id, "batch": batch, "score": .91, "minimum_score": 86,
+                 "status": "applied", "created": "2026-02-12T12:00:00Z"}
+        events = {"events": [event, {**event, "tag_id": 19800}]}
+        run = {"events": [
+            {"document_id": document.paperless_id, "tag_id": tag.paperless_id},
+            {"document_id": hidden.paperless_id, "tag_id": tag.paperless_id},
+            {"document_id": other.paperless_id, "tag_id": 19800},
+        ]}
+        with (
+            patch.object(PaperlessClient, "tag_decisions", return_value=events) as history,
+            patch.object(PaperlessClient, "tag_batch_documents", return_value=run) as list_batch,
+            patch.object(PaperlessClient, "undo_tag_decisions") as undo,
+        ):
+            actor = document.with_user(self.user)
+            self.assertEqual([row["tag"] for row in actor.classifier_tag_history()], [tag.name])
+            self.assertEqual(actor.classifier_batch_documents(batch), [
+                {"id": document.id, "name": document.display_name, "tags": [tag.display_name]},
+            ])
+            self.assertEqual(actor.classifier_batch_documents("never-visible"), [])
+            list_batch.assert_called_once()
+            history.reset_mock()
+            with self.assertRaises(AccessError):
+                hidden.with_user(self.user).classifier_tag_history()
+            history.assert_not_called()
+            with self.assertRaises(AccessError):
+                hidden.with_user(self.user).undo_classifier_batch(batch)
+            with self.assertRaises(ValidationError):
+                actor.undo_classifier_batch("invalid")
+            undo.assert_not_called()
+        with patch.object(PaperlessClient, "tag_decisions", side_effect=PaperlessNotFound("missing endpoint")):
+            with self.assertRaisesRegex(ValidationError, "archive needs to be upgraded"):
+                document.with_user(self.user).classifier_tag_history()
+
     def test_suggestion_outage_does_not_hide_available_archive(self):
         document = self._document(406)
         with (

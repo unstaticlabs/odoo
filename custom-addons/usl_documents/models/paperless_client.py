@@ -640,6 +640,22 @@ class PaperlessClient:
             query={"include_tag_scores": "1"} if include_tag_scores else None,
         )[0]
 
+    def tag_score_rule(self, tag_id):
+        return self._request("GET", f"/api/tag_review/tags/{int(tag_id)}/")[0]
+
+    def set_tag_score_rule(self, tag_id, minimum_score):
+        return self._request("PUT", f"/api/tag_review/tags/{int(tag_id)}/", body={"minimum_score": minimum_score})[0]
+
+    def tag_decisions(self, document_id):
+        return self._request("GET", f"/api/tag_review/documents/{int(document_id)}/")[0]
+
+    def tag_batch_documents(self, batch):
+        return self._request("GET", f"/api/tag_review/batches/{batch}/")[0]
+
+    def undo_tag_decisions(self, document_id, batch, tag_ids):
+        return self._request("POST", f"/api/tag_review/documents/{int(document_id)}/",
+                             body={"undo_batch": str(batch), "tag_ids": tag_ids})[0]
+
     def get_user(self, user_id):
         return self._request("GET", f"/api/users/{int(user_id)}/")[0]
 
