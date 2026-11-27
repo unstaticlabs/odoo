@@ -17679,6 +17679,7 @@
     "rpc:project.task.recurrence.web_name_search",
     "rpc:project.task.recurrence.web_read",
     "rpc:project.task.search",
+    "rpc:project.task.search_by_meaning",
     "rpc:project.task.search_count",
     "rpc:project.task.search_panel_select_multi_range",
     "rpc:project.task.search_panel_select_range",

@@ -35,7 +35,6 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 | **Usl Personal Return Badge** (`usl_personal_return_badge`) | json |  |  |
 | **Usl Project Return Badge** (`usl_project_return_badge`) | json |  |  |
 | **Usl Return Reasons** (`usl_return_reasons`) | json |  |  |
-| **Task content** (`usl_search_text`) | char |  |  |
 
 ## Personal Task Stage
 
