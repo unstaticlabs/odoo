@@ -229,6 +229,7 @@ class B2cImportBatch(models.Model):
         """
         self.ensure_one()
         best = {}
+        native_headers = {}
         conflicts = defaultdict(list)
         native_orders = defaultdict(set)
         display_orders = defaultdict(set)
@@ -277,11 +278,25 @@ class B2cImportBatch(models.Model):
                 key = (row.provider, row.external_order_id, row.grain, row.external_line_id)
                 values = parsers.jsonable(row.values)
                 candidate = (fmt.precedence, source, row, values)
+                if (
+                    row.format_id in {"medusa_identified_items", "medusa_full_orders"}
+                    and row.grain == "order" and row.values.get("internal_order_id")
+                ):
+                    # A higher-priority complete header must not hide a
+                    # disagreement between the native item snapshots.
+                    previous_source, previous = native_headers.setdefault(key, (source, row))
+                    state = row.values["original_provider_state"]
+                    previous_state = previous.values["original_provider_state"]
+                    if state != previous_state:
+                        conflicts[key].append((previous_source.name, source.name, [
+                            ("original_provider_state", previous_state, state),
+                        ]))
                 held = best.get(key)
                 if held is None:
                     best[key] = candidate
                     continue
-                disagreement = _disagreement(held[3], values)
+                # Compare typed facts; stored evidence keeps source spelling.
+                disagreement = _disagreement(held[2].values, row.values)
                 if disagreement:
                     conflicts[key].append((held[2].format_id, row.format_id, disagreement))
                 if candidate[0] < held[0]:
@@ -317,6 +332,13 @@ class B2cImportBatch(models.Model):
         for key, disagreements in conflicts.items():
             row = by_key.get((key[0], key[1], key[2], key[3] or ""))
             for held_format, other_format, fields_differing in disagreements:
+                notes = [f"{name}: {held!r} vs {other!r}" for name, held, other in fields_differing]
+                if any(name == "original_provider_state" for name, _held, _other in fields_differing):
+                    notes.append(self.env._(
+                        "Re-export %(held)s and %(other)s from the same current Medusa snapshot. "
+                        "Replace the older files and read this batch again before applying.",
+                        held=held_format, other=other_format,
+                    ))
                 self._raise_issue(
                     "payload_conflict",
                     self.env._(
@@ -327,10 +349,7 @@ class B2cImportBatch(models.Model):
                     ),
                     external_order_id=key[1],
                     row=row,
-                    note="\n".join(
-                        f"{name}: {held!r} vs {other!r}"
-                        for name, held, other in fields_differing
-                    ),
+                    note="\n".join(notes),
                 )
 
     def _resolve(self, rows):
@@ -366,9 +385,15 @@ class B2cImportBatch(models.Model):
                 continue
             channel = channels.get(row.provider)
             native_id = (row.values or {}).get("internal_order_id")
+            # Only an explicitly display-only historical pair permits the
+            # fallback. A missing display value is not proof of legacy identity.
+            retained_native_id = found.medusa_native_order_id or (
+                found.external_order_id
+                if found.external_order_id != found.external_display_id
+                else False
+            )
             if (channel and found.channel_id and found.channel_id != channel) or (
-                native_id and found.external_order_id
-                and found.external_order_id not in (native_id, row.external_order_id)
+                native_id and retained_native_id and native_id != retained_native_id
             ):
                 row.write({"resolution": "conflicting", "order_id": found.id})
                 continue

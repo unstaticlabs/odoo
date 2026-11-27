@@ -62,8 +62,17 @@ retain native order IDs and display IDs separately; canonical line IDs retain
 the native item IDs. A later historical file resolves the same order through
 its display ID. A different nonempty native ID on an existing order is a
 conflict, even when the display ID agrees. Conversely, an identified file can resolve a historical order
-without rewriting its reconstructed lines. An identity is checked again before
+without rewriting its reconstructed lines. That fallback requires a display-only
+historical identity (no external order ID, or an explicitly identical external
+and display pair); a missing display ID does not establish that an external ID
+is historical. An identity is checked again before
 materialization, so an older preview can reuse an order imported in the meantime.
+All matching order and item rows then link to the retained order together.
+New Medusa orders also retain a protected native identity unique within their
+company. This database constraint prevents concurrent imports under different
+display numbers from creating two orders. A competing transaction is refused;
+read its batch again to reuse the committed sale. Existing orders are not
+backfilled or rewritten, and their canonical keys remain unchanged.
 
 Distinct orders can use different item layouts in one batch. For a single
 order, use one complete item snapshot: historical and native item lines are
@@ -83,7 +92,15 @@ findings; this slice introduces no partial-apply mechanism.
 Repeated native files with identical item IDs are deduplicated. Different
 native item sets for the same order are refused as conflicting snapshots;
 price, payment or delivery disagreements for the same IDs remain blocking
-findings. Choose one complete source snapshot rather than combining versions.
+findings. Native order-status contradictions are also blocking between the
+identified-items and complete-orders formats when both retain the same native
+order ID, regardless of file order or format priority. The finding names the
+conflicting files and asks the operator to re-export them from the same current
+snapshot, replace their older versions and read the batch again. Historical
+layouts without a native order ID keep their existing vocabulary compatibility.
+Choose one complete source snapshot rather than combining versions.
+Equivalent numeric spellings such as `10` and `10.0` agree for comparison;
+original files and the retained payload keep their source spelling.
 Existing historical orders and their reconstructed line IDs are never rewritten.
 
 Reading a newer payment, delivery or refund state records what that snapshot

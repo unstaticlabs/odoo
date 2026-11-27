@@ -17,6 +17,62 @@ def identified(*, order_id="order_synthetic_ambre", number="9900000001", line_id
 
 @tagged("post_install", "-at_install", "usl_medusa_identity")
 class TestMedusaIdentity(TestImportBatch):
+    def test_native_order_status_conflict_blocks_both_file_orders(self):
+        pending = identified()
+        canceled = pending.replace(b",pending,", b",canceled,")
+        full = fixtures.medusa_full_orders([{
+            "Order_ID": "order_synthetic_ambre", "Display_ID": "9900000001",
+            "Date": "2026-03-04", "Order status": "pending",
+            "Payment Status": "captured", "Fulfillment Status": "fulfilled",
+            "Currency Code": "EUR", "Subtotal": "20", "Total": "20",
+        }])
+
+        def assert_blocked(files):
+            batch = self._batch(**files)
+            batch.action_parse()
+            issues = batch.issue_ids.filtered(lambda issue: issue.kind == "payload_conflict" and issue.severity == "blocking")
+            self.assertTrue(issues)
+            self.assertIn("original_provider_state", " ".join(issues.mapped("note")))
+            batch.action_resolve()
+            with self.assertRaises(UserError), self.cr.savepoint():
+                batch.action_apply()
+            self.assertFalse(batch.row_ids.order_id)
+            return issues
+
+        for first, second in ((pending, canceled), (canceled, pending)):
+            for complete_header in (False, True):
+                files = {"orders.csv": full} if complete_header else {}
+                files.update({"first.csv": first, "second.csv": second})
+                assert_blocked(files)
+        full_canceled = full.replace(b";pending;", b";canceled;")
+        self.assertNotEqual(full_canceled, full)
+        for header, items in ((full, canceled), (full_canceled, pending)):
+            files = [("orders.csv", header), ("items.csv", items)]
+            for sequence in (files, list(reversed(files))):
+                issues = assert_blocked(dict(sequence))
+                self.assertIn("orders.csv", " ".join(issues.mapped("note")))
+                self.assertIn("items.csv", " ".join(issues.mapped("note")))
+                self.assertIn("Re-export", " ".join(issues.mapped("note")))
+
+    def test_equal_native_numbers_keep_source_spelling_without_conflict(self):
+        first = identified()
+        decimal = first.replace(b",1,10,10", b",1.0,10.00,10.0")
+        for content, other in ((first, decimal), (decimal, first)):
+            batch = self._batch(**{"first.csv": content, "second.csv": other})
+            batch.action_parse()
+            self.assertFalse(batch.issue_ids.filtered(lambda issue: issue.kind == "payload_conflict"))
+            self.assertEqual(batch.line_count, 2)
+            self.assertEqual({row.values["unit_price"] for row in batch.row_ids if row.grain == "line"}, {"10" if content == first else "10.00"})
+
+    def test_native_id_cannot_be_supplied_as_another_orders_display(self):
+        held = self._order("medusa", "order_synthetic_held", external_display_id="9900000099")
+        batch = self._batch(**{"crafted.csv": identified(order_id="order_synthetic_different", number="order_synthetic_held")})
+        batch.action_parse()
+        self.assertTrue(batch.conflicting_count)
+        self.assertFalse(batch.known_order_count)
+        self.assertEqual(batch.row_ids.order_id, held)
+        self.assertTrue(batch.issue_ids.filtered(lambda issue: issue.kind == "identity_conflict"))
+
     def test_native_line_identity_keeps_identical_items_and_state(self):
         fmt = parsers.detect(identified())
         rows, _document = parsers.parse(fmt, "synthetic.csv", identified())
@@ -184,6 +240,9 @@ class TestMedusaIdentity(TestImportBatch):
         self.assertFalse(batch._materialise_order(header))
         self.assertEqual(header.order_id, held)
         self.assertEqual(header.resolution, "known")
+        self.assertEqual(set(batch.row_ids.mapped("resolution")), {"known"})
+        self.assertEqual(batch.row_ids.order_id, held)
+        self.assertTrue(all(row.order_id == held for row in batch.row_ids))
         self.assertEqual(self.env["b2c.order"].search_count([]), before)
 
     def test_one_native_order_with_two_displays_in_a_drop_is_not_materialised_twice(self):
@@ -207,6 +266,18 @@ class TestMedusaIdentity(TestImportBatch):
         self.assertTrue(issue)
         self.assertIn("identités source", issue.name)
         self.assertIn("Fichier", issue.note)
+        status_header = fixtures.medusa_full_orders([{
+            "Order_ID": "order_synthetic_ambre", "Display_ID": "9900000001",
+            "Date": "2026-03-04", "Order status": "pending",
+            "Payment Status": "captured", "Fulfillment Status": "fulfilled", "Currency Code": "EUR",
+        }])
+        status = self._batch(**{"orders.csv": status_header, "items.csv": identified().replace(b",pending,", b",canceled,")})
+        status.with_context(lang="fr_FR").action_parse()
+        status_issues = status.issue_ids.filtered(lambda row: row.kind == "payload_conflict")
+        self.assertTrue(status_issues)
+        self.assertIn("Réexportez", " ".join(status_issues.mapped("note")))
+        self.assertIn("orders.csv", " ".join(status_issues.mapped("note")))
+        self.assertIn("items.csv", " ".join(status_issues.mapped("note")))
         import csv, io
         historical = fixtures._csv(parsers.medusa.ITEMS_HEADER, list(csv.DictReader(io.StringIO(identified().decode("utf-8-sig")))))
         mixed = self._batch(**{"native.csv": identified(), "history.csv": historical})
@@ -240,7 +311,7 @@ class TestMedusaIdentity(TestImportBatch):
             self.assertEqual(batch.file_ids.state, "recognised")
 
     def test_historical_order_keeps_its_reconstructed_lines_on_native_replay(self):
-        order = self._order("medusa", "9900000001")
+        order = self._order("medusa", "9900000001", external_display_id="9900000001")
         line = self.env["b2c.order.line"].create({"order_id": order.id, "line_key": "synthetic-historical-line", "external_line_id": "synthetic-content-key", "original_name": "Atelier Ambre"})
         batch = self._batch(**{"native.csv": identified()})
         batch.action_parse()
@@ -293,6 +364,56 @@ from .test_materialise import TestMaterialise
 
 @tagged("post_install", "-at_install", "usl_medusa_identity")
 class TestMedusaIdentityMaterialise(TestMaterialise):
+    def test_native_order_uniqueness_survives_different_display_keys(self):
+        from psycopg2 import IntegrityError
+        first = self._batch(**{"first.csv": identified()})
+        second = self._batch(**{"second.csv": identified(number="9900000002")})
+        product = self._product("Atelier Ambre")
+        for batch in (first, second):
+            batch.action_parse()
+            batch.row_ids.filtered(lambda row: row.grain == "line").product_id = product
+        partner = self.env["res.partner"].create({"name": "Atelier Ambre", "country_id": self.france.id})
+        money = {"sold": 20, "shipping": 0, "discount": 0, "fee": 0, "total": 20}
+        header = first.row_ids.filtered(lambda row: row.grain == "order")
+        held = first._commerce_order(header, partner, money)
+        with self.assertRaises(IntegrityError), self.cr.savepoint():
+            second._commerce_order(second.row_ids.filtered(lambda row: row.grain == "order"), partner, money)
+        self.assertEqual(self.env["b2c.order"].search_count([
+            ("company_id", "=", self.company.id),
+            ("external_order_id", "=", "order_synthetic_ambre"),
+        ]), 1)
+        self.assertEqual(held.medusa_native_order_id, "order_synthetic_ambre")
+        from odoo.exceptions import AccessError, ValidationError
+        with self.assertRaises(AccessError), self.cr.savepoint():
+            self.env["b2c.order"].browse(held.id).write({"medusa_native_order_id": False})
+        with self.assertRaises(ValidationError), self.cr.savepoint():
+            held.write({"external_order_id": "order_synthetic_changed"})
+        other = self.env["res.company"].create({"name": "Atelier Corail"})
+        other_channel = self.env["b2c.channel"].create({
+            "name": "Atelier Corail", "code": "medusa", "company_id": other.id,
+            "analytic_account_id": self.env["account.analytic.account"].create({
+                "name": "Atelier Corail", "company_id": other.id,
+                "plan_id": self.channels["medusa"].analytic_account_id.plan_id.id,
+            }).id,
+        })
+        second_company = first._trusted("b2c.order").create({
+            "name": "Atelier Corail", "company_id": other.id, "channel_id": other_channel.id,
+            "canonical_key": "commerce:9900000002", "source_provider": "medusa",
+            "external_order_id": "order_synthetic_ambre", "medusa_native_order_id": "order_synthetic_ambre",
+            "currency_id": other.currency_id.id, "order_date": "2026-03-04 00:00:00",
+        })
+        self.assertNotEqual(second_company.company_id, held.company_id)
+        held.write({"external_display_id": held.external_order_id})
+        forged = self._batch(**{"forged.csv": identified(
+            order_id="order_synthetic_different", number=held.external_order_id,
+        )})
+        forged.action_parse()
+        self.assertTrue(forged.conflicting_count)
+        self.assertFalse(forged.known_order_count)
+        second.action_parse()
+        self.assertEqual(second.row_ids.order_id, held)
+        self.assertEqual(set(second.row_ids.mapped("resolution")), {"known"})
+
     def test_identified_apply_and_historical_replay_create_one_sale_with_two_lines(self):
         import csv, io
         product = self._product("Atelier Ambre")

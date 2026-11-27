@@ -309,7 +309,8 @@ class B2cImportBatchMaterialise(models.Model):
         """Return the native sale for one order this drop is adding."""
         self.ensure_one()
         # A different batch may have imported this source since preview.
-        self._resolve(row)
+        family = row | self._lines_of(row)
+        self._resolve(family)
         if row.resolution == "conflicting":
             raise UserError(self.env._(
                 "The order identity changed after this batch was read. Read the files again before applying."
@@ -324,7 +325,7 @@ class B2cImportBatchMaterialise(models.Model):
             limit=1,
         )
         if existing:
-            row.write({"resolution": "known", "order_id": existing.id})
+            family.write({"resolution": "known", "order_id": existing.id})
             return existing.sale_order_id
         partner = self._partner_for(row)
         money = self._order_money(row)
@@ -333,7 +334,7 @@ class B2cImportBatchMaterialise(models.Model):
         order.with_context(**self._context()).write(
             {"sale_order_id": sale.id, "partner_id": partner.id, "shipping_partner_id": partner.id},
         )
-        row.write({"resolution": "known", "order_id": order.id})
+        family.write({"resolution": "known", "order_id": order.id})
         return sale
 
     def _commerce_order(self, row, partner, money):
@@ -353,6 +354,7 @@ class B2cImportBatchMaterialise(models.Model):
                 "business_purpose": "sale",
                 "external_order_id": values.get("internal_order_id") or row.external_order_id,
                 "external_display_id": row.external_order_id,
+                "medusa_native_order_id": values.get("internal_order_id") if row.provider == "medusa" else False,
                 "original_provider_state": values.get("original_provider_state") or False,
                 "state": "fulfilled",
                 "order_date": row.occurred_at,

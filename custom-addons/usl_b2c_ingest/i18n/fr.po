@@ -73,3 +73,30 @@ msgstr "Les identités source de la commande %(order)s sont en conflit"
 #: code:addons/usl_b2c_ingest/models/import_batch.py:0
 msgid "File: %(read)s (%(provider)s). Odoo: %(held)s (%(channel)s). Review the source identity before applying."
 msgstr "Fichier : %(read)s (%(provider)s). Odoo : %(held)s (%(channel)s). Vérifiez l’identité source avant toute application."
+
+#. module: usl_b2c_ingest
+#: model:ir.model.fields,field_description:usl_b2c_ingest.field_b2c_order__medusa_native_order_id
+msgid "Native Medusa order ID"
+msgstr "Identifiant natif de commande Medusa"
+
+#. module: usl_b2c_ingest
+#: model:ir.model.fields,help:usl_b2c_ingest.field_b2c_order__medusa_native_order_id
+msgid "Retained native identity for new Medusa imports. Historical orders are left unchanged."
+msgstr "Identité native conservée pour les nouveaux imports Medusa. Les commandes historiques restent inchangées."
+
+#. module: usl_b2c_ingest
+#: model:ir.model.constraint,message:usl_b2c_ingest.constraint_b2c_order_medusa_native_order_unique
+msgid "This native Medusa order is already imported in this company. Read the batch again to reuse the existing sale."
+msgstr "Cette commande Medusa native est déjà importée dans cette société. Relisez le lot pour réutiliser la vente existante."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/commerce.py:0
+msgid "The retained Medusa identity must match the native source order ID."
+msgstr "L’identité Medusa conservée doit correspondre à l’identifiant natif de la commande source."
+
+#. module: usl_b2c_ingest
+#. odoo-python
+#: code:addons/usl_b2c_ingest/models/import_batch.py:0
+msgid "Re-export %(held)s and %(other)s from the same current Medusa snapshot. Replace the older files and read this batch again before applying."
+msgstr "Réexportez %(held)s et %(other)s depuis le même instantané Medusa actuel. Remplacez les anciens fichiers et relisez ce lot avant de l’appliquer."
