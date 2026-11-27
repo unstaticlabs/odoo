@@ -7,6 +7,9 @@ import { deserializeDateTime, formatDate } from "@web/core/l10n/dates";
 import { sprintf } from "@web/core/utils/strings";
 import { user } from "@web/core/user";
 
+const PAGE_ROWS = 5;
+const MIN_RELATED_ROWS = 2;
+
 /** Fold one character like the server does for matching: no case, no accent. */
 function foldChar(char) {
     const base = char.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -88,8 +91,11 @@ export class HomeContentSearch extends Component {
     get groups() {
         const groups = [...this.state.groups, ...(this.state.documents ? [this.state.documents] : [])];
         const shown = new Set(groups.flatMap((group) => group.records.map((record) => this.resultKey(record))));
-        const related = this.state.meaning.filter((record) => !shown.has(this.resultKey(record)));
         const index = groups.findIndex((group) => group.key === "tasks");
+        // A calm card: the group fills to five rows, and meaning-only rows always
+        // get at least two so the feature is never hidden by a full keyword page.
+        const room = Math.max(MIN_RELATED_ROWS, PAGE_ROWS - (groups[index]?.records.length ?? 0));
+        const related = this.state.meaning.filter((record) => !shown.has(this.resultKey(record))).slice(0, room);
         if (index < 0 && !related.length && !this.state.meaningLoading) {
             return groups;
         }

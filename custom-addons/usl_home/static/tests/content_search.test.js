@@ -286,6 +286,25 @@ test("related tasks are appended under a quiet subheader without moving the rows
     expect('[data-category="tasks"] .o_usl_search_group_title').toHaveText(/^tasks$/i);
 });
 
+test("related rows fill the group to five and never fewer than two", async () => {
+    const records = [1, 2, 3, 4, 5].map((id) => ({ model: "project.task", id, title: `Keyword ${id}`, excerpt: "" }));
+    const few = records.slice(0, 2);
+    let keywordRows = few;
+    onRpc("usl.home.service", "search_records", () => ({ groups: [{ key: "tasks", label: "Tasks", offset: 0, has_more: false, records: keywordRows }] }));
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => meaningGroup(...[11, 12, 13, 14, 15].map((id) => meaningTask(id, `Meaning ${id}`))));
+    await mountSearch("fix sound");
+    await animationFrame();
+    expect('[data-category="tasks"] .o_usl_search_result').toHaveCount(5);
+    expect(queryAllTexts(".o_usl_result_badge")).toEqual(["Similar topic", "Similar topic", "Similar topic"]);
+    keywordRows = records;
+    await contains("#usl-home-content-search").edit("fix sound now");
+    await advanceTime(250);
+    await animationFrame();
+    expect('[data-category="tasks"] .o_usl_search_result').toHaveCount(7);
+    expect(queryAllTexts(".o_usl_result_badge")).toEqual(["Similar topic", "Similar topic"]);
+});
+
 test("without keyword tasks the group is about the subject", async () => {
     onRpc("usl.home.service", "search_records", () => ({ groups: [] }));
     onRpc("usl.home.service", "search_documents", () => documents);
