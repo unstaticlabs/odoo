@@ -790,6 +790,7 @@ msgstr "Identité d'entreprise"
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -4604,6 +4605,7 @@ msgstr "Règle du système"
 
 #. module: usl_documents
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__tag_id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_tag_rule_wizard__tag_id
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Tag"
 msgstr "Étiquette"
