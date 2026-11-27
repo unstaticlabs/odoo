@@ -7,6 +7,29 @@ import { FieldDictation } from "@usl_voice/dictation";
 
 defineMailModels();
 
+test("a field can keep the microphone beside its label and release it on focus change", async () => {
+    const form = document.createElement("form");
+    const search = document.createElement("input");
+    const slot = document.createElement("span");
+    const other = document.createElement("input");
+    slot.id = "dictation-slot-fixture";
+    search.dataset.uslDictationSlot = slot.id;
+    form.append(search, slot, other);
+    document.body.append(form);
+    try {
+        await mountWithCleanup(FieldDictation);
+        search.focus();
+        await animationFrame();
+        expect(slot.querySelector("[data-usl-action=record]")).not.toBe(null);
+        other.focus();
+        await animationFrame();
+        expect(slot.childElementCount).toBe(0);
+        expect(other).toBeFocused();
+    } finally {
+        form.remove();
+    }
+});
+
 test("a click on the microphone reaches no other listener and keeps the field focused", async () => {
     // Quick-create fields, list rows and popovers close on any click they see outside them.
     // If the microphone's click reached them, the field being dictated would disappear.
@@ -31,28 +54,5 @@ test("a click on the microphone reaches no other listener and keeps the field fo
     } finally {
         window.removeEventListener("click", seen, true);
         input.remove();
-    }
-});
-
-test("a field can keep the microphone beside its label and release it on focus change", async () => {
-    const form = document.createElement("form");
-    const search = document.createElement("input");
-    const slot = document.createElement("span");
-    const other = document.createElement("input");
-    slot.id = "dictation-slot-fixture";
-    search.dataset.uslDictationSlot = slot.id;
-    form.append(search, slot, other);
-    document.body.append(form);
-    try {
-        await mountWithCleanup(FieldDictation);
-        search.focus();
-        await animationFrame();
-        expect(slot.querySelector("[data-usl-action=record]")).not.toBe(null);
-        other.focus();
-        await animationFrame();
-        expect(slot.childElementCount).toBe(0);
-        expect(other).toBeFocused();
-    } finally {
-        form.remove();
     }
 });
