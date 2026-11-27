@@ -348,3 +348,15 @@ msgstr "La note vocale de %s n’est pas enregistrée dans ce navigateur. Télé
 #: code:addons/usl_voice/static/src/chatter.js:0
 msgid "Upload to the record"
 msgstr "Envoyer sur la fiche"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "The recording from %s is not saved in this browser. Download it or transcribe it again."
+msgstr "L’enregistrement de %s n’est pas enregistré dans ce navigateur. Téléchargez-le ou relancez la transcription."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Finish the current dictation first."
+msgstr "Terminez d’abord la dictée en cours."

@@ -161,8 +161,15 @@ patch(Composer.prototype, {
         const free = !this.uslGone && this.uslVoice.mode === "idle" && !this.uslCapture && !this.uslKept && !this.uslPending;
         if (free) {
             this.uploadUslVoice(kept);
-        } else if (kept.persisted) {
-            disownRecording(kept.id); // safe in the browser: offered as an unused voice note
+        } else {
+            this.releaseUslKept(kept);
+        }
+    },
+    /** Nobody handles this note any more: safe in the browser it is offered as unused, else it stays in memory. */
+    async releaseUslKept(kept) {
+        await kept.saving; // the browser may still be writing it: only a failed write makes it a spare
+        if (kept.persisted) {
+            disownRecording(kept.id);
         } else {
             this.spareUslVoice(kept);
         }
@@ -264,7 +271,7 @@ patch(Composer.prototype, {
             // if no message carries it: the browser keeps its copy until the message is posted or
             // the writer removes the attachment. A composer that is gone leaves it for the next page.
             if (this.uslGone) {
-                disownRecording(kept.id);
+                this.releaseUslKept(kept);
             } else {
                 this.uslPending = { kept, attachmentId: attachment.id, seen: this.uslAttached(attachment.id) };
                 // The pending attachment is only the composer's: remember which one, so that a
@@ -275,7 +282,7 @@ patch(Composer.prototype, {
             await forgetRecording(kept.id);
             this.uslVoiceNotify.add(_t("Voice note attached to %s.", kept.destination.name || _t("the record")), { type: "success" });
         } else if (this.uslGone) {
-            disownRecording(kept.id); // offered again at the start of the next page
+            this.releaseUslKept(kept); // offered again at the start of the next page, or kept in memory
             this.uslVoiceNotify.add(_t("The voice note could not be uploaded. Your recording is kept."), { type: "warning" });
         }
         if (!this.uslGone) {
@@ -323,14 +330,14 @@ patch(Composer.prototype, {
                 this.uploadUslVoice(this.holdUslVoice(file));
             }
         } else if (this.uslKept && this.uslVoice.mode === "failed") {
-            disownRecording(this.uslKept.id);
+            this.releaseUslKept(this.uslKept);
         }
         const pending = this.uslPending;
         if (pending) {
             // Still waiting in the composer: not sent, so it is offered again. Already out: it was sent.
             this.uslPending = null;
             if (this.uslAttached(pending.attachmentId)) {
-                disownRecording(pending.kept.id);
+                this.releaseUslKept(pending.kept);
             } else {
                 forgetRecording(pending.kept.id);
             }

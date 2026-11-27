@@ -55,6 +55,7 @@ export class FieldDictation extends Component {
         this.state = useState({ mode: "idle", visible: false, typing: false, above: true, x: 0, y: 0, preview: "", caption: "", clipped: false, recovered: "",
             // Why the recording waits: the worker is busy ("busy") or heard nothing ("silent").
             reason: "busy", stored: [], collapsed: false });
+        this.spares = [];
         this.refreshStored = () => this.loadStored();
         keptBus.addEventListener("change", this.refreshStored);
         this.stopListening = listenOtherTabs(this.refreshStored);
@@ -139,7 +140,49 @@ export class FieldDictation extends Component {
     }
     /** Audio a reload would lose: a recording under way, or a finished one that is not in the browser's storage. */
     unsafe() {
-        return Boolean(this.capture || (this.pendingAudio && !this.persisted));
+        return Boolean(this.capture || (this.pendingAudio && !this.persisted) || this.spares.length);
+    }
+    /**
+     * The only copy of this recording is in memory (the browser could not store it) and the page is
+     * busy: it stays here, with Download and Retry, until one is used. beforeunload counts it.
+     */
+    async releaseRecording(kept) {
+        // The browser may still be writing it: only a failed write makes it a spare.
+        const stored = kept.persistence ? await kept.persistence : kept.persisted;
+        if (kept.file && !stored) {
+            this.spareRecording(kept);
+        } else {
+            disownRecording(kept.id);
+        }
+    }
+    spareRecording(kept) {
+        this.spares = [...this.spares, kept];
+        const release = () => {
+            this.spares = this.spares.filter((spare) => spare !== kept);
+            close();
+        };
+        const close = this.notify.add(
+            _t("The recording from %s is not saved in this browser. Download it or transcribe it again.", recordingTime(kept.at)),
+            {
+                type: "warning",
+                sticky: true,
+                buttons: [
+                    { name: _t("Download audio"), onClick: () => downloadRecording(kept.file, kept.at) },
+                    {
+                        name: _t("Retry transcription"),
+                        primary: true,
+                        onClick: () => {
+                            if (this.state.mode === "idle" && !this.pendingAudio && !this.state.recovered) {
+                                release();
+                                this.undiscard(kept);
+                            } else {
+                                this.notify.add(_t("Finish the current dictation first."), { type: "info" });
+                            }
+                        },
+                    },
+                ],
+            }
+        );
     }
     /** Stop and keep whatever is being recorded, and stop waiting for the worker. */
     suspend() {
@@ -336,8 +379,9 @@ export class FieldDictation extends Component {
             this.state.recovered = kept.recovered;
             this.setMode(kept.recovered ? "idle" : "retry");
         } else {
-            // Something else is under way: the recording waits with the other unused ones.
-            disownRecording(kept.id);
+            // Something else is under way. Safe in the browser: it waits with the other unused ones.
+            // Not stored: this is the only copy, it stays in memory.
+            this.releaseRecording(kept);
         }
     }
     async record() {

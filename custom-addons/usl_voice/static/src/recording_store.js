@@ -204,11 +204,23 @@ export function recordingTime(at, format = luxon.DateTime.TIME_SIMPLE) {
 /**
  * Discarding is never final at once: the recording stays kept for ten seconds with an Undo button
  * (and if the page closes first it is still there, which is why it is only deleted when the time
- * is up). The message carries the seconds: Odoo closes a notification that repeats another one,
- * and that would end the Undo of the earlier discard.
+ * is up). Odoo closes a notification that repeats the message of another one, which would end the
+ * Undo of the earlier discard (and, through onClose, delete its recording early): every message
+ * on screen is therefore unique, whatever the clock says.
  */
 export const UNDO_DELAY = 10_000;
+const undoMessages = new Set();
+function uniqueUndoMessage(at) {
+    const base = _t("Recording from %s discarded.", recordingTime(at, luxon.DateTime.TIME_WITH_SECONDS));
+    let message = base;
+    for (let n = 2; undoMessages.has(message); n++) {
+        message = `${base} (${n})`;
+    }
+    undoMessages.add(message);
+    return message;
+}
 export function offerUndo(notification, at, { undo, expire }) {
+    const message = uniqueUndoMessage(at);
     let settled = false;
     const settle = (action) => {
         if (!settled) {
@@ -216,7 +228,7 @@ export function offerUndo(notification, at, { undo, expire }) {
             action();
         }
     };
-    const close = notification.add(_t("Recording from %s discarded.", recordingTime(at, luxon.DateTime.TIME_WITH_SECONDS)), {
+    const close = notification.add(message, {
         type: "info",
         autocloseDelay: UNDO_DELAY,
         buttons: [{
@@ -227,6 +239,9 @@ export function offerUndo(notification, at, { undo, expire }) {
                 close();
             },
         }],
-        onClose: () => settle(expire),
+        onClose: () => {
+            undoMessages.delete(message);
+            settle(expire);
+        },
     });
 }

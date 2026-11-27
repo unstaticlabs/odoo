@@ -566,3 +566,62 @@ test("the recovery panel folds into a small count and opens again on a tap", asy
     await waitFor(".o-usl-stored");
     expect(".o-usl-stored-pill").toHaveCount(0);
 });
+
+test("Undo with the page busy keeps the only copy of a recording the browser could not store", async () => {
+    const dictation = await mountDictation();
+    patchWithCleanup(indexedDB, {
+        open() {
+            throw Error("no storage");
+        },
+    });
+    await dictateAndFail(dictation, field());
+    const audio = dictation.pendingAudio;
+    expect(dictation.persisted).toBe(false);
+    await click('[data-usl-action="discard"]');
+    await waitFor(".o_notification");
+    // Another dictation is under way (its retry panel is up) when the writer presses Undo.
+    await dictateAndFail(dictation, field());
+    await click(".o_notification button:contains(Undo)");
+    await waitFor(".o_notification:contains('not saved in this browser')");
+    expect(dictation.spares.length).toBe(1);
+    expect(dictation.unsafe()).toBe(true);
+    // Download works, and Retry waits for a free page.
+    const downloads = [];
+    patchWithCleanup(URL, { createObjectURL: () => "blob:x" });
+    patchWithCleanup(HTMLAnchorElement.prototype, {
+        click() {
+            downloads.push(this.download);
+        },
+    });
+    await click(".o_notification button:contains('Download audio')");
+    expect(downloads.length).toBe(1);
+    await click(".o_notification button:contains('Retry transcription')");
+    expect(dictation.spares.length).toBe(1); // busy: asked to finish first
+    await click('[data-usl-action="discard"]'); // the second recording goes
+    await waitUntil(() => dictation.state.mode === "idle");
+    await click(".o_notification button:contains('Retry transcription')");
+    expect(dictation.spares.length).toBe(0);
+    expect(dictation.state.mode).toBe("retry");
+    expect(dictation.pendingAudio).toBe(audio);
+});
+
+test("two recordings discarded in the same minute both keep their Undo for ten seconds", async () => {
+    const dictation = await mountDictation();
+    await dictateAndFail(dictation, field());
+    await click('[data-usl-action="discard"]');
+    await waitFor(".o_notification");
+    await dictateAndFail(dictation, field());
+    await click('[data-usl-action="discard"]');
+    await waitUntil(() => document.querySelectorAll(".o_notification").length === 2);
+    await advanceTime(9_000);
+    // Odoo closes a notification that repeats another one: that used to end the first Undo and,
+    // through onClose, delete its recording early.
+    expect(".o_notification").toHaveCount(2);
+    for (const id of dictation.ids) {
+        disownRecording(id);
+    }
+    expect((await kept()).length).toBe(2);
+    await advanceTime(2_000);
+    await waitUntil(() => !document.querySelector(".o_notification"));
+    expect(await kept()).toEqual([]);
+});
