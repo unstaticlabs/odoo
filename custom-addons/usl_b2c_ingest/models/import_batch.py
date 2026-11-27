@@ -174,7 +174,7 @@ class B2cImportBatch(models.Model):
         batch._check_conflicts(rows)
         batch._check_order_money(rows)
         batch.write({**batch._period(rows), "state": "parsed"})
-        batch.report = batch._build_report()
+        batch.write({"report": batch._build_report()})
 
     def _parse_output(self, records):
         """Write only generated rows and findings inside this batch's native read."""
@@ -390,23 +390,23 @@ class B2cImportBatch(models.Model):
             if row.grain == "order"
         }
         for row in rows:
-            output = self._parse_output(row)
+            result_row = self._parse_output(row)
             if row.grain == "charge":
                 # A statement entry answers to a month, not to an order, even
                 # when it names one: two hundred fee entries for one order are
                 # still one order.
-                output.resolution = "statement"
+                result_row.resolution = "statement"
                 continue
             found = (matches.get(row.external_order_id, self.env["b2c.order"])
                 | matches.get((row.values or {}).get("internal_order_id"), self.env["b2c.order"]))
             if not found:
                 if row.grain == "line" and (row.provider, row.external_order_id) not in headers:
-                    output.resolution = "orphan_line"
+                    result_row.resolution = "orphan_line"
                     continue
-                output.resolution = "new"
+                result_row.resolution = "new"
                 continue
             if len(found) > 1:
-                output.write({"resolution": "conflicting", "order_id": found[0].id})
+                result_row.write({"resolution": "conflicting", "order_id": found[0].id})
                 continue
             channel = channels.get(row.provider)
             native_id = (row.values or {}).get("internal_order_id")
@@ -420,9 +420,9 @@ class B2cImportBatch(models.Model):
             if (channel and found.channel_id and found.channel_id != channel) or (
                 native_id and retained_native_id and native_id != retained_native_id
             ):
-                output.write({"resolution": "conflicting", "order_id": found.id})
+                result_row.write({"resolution": "conflicting", "order_id": found.id})
                 continue
-            output.write({"resolution": "known", "order_id": found.id})
+            result_row.write({"resolution": "known", "order_id": found.id})
 
     def _channels(self):
         """Return the configured channel each export's provider sells through.
