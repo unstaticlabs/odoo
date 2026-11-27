@@ -116,18 +116,22 @@ read-only and never invokes embedding or generative models.
 
 ## Evaluate automatic tag proposals
 
-Request `GET /api/documents/{id}/suggestions/?include_tag_scores=1` to
-receive a `tag_scores` object alongside the usual suggestions. Its keys are
-Paperless tag IDs. Its values are the local model's output for each proposed
-tag the caller can see. Several tags may score highly on the same document.
-A text-matching rule can propose a tag without a model score. A missing
-classifier or a model trained on only one outcome also yields no score.
+Every `GET /api/documents/{id}/suggestions/` response carries a `tag_scores`
+object next to the usual suggestions, and the shared suggestion cache stores
+it with them. Its keys are Paperless tag IDs. Its values are the local model's
+output for each proposed tag the caller can see. Several tags may score highly
+on the same document. A text-matching rule can propose a tag without a model
+score. A missing classifier or a model trained on only one outcome also
+yields no score. Cache entries written before scores existed are recomputed
+once.
 
-The scored request recomputes the proposals for the requesting user's access.
-Ordinary requests keep their existing shared suggestion cache. In Odoo,
-call `usl.document.document_detail(id, check_archive=True, include_tag_scores=True)`.
-A readable, unapplied tag proposal with a score carries `classifier_score`.
-An older Paperless server can continue returning its usual suggestions.
+Request `?include_tag_scores=1` to skip the cache and read the model afresh
+for the requesting user's access. In Odoo, the ordinary
+`usl.document.document_detail(id, check_archive=True)` already returns the
+scores. A readable, unapplied tag proposal carries `classifier_score` when the
+model scored it, and `rule: true` when a text rule rather than the model
+proposed it. An older Paperless server can continue returning its usual
+suggestions.
 
 To assess a threshold, freeze one model revision and independently label a
 held-out sample, including documents with no applicable automatic tag. Keep
@@ -135,13 +139,16 @@ documents from the same series together when splitting training and evaluation.
 For each document, store its `tag_scores` and reviewed `expected_tag_ids` in
 a private JSON-lines file. Include every reviewed document, including rows
 with an empty score object or empty label list. Use the Paperless IDs for both
-columns. The evaluator only prints aggregate counts and rates.
+columns. By default the evaluator prints aggregate counts and rates.
 
 ```sh
 python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85
+python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85 --tag-id 17
 ```
 
-Precision answers how often the proposed tags above the threshold were right.
+With a tag ID the result also lists the one-based rows where that tag was
+incorrectly proposed. Review those rows in the private sample. Precision
+answers how often the proposed tags above the threshold were right.
 Recall answers how many of the expected tags the threshold recovered.
 With zero proposals precision is undefined. Review both measures and the
 number of examples before selecting an automatic policy. The scored API

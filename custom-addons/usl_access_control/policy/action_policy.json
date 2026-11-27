@@ -197075,6 +197075,7 @@
             "rpc:usl.document.action_set_starred",
             "rpc:usl.document.link_to_record",
             "rpc:usl.document.unlink_from_record",
+            "rpc:usl.document.update_archive_metadata",
             "rpc:usl.document.upload_new_version"
           ]
         },
@@ -198535,7 +198536,7 @@
         "client:mail:addons/mail/static/src/views/web/calendar/calendar_year/activity_calendar_year_popover.js:onRecordClick:rpc:1": "2d93aa7a4c3c77da61b556896007e7aca22975ea03206b832cbe311eef840665",
         "client:sign_oca:oca-addons/sign_oca/static/src/js/sign_oca.esm.js:if:rpc:1": "0aaf87f6830aee20cfee2aae1c1dbae6cb236aa36eac892277b0aace59f66442",
         "client:sign_oca:oca-addons/sign_oca/static/src/js/systray_service.esm.js:fetchSystraySigner:rpc:1": "d90a5d3c25166574489bf56fde076aeda92ac119c93576f64067b7d52cc96c1a",
-        "client:usl_documents:custom-addons/usl_documents/static/src/documents_app.js:if:rpc:1": "2a335262e698df07c79ed400e27c52876017b21d4b757e57b43134b63203b1d9",
+        "client:usl_documents:custom-addons/usl_documents/static/src/documents_app.js:if:rpc:1": "af872cc9b26214aa5652c0650aeefd8d3bdf49af075f8d72f5ba8002d56a52be",
         "client:usl_sign:custom-addons/usl_sign/static/src/js/systray_patch.esm.js:onClickFilterButton:rpc:1": "2b1199e7fe2fde01bf0748af1c1fc88f01568245f728b31f3811c8a6199801cb",
         "client:usl_sign:custom-addons/usl_sign/static/src/js/workspace.esm.js:load:rpc:1": "29c43889ebe78ec3fdf87ee1394f7503f79e4c84ae1c9471c900815fdffcf248",
         "route:http:ANY:/mail/message/<int:message_id>": "410d006d4376823b914cb71823c71bd6d10feb3414a8615f9eb7427b1f3f116b",
