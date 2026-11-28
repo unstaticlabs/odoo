@@ -203,9 +203,17 @@ export class FieldDictation extends Component {
     }
     /** The recordings kept in this browser that no screen is handling: the ones to offer again. */
     async loadStored() {
-        this.state.stored = (await keptRecordings(user.userId))
-            .filter((entry) => entry.volatile || !this.hasPendingVoiceAttachment(entry))
-            .map(markRaw);
+        const recoverable = [];
+        const attachedDrafts = [];
+        for (const entry of await keptRecordings(user.userId)) {
+            if (!this.hasPendingVoiceAttachment(entry)) {
+                recoverable.push(entry);
+            } else if (entry.volatile) {
+                attachedDrafts.push(entry);
+            }
+        }
+        // An attached draft can be downloaded, but it must not hide a recording that needs recovery.
+        this.state.stored = [...recoverable, ...attachedDrafts].map(markRaw);
     }
     hasPendingVoiceAttachment(entry) {
         const store = this.env.services["mail.store"];

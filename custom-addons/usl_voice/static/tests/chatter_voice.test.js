@@ -417,6 +417,43 @@ test("a pending draft attachment can only be discarded from the composer", async
     await forgetRecording(entry.id);
 });
 
+test("a newer draft attachment does not block recovering an older failed recording", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([false, true, true]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    after(async () => {
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    });
+
+    // Closing while recording uploads directly to the record, which fails.
+    await record();
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await waitForKeptVoiceNotes(1);
+    const [older] = await keptRecordings(user.userId);
+    await advanceTime(1000);
+
+    // The newer note uploads successfully, but still belongs to the draft.
+    await click("button:text('Log note')");
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await waitForKeptVoiceNotes(2);
+    expect((await keptRecordings(user.userId))[0].attachmentId).toBe(9001);
+    await contains(".o-usl-stored:contains('Other recordings are waiting.')");
+    const attach = `.o-usl-stored button[data-usl-action='retry'][data-usl-id="${older.id}"]`;
+    await click(attach);
+    await contains(".o-usl-stored:contains('Open the message draft')");
+    expect(uploads.length).toBe(3);
+    const [remaining] = await keptRecordings(user.userId);
+    expect(remaining.attachmentId).toBe(9001);
+});
+
 test("a reopened composer adopts an attachment whose upload finishes later", async () => {
     fakeMicrophone();
     let finishUpload;
