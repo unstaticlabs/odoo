@@ -5,6 +5,7 @@ import json
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
+from odoo.fields import Domain
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import BinaryBytes, format_date
 
@@ -255,7 +256,12 @@ class RebuildAccountClosingPeriod(models.Model):
     )
 
     name = fields.Char(required=True)
-    review_title = fields.Char(string="Period Title", compute="_compute_review_title", inverse="_inverse_review_title")
+    review_title = fields.Char(
+        string="Period Title",
+        compute="_compute_review_title",
+        inverse="_inverse_review_title",
+        search="_search_review_title",
+    )
     company_id = fields.Many2one("res.company", required=True, index=True)
     currency_id = fields.Many2one(related="company_id.currency_id", readonly=True)
     period_type = fields.Selection(
@@ -443,6 +449,21 @@ class RebuildAccountClosingPeriod(models.Model):
     def _compute_review_title(self):
         for period in self:
             period.review_title = period.display_name
+
+    @api.model
+    def _search_review_title(self, operator, value):
+        stored_title = Domain("name", operator, value)
+        if not self.env.lang or self.env.lang == "en_US":
+            return stored_title
+
+        # A company has only monthly, quarterly and yearly periods.
+        # Match the computed title under the caller's normal read rules.
+        periods = self.search_fetch([], ["name", "period_type", "date_from", "date_to"], order="id")
+        display_matches = periods.filtered_domain(Domain("display_name", operator, value))
+        displayed_title = Domain("id", "in", display_matches.ids)
+        if operator in Domain.NEGATIVE_OPERATORS:
+            return stored_title & displayed_title
+        return stored_title | displayed_title
 
     def _inverse_review_title(self):
         for period in self:

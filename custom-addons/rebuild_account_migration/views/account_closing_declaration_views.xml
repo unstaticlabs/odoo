@@ -597,7 +597,7 @@
         <field name="model">rebuild.account.closing.period</field>
         <field name="arch" type="xml">
             <search string="Closing Workspaces">
-                <field name="name"/>
+                <field name="review_title"/>
                 <field name="company_id"/>
                 <field name="date_to"/>
                 <filter name="open" string="Open" domain="[('state', 'not in', ['closed', 'archived'])]"/>
