@@ -2976,7 +2976,7 @@
       ],
       "sources": [
         {
-          "line": 86,
+          "line": 94,
           "path": "custom-addons/usl_expense_batch/static/src/js/expense_batch_form.js"
         }
       ]
@@ -1776186,10 +1776186,10 @@
       "version": "saas~19.3.1.0.1"
     },
     {
-      "manifest_sha256": "7ff5ad5423a1e4ebe2f718eaf8d19017baca03671f9d9e411ad28d2b0c634f94",
+      "manifest_sha256": "f660db8a7299c31fc1acd0a0830a94ebd0a0690462732ec9239d2564ff05d842",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "3d44bd54167bcbc2e0235436398fb411d29919024e778dc20ee67058494d9d33",
+      "source_sha256": "96695104450e68e86a888f3e0278bad7dc8f65936f7b064a812b17bbc56b23ca",
       "version": "saas~19.3.1.3.20"
     },
     {

@@ -190,7 +190,7 @@
                             <field name="employee_id" readonly="not active or expense_count != 0"/>
                             <field name="context_type" readonly="not active"/>
                             <field name="analytic_distribution"
-                                   widget="analytic_distribution"
+                                   widget="usl_expense_batch_analytic_distribution"
                                    readonly="not active"/>
                         </group>
                         <group>

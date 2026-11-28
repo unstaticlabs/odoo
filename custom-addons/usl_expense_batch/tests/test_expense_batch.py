@@ -1093,7 +1093,7 @@ class TestExpenseBatch(TestExpenseCommon):
         analytic_fields = batch_form.xpath(
             "//group[@string='Shared context']//field[@name='analytic_distribution']",
         )
-        self.assertEqual(analytic_fields[0].get("widget"), "analytic_distribution")
+        self.assertEqual(analytic_fields[0].get("widget"), "usl_expense_batch_analytic_distribution")
         self.assertNotEqual(analytic_fields[0].get("invisible"), "1")
         self.assertEqual(analytic_fields[0].get("readonly"), "not active")
         context_period = batch_form.xpath(

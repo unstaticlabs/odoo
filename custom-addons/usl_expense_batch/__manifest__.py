@@ -24,6 +24,7 @@
             "usl_expense_batch/static/src/js/expense_batch_attention_field.js",
             "usl_expense_batch/static/src/js/expense_batch_progress_field.js",
             "usl_expense_batch/static/src/js/expense_batch_form.js",
+            "usl_expense_batch/static/src/js/expense_batch_analytic_distribution.js",
             "usl_expense_batch/static/src/xml/expense_batch_list.xml",
             "usl_expense_batch/static/src/xml/expense_batch_workspace.xml",
             "usl_expense_batch/static/src/xml/expense_batch_attention_field.xml",
@@ -36,6 +37,7 @@
         ],
         "web.assets_tests": [
             "usl_expense_batch/static/tests/tours/expense_batch_tour.js",
+            "usl_expense_batch/static/tests/tours/expense_batch_analytic_save_tour.js",
         ],
     },
     "application": False,
