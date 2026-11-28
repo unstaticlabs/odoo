@@ -488,6 +488,11 @@ class B2cAccountingSession(models.Model):
                 # Reverting an unsaved edit restores its original valid preview.
                 session.update({name: session._origin[name] for name in session._empty_snapshot()})
 
+    def _has_company_bound_evidence(self):
+        return bool(self.env["b2c.accounting.link"].sudo().search_count(
+            [("session_id", "in", self.ids)], limit=1,
+        ))
+
     def write(self, vals):
         if self.filtered(lambda session: session.state == "locked") and not self.env.context.get(
             "b2c_unlock",
@@ -503,9 +508,7 @@ class B2cAccountingSession(models.Model):
             target_id = self._fields["company_id"].convert_to_cache(vals["company_id"], changed[0])
             self._check_scope_company_read(self.env["res.company"].browse(target_id))
             moving = changed.filtered(lambda session: session.company_id.id != target_id)
-            if moving and self.env["b2c.accounting.link"].sudo().search_count(
-                [("session_id", "in", moving.ids)], limit=1,
-            ):
+            if moving and moving._has_company_bound_evidence():
                 raise UserError(self.env._(
                     "This session has linked accounting evidence. Create a separate session in the other company."
                 ))

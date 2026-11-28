@@ -86834,7 +86834,7 @@
         "rpc:b2c.accounting.session.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.accounting.session.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.accounting.session.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:b2c.accounting.session.write": "64b867ad605bcfb30fa28de77fb52a9c76c3eeae892289717d3af9a767ea3e23",
+        "rpc:b2c.accounting.session.write": "39d0793dbeaeae666d68a91582599b40c7818fd909b667edc70734a7763fc315",
         "rpc:b2c.import.batch.action_account_for_revenue": "2354154c96d294671f682debbf3c8c0d1bb7cea2593a6b1a20e26142fca7e6f8",
         "rpc:b2c.import.batch.action_bill_fees": "8362d348133bfff8f2f19fa08db019f4f2233fb163d22936649804e7624699d2",
         "rpc:b2c.import.batch.action_convert_receipts": "3bcb172cebb641c097a2e831de2d083c8ceaf78b5bf103233afbaaae7f2b8104",
@@ -126207,13 +126207,13 @@
         "rpc:usl.document.intake.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.intake.unlink": "dfcb679122b765fd10a3d3ade09fc672c37dd00add17bad0d1f8c74b75ea2af5",
         "rpc:usl.document.intake.write": "d25540fa4595a0993c58c7b85771d1674c654ab26f13740a0781996f497a9acf",
-        "rpc:usl.document.link.create": "4c43161abe4f47a8fedf17cf04d838ad484d863f1c5cd08f4ea9d5b5a49ca3e8",
+        "rpc:usl.document.link.create": "9d7a466d331427f32d66dc0c444925a736e79787dacfffcd323b2d71a8516dcc",
         "rpc:usl.document.link.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.link.mixin.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
         "rpc:usl.document.link.mixin.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.link.mixin.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
         "rpc:usl.document.link.mixin.write": "d3901494633ba9c084d939575ba2fa021101d21705545c53707818ed28cf0361",
-        "rpc:usl.document.link.write": "e7382ab688df6410adc5b59823672748cdea32c0ef13c20d23177323d0fd4c94",
+        "rpc:usl.document.link.write": "ae9ac0cf3491cb1a0f9fc4e78c16a02f0eb888a443d9672caee5fd55e866dc90",
         "rpc:usl.document.operation.create": "8fc48fe13573f0163a560a281279e23cdfd4d39929d8346bbf4d1ba0a7e34918",
         "rpc:usl.document.operation.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:usl.document.operation.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
@@ -158650,10 +158650,10 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_refresh:orm_write:1": "f6a2fcd2494c52aa156047785892f05fadfb8d86d694c2bc74f9f2845af976cc",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1": "b882b52015493fc362ef55f3851e6eaa60747db4b984a7371f8081486ef9efb7",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1": "cfbbb43ba51d6356425a4c93c332b8c7509e93cab18638fdb5372e86ebc35994",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "ce27b3112e5d3124ae62249b9d06594fa8c7466e1491a3753add9191bbe7a252",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": "a6e15fbb62197bbd17734647180da6e7c8fd2ff06d38ef90726944ec754fc08f",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": "b414d721dc19a4b1fd0b38e796862cfae778cd04696aee2f33e71ce78a12653a",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": "548e4d7a60186aef3b98290221e2cddbe2bc3954b0d228e0e74818caa4b5b0a5",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "1c3d6ab4ec95a11814693654adcc23b238185050d35984f1d4afb95a8b712a66",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": "020ce0b6ac50364ceacf09977151ffd3d4ce6bb081e8ccc443a52cc398cfccb1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": "d80f1118a80dfa1b049f6f060ea1071e3cf0b7b6a9be1b0c2c7d5aede0044400",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": "2f7982478c8b39bb2416c148b5c4f8f9d5304d45610c625c4f820128f207be96",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:orm_create:1": "dd7e62fbba206faac8052f94f3a3c2f14c85a1383665c9c9c194eb8d7077f623",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:1": "27ba7cf4a388532e309be00d99f2243f510ef365a92f35798b168ad18d45d63e",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:2": "7c04940a3b8a92b4f5c87e3e7400f634eeb4cf7eec15d5cf22a1255d614d5552",
@@ -222970,8 +222970,7 @@
     {
       "action_keys": [
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1"
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2"
       ],
       "classification": "system_internal",
       "consequence": "Protects company ownership of monthly evidence during ordinary B2C writes.",
@@ -222986,17 +222985,68 @@
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2": {
           "rationale": "Updates the existing native evidence link within the same savepoint as its parent audit stamp. Existing link and client company controls remain active.",
           "reachability_proof": "This sink has no independent entry point. It is reached through the existing model create or write workflow and its native access checks."
-        },
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1": {
-          "rationale": "Checks whether linked evidence exists before a company change, after validating the operator’s source and target access. Returns only a generic refusal and never reads or writes the evidence itself.",
-          "reachability_proof": "This sink has no independent entry point. It is reached through the existing model create or write workflow and its native access checks."
         }
       },
       "rationale": "Session company moves retain linked evidence in its original company. Operators can still change scope when no evidence is linked.",
       "reviewed_digests": {
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1": "cebe9bc693ac09ae30ca520ecc87b9805939b98bdcaac74052b1fb16443377c5",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2": "a0d68af6d0cf5c67e62194f0c8be9235df079dcd624ff758b3eb8a25271563fa",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1": "a38291ce5adcf534989b3548d557d905375368384ff77a184eac70a13541da61"
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2": "a0d68af6d0cf5c67e62194f0c8be9235df079dcd624ff758b3eb8a25271563fa"
+      }
+    },
+    {
+      "action_keys": [
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session._has_company_bound_evidence:sudo:1",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:b2c.accounting.session._has_company_bound_evidence:sudo:1",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link._record_b2c_archive_relationship:orm_write:1",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:1",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:2",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:1",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:2"
+      ],
+      "classification": "system_internal",
+      "consequence": "Protects the company ownership of monthly accounting evidence and archived relationships through native access.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "b2c-session-review-2586-v1",
+      "id": "system_internal.commerce_and_fulfilment.session_archive_evidence_2586",
+      "overrides": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session._has_company_bound_evidence:sudo:1": {
+          "rationale": "Checks whether native accounting evidence exists in an already authorized company move, without returning an evidence row.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:b2c.accounting.session._has_company_bound_evidence:sudo:1": {
+          "rationale": "Checks whether the authorized company move would leave any archived relationship in its prior company. Returns existence only, including inactive relationships.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link._record_b2c_archive_relationship:orm_write:1": {
+          "rationale": "Touches only the native audit columns of the validated session as the linking identity, so a competing company move retries. The native archive operation requires target read, including on locked sessions; the stamp does not grant session write.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:1": {
+          "rationale": "Delegates to the existing Documents create path when all target models are outside monthly B2C sessions.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:2": {
+          "rationale": "Uses the existing Documents create path in the transaction that also checks session company and writes the parent audit stamp.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:1": {
+          "rationale": "Delegates to existing document relationship writes when target, company and archived document are unchanged.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        },
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:2": {
+          "rationale": "Uses the existing Documents write path in the transaction that checks the target session company and writes the parent audit stamp.",
+          "reachability_proof": "This sink has no independent entry point and is reached through an already reviewed model create or write path."
+        }
+      },
+      "rationale": "Existing authorization applies to all native entry points. In the Documents integration the same session row orders company and archived-evidence changes.",
+      "reviewed_digests": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session._has_company_bound_evidence:sudo:1": "8a020d771c4daedc32b8140dbd24f3582680b7f213b232ca26a2df444c9ab7af",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:b2c.accounting.session._has_company_bound_evidence:sudo:1": "daedb16b5dbb86f2dec0080aabc9e4f09bda3c2e48df0134ff8dfec7804a6a6b",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link._record_b2c_archive_relationship:orm_write:1": "46731ea8451844c8773a5ed452a47ad996d977cdd774197a20e43b5a00090ac9",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:1": "381697f8cc662147bf19364df9d92b00094996da11541e95905c94df32d82306",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.create:orm_create:2": "e9523e7703ccd09d255585f38831ba5cbd61275124c9512fda6ee755cd9ca311",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:1": "38f6402ce995abb6983bd7a975ffa74b16e37042bc9aa9ce6d4981b65b72f90f",
+        "sink:usl_documents_b2c:custom-addons/usl_documents_b2c/models/b2c_record.py:usl.document.link.write:orm_write:2": "b86222c859c521fec801f7462051406e81fc36077ab2a98241205ec9f5ed9c78"
       }
     }
   ],
@@ -223031,10 +223081,11 @@
       ]
     },
     "b2c-session-review-2586-v1": {
-      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available. A real editable scope change invalidates the snapshot and review; no-op edits and cancelled native previews preserve it, under current company and delegated actor authority. A company move with linked evidence leaves the session, its scope, and its supporting files intact, including when the write targets a mixed batch.",
+      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available. A real editable scope change invalidates the snapshot and review; no-op edits and cancelled native previews preserve it, under current company and delegated actor authority. A company move with linked evidence leaves the session, its scope, and its supporting files intact, including when the write targets a mixed batch. Archived evidence remains with its session company; an authorized Documents manager with read-only session access can still link a document to a locked session.",
       "tests": [
         "custom-addons/usl_b2c/tests/test_session_review.py::TestB2cSessionReview",
-        "custom-addons/usl_b2c/tests/test_session_snapshot_validity.py::TestSessionSnapshotValidity"
+        "custom-addons/usl_b2c/tests/test_session_snapshot_validity.py::TestSessionSnapshotValidity",
+        "custom-addons/usl_documents_b2c/tests/test_b2c_documents.py::TestB2cDocumentContexts"
       ]
     },
     "bank-rule-native-proof-20261015": {
