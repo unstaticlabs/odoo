@@ -15,7 +15,7 @@ tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
 screenshot_01-batch_png: 4fb0210a76b2b2381f92675ce0305fc9c17fa9a91f882ff1c5ba0a1f40b462c9
-screenshot_02-context_preview_png: 74ce8249b11037a036f2350233386250fa79832334d7754aa645b7066fb605da
+screenshot_02-context_preview_png: 657e5afa0a0bc13f241a78c5d52c094f30b5a01e0814ea86223f5eb2c17e25aa
 screenshot_03-exception_png: 3bef7c6d981f5b49e6eca9804a7e5783f4640e4d2c38027bb2e9b83489bffc0f
 generated: true
 ---

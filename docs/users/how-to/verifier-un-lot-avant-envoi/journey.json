@@ -70,7 +70,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-context_preview.png",
-      "sha256": "74ce8249b11037a036f2350233386250fa79832334d7754aa645b7066fb605da",
+      "sha256": "657e5afa0a0bc13f241a78c5d52c094f30b5a01e0814ea86223f5eb2c17e25aa",
       "text": "Vérifiez quels brouillons vont changer. Les dépenses déjà soumises ou approuvées gardent leurs valeurs, comme les brouillons qui ont leur propre répartition, sauf si un responsable les sélectionne pour la remplacer.",
       "trigger": ".o_dialog .o_form_view:has([name='changed_count']:contains('1')):has([name='exception_count']:contains('1')):has([name='skipped_count']:contains('1'))"
     },
