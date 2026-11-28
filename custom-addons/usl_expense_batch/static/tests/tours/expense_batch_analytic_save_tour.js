@@ -109,3 +109,74 @@ tours.add("usl_expense_batch_reopen_and_apply_analytics", {
         },
     ],
 });
+
+
+const mobileAccount = "Déplacements du projet Atlas";
+
+tours.add("usl_expense_batch_select_mobile_analytic_account", {
+    steps: () => {
+        const picker = ".analytic_distribution_popup tr[name='line_0'] .o_field_many2one input[readonly]";
+        const accounts = ".o_dialog .o_kanban_renderer";
+        const revised = `${accounts} .o_kanban_record:contains('${mobileAccount}')`;
+        return [
+            {
+                content: "Make a batch edit so Save is available",
+                trigger: ".o_usl_expense_batch_title [name='name'] input",
+                async run() {
+                    await click(this.anchor);
+                    await edit("Déplacements de démonstration", { confirm: "tab" });
+                },
+            },
+            {
+                content: "Open the batch allocation",
+                trigger: `.o_form_view ${field} .o_input_dropdown`,
+                run: "click",
+            },
+            {
+                content: "Open the account selector on mobile",
+                trigger: picker,
+                run: "click",
+            },
+            {
+                content: "Only accounts for the active plan and company are listed",
+                trigger: `${accounts}:has(.o_kanban_record:contains('${mobileAccount}')):not(:has(.o_kanban_record:contains('Hors plan'))):not(:has(.o_kanban_record:contains('Autre société')))`,
+            },
+            {
+                content: "Close the selector and return to the existing allocation",
+                trigger: ".o_dialog .o_form_button_cancel",
+                run: "click",
+            },
+            {
+                content: "The previous allocation stays selected when the selector is closed",
+                trigger: picker,
+                async run() {
+                    if (!this.anchor.value.includes("Répartition initiale")) {
+                        throw new Error("Closing the account selector changed the pending allocation");
+                    }
+                    await click(this.anchor);
+                },
+            },
+            {
+                content: "Select the revised account",
+                trigger: revised,
+                run: "click",
+            },
+            {
+                content: "Save the batch",
+                trigger: ".o_web_client:not(:has(.modal.show)) .o_form_view .o_form_button_save",
+                run: "click",
+            },
+            {
+                content: "The form finishes saving with the newly selected account",
+                trigger: `.o_form_view:not(:has(.o_form_status_indicator_buttons:not(.invisible))) ${field} .o_tag_badge_text:contains('${mobileAccount}')`,
+            },
+        ];
+    },
+});
+
+tours.add("usl_expense_batch_reopen_mobile_analytics", {
+    steps: () => [{
+        content: "The selected account is still displayed after reopening",
+        trigger: `.o_form_view ${field} .o_tag_badge_text:contains('${mobileAccount}')`,
+    }],
+});

@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record id="view_analytic_account_mobile_select" model="ir.ui.view">
+        <field name="name">account.analytic.account.kanban.expense.batch.select</field>
+        <field name="model">account.analytic.account</field>
+        <field name="priority">90</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" create="false" edit="false" delete="false">
+                <templates>
+                    <t t-name="card">
+                        <field name="display_name" class="fw-semibold py-1"/>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
     <record id="view_expense_batch_list" model="ir.ui.view">
         <field name="name">usl.expense.batch.list</field>
         <field name="model">usl.expense.batch</field>

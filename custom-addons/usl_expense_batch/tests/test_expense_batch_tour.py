@@ -268,6 +268,50 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
         self.assertEqual(self.batch.analytic_distribution, original)
         self.assertEqual(self.batch.context_revision, previous_revision)
 
+    def test_employee_can_select_an_analytic_account_on_mobile(self):
+        self.browser_size = "390x844"
+        self.touch_enabled = True
+        self.env["res.lang"]._activate_lang("fr_FR")
+        employee = self.expense_user_employee
+        employee.lang = "fr_FR"
+        self.analytic_plan.name = "Dépenses d’équipe"
+        self.analytic_account_1.name = "Répartition initiale"
+        self.analytic_account_2.name = "Fonctionnement"
+        self.batch.purpose = "Lot fictif de recette"
+        self.assertFalse(self.env["account.analytic.line"].with_user(employee).has_access("read"))
+        accounts = self.env["account.analytic.account"]
+        other_company = self.env["res.company"].create({"name": "Autre société"})
+        other_plan = self.env["account.analytic.plan"].create({"name": "Hors plan"})
+        revised, wrong_plan, wrong_company = accounts.create([
+            {
+                "name": "Déplacements du projet Atlas",
+                "plan_id": self.analytic_plan.id,
+                "company_id": self.env.company.id,
+            },
+            {
+                "name": "Hors plan",
+                "plan_id": other_plan.id,
+                "company_id": self.env.company.id,
+            },
+            {
+                "name": "Autre société",
+                "plan_id": self.analytic_plan.id,
+                "company_id": other_company.id,
+            },
+        ])
+        self.assertTrue(wrong_plan.with_user(employee).has_access("read"))
+        self.assertFalse(wrong_company.with_user(employee).has_access("read"))
+        accounting_kanban = accounts.get_view(view_type="kanban")
+        self.assertEqual(accounting_kanban["id"], self.env.ref("analytic.view_account_analytic_account_kanban").id)
+        self.assertIn('name="balance"', accounting_kanban["arch"])
+        action = self.env.ref("usl_expense_batch.action_expense_batches")
+        batch = self.batch.with_user(employee)
+        url = f"/odoo/action-{action.id}/{batch.id}"
+        self.start_tour(url, "usl_expense_batch_select_mobile_analytic_account", login=employee.login)
+        batch.invalidate_recordset(["analytic_distribution"])
+        self.assertEqual(batch.analytic_distribution, {str(revised.id): 100.0})
+        self.start_tour(url, "usl_expense_batch_reopen_mobile_analytics", login=employee.login)
+
     def test_submit_approve_and_post_role_handoff_tour(self):
         action = self.env.ref("usl_expense_batch.action_expense_batches")
         url = f"/odoo/action-{action.id}/{self.lifecycle_batch.id}"

@@ -1776189,7 +1776189,7 @@
       "manifest_sha256": "f660db8a7299c31fc1acd0a0830a94ebd0a0690462732ec9239d2564ff05d842",
       "name": "usl_expense_batch",
       "origin": "custom",
-      "source_sha256": "96695104450e68e86a888f3e0278bad7dc8f65936f7b064a812b17bbc56b23ca",
+      "source_sha256": "27cc5412c79da86522297403f016a1c353987de0195c850ae9e99ec0a0fa2a36",
       "version": "saas~19.3.1.3.20"
     },
     {
