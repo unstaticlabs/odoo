@@ -100,6 +100,29 @@ months at once are gathered into one rather than raised a hundred times: a
 closed-month finding names every month it covers, and so does one saying a
 movement was already posted.
 
+## Trace a batch from source files to accounting
+
+Open **B2C → Channel Imports** and select the batch in the company that ran it.
+Start with the batch period, the file and row counts, and the readiness findings.
+After applying the batch, follow the sales it created. After settlement,
+open the linked accounting entries to see what reached the ledger.
+
+The same evidence is available through a read-only MCP request. Describe the
+models before selecting fields, then use the batch ID and the same company as
+in Odoo.
+
+| What to verify | Where to find it |
+| --- | --- |
+| Period, state, counts and blocking findings | `b2c.import.batch` has `period_start`, `period_end`, `state`, `file_count`, `row_count`, `blocking_issue_count` and `issue_ids`. |
+| Which exports were read and whether their bytes changed | Expand the batch's `file_ids` for `provider`, `format_id`, `state`, `row_count` and the file `checksum` (SHA-256). Use these metadata fields to verify a source with your current role. |
+| How an individual source row was interpreted | Read `b2c.import.row` for the same `batch_id`. Use the provider, format, external order and line identifiers, row type (`grain`), normalized `values` and `resolution`. Use `file_id` and `source_row_number` to trace the row back to the export, and `order_id` when a canonical order is linked. |
+| Booked sales, refunds, taxes, fees and payouts | Follow `invoiced_move_ids`, `credit_note_ids`, `fee_bill_ids` and `transfer_move_ids` to the native accounting entries. Check the entry type, state and currency before comparing amounts. Keep order totals, statement fees and payouts distinct when comparing the sources. |
+
+For a rerun, compare the file checksums to identify unchanged inputs. Review the
+batch's new and known orders and its rows with conflicts after reading the
+files. The batch ID identifies this import attempt. On a rerun, Odoo matches
+canonical orders and checks existing bookkeeping before creating new entries.
+
 ## What happens to an order that does not stand
 
 A channel exports an order's present condition, not only that it once happened.
