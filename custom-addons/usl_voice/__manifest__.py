@@ -10,6 +10,7 @@
     "assets": {
         "web.assets_backend": ["usl_voice/static/src/**/*"],
         "portal.assets_chatter": ["usl_voice/static/src/transcripts.js", "usl_voice/static/src/chatter.xml"],
+        "web.assets_tests": ["usl_voice/static/tests/tours/*.js"],
         "web.assets_unit_tests": ["usl_voice/static/tests/**/*.test.js"],
     },
     "installable": True,

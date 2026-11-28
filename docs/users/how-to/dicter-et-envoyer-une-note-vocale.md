@@ -4,32 +4,52 @@ type: how-to
 description: Transformez la parole en texte dans un champ Odoo, ou partagez un vocal et sa transcription dans le fil d’une fiche.
 lang: fr
 persona: employee
+translation_of: how-to/dictate-text-and-send-voice-notes.md
 app: Fil de discussion
 models:
+  - project.task
   - mail.message
+screen: /odoo/action-project.action_view_my_task
+journey: dicter-et-envoyer-une-note-vocale
+tour: usl_voice_input_journey
 source:
-  - custom-addons/usl_voice/README.md
-  - custom-addons/usl_voice/static/src/dictation.xml
-  - custom-addons/usl_voice/static/src/chatter.js
-generated: false
+  - custom-addons/usl_voice/tests/test_voice_journeys.py
+screenshot_01-retry_png: 7649940dacde7cb09f12703d7d29406dc743de4d8f387fefed8cf4460b34623a
+screenshot_02-read_text_png: 44b955299c95b159ae74d8dce3dcab25917068676025ecfd33dae347045dc11f
+screenshot_03-read_note_png: 3697a7239cac4077e8faacff53dc9cb01af66b07b5d0a6c966613b62089611a2
+generated: true
 ---
+
+<!-- Generated from the journey named in the front matter. Change the test, then run `make docs`. -->
 
 # Dicter dans un champ et envoyer une note vocale
 
-Utilisez la **dictée** pour remplir un champ. Utilisez une **note vocale** pour partager l’enregistrement dans le fil d’une fiche.
+Transformez la parole en texte dans un champ Odoo, ou partagez un vocal et sa transcription dans le fil d’une fiche.
 
-## Dicter dans un champ
+1. Pour dicter du texte, placez le curseur dans un champ modifiable.
 
-1. Placez le curseur à l’endroit voulu. Sélectionnez le microphone ou appuyez sur **Alt+Maj+D**.
-2. Parlez en français ou en anglais. Arrêtez la dictée et relisez le texte avant d’enregistrer la fiche ou d’envoyer votre message.
-3. Si vous avez changé de champ pendant la transcription, utilisez l’option proposée pour copier le texte à l’endroit voulu.
+2. Sélectionnez le microphone ou appuyez sur **Alt+Maj+D**. Parlez en français ou en anglais.
 
-Si la transcription tarde ou échoue, choisissez **Réessayer la transcription** ou **Télécharger l’audio**. Si Odoo a pu enregistrer l’audio localement, vous le retrouverez sous **Dictée non utilisée** dans le même navigateur et la même base. Si le navigateur refuse l’enregistrement, téléchargez l’audio avant de fermer l’onglet.
+3. Arrêtez la dictée lorsque vous avez fini de parler.
 
-## Partager un vocal dans le fil d’une fiche
+4. Si la transcription échoue ou tarde, choisissez **Réessayer la transcription** ou **Télécharger l’audio**. Un enregistrement conservé localement peut réapparaître sous **Dictée non utilisée** dans le même navigateur et la même base. Si le navigateur ne peut pas le conserver, téléchargez l’audio avant de fermer l’onglet.
 
-1. Ouvrez la fiche, puis cliquez sur **Envoyer un message** ou **Note**. Choisissez **Enregistrer une note vocale** avec l’icône en forme d’onde.
-2. Parlez, arrêtez et écoutez l’aperçu. Envoyez le message ou publiez la note. Si le fichier est déjà joint à un brouillon, rouvrez ce brouillon pour l’envoyer ou le retirer.
-3. Les personnes qui ont accès au message peuvent écouter l’audio. Quand le traitement est terminé, elles peuvent lire la **Transcription** sous le message.
+   ![Si la transcription échoue ou tarde, choisissez Réessayer la transcription ou Télécharger l’audio](dicter-et-envoyer-une-note-vocale/01-retry.png)
 
-Choisissez **Note** pour partager un enregistrement en interne. Le service de transcription reçoit l’audio. La fiche et le reste du message restent dans Odoo.
+5. Relisez le texte inséré avant de l’enregistrer ou de l’envoyer. Si vous avez changé de champ pendant l’attente, copiez la transcription et collez-la à l’endroit voulu.
+
+   ![Relisez le texte inséré avant de l’enregistrer ou de l’envoyer](dicter-et-envoyer-une-note-vocale/02-read_text.png)
+
+6. Pour partager un enregistrement, ouvrez le fil de la fiche. Choisissez **Note** pour un partage interne ou **Envoyer message** pour écrire aux destinataires du message.
+
+7. Choisissez **Enregistrer une note vocale**, l’icône en forme d’onde, puis parlez.
+
+8. Arrêtez l’enregistrement pour afficher l’aperçu.
+
+9. Écoutez l’enregistrement. S’il est déjà joint à un brouillon, rouvrez ce brouillon pour l’envoyer ou le retirer.
+
+10. Quand l’enregistrement est prêt, publiez la note ou envoyez le message.
+
+11. Les personnes qui ont accès au message peuvent écouter l’audio. Après le traitement, elles peuvent lire la **Transcription** sous le message. Le service de transcription reçoit l’audio. La fiche et le reste du message restent dans Odoo.
+
+   ![Les personnes qui ont accès au message peuvent écouter l’audio](dicter-et-envoyer-une-note-vocale/03-read_note.png)

@@ -1776270,10 +1776270,10 @@
       "version": "saas~19.3.1.4.10"
     },
     {
-      "manifest_sha256": "92183832d4e4a6fb02871c9f80142abf7a88b919e42919365846a1866ce30fba",
+      "manifest_sha256": "7465e54e8d46697a6ada0266ef51078b5d8959bc87102f804d5382a8eb7b147d",
       "name": "usl_voice",
       "origin": "custom",
-      "source_sha256": "c88c02d76d88dad2aad2e2aced62966c8f56cbca46fb85a0532f420eec1aac9f",
+      "source_sha256": "ef9dd337226e352101576d86e76880732ddd203d9c344fd1dfe86076e44744f9",
       "version": "saas~19.3.1.0.0"
     },
     {
