@@ -21,6 +21,8 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
+| **Tasks** (`task_ids`) | one2many → `project.task` |  |  |
+| **Task Activities** (`tasks`) | one2many → `project.task` |  |  |
 | **Usl Show Company On Card** (`usl_show_company_on_card`) | boolean |  |  |
 
 ## Task
