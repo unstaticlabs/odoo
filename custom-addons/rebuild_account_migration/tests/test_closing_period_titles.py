@@ -1,8 +1,9 @@
 from datetime import date
 
 from freezegun import freeze_time
+from lxml import etree
 
-from odoo.tests import TransactionCase, tagged
+from odoo.tests import TransactionCase, new_test_user, tagged
 
 
 @tagged("post_install", "-at_install", "usl_closing_period_titles")
@@ -74,6 +75,47 @@ class TestClosingPeriodTitles(TransactionCase):
         periods = self.Closing.with_context(lang="fr_FR")
         self.assertEqual(periods.search(scope, order="display_name").ids, [alpha.id, omega.id])
         self.assertEqual(periods.search(scope, order="display_name desc").ids, [omega.id, alpha.id])
+
+    def test_search_view_finds_displayed_english_and_saved_custom_titles(self):
+        month = self.period("month", date(2024, 2, 1), date(2024, 2, 29))
+        annual = self.period("annual", self.start, self.end)
+        annual.name = "Dossier du conseil"
+        scope = [("id", "in", (month | annual).ids)]
+        view_id = self.env.ref(
+            "rebuild_account_migration.view_rebuild_account_closing_search"
+        ).id
+        for lang, query, expected in [
+            ("fr_FR", "février", month),
+            ("fr_FR", "February", month),
+            ("en_US", "February", month),
+            ("fr_FR", "conseil", annual),
+            ("en_US", "conseil", annual),
+        ]:
+            with self.subTest(lang=lang, query=query):
+                periods = self.Closing.with_context(lang=lang)
+                view = periods.get_view(view_id, "search")
+                title_field = etree.fromstring(view["arch"]).xpath("/search/field")[0].get("name")
+                self.assertEqual(periods.search(scope + [(title_field, "ilike", query)]).ids, expected.ids)
+        self.assertEqual(month.name, "February 2024 close")
+        self.assertEqual(annual.name, "Dossier du conseil")
+
+    def test_localized_title_search_respects_the_readers_company(self):
+        month = self.period("month", date(2024, 2, 1), date(2024, 2, 29))
+        other_company = self.env["res.company"].create({"name": "Other period title fixture"})
+        other_month = self.Closing._upsert_period(
+            other_company, "month", month.date_from, month.date_to, self.start, self.end
+        )
+        reader = new_test_user(
+            self.env, login="period_title_reader", groups="account.group_account_readonly",
+            company_id=self.company.id,
+        )
+        periods = self.Closing.with_user(reader).with_context(
+            lang="fr_FR", allowed_company_ids=[self.company.id]
+        )
+        scope = [("id", "in", (month | other_month).ids)]
+        self.assertEqual(periods.search(scope + [("review_title", "ilike", "février")]).ids, month.ids)
+        self.assertFalse(periods.search(scope + [("review_title", "not ilike", "February")]))
+        self.assertFalse(periods.search(scope + [("review_title", "not ilike", "février")]))
 
     def test_new_package_uses_the_readers_title_without_changing_the_saved_period(self):
         period = self.period("annual", self.start, self.end)
