@@ -6,7 +6,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.preprocessing import LabelBinarizer, MultiLabelBinarizer
 
 from evaluate_tag_scores import evaluate
-from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator
+from paperless_usl_tag_scores import scored_cache_entry, suggested_tag_scores, unscored_cache_validator
 
 
 def tag(pk, auto=True):
@@ -36,6 +36,21 @@ def train(single=False):
 
 
 class TestTagScores(TestCase):
+    def test_per_tag_review_points_to_false_positives_and_counts_missed_labels(self):
+        labelled = [
+            {"expected_tag_ids": [17, 41], "tag_scores": {"17": .88, "41": .1}},
+            {"expected_tag_ids": [41], "tag_scores": {"17": .90, "41": .95}},
+            {"expected_tag_ids": [17], "tag_scores": {}},
+            {"expected_tag_ids": [], "tag_scores": {"41": .99}},
+        ]
+        self.assertEqual(evaluate(labelled, .85, tag_id=17), {
+            "tag_id": 17, "documents": 4, "threshold": .85, "correct": 1, "incorrect": 1,
+            "missed": 1, "precision": .5, "recall": .5, "false_positive_rows": [2],
+        })
+        other = evaluate(labelled, .85, tag_id=41)
+        self.assertEqual(other["false_positive_rows"], [4])
+        self.assertIsNone(evaluate(labelled, 1, tag_id=17)["precision"])
+
     def test_independent_native_columns_and_visible_automatic_proposals(self):
         classifier = train()
         text = "window masonry orchestra"
@@ -65,6 +80,13 @@ class TestTagScores(TestCase):
         validate.assert_not_called()
         request.GET.clear()
         self.assertEqual(guard(request, 5), "legacy-etag")
+
+    def test_only_cache_entries_that_carry_scores_are_reused(self):
+        scored = SimpleNamespace(suggestions={"tags": [17], "tag_scores": {17: .8}})
+        legacy = SimpleNamespace(suggestions={"tags": [17]})
+        self.assertIs(scored_cache_entry(scored), scored)
+        self.assertIsNone(scored_cache_entry(legacy))
+        self.assertIsNone(scored_cache_entry(None))
 
     def test_evaluator_counts_wrong_proposals_and_unseen_expected_tags(self):
         rows = [

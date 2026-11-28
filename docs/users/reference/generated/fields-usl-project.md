@@ -35,7 +35,8 @@ Every field `usl_project` defines or adds to Odoo, by model, with its label, typ
 | **Usl Personal Return Badge** (`usl_personal_return_badge`) | json |  |  |
 | **Usl Project Return Badge** (`usl_project_return_badge`) | json |  |  |
 | **Usl Return Reasons** (`usl_return_reasons`) | json |  |  |
-| **Task content** (`usl_search_text`) | char |  |  |
+| **Waiting on** (`usl_waiting_partner_id`) | many2one → `res.partner` |  | Who or what the task is waiting on, when it is a contact. |
+| **Waiting for** (`usl_waiting_reason`) | char |  | What this task is waiting for outside Odoo, such as a supplier quote or a customer answer. A task with a reason is Waiting; clear it, or choose In Progress, to resume. To wait for another task, use Blocked By. |
 
 ## Personal Task Stage
 

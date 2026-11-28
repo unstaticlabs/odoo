@@ -155,7 +155,7 @@ class TestUslHome(TransactionCase):
         today = fields.Date.today()
         self._task("Overdue", date_deadline=today - timedelta(days=1))
         self._task("Due soon", date_deadline=today + timedelta(days=2))
-        self._task("Waiting", state="04_waiting_normal")
+        self._task("Waiting", state="04_waiting_normal", usl_waiting_reason="Synthetic supplier reply")
         self._task("Changes", state="02_changes_requested")
         result = self.env["usl.home.service"].with_user(
             self.project_user,
@@ -170,7 +170,7 @@ class TestUslHome(TransactionCase):
         today = fields.Date.today()
         self._task("Overdue", date_deadline=today - timedelta(days=1))
         self._task("Due soon", date_deadline=today + timedelta(days=2))
-        self._task("Waiting", state="04_waiting_normal")
+        self._task("Waiting", state="04_waiting_normal", usl_waiting_reason="Synthetic supplier reply")
         self._task("Changes", state="02_changes_requested")
         service = self.env["usl.home.service"].with_user(self.project_user)
         summary = service.get_my_tasks()

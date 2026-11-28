@@ -1529,6 +1529,7 @@ msgid "See why this obligation applies and how its filing date is determined."
 msgstr "Comprenez pourquoi cette obligation s’applique et comment sa date de dépôt est déterminée."
 
 #. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration__applicability_summary
 #: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_declaration_form
 msgid "Why this applies"
 msgstr "Pourquoi cette obligation s’applique"
@@ -14145,3 +14146,47 @@ msgstr "Pièce DES ou DAS2 à examiner"
 #: code:addons/rebuild_account_migration/models/report_export_wizard.py:0
 msgid "This report must use the company of its closing workspace. Reopen the report from the workspace to restore its company."
 msgstr "Le rapport doit porter sur la société du dossier de clôture. Rouvrez-le depuis ce dossier pour retrouver la bonne société."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/declaration_sync.py:0
+msgid "A posted invoice or credit note for EU services was found this month. Open Review documents to check the source before filing."
+msgstr "Odoo a trouvé ce mois-ci une facture ou un avoir comptabilisé pour des prestations de services dans l’Union européenne. Ouvrez « Voir les pièces » pour vérifier le justificatif avant le dépôt."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing.py:0
+#, python-format
+msgid "%(month)s close"
+msgstr "Clôture mensuelle (%(month)s)"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing.py:0
+#, python-format
+msgid "Quarter close %(start)s - %(end)s"
+msgstr "Clôture trimestrielle du %(start)s au %(end)s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing.py:0
+#, python-format
+msgid "Annual statutory close %(start)s - %(end)s"
+msgstr "Clôture annuelle du %(start)s au %(end)s"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_closing_period__review_title
+#: model_terms:ir.ui.view,arch_db:rebuild_account_migration.view_rebuild_account_closing_list
+msgid "Period Title"
+msgstr "Titre de la période"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing.py:0
+msgid "Closing Review Package"
+msgstr "Dossier de clôture"
+
+#. module: rebuild_account_migration
+#: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__partner_vat
+msgid "VAT number"
+msgstr "Numéro de TVA"

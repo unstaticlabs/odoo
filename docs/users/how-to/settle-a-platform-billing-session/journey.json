@@ -32,7 +32,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-draft.png",
-      "sha256": "9494ebc1038c316cd3a031e0be4968fb2afe2c6d11d59a254e6bcdfdeb05edbb",
+      "sha256": "f6da54ec4ab44d7a91c536b90c7ee25802082ade646351145298fe342f503818",
       "text": "Open **Platform Billing > Billing Sessions** and choose a session in **Draft** whose payouts are entered and whose bank receipt was matched.",
       "trigger": ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)"
     },
@@ -82,7 +82,7 @@
       "index": 6,
       "run": "",
       "screenshot": "02-paid.png",
-      "sha256": "32a09f825feb678ccf15e01d4c1e25c2961a71e314ab1d486948513177777467",
+      "sha256": "a099d2f3d9704a8e14a3eda6f32364b4ba2fa5a238e01eafc5a8c2c87b1bd3ab",
       "text": "The session is **Paid**: the invoice, the bill and the bank line agree.",
       "trigger": ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current"
     },

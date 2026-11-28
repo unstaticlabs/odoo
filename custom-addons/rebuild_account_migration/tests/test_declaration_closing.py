@@ -152,7 +152,7 @@ class TestDeclarationAndClosing(TransactionCase):
             ),
             2,
         )
-        self.assertTrue(basis.xpath(".//field[@name='applicability_reason']"))
+        self.assertTrue(basis.xpath(".//field[@name='applicability_summary']"))
         self.assertTrue(basis.xpath(".//field[@name='deadline_basis']"))
 
     def test_hygiene_issue_list_shows_company_for_multi_company_users(self):

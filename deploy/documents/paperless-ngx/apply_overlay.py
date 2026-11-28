@@ -83,6 +83,23 @@ patch_file(
                             ),
 """,
         ),
+        (
+            '                re_path(\n                    "^statistics/",',
+            '                path("tag_review/", include("paperless_tag_review.urls")),\n'
+            '                re_path(\n                    "^statistics/",',
+        ),
+    ),
+)
+
+patch_file(
+    "documents/management/commands/document_retagger.py",
+    "26ef307c240944123c2bff8db69be648a4297e8d5b684bef2790b5b20dea0432",
+    (
+        ("import logging\n", "import logging\nfrom uuid import uuid4\n"),
+        ("            for document in self.track_with_stats(\n",
+         "            tag_review_batch = uuid4()\n            for document in self.track_with_stats(\n"),
+        ("                    tags_to_add, tags_to_remove = set_tags(\n                        None,\n                        document,\n",
+         "                    tags_to_add, tags_to_remove = set_tags(\n                        None,\n                        document,\n                        tag_review_batch=tag_review_batch,\n"),
     ),
 )
 
@@ -271,6 +288,35 @@ patch_file(
     "documents/signals/handlers.py",
     "2e066e8eeede1d100d2f6a3607bcdb248d245e436cde3a408bf05c872dd3cc57",
     (
+        ("from django.db import models\n", "from django.db import models, transaction\nfrom paperless_tag_review.runtime import classifier_run\n"),
+        ("def set_tags(\n", "@transaction.atomic\n@classifier_run()\ndef set_tags(\n"),
+        ("    matched_tags = matching.match_tags(document, classifier)\n",
+         "    matched_tags = [tag for tag in matching.match_tags(document, classifier)\n"
+         "                    if respects_manual_removals(tag, rejected)]\n"),
+        (
+            "    # Compute which tags would be removed under replace mode.\n",
+            "    from paperless_tag_review.service import apply_reviewed_tags, reviewed_tag_scope, respects_manual_removals\n"
+            "    guarded, rejected = reviewed_tag_scope(document)\n"
+            "    # Compute which tags would be removed under replace mode.\n",
+        ),
+        (
+            "            document.tags.exclude(\n                is_inbox_tag=True,",
+            "            document.tags.exclude(pk__in=guarded).exclude(\n                is_inbox_tag=True,",
+        ),
+        (
+            "        Document.tags.through.objects.filter(document=document).exclude(\n",
+            "        Document.tags.through.objects.filter(document=document).exclude(tag_id__in=guarded).exclude(\n",
+        ),
+        (
+            "    tags_to_add = set(matched_tags) - current_tags\n",
+            "    tags_to_add = {tag for tag in matched_tags if tag.pk not in guarded} - current_tags\n",
+        ),
+        (
+            "    return tags_to_add, tags_to_remove\n",
+            "    reviewed = apply_reviewed_tags(document, classifier, matched_tags, guarded,\n"
+            "                                  dry_run=dry_run, batch=kwargs.get('tag_review_batch'))\n"
+            "    return tags_to_add | reviewed, tags_to_remove\n",
+        ),
         (
             "import logging\n",
             "import logging\nimport os\n",
@@ -367,6 +413,10 @@ patch_file(
     "paperless/settings/__init__.py",
     "80a0b4e12d7531e2ab98bb1377c93064ac7d1b466b33dc3cfcb90d84c51ed0e6",
     (
+        (
+            '    "documents.apps.DocumentsConfig",\n',
+            '    "documents.apps.DocumentsConfig",\n    "paperless_tag_review.apps.PaperlessTagReviewConfig",\n',
+        ),
         (
             '''if LLM_EMBEDDING_CHUNK_SIZE < 1:
     raise ImproperlyConfigured("PAPERLESS_AI_LLM_EMBEDDING_CHUNK_SIZE must be >= 1")
@@ -581,7 +631,7 @@ from paperless_ai.exceptions import LLMTimeoutError
             """from paperless_ai.exceptions import LLMProviderError
 from paperless_ai.exceptions import LLMTimeoutError
 from paperless_usl_ranges import ranged_file_response
-from paperless_usl_tag_scores import suggested_tag_scores, unscored_cache_validator, wants_tag_scores
+from paperless_usl_tag_scores import scored_cache_entry, suggested_tag_scores, unscored_cache_validator, wants_tag_scores
 from paperless_personal_ai.crypto import PersonalAIKeyServiceError
 from paperless_personal_ai.runtime import generate_personal_metadata_suggestions
 from paperless_personal_ai.runtime import PersonalAIGenerationError
@@ -600,7 +650,7 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         (
             "        document_suggestions = get_suggestion_cache(doc.pk)\n",
             "        include_scores = wants_tag_scores(request)\n"
-            "        document_suggestions = None if include_scores else get_suggestion_cache(doc.pk)\n",
+            "        document_suggestions = None if include_scores else scored_cache_entry(get_suggestion_cache(doc.pk))\n",
         ),
         (
             '        resp_data = {\n            "correspondents": [',
@@ -613,8 +663,8 @@ from paperless_personal_ai.service import resolve_personal_llm_config
         ),
         (
             "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
+            "        resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
             "        if include_scores:\n"
-            "            resp_data['tag_scores'] = suggested_tag_scores(classifier, doc.suggestion_content, tags)\n"
             "            return Response(resp_data, headers={'Cache-Control': 'private, no-store'})\n"
             "        set_suggestions_cache(doc.pk, resp_data, classifier)\n",
         ),

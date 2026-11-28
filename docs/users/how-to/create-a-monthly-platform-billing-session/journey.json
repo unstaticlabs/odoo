@@ -123,7 +123,7 @@
       "index": 9,
       "run": "",
       "screenshot": "04-coverage.png",
-      "sha256": "ca0817b3e6dde6f24f5a9575540c63aa04a84232c3d749d3a3a11c5a9e3ab01c",
+      "sha256": "6d0c2f1d1f989c633910ba2769051c3d6dd71760341ace42817ec16000e4cd83",
       "text": "When an active platform has no payout this month, Odoo says which one before posting. This is the moment to add a forgotten line.",
       "trigger": ".modal .alert:contains('Browser platform without August payout')"
     },
@@ -143,7 +143,7 @@
       "index": 11,
       "run": "",
       "screenshot": "05-posted.png",
-      "sha256": "3c9d1cce3b29e91534ed78ce758bdae335362557bf72fa6703beebeb31dbc528",
+      "sha256": "c215a52af859aad647cd4869462b6b8e932abec67d4dee0dced5897df952fd0d",
       "text": "The session is **Posted**. A payout whose money has not arrived stays open; the invoice is posted and waits for the bank.",
       "trigger": ".o_form_view .o_statusbar_status button[data-value='posted'].o_arrow_button_current"
     },

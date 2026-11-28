@@ -13,8 +13,8 @@ journey: controler-un-lot-en-lecture-seule
 tour: usl_expense_batch_readonly_audit
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-evidence_png: 6a94b6959b9bf240ae73d5541a7d120464e76248edf8bb4577cca8259693dd51
-screenshot_02-reconciliation_png: 8579eb298176eefa8699a56bfdb97242cdfcc988eeb5a8e286f5438686e17a5f
+screenshot_01-evidence_png: 9d5d833b7c90cbd3fe069d5d964b6ff1a5abbcbe933c3cb524ec97e8e363d3d0
+screenshot_02-reconciliation_png: 3a5caa19efd376ae80c010e45edcace8249cda3c635da89cf42f43ee19b33ab9
 generated: true
 ---
 

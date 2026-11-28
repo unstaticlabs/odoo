@@ -3,6 +3,7 @@ from odoo.fields import Domain
 from odoo.exceptions import ValidationError
 
 from .content_search import company_domain, readable_content_domain, task_content_execution
+from .task_lexical_index import INDEXED_FIELDS
 
 
 class ProjectTask(models.Model):
@@ -39,7 +40,8 @@ class ProjectTask(models.Model):
     @api.model
     def _usl_content_search_domain(self, value):
         text = str(value or "").strip()
-        domain = readable_content_domain(self, text)
+        domain = readable_content_domain(self, text, exclude_fields=set(INDEXED_FIELDS))
+        domain |= self._usl_indexed_task_content_domain(text)
         if not text:
             return domain
         Activity = self.env["mail.activity"]

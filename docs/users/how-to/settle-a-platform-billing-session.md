@@ -13,8 +13,8 @@ journey: settle-a-platform-billing-session
 tour: usl_platform_billing_manager_journey
 source:
   - custom-addons/usl_platform_billing/tests/test_platform_billing_journeys.py
-screenshot_01-draft_png: 9494ebc1038c316cd3a031e0be4968fb2afe2c6d11d59a254e6bcdfdeb05edbb
-screenshot_02-paid_png: 32a09f825feb678ccf15e01d4c1e25c2961a71e314ab1d486948513177777467
+screenshot_01-draft_png: f6da54ec4ab44d7a91c536b90c7ee25802082ade646351145298fe342f503818
+screenshot_02-paid_png: a099d2f3d9704a8e14a3eda6f32364b4ba2fa5a238e01eafc5a8c2c87b1bd3ab
 screenshot_03-moves_png: 9becbf2e0fc6e1cf653d29b64f12a8c5fe95d72499f9777417f20be51409061c
 generated: true
 ---

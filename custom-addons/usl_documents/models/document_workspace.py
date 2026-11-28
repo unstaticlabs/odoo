@@ -1080,7 +1080,10 @@ class UslDocument(models.Model):
         payload = self._paperless().get_document_suggestions(
             self.paperless_id, include_tag_scores=include_tag_scores,
         ) or {}
-        scores = payload.get("tag_scores") if include_tag_scores else None
+        # The archive stores its model scores with the cached suggestions, so
+        # an ordinary read carries them. A server that predates scores
+        # sends none and the proposals keep their plain labels.
+        scores = payload.get("tag_scores")
         suggestions = []
         definitions = (
             (
@@ -1119,8 +1122,10 @@ class UslDocument(models.Model):
                     "kind": kind, "field": field_name,
                     "record_id": record.id, "label": record.display_name,
                 }
-                if kind == "tag" and isinstance(scores, dict):
-                    score = scores.get(str(remote_id))
+                if kind == "tag":
+                    # A text rule proposes this tag, so there is no model score to read.
+                    proposal["rule"] = record.matching_algorithm != "6"
+                    score = scores.get(str(remote_id)) if isinstance(scores, dict) else None
                     if type(score) in (float, int) and 0 <= score <= 1:
                         proposal["classifier_score"] = score
                 suggestions.append(proposal)

@@ -790,6 +790,7 @@ msgstr "Identité d'entreprise"
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.xml:0
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1093,6 +1094,7 @@ msgstr "Tri personnalisé"
 
 #. module: usl_documents
 #. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Date"
 msgstr "Date"
@@ -4603,7 +4605,10 @@ msgid "System Rule"
 msgstr "Règle du système"
 
 #. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: model:ir.model.fields,field_description:usl_documents.field_usl_document_context_tag__tag_id
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_tag_rule_wizard__tag_id
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
 msgid "Tag"
 msgstr "Étiquette"
@@ -5266,6 +5271,7 @@ msgstr "Tente à nouveau de charger ce document depuis Paperless."
 
 #. module: usl_documents
 #. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "Type"
 msgstr "Type"
@@ -6231,32 +6237,92 @@ msgstr "Conservez ce fichier dans Documents avant de le dissocier de l’enregis
 
 #. module: usl_documents
 #. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Suggested by Paperless"
-msgstr "Suggestions de Paperless"
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.xml:0
-msgid "Review before applying."
-msgstr "Vérifiez avant d’appliquer."
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Rule"
+msgstr "Règle"
 
 #. module: usl_documents
 #. odoo-javascript
 #: code:addons/usl_documents/static/src/documents_app.js:0
-msgid "From"
-msgstr "De"
+msgid "How closely this document resembles the ones you already tagged %s. Higher is more similar; it is not a guarantee."
+msgstr "Ressemblance de ce document avec ceux que vous avez déjà classés sous %s. Plus le score est élevé, plus ils se ressemblent ; ce n’est pas une garantie."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "A text rule on this tag matched this document."
+msgstr "Une règle de texte de cette étiquette correspond à ce document."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Add tag %s, similarity %s out of 100"
+msgstr "Ajouter l’étiquette %s, ressemblance %s sur 100"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Add tag %s, suggested by a rule"
+msgstr "Ajouter l’étiquette %s, suggérée par une règle"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Add tag %s"
+msgstr "Ajouter l’étiquette %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Dismiss suggestion %s"
+msgstr "Ignorer la suggestion %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Add all (%s)"
+msgstr "Tout ajouter (%s)"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Tag %s added"
+msgstr "Étiquette %s ajoutée"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "%s tags added"
+msgstr "%s étiquettes ajoutées"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.js:0
+msgid "Undo"
+msgstr "Annuler"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Suggestions"
+msgstr "Suggestions"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Suggested:"
+msgstr "Suggestion :"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Use"
+msgstr "Utiliser"
 
 #. module: usl_documents
 #: model:ir.model.fields,help:usl_documents.field_usl_document_intake__email_from
 msgid "From header of the message this record was created from."
 msgstr "En-tête From du message à l’origine de cet enregistrement."
-
-#. module: usl_documents
-#. odoo-javascript
-#: code:addons/usl_documents/static/src/documents_app.js:0
-msgid "Suggestion"
-msgstr "Suggestion"
 
 #. module: usl_documents
 #. odoo-python
@@ -6668,6 +6734,11 @@ msgid "Odoo no longer allows attachments on this approved expense. Keep its orig
 msgstr "Odoo n’autorise plus l’ajout de pièces jointes sur cette note de frais approuvée. Conservez son justificatif original et joignez les preuves complémentaires à son écriture comptable."
 
 #. module: usl_documents
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This approved expense has no accounting entry yet. Select a receipt already attached to it. To add a new receipt, a user with permission can return it to draft, attach the receipt and submit the expense again."
+msgstr "Cette note de frais approuvée n’a pas encore d’écriture comptable. Sélectionnez un justificatif déjà joint à la note. Pour en ajouter un nouveau, une personne autorisée peut remettre la note en brouillon, joindre le justificatif et soumettre à nouveau la note."
+
+#. module: usl_documents
 #: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_form
 msgid ""
 "Open this document in the Documents app to change its title, correspondent, "
@@ -6737,3 +6808,242 @@ msgstr "Le document n’a pas pu être rechargé."
 #: code:addons/usl_documents/static/src/documents_app.xml:0
 msgid "The preview could not be loaded."
 msgstr "Impossible de charger l’aperçu."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The complete document file is unavailable. Try its download URL."
+msgstr "Le fichier complet est indisponible. Essayez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has an invalid size."
+msgstr "La taille du fichier transféré est invalide."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "This file is too large for direct reading. Use its download URL."
+msgstr "Ce fichier est trop volumineux pour la lecture directe. Utilisez son lien de téléchargement."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer is incomplete. No file was returned."
+msgstr "Le transfert du document est incomplet. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document bytes do not match the selected version. No file was returned."
+msgstr "Le contenu reçu ne correspond pas à la version choisie. Aucun fichier n’a été renvoyé."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The document transfer has no proof of completion. No file was returned. Retry when the archive provides a checksum or a complete framed response."
+msgstr "La réception complète du document ne peut pas être confirmée. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit une empreinte ou une réponse dont le transfert complet est vérifiable."
+
+#. module: usl_documents
+#: code:addons/usl_documents/models/document_mcp.py:0
+msgid "The archive returned a transformed file encoding. No file was returned. Retry when the archive serves the original bytes."
+msgstr "L’archive a renvoyé un fichier avec un encodage transformé. Aucun fichier n’a été renvoyé. Réessayez lorsque l’archive fournit les octets d’origine."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense is linked to vendor bill %(bill)s. Open the bill to attach additional evidence there. To replace this expense's own receipt, select one already attached to it, or a user with permission can return the expense to draft, attach the receipt and submit it again."
+msgstr "Cette note de frais est liée à la facture fournisseur %(bill)s. Ouvrez la facture pour y joindre des justificatifs supplémentaires. Pour remplacer le justificatif de la note de frais, sélectionnez-en un déjà joint, ou une personne autorisée peut la remettre en brouillon, joindre le justificatif et la soumettre à nouveau."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense is linked to vendor bill %(bill)s. An accountant, or someone with access to the bill, can attach additional evidence there. To replace this expense's own receipt, select one already attached to it, or a user with permission can return the expense to draft, attach the receipt and submit it again."
+msgstr "Cette note de frais est liée à la facture fournisseur %(bill)s. Une personne en charge de la comptabilité, ou ayant accès à la facture, peut y joindre des justificatifs supplémentaires. Pour remplacer le justificatif de la note de frais, sélectionnez-en un déjà joint, ou une personne autorisée peut la remettre en brouillon, joindre le justificatif et la soumettre à nouveau."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/source_evidence.py:0
+msgid "This expense was refused. To add a new receipt, a user with permission can return it to draft, attach the receipt and submit the expense again."
+msgstr "Cette note de frais a été refusée. Une personne autorisée peut la remettre en brouillon, joindre le nouveau justificatif et la soumettre à nouveau."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Automatic tag history"
+msgstr "Historique des étiquettes automatiques"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "No score-based tags have been applied to this document."
+msgstr "Aucune étiquette n’a été appliquée à ce document à partir d’un score."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Review batch"
+msgstr "Vérifier le lot"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Undoing removes every automatic tag this run added to the documents below. Later manual changes are kept."
+msgstr "L’annulation retire toutes les étiquettes automatiques que ce lot a ajoutées aux documents ci-dessous. Les modifications manuelles ultérieures sont conservées."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "No changes remain on documents you can edit."
+msgstr "Il ne reste aucune modification sur les documents que vous pouvez éditer."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Undo this batch"
+msgstr "Annuler ce lot"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/documents_app.xml:0
+msgid "Back to history"
+msgstr "Revenir à l’historique"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Applied"
+msgstr "Appliquée"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Removed manually"
+msgstr "Retirée manuellement"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Undone"
+msgstr "Annulée"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Kept (changed by hand)"
+msgstr "Conservée (modifiée à la main)"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Tag history could not be loaded."
+msgstr "Impossible de charger l’historique des étiquettes."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Score %s/100 · Minimum %s"
+msgstr "Score %s/100 · Minimum %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "The batch could not be loaded."
+msgstr "Impossible de charger le lot."
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Tags removed: %s"
+msgstr "Étiquettes retirées : %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Tags to remove: %s"
+msgstr "Étiquettes à retirer : %s"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "No remaining automatic change"
+msgstr "Aucune modification automatique restante"
+
+#. module: usl_documents
+#. odoo-javascript
+#: code:addons/usl_documents/static/src/classifier_history.js:0
+msgid "Could not confirm. Retry to check the archive."
+msgstr "Confirmation impossible. Réessayez pour vérifier dans l’archive."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "Classifier rule"
+msgstr "Règle de classement"
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "The archive needs to be upgraded before setting a classifier rule."
+msgstr "Une mise à jour de l’archive est nécessaire pour configurer la règle de classement."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "The archive needs to be upgraded before showing automatic tag history."
+msgstr "Une mise à jour de l’archive est nécessaire pour afficher l’historique des étiquettes automatiques."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "Enter a whole-number score from 0 to 100."
+msgstr "Saisissez un score entier entre 0 et 100."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "Choose a tag that uses the learned classification method."
+msgstr "Choisissez une étiquette qui utilise le classement par apprentissage."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "Restore the document before changing its tags."
+msgstr "Restaurez le document avant de modifier ses étiquettes."
+
+#. module: usl_documents
+#. odoo-python
+#: code:addons/usl_documents/models/classifier_review.py:0
+msgid "Choose a batch from the document history."
+msgstr "Choisissez un lot dans l’historique du document."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
+msgid "Paperless will apply this tag only when its local model reaches this score. Check the results on independently reviewed documents before choosing a minimum."
+msgstr "Paperless n’appliquera cette étiquette que lorsque son modèle local atteindra ce score. Vérifiez les résultats sur des documents classés séparément à la main avant de choisir un minimum."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
+msgid "Paperless uses its standard learned classification for new matches. Previous reviews and manual corrections are kept."
+msgstr "Paperless utilise son classement habituel pour les nouveaux résultats. Les décisions précédentes et les corrections manuelles sont conservées."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
+msgid "Save rule"
+msgstr "Enregistrer la règle"
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_document_tag_rule_wizard
+msgid "Use this rule the next time Paperless classifies a document. Existing tags are kept."
+msgstr "Utiliser cette règle au prochain classement par Paperless. Les étiquettes existantes sont conservées."
+
+#. module: usl_documents
+#: model_terms:ir.ui.view,arch_db:usl_documents.view_usl_paperless_tag_form
+msgid "Score rule…"
+msgstr "Règle de score…"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_tag_rule_wizard__use_score
+msgid "Require a model score"
+msgstr "Exiger un score du modèle"
+
+#. module: usl_documents
+#: model:ir.model.fields,field_description:usl_documents.field_usl_document_tag_rule_wizard__minimum_score
+msgid "Minimum score out of 100"
+msgstr "Score minimum sur 100"

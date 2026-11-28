@@ -4,10 +4,24 @@
     <t t-name="usl_voice.FieldDictation">
         <div t-if="this.state.recovered" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow p-3" role="status">
             <div class="fw-bold mb-1">Your dictation is ready</div>
-            <div class="text-muted small mb-2">The field changed while Odoo was transcribing, so nothing was inserted. Copy the text and paste it where you need it.</div>
+            <div t-if="this.destination" class="text-muted small mb-2">The field changed while Odoo was transcribing, so nothing was inserted. Copy the text and paste it where you need it.</div>
+            <div t-else="" class="text-muted small mb-2">This recording was kept from an earlier page. Copy the text and paste it where you need it.</div>
             <p class="o-usl-recovered-text border-start border-2 ps-2 mb-3" t-esc="this.state.recovered"/>
             <button class="btn btn-primary btn-sm" data-usl-action="copyText"><i class="fa fa-clipboard me-1" aria-hidden="true"/>Copy transcript</button>
-            <button class="btn btn-secondary btn-sm ms-2" data-usl-action="cancel">Dismiss</button>
+            <button class="btn btn-link btn-sm text-muted ms-1" data-usl-action="discard">Dismiss</button>
+        </div>
+        <div t-elif="this.state.mode === 'retry'" class="o-usl-dictation o-usl-recovered border rounded bg-view shadow p-3" role="status">
+            <t t-if="this.state.reason === 'silent'">
+                <div class="fw-bold mb-1">No speech detected</div>
+                <p class="text-muted small mb-2">Your recording is kept. Try again, or download it.</p>
+            </t>
+            <t t-else="">
+                <div class="fw-bold mb-1">Waiting for transcription</div>
+                <p class="text-muted small mb-2">Your recording is kept. Retry when ready, or download it.</p>
+            </t>
+            <button class="btn btn-primary btn-sm" data-usl-action="retry">Retry transcription</button>
+            <button class="btn btn-link btn-sm ms-1" data-usl-action="download"><i class="fa fa-download me-1" aria-hidden="true"/>Download audio</button>
+            <button class="btn btn-link btn-sm text-muted" data-usl-action="discard">Discard</button>
         </div>
         <div t-elif="(this.state.visible and this.state.wanted and !this.state.typing) or this.state.mode !== 'idle'" class="o-usl-dictation o-usl-dictation-controls d-flex align-items-start" t-custom-ref="controls"
              t-att-class="{ 'o-usl-dictation-above flex-column-reverse': this.state.above, 'flex-column': !this.state.above }"
@@ -27,12 +41,33 @@
                     <t t-if="this.state.mode === 'starting'">Starting…</t>
                     <t t-else="">Transcribing…</t>
                 </span>
-                <button class="btn btn-link btn-sm text-muted rounded-circle" title="Cancel dictation (Esc)" aria-label="Cancel dictation" data-usl-action="cancel"><i class="oi oi-close" aria-hidden="true"/></button>
+                <!-- While transcribing, the cross only stops the wait: the recording is never dropped. -->
+                <button t-if="this.state.mode === 'processing'" class="btn btn-link btn-sm text-muted rounded-circle" title="Stop waiting. The recording is kept." aria-label="Stop waiting" data-usl-action="stopWaiting"><i class="oi oi-close" aria-hidden="true"/></button>
+                <button t-else="" class="btn btn-link btn-sm text-muted rounded-circle" title="Cancel dictation (Esc)" aria-label="Cancel dictation" data-usl-action="cancel"><i class="oi oi-close" aria-hidden="true"/></button>
             </div>
-            <!-- The last words heard, clipped at their start: a caption, not the final text. -->
-            <div t-if="this.state.preview and this.state.mode !== 'idle'" class="o-usl-dictation-preview border rounded bg-view shadow-sm small text-muted ps-3 pe-2 py-1" title="Heard so far">
-                <span t-esc="this.state.preview"/>
-            </div>
+        </div>
+        <!-- A recording kept from an earlier page (reload, crash, logout, a tab the phone closed): offered again until used or discarded. -->
+        <div t-if="this.state.stored.length and this.state.mode === 'idle' and !this.state.recovered and !this.state.collapsed" class="o-usl-dictation o-usl-recovered o-usl-stored border rounded bg-view shadow p-3" role="status">
+            <div class="fw-bold mb-1" t-esc="this.storedTitle"/>
+            <p class="text-muted small mb-2" t-esc="this.storedBody"/>
+            <button class="btn btn-primary btn-sm" data-usl-action="retry" t-att-data-usl-id="this.state.stored[0].id">
+                <t t-if="this.state.stored[0].kind === 'voice_note'">Attach to the record</t>
+                <t t-else="">Retry transcription</t>
+            </button>
+            <button class="btn btn-link btn-sm ms-1" data-usl-action="download" t-att-data-usl-id="this.state.stored[0].id"><i class="fa fa-download me-1" aria-hidden="true"/>Download audio</button>
+            <button class="btn btn-link btn-sm text-muted" data-usl-action="discard" t-att-data-usl-id="this.state.stored[0].id">Discard</button>
+            <button class="btn btn-link btn-sm text-muted" data-usl-action="collapseStored">Later</button>
+        </div>
+        <!-- Out of the way, never gone: a tap brings the recordings back. -->
+        <button t-elif="this.state.stored.length and this.state.mode === 'idle' and !this.state.recovered" class="o-usl-dictation o-usl-stored-pill btn btn-primary btn-sm rounded-pill shadow"
+                data-usl-action="expandStored" title="Show the unused recordings" aria-label="Show the unused recordings">
+            <i class="fa fa-microphone me-1" aria-hidden="true"/><t t-esc="this.state.stored.length"/>
+        </button>
+        <!-- The last words heard, in the field at the insertion point and in its own type, clipped
+             at their start: where the text will go, but not yet the final text. -->
+        <div t-if="this.state.preview and this.state.caption and this.state.mode !== 'idle' and !this.state.recovered" class="o-usl-dictation-caption"
+             t-att-class="{ 'o-usl-dictation-caption-clipped': this.state.clipped }" t-att-style="this.state.caption" t-custom-ref="caption" aria-hidden="true">
+            <span t-esc="this.state.preview"/>
         </div>
     </t>
 </templates>

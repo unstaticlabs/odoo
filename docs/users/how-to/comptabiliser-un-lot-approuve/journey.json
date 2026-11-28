@@ -32,7 +32,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-approved.png",
-      "sha256": "4b453d2e73c3517854f797c86109c4bc195b61fdfac513edab982046c65b8b84",
+      "sha256": "eeff3464d7836be3545b0137d2c12e13bda2f1e6f8dd7fceb0933a02666ce3a6",
       "text": "Dans **Dépenses > Lots de dépenses**, ouvrez le lot approuvé. Vérifiez les montants payés par la société et par le salarié.",
       "trigger": "button[name='action_post']"
     },
