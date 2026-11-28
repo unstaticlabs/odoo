@@ -1,16 +1,9 @@
 """Read the posted documents behind potential declarations, independently of filing state."""
 
-import re
-
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.fields import Domain
 from odoo.tools import format_date
-
-from .declaration import EU_COUNTRY_CODES
-
-
-DES_LABEL = re.compile(r"\bdes\s+(?:requis(?:e)?|required)\b", re.I)
 
 
 class DeclarationCandidateReview(models.TransientModel):
@@ -73,6 +66,7 @@ class DeclarationCandidateReview(models.TransientModel):
         des = self.kind == "des"
         # One year is the usual DAS2 review: a second, folded level would only add a click.
         one_year = self.date_from.year == self.date_to.year
+        one_period = (self.date_from.year, self.date_from.month) == (self.date_to.year, self.date_to.month) if des else one_year
         self.line_ids = [Command.clear()] + [Command.create({
             "date": row["date"], "period": row["period"], "partner_id": row["partner_id"] or False,
             "move_id": row["source_id"], "payment_move_id": row["payment_id"] or False, "reason": row["reason"],
@@ -91,7 +85,9 @@ class DeclarationCandidateReview(models.TransientModel):
             "views": [(self.env.ref(f"rebuild_account_migration.{view}").id, "list")],
             "search_view_id": [self.env.ref("rebuild_account_migration.view_declaration_candidate_line_search").id],
             "domain": [("review_id", "=", self.id)],
-            "context": {"group_by": ["date:month"] if des else ["partner_id"] if one_year else ["period", "partner_id"]},
+            # A DES return covers one month and has one line per customer VAT number:
+            # add up per customer, and per month first when the range spans several.
+            "context": {"group_by": ["partner_id"] if one_period else ["period", "partner_id"]},
             "help": self.env._("No source documents listed. If you opened this list more than an hour ago, show the documents again from the declaration calendar."),
             "target": "current",
         }
@@ -107,26 +103,12 @@ class DeclarationCandidateReview(models.TransientModel):
         }
 
     def _des_rows(self):
-        moves = self.env["account.move"].with_context(active_test=False).search([
-            ("company_id", "=", self.company_id.id), ("state", "=", "posted"),
-            ("move_type", "in", ["out_invoice", "out_refund"]),
-            ("invoice_date", ">=", self.date_from), ("invoice_date", "<=", self.date_to),
-            ("commercial_partner_id.country_id.code", "in", sorted(EU_COUNTRY_CODES - {"FR"})),
-            ("commercial_partner_id.vat", "!=", False),
-        ])
-        native = self.env["account.chart.template"].ref("tva_sale_service_intra_0", raise_if_not_found=False)
-        # Whatever opens a DES in the calendar must also appear here, or the
-        # declaration would point at an empty review.
-        identified = set(self.env["rebuild.account.declaration"]._des_signal_taxes(moves.invoice_line_ids.tax_ids).ids)
-        for tax in moves.invoice_line_ids.tax_ids:
-            if tax == native or any(
-                DES_LABEL.search(" ".join(filter(None, (translated.name, translated.description))))
-                for translated in (tax, tax.with_context(lang="fr_FR"), tax.with_context(lang="en_US"))
-            ):
-                identified.add(tax.id)
+        moves, service_taxes = self.env["rebuild.account.declaration"]._des_period_sources(
+            self.company_id, self.date_from, self.date_to,
+        )
         rows = []
         for move in moves:
-            taxes = move.invoice_line_ids.tax_ids.filtered(lambda tax: tax.id in identified)
+            taxes = move.invoice_line_ids.tax_ids & service_taxes
             if taxes:
                 rows.append({
                     **self._source_row(move, move.invoice_date, self.env._(
@@ -231,6 +213,10 @@ class DeclarationCandidateReviewLine(models.TransientModel):
     date = fields.Date(help="Invoice date for DES, payment date for DAS2.")
     period = fields.Char(help="Declaration period the document belongs to: a month for DES, a year for DAS2.")
     partner_id = fields.Many2one("res.partner", string="Partner", help="Customer of the invoice or beneficiary of the payment.")
+    partner_vat = fields.Char(
+        string="VAT number", related="move_id.commercial_partner_id.vat", compute_sudo=False,
+        help="VAT number of the customer, the key of its line in the DES return.",
+    )
     move_id = fields.Many2one("account.move", string="Document", help="Posted invoice, bill or payment entry to review.")
     move_type = fields.Selection(related="move_id.move_type", string="Type", help="Tells an invoice from a credit note.")
     payment_move_id = fields.Many2one("account.move", string="Payment", help="Payment entry that settled the bill, when the document is a bill.")

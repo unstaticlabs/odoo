@@ -1027,3 +1027,168 @@ msgstr "Cette destination de recherche n’est pas disponible."
 #: code:addons/usl_home/static/src/project_search/project_search.js:0
 msgid "This record is no longer available in your selected companies."
 msgstr "Cet enregistrement n’est plus disponible dans les sociétés sélectionnées."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Copy link"
+msgstr "Copier le lien"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Your browser did not allow automatic copying. Copy the selected address."
+msgstr "Le navigateur n’a pas autorisé la copie automatique. Copiez l’adresse sélectionnée."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.js:0
+msgid "Link copied"
+msgstr "Lien copié"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/record_link/copy_record_link.xml:0
+msgid "Close"
+msgstr "Fermer"
+
+#. module: usl_home
+#: model:ir.cron,cron_name:usl_home.ir_cron_usl_index_project_content
+msgid "Projects: refresh search index"
+msgstr "Projets : actualiser l’index de recherche"
+
+#. module: usl_home
+#: model:ir.cron,cron_name:usl_home.ir_cron_usl_index_contact_content
+msgid "Contacts: refresh search index"
+msgstr "Contacts : actualiser l’index de recherche"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_project_project__usl_search_text
+msgid "Project content"
+msgstr "Contenu du projet"
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_res_partner__usl_search_text
+msgid "Contact content"
+msgstr "Contenu du contact"
+
+#. module: usl_home
+#: model_terms:ir.ui.view,arch_db:usl_home.view_project_content_search
+#: model_terms:ir.ui.view,arch_db:usl_home.view_contact_content_search
+msgid "Content"
+msgstr "Contenu"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/project_contact_index.py:0
+msgid "Use a text search for project content."
+msgstr "Utilisez une recherche textuelle dans le contenu du projet."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/project_contact_index.py:0
+msgid "Use a text search for contact content."
+msgstr "Utilisez une recherche textuelle dans le contenu du contact."
+
+#. module: usl_home
+#: model:ir.model.fields,field_description:usl_home.field_project_task__usl_search_sources
+msgid "Search sources"
+msgstr "Sources de recherche"
+
+#. module: usl_home
+#: model:ir.model.fields,help:usl_home.field_project_task__usl_search_sources
+msgid "Readable chatter evidence for the explicit search_source_query context."
+msgstr "Éléments lisibles du fil de discussion pour le contexte explicite search_source_query."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/task_message_search.py:0
+msgid "Chatter message"
+msgstr "Message du fil de discussion"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/content_search.py:0
+msgid "This message source is no longer available. Refresh the search and try again."
+msgstr "Ce message source n’est plus disponible. Actualisez la recherche et réessayez."
+
+#. module: usl_home
+#: model:ir.actions.server,name:usl_home.ir_cron_usl_index_task_messages_ir_actions_server
+msgid "Task chatter: refresh search index"
+msgstr "Messages des tâches : actualiser l’index de recherche"
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/search_relevance.py:0
+msgid "Enter a non-empty search of up to 2,048 characters to order by relevance."
+msgstr "Saisissez une recherche non vide de 2 048 caractères au maximum pour trier par pertinence."
+
+#. module: usl_home
+#: model:ir.model.fields,help:usl_home.field_project_task__usl_search_text
+#: model:ir.model.fields,help:usl_home.field_project_project__usl_search_text
+#: model:ir.model.fields,help:usl_home.field_res_partner__usl_search_text
+msgid "Use an ilike content domain. For Home relevance, order by usl_search_text and set search_relevance_query to the same text. Other native orders are unchanged."
+msgstr "Utilisez un domaine de contenu ilike. Pour la pertinence de l’accueil, triez par usl_search_text et renseignez search_relevance_query avec le même texte. Les autres tris natifs restent inchangés."
+
+#. module: usl_home
+#. odoo-python
+#: code:addons/usl_home/models/task_semantics.py:0
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Related by subject"
+msgstr "Sur ce sujet"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Tasks about this"
+msgstr "Tâches sur ce sujet"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Similar topic"
+msgstr "Sujet proche"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.xml:0
+msgid "Looking for related tasks…"
+msgstr "Recherche de tâches sur ce sujet…"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Nothing matches “%(query)s” in %(company)s. Try fewer words or another spelling."
+msgstr "Rien ne correspond à « %(query)s » dans %(company)s. Essayez moins de mots ou une autre orthographe."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Nothing matches “%(query)s”. Try fewer words or another spelling."
+msgstr "Rien ne correspond à « %(query)s ». Essayez moins de mots ou une autre orthographe."
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Note"
+msgstr "Note"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Note · %s"
+msgstr "Note · %s"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Subject of a message"
+msgstr "Sujet d’un message"
+
+#. module: usl_home
+#. odoo-javascript
+#: code:addons/usl_home/static/src/home/content_search.js:0
+msgid "Subject of a message · %s"
+msgstr "Sujet d’un message · %s"

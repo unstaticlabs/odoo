@@ -13,8 +13,8 @@ journey: tester-la-reception-des-factures-electroniques
 tour: usl_einvoice_manager_reception
 source:
   - custom-addons/rebuild_account_migration/tests/test_einvoice_journeys.py
-screenshot_01-setup_png: f6d0f40efe9cc4d7c4ff8c163fbaa7ae2388f7713f7ffa0c668cd092847c7667
-screenshot_02-passed_png: 9a6529a3625631e85d30cb0adecdca92f0f8a78ca7e87a87db205694508222e8
+screenshot_01-setup_png: f746ab95217d0c51a41c0542ba62a3b25a46dc7e5349f0972b77307f7da24e45
+screenshot_02-passed_png: 9d70b58dae6a29eafecb756bc24c4c21bb99037611a4d20bb85f2523d28026d4
 generated: true
 ---
 

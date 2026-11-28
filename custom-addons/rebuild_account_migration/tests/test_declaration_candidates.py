@@ -1,7 +1,13 @@
-from odoo import Command
+from datetime import date
+from unittest.mock import patch
+
+from lxml import etree
+
+from odoo import Command, fields
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 from odoo.exceptions import AccessError, ValidationError
 from odoo.tests import tagged
+from odoo.tools.safe_eval import safe_eval
 
 
 @tagged("post_install", "-at_install")
@@ -50,7 +56,7 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         self.assertIn(tax.name, review.source_rows[0]["reason"])
         action, lines = self._listed("des", "2026-03-01", "2026-03-31")
         self.assertEqual(lines.move_id.ids, [refund.id, native_invoice.id, original.id])
-        self.assertEqual(action["context"]["group_by"], ["date:month"])
+        self.assertEqual(action["context"]["group_by"], ["partner_id"])
         self.assertEqual(lines[-1].action_open_document()["res_id"], original.id)
         self.assertEqual(self.env["rebuild.account.declaration"].search(domain).ids, before)
         # From the declaration itself, the same list opens without asking for the dates again.
@@ -94,6 +100,161 @@ class TestDeclarationCandidates(AccountTestInvoicingCommon):
         # The month total a person reads under the list nets the credit note.
         self.assertEqual(lines.mapped("amount"), [-120, 120])
         self.assertEqual(lines.mapped("move_type"), ["out_refund", "out_invoice"])
+
+    def test_calendar_proposes_the_months_of_des_invoices_and_refunds(self):
+        company = self.env.company
+        company.rebuild_declaration_profile_active = True
+        partner = self.env["res.partner"].with_context(no_vat_validation=True).create({
+            "name": "Example design studio", "country_id": self.env.ref("base.es").id, "vat": "ES00000000X",
+        })
+        self.env["res.lang"]._activate_lang("fr_FR")
+        service_tax = self.tax_sale_a.copy({"name": "Example EU service", "amount": 0})
+        service_tax.with_context(lang="fr_FR").name = "Prestations UE – DES requise"
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+
+        def post(tax, when, kind="out_invoice"):
+            return self._create_invoice_one_line(
+                price_unit=40, tax_ids=tax, partner_id=partner, move_type=kind, invoice_date=when, post=True,
+            )
+
+        march = post(service_tax, "2026-03-11")
+        post(self.tax_sale_a, "2026-04-02")
+        may = post(service_tax, "2026-05-07", "out_refund")
+        june = post(native_tax, "2026-06-08")
+        service_tax.active = False
+        calendar = self.env["rebuild.account.declaration"]
+        other = self.env["res.company"].create({"name": "Example second studio"})
+        both = calendar.with_context(allowed_company_ids=[other.id, company.id])
+        self.assertFalse(both._has_eu_b2b_service_signal(other, date(2026, 3, 1), date(2026, 3, 31)))
+        domain = [
+            ("company_id", "=", company.id), ("rule_id.code", "=", "FR_DES"),
+            ("period_start", ">=", "2026-03-01"), ("period_start", "<=", "2026-06-30"),
+        ]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 7, 1)):
+            both.sync_for_company(company)
+            proposals = calendar.search(domain, order="period_start")
+            self.assertEqual(proposals.mapped("period_start"), [date(2026, m, 1) for m in (3, 5, 6)])
+            self.assertEqual(set(proposals.mapped("applicability")), {"conditional"})
+            self.assertIn("invoice or credit note", proposals[1].applicability_reason)
+            for proposal, source in zip(proposals, [march, may, june]):
+                action = proposal.action_review_documents()
+                self.assertEqual(self.env[action["res_model"]].search(action["domain"]).move_id, source)
+            proposals[0].write({"status": "filed", "filing_status": "filed"})
+            calendar.sync_for_company(company)
+            self.assertEqual(calendar.search(domain, order="period_start"), proposals)
+            self.assertEqual((proposals[0].status, proposals[0].filing_status), ("filed", "filed"))
+
+    def _des_customer(self, name, vat):
+        return self.env["res.partner"].with_context(no_vat_validation=True).create({
+            "name": name, "country_id": self.env.ref("base.es").id, "vat": vat,
+        })
+
+    def test_des_reason_is_saved_once_and_read_in_the_reader_language(self):
+        company = self.env.company
+        company.rebuild_declaration_profile_active = True
+        self.env["res.lang"]._activate_lang("fr_FR")
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+        self._create_invoice_one_line(
+            price_unit=40, tax_ids=native_tax, partner_id=self._des_customer("Example design studio", "ES00000000X"),
+            move_type="out_invoice", invoice_date="2026-03-11", post=True,
+        )
+        calendar = self.env["rebuild.account.declaration"]
+        domain = [("company_id", "=", company.id), ("rule_id.code", "=", "FR_DES"), ("period_start", "=", "2026-03-01")]
+        with patch.object(fields.Date, "context_today", return_value=date(2026, 7, 1)):
+            for sync_language in ("en_US", "fr_FR", "en_US"):
+                calendar.with_context(lang=sync_language).sync_for_company(company)
+                proposal = calendar.search(domain)
+                with self.subTest(sync_language=sync_language):
+                    self.assertEqual(len(proposal), 1)
+                    self.assertIn("invoice or credit note", proposal.applicability_reason)
+                    self.assertIn("facture ou un avoir", proposal.with_context(lang="fr_FR").applicability_summary)
+                    self.assertIn("invoice or credit note", proposal.with_context(lang="en_US").applicability_summary)
+        # Reading a reason the accountant typed shows it as written, whatever the reader's language.
+        proposal.with_context(lang="fr_FR").applicability_summary = "Confirmed with the accountant."
+        self.assertEqual(proposal.applicability_reason, "Confirmed with the accountant.")
+        self.assertEqual(proposal.with_context(lang="fr_FR").applicability_summary, "Confirmed with the accountant.")
+
+    def test_des_documents_add_up_per_customer_with_their_vat_number(self):
+        native_tax = self.env["account.chart.template"].ref("tva_sale_service_intra_0")
+        studio, atelier = self._des_customer("Example design studio", "ES00000000X"), self._des_customer("Example atelier", "BE0000000001")
+
+        def post(partner, amount, when, kind="out_invoice"):
+            return self._create_invoice_one_line(
+                price_unit=amount, tax_ids=native_tax, partner_id=partner, move_type=kind, invoice_date=when, post=True,
+            )
+
+        post(studio, 100, "2026-05-04")
+        post(atelier, 70, "2026-05-12")
+        post(studio, 30, "2026-05-20", "out_refund")
+        post(studio, 999, "2026-06-02")
+        action, lines = self._listed("des", "2026-05-01", "2026-05-31")
+        self.assertEqual(action["context"]["group_by"], ["partner_id"])
+        self.assertEqual(
+            {line.partner_id.name: line.partner_vat for line in lines},
+            {"Example design studio": "ES00000000X", "Example atelier": "BE0000000001"},
+        )
+        totals = {
+            partner.name: total for partner, total in
+            self.env[action["res_model"]]._read_group(action["domain"], ["partner_id"], ["amount:sum"])
+        }
+        self.assertEqual(totals, {"Example design studio": 70, "Example atelier": 70})
+        # A review over several months adds up per month first, as each month is its own return.
+        self.assertEqual(self._listed("des", "2026-01-01", "2026-12-31")[0]["context"]["group_by"], ["period", "partner_id"])
+        arch = self.env[action["res_model"]].get_views([action["views"][0]])["views"]["list"]["arch"]
+        self.assertIn('name="partner_vat"', arch)
+
+    def test_vat_number_of_a_document_from_a_company_the_reader_cannot_access_stays_hidden(self):
+        other = self.env["res.company"].create({
+            "name": "Example other studio", "country_id": self.env.ref("base.fr").id,
+        })
+        self.env["account.chart.template"].try_loading("fr_comp", other, install_demo=False)
+        foreign = self.env["account.move"].with_company(other).with_context(no_vat_validation=True).create({
+            "move_type": "out_invoice", "invoice_date": "2026-05-04", "company_id": other.id,
+            "partner_id": self._des_customer("Example foreign customer", "ES00000000X").id,
+            "invoice_line_ids": [Command.create({"name": "Service", "price_unit": 10})],
+        })
+        reader = self.env["res.users"].with_context(no_reset_password=True, usl_governed_identity_provisioning=True).create({
+            "name": "Example company reader", "login": "example.company.reader",
+            "company_id": self.env.company.id, "company_ids": [Command.set(self.env.company.ids)],
+            "group_ids": [Command.set((self.env.ref("base.group_user") | self.env.ref("account.group_account_manager")).ids)],
+        })
+        review = self.env["rebuild.account.declaration.candidate.review"].with_user(reader).create({
+            "kind": "des", "company_id": self.env.company.id, "date_from": "2026-05-01", "date_to": "2026-05-31",
+        })
+        line = self.env["rebuild.account.declaration.candidate.review.line"].with_user(reader).create({
+            "review_id": review.id, "move_id": foreign.id,
+        })
+        # A real request starts with an empty cache; cached values skip the access check.
+        self.env.invalidate_all()
+        try:
+            vat = line.partner_vat
+        except AccessError:
+            vat = False
+        self.assertFalse(vat)
+
+    def test_review_documents_leads_while_the_des_is_only_a_proposal(self):
+        form = self.env.ref("rebuild_account_migration.view_rebuild_account_declaration_form")
+        arch = etree.fromstring(self.env["rebuild.account.declaration"].get_view(form.id)["arch"])
+
+        def leading_buttons(values):
+            """The visible header buttons drawn as the primary action, as the form would show them."""
+            return [
+                button.get("name") for button in arch.xpath("//header/button")
+                if not safe_eval(button.get("invisible") or "False", values)
+                and {"btn-primary", "oe_highlight"} & set(button.get("class", "").split())
+                and button.get("name") in ("action_review_documents", "action_mark_ready_to_file")
+            ]
+
+        for form_code, applicability, status, expected in [
+            ("DES", "conditional", "to_prepare", ["action_review_documents"]),
+            ("DES", "conditional", "internal_review", ["action_review_documents"]),
+            ("DES", "conditional", "ready_to_file", []),
+            ("DES", "applicable", "internal_review", ["action_mark_ready_to_file"]),
+            ("DAS2", "applicable", "internal_review", ["action_mark_ready_to_file"]),
+        ]:
+            values = {"form_code": form_code, "applicability": applicability, "status": status}
+            with self.subTest(**values):
+                self.assertEqual(leading_buttons(values), expected)
 
     def _bank_debit(self, when, debit_account, amount):
         journal = self.company_data["default_journal_bank"]

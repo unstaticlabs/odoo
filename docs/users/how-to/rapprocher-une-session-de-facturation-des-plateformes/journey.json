@@ -32,7 +32,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-draft.png",
-      "sha256": "99925a2558d87eeb404246ce424e57671514cd34392a711348407b0f054bd113",
+      "sha256": "a80f1a33e09962b1a7a4cc603e097e70e5267d273bec9ced96add449c643a50f",
       "text": "Dans **Facturation des plateformes > Sessions de facturation**, ouvrez la session en brouillon. Vérifiez que les versements sont saisis et que l’encaissement bancaire est associé.",
       "trigger": ".o_form_view:has(.o_statusbar_status button[data-value='draft'].o_arrow_button_current)"
     },
@@ -82,7 +82,7 @@
       "index": 6,
       "run": "",
       "screenshot": "02-paid.png",
-      "sha256": "e921efa80d6378649d9450faed540b23ee514df13dba2d1198c6095eb7286651",
+      "sha256": "0b0a2adedc24eb580805f5cae60e04bcedd437135b1a659fbf876810b25a1a29",
       "text": "Vérifiez que la session est payée. La facture de vente, la facture de commission et l’encaissement sont rapprochés.",
       "trigger": ".o_form_view .o_statusbar_status button[data-value='paid'].o_arrow_button_current"
     },

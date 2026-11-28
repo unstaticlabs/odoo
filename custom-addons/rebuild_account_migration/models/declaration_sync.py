@@ -1,5 +1,6 @@
 """Rule applicability, calendar instances, deadline computation and declaration synchronization."""
 
+import re
 from datetime import date, timedelta
 
 from dateutil.relativedelta import relativedelta
@@ -8,6 +9,9 @@ from odoo import _, api, fields, models
 
 from .declaration import EU_COUNTRY_CODES, _month_end
 from .fiscal_period import stored_label_bounds
+
+
+DES_LABEL = re.compile(r"\bdes\s+(?:requis(?:e)?|required)\b", re.I)
 
 
 class RebuildAccountDeclaration(models.Model):
@@ -296,7 +300,13 @@ class RebuildAccountDeclaration(models.Model):
 
     @api.model
     def _has_eu_b2b_service_signal(self, company, period_start, period_end):
-        moves = self.env["account.move"].with_company(company).search([
+        _moves, taxes = self._des_period_sources(company, period_start, period_end)
+        return bool(taxes)
+
+    @api.model
+    def _des_period_sources(self, company, period_start, period_end):
+        """Read a month's EU sales and the service taxes that support a proposal."""
+        moves = self.env["account.move"].with_company(company).with_context(active_test=False).search([
             ("company_id", "=", company.id),
             ("state", "=", "posted"),
             ("move_type", "in", ["out_invoice", "out_refund"]),
@@ -305,15 +315,24 @@ class RebuildAccountDeclaration(models.Model):
             ("commercial_partner_id.country_id.code", "in", sorted(EU_COUNTRY_CODES - {"FR"})),
             ("commercial_partner_id.vat", "!=", False),
         ])
-        return bool(self._des_signal_taxes(moves.invoice_line_ids.tax_ids))
+        taxes = moves.invoice_line_ids.tax_ids
+        if not taxes:
+            return moves, taxes
+        native = self.env["account.chart.template"].with_company(company).ref(
+            "tva_sale_service_intra_0", raise_if_not_found=False,
+        )
+        # Historical charts used the reverse-charge wording. A migrated tax
+        # can instead carry the explicit DES marker in its French or English label.
+        legacy = ("autoliquid", "intracom", "reverse charge")
 
-    @api.model
-    def _des_signal_taxes(self, taxes):
-        """Taxes whose wording opens a DES in the calendar, shared with its source review."""
-        markers = ("autoliquid", "intracom", "reverse charge")
-        return taxes.filtered(lambda tax: any(
-            marker in ((tax.name or "") + " " + (tax.description or "")).lower() for marker in markers
-        ))
+        def is_des_tax(tax):
+            text = " ".join(filter(None, (tax.name, tax.description))).lower()
+            return tax == native or any(marker in text for marker in legacy) or any(
+                DES_LABEL.search(" ".join(filter(None, (translated.name, translated.description))))
+                for translated in (tax, tax.with_context(lang="fr_FR"), tax.with_context(lang="en_US"))
+            )
+
+        return moves, taxes.filtered(is_des_tax)
 
     @api.model
     def _has_das2_signal(self, company, period_start, period_end, threshold=2400.0):
@@ -645,7 +664,17 @@ class RebuildAccountDeclaration(models.Model):
         return declaration
 
     @api.model
+    def _des_services_reason(self):
+        return _(
+            "A posted invoice or credit note for EU services was found this month. "
+            "Open Review documents to check the source before filing."
+        )
+
+    @api.model
     def _applicability_reason(self, company, rule):
+        if rule.trigger_kind == "eu_b2b_services":
+            # Saved in English whoever runs the sync; the declaration shows it in the reader's language.
+            return self.with_context(lang="en_US")._des_services_reason()
         profile = (
             f"{dict(company._fields['rebuild_legal_form'].selection).get(company.rebuild_legal_form, company.rebuild_legal_form)}, "
             f"{dict(company._fields['rebuild_corporate_tax_regime'].selection).get(company.rebuild_corporate_tax_regime, company.rebuild_corporate_tax_regime)}, "

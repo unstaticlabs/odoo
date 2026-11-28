@@ -12,8 +12,8 @@ journey: audit-a-batch-read-only
 tour: usl_expense_batch_readonly_audit
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-evidence_png: d7fbc5561dc77d4e90ce53029f19e1e8a65d6feb7cb675d813af2df391c3bbe1
-screenshot_02-reconciliation_png: 467f2f2f95e964387c256fa9085e4ca14a547b54b42251a0f4e8d2b3e0911e50
+screenshot_01-evidence_png: fc72ba31ef738bf643807e927a4957ac83aa2cd1f873f29a0482c2424d3020d2
+screenshot_02-reconciliation_png: 8abd535e7139a977fc9de49b12c6360e30ae6e044039a688eaf508de778b9935
 generated: true
 ---
 

@@ -1,9 +1,10 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, mockUserAgent, press, test } from "@odoo/hoot";
 import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
 import {
     contains,
+    makeServerError,
     mockService,
     mountWithCleanup,
     onRpc,
@@ -1540,83 +1541,254 @@ test("tags are searchable, removable, and creatable from document details", asyn
     expect("button[aria-label='Remove tag Accounting']").toHaveCount(0);
 });
 
-test.tags("desktop");
-test("Paperless suggestions stay reviewable and apply one at a time", async () => {
-    const suggestedTag = {
-        id: 42,
-        name: "Payroll",
-        color: "#2d7d68",
-        text_color: "#ffffff",
-    };
-    const document = {
-        id: 41,
-        name: "August payslip",
-        paperless_id: 141,
-        date: "2026-08-31",
-        company: "USL",
-        review_state: "classified",
-        availability_state: "available",
-        access_error: false,
-        correspondent: "",
-        document_type: "",
-        tags: [],
-        link_count: 0,
-        primary_link: false,
-    };
-    const suggestions = [
-        {
-            kind: "tag",
-            field: "tag_ids",
-            record_id: suggestedTag.id,
-            label: suggestedTag.name,
-        },
-        {
-            kind: "date",
-            field: "document_date",
-            value: "2026-08-30",
-            label: "2026-08-30",
-        },
+function suggestionFixture() {
+    const tagRecords = [
+        { id: 42, name: "Payroll", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 43, name: "Concert", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 44, name: "Literal match", color: "#2d7d68", text_color: "#ffffff" },
+        { id: 45, name: "Unscored", color: "#2d7d68", text_color: "#ffffff" },
     ];
-    let detail = {
-        ...document,
-        can_edit: true,
-        can_change_links: true,
-        can_manage: false,
-        versions: [],
-        links: [],
-        paperless_suggestions: suggestions,
+    const document = {
+        id: 41, name: "August payslip", paperless_id: 141, date: "2026-08-31", company: "USL",
+        review_state: "classified", availability_state: "available", access_error: false,
+        correspondent: "", document_type: "", tags: [], link_count: 0, primary_link: false,
     };
-    const updates = [];
-    onRpc("usl.document", "workspace_data", () => ({
-        ...emptyWorkspace,
-        tags: [suggestedTag],
-        documents: [{ ...document, tags: detail.tags }],
-        count: 1,
-    }));
-    onRpc("usl.document", "document_detail", () => detail);
-    onRpc("usl.document", "update_archive_metadata", ({ args }) => {
-        updates.push(args[1]);
-        detail = {
-            ...detail,
-            tags: args[1].tag_ids ? [suggestedTag] : detail.tags,
-        };
-        return { ...detail, paperless_suggestions: [] };
+    // The server lists proposals in its own order, not by score.
+    const suggestions = [
+        { kind: "tag", field: "tag_ids", record_id: 45, label: "Unscored", rule: false },
+        { kind: "tag", field: "tag_ids", record_id: 43, label: "Concert", rule: false, classifier_score: 0.692 },
+        { kind: "tag", field: "tag_ids", record_id: 44, label: "Literal match", rule: true },
+        { kind: "tag", field: "tag_ids", record_id: 42, label: "Payroll", rule: false, classifier_score: 0.716 },
+        { kind: "correspondent", field: "correspondent_id", record_id: 7, label: "TESE" },
+        { kind: "date", field: "document_date", value: "2026-08-30", label: "2026-08-30" },
+    ];
+    const state = {
+        detail: {
+            ...document, can_edit: true, can_change_links: true, can_manage: false, versions: [], links: [],
+            paperless_suggestions: suggestions,
+        },
+        requests: [], updates: [], workspaceReads: 0,
+    };
+    onRpc("usl.document", "workspace_data", () => {
+        state.workspaceReads++;
+        return { ...emptyWorkspace, tags: tagRecords, documents: [{ ...document, tags: state.detail.tags }], count: 1 };
     });
+    onRpc("usl.document", "document_detail", ({ kwargs }) => {
+        state.requests.push(Boolean(kwargs.include_tag_scores));
+        return state.detail;
+    });
+    onRpc("usl.document", "update_archive_metadata", async ({ args }) => {
+        state.updates.push(args[1]);
+        if (state.hold) {
+            await state.hold;
+        }
+        if (args[1].tag_ids) {
+            state.detail = {
+                ...state.detail,
+                tags: tagRecords.filter((tag) => args[1].tag_ids.includes(tag.id)),
+            };
+        }
+        return { ...state.detail, paperless_suggestions: [] };
+    });
+    return state;
+}
 
-    await mountWithCleanup(DocumentsWorkspace, {
-        props: { action: action() },
-    });
+async function openSuggestedDocument() {
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
     await contains(".o_usl_document_card").click();
     await animationFrame();
+}
 
-    expect(".o_usl_paperless_suggestion").toHaveCount(2);
-    await contains(".o_usl_paperless_suggestion", { text: "Tag: Payroll" }).click();
+const ghostLabels = () => [...document.querySelectorAll(".o_usl_tag_ghost .o_usl_tag_chip_label")].map((el) => el.textContent.trim());
+
+test.tags("desktop");
+test("suggested tags show their scores on open, sorted, as whole numbers inside the Tags field", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    // One ordinary read, no extra click and no uncached scoring request.
+    expect(state.requests).toEqual([false]);
+    expect(".o_usl_detail_tags .o_usl_tag_ghost").toHaveCount(4);
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+    const scores = [...document.querySelectorAll(".o_usl_tag_ghost .o_usl_ghost_score")].map((el) => el.textContent.trim());
+    expect(scores).toEqual(["72", "69", "Rule"]);
+    expect(".o_usl_detail_tags").not.toHaveText(/71[.,]6/);
+    expect(".o_usl_detail_tags").not.toHaveText(/Paperless/);
+    expect(".o_usl_ghost_all").toHaveText("Add all (4)");
+    expect(".o_usl_tag_ghost:first .o_usl_ghost_accept").toHaveAttribute(
+        "aria-label", "Add tag Payroll, similarity 72 out of 100"
+    );
+    expect(".o_usl_tag_ghost:eq(2) .o_usl_ghost_accept").toHaveAttribute(
+        "aria-label", "Add tag Literal match, suggested by a rule"
+    );
+    expect(".o_usl_tag_ghost:first .o_usl_ghost_accept").toHaveAttribute("title", /resembles the ones you already tagged Payroll/);
+    expect(".o_usl_paperless_suggestions").toHaveCount(0);
+    expect(state.updates).toEqual([]);
+});
+
+test.tags("desktop");
+test("accepting a suggested tag adds only that tag, keeps the others and can be undone", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
     await animationFrame();
-
-    expect(updates).toEqual([{ tag_ids: [suggestedTag.id] }]);
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
     expect(".o_usl_detail_tags").toHaveText(/Payroll/);
-    expect(".o_usl_paperless_suggestion").toHaveCount(1);
-    expect(".o_usl_paperless_suggestion").toHaveText(/Date: 2026-08-30/);
+    // The remaining proposals survive the refresh and stay actionable.
+    expect(ghostLabels()).toEqual(["Concert", "Literal match", "Unscored"]);
+    expect(".o_usl_tag_ghost .o_usl_ghost_accept:disabled").toHaveCount(0);
+    expect(".o_notification").toHaveText(/Tag Payroll added/);
+    // Focus moves to the next suggestion.
+    expect(document.activeElement.closest(".o_usl_tag_ghost")).toHaveText(/Concert/);
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+});
+
+test.tags("desktop");
+test("rejecting a suggestion writes nothing and the keyboard can reject or accept it", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:eq(3) .o_usl_ghost_reject").click();
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match"]);
+    expect(state.updates).toEqual([]);
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").focus();
+    await press("Delete");
+    await animationFrame();
+    expect(ghostLabels()).toEqual(["Concert", "Literal match"]);
+    expect(document.activeElement.closest(".o_usl_tag_ghost")).toHaveText(/Concert/);
+    expect(state.updates).toEqual([]);
+    await press("Enter");
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [43] }]);
+});
+
+test.tags("desktop");
+test("a dismissal made while a save is pending stays dismissed", async () => {
+    const state = suggestionFixture();
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await contains(".o_usl_tag_ghost:eq(3) .o_usl_ghost_reject").click();
+    expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match"]);
+    release();
+    await animationFrame();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
+    expect(ghostLabels()).toEqual(["Concert", "Literal match"]);
+});
+
+test.tags("desktop");
+test("Undo waits for a tag save that is still running and keeps both changes", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await contains(".o_notification:first button", { text: "Undo" }).click();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }]);
+    state.hold = null;
+    release();
+    await animationFrame();
+    await animationFrame();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }, { tag_ids: [43] }]);
+});
+
+test.tags("desktop");
+test("Undo after leaving the document restores its tags and reloads the list", async () => {
+    const state = suggestionFixture();
+    onRpc("usl.document", "read", () => [{ id: 41, tag_ids: [42] }]);
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    await animationFrame();
+    const reads = state.workspaceReads;
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+    expect(state.workspaceReads).toBeGreaterThan(reads);
+});
+
+test.tags("desktop");
+test("Undo after leaving the document reports a failed restore", async () => {
+    const state = suggestionFixture();
+    onRpc("usl.document", "read", () => { throw makeServerError({ type: "AccessError", message: "No access" }); });
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42] }]);
+    expect(".o_notification:last").toHaveText(/No access/);
+});
+
+test.tags("desktop");
+test("Add all writes every suggested tag in one save and undoes it in one save", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_ghost_all").click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42, 43, 44, 45] }]);
+    expect(".o_usl_tag_ghost").toHaveCount(0);
+    expect(".o_usl_ghost_all").toHaveCount(0);
+    expect(".o_notification").toHaveText(/4 tags added/);
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ tag_ids: [42, 43, 44, 45] }, { tag_ids: [] }]);
+    expect(".o_usl_tag_ghost").toHaveCount(4);
+});
+
+test.tags("desktop");
+test("a single suggestion offers no Add all, and other metadata suggestions sit under their own field", async () => {
+    const state = suggestionFixture();
+    state.detail.paperless_suggestions = state.detail.paperless_suggestions.filter(
+        (item) => item.record_id === 42 || item.kind !== "tag"
+    );
+    await openSuggestedDocument();
+    expect(ghostLabels()).toEqual(["Payroll"]);
+    expect(".o_usl_ghost_all").toHaveCount(0);
+    expect(".o_usl_field_suggestion").toHaveCount(2);
+    expect(".o_usl_field_suggestion:eq(0)").toHaveText(/Suggested:\s*TESE/);
+    expect(".o_usl_field_suggestion:eq(1)").toHaveText(/30\/08\/2026/);
+    await contains(".o_usl_field_suggestion:eq(1) button", { text: "Use" }).click();
+    await animationFrame();
+    expect(state.updates).toEqual([{ document_date: "2026-08-30" }]);
+    expect(".o_usl_field_suggestion").toHaveCount(1);
+    expect(".o_usl_field_suggestion").toHaveText(/Suggested:\s*TESE/);
+});
+
+test.tags("mobile");
+test("on a phone every suggestion control is at least 44px tall and nothing overflows", async () => {
+    mockUserAgent("android");
+    suggestionFixture();
+    await openSuggestedDocument();
+    const controls = [...document.querySelectorAll(
+        ".o_usl_ghost_accept, .o_usl_ghost_reject, .o_usl_ghost_all, .o_usl_field_suggestion button"
+    )];
+    expect(controls.length).toBeGreaterThan(8);
+    for (const control of controls) {
+        // The hit area is a transparent pseudo-element, so the chip itself stays compact.
+        expect(parseFloat(getComputedStyle(control, "::before").height)).toBeGreaterThan(43.5);
+    }
+    const ghost = document.querySelector(".o_usl_tag_ghost").getBoundingClientRect().height;
+    expect(ghost).toBeLessThan(36);
+    const tags = document.querySelector(".o_usl_detail_tags");
+    expect(tags.scrollWidth <= tags.clientWidth + 1).toBe(true);
+});
+
+test.tags("desktop");
+test("a viewer without edit rights sees no suggestions to apply", async () => {
+    const state = suggestionFixture();
+    state.detail.can_edit = false;
+    await openSuggestedDocument();
+    expect(".o_usl_tag_ghost").toHaveCount(0);
+    expect(".o_usl_field_suggestion").toHaveCount(0);
 });
 
 test.tags("desktop");
@@ -2650,6 +2822,170 @@ test("linked record offers a preview and keeps the ordinary open action", async 
     expect(".o_usl_open_linked_record").toHaveCount(1);
 });
 
+
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} preserves its document and ordinary history`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+        onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+        onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        expect(".o_usl_linked_record_summary").toHaveCount(1);
+        expect(browser.history.state.trapState).toBe(true);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_linked_record_summary").toHaveCount(0);
+        expect(".o_usl_documents_detail").toHaveCount(1);
+        expect(".o_usl_open_linked_record").toHaveCount(1);
+        expect(browser.history.state.trapState).not.toBe(true);
+        browser.history.back();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        browser.history.forward();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(1);
+    });
+}
+
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} after the document lost access leaves the list without its route`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        let revoked = false;
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: revoked ? [] : [document], count: revoked ? 0 : 1 }));
+        onRpc("usl.document", "document_detail", () => {
+            if (revoked) {
+                throw makeServerError({ type: "AccessError" });
+            }
+            return { ...document, archive_available: false, links: [link], versions: [] };
+        });
+        onRpc("usl.document", "action_open_linked_record", () => {
+            revoked = true;
+            throw makeServerError({ type: "AccessError" });
+        });
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe("620");
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        expect(browser.history.state?.trapState).not.toBe(true);
+        expect(browser.history.state?.uslDocumentId || null).toBe(null);
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe(null);
+    });
+}
+for (const dismissal of ["close", "back"]) {
+    test.tags("mobile");
+    test(`mobile linked preview ${dismissal} while the access refresh is still running keeps a readable document and its route`, async () => {
+        mockUserAgent("android");
+        const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+        const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+        let refreshing = false;
+        let release;
+        const gate = new Promise((resolve) => { release = resolve; });
+        onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+        onRpc("usl.document", "document_detail", async () => {
+            if (refreshing) {
+                await gate;
+            }
+            return { ...document, archive_available: false, links: [link], versions: [] };
+        });
+        onRpc("usl.document", "action_open_linked_record", () => {
+            refreshing = true;
+            throw makeServerError({ type: "AccessError" });
+        });
+        await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+        await contains(".o_usl_document_card").click();
+        await contains(".o_usl_preview_linked_record").click();
+        await animationFrame();
+        // The drawer is cleared while the refresh waits for the document.
+        expect(".o_usl_documents_detail").toHaveCount(0);
+        if (dismissal === "close") {
+            await contains(".modal .btn-close").click();
+        } else {
+            browser.history.back();
+        }
+        await animationFrame();
+        release();
+        await animationFrame();
+        await animationFrame();
+        await animationFrame();
+        expect(".o_usl_documents_detail").toHaveCount(1);
+        expect(browser.history.state?.trapState).not.toBe(true);
+        expect(new URL(browser.location.href).searchParams.get("usl_document")).toBe("620");
+    });
+}
+
+
+test.tags("desktop");
+test("returning from an opened linked record scrolls the linked records into view", async () => {
+    mockUserAgent("mac");
+    const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+    const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+    onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+    const scrolled = [];
+    patchWithCleanup(Element.prototype, {
+        scrollIntoView() {
+            scrolled.push(this.className);
+        },
+    });
+    mockService("action", { doAction() {} });
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    expect(scrolled.some((name) => String(name).includes("o_usl_detail_linked_records"))).toBe(false);
+    await contains(".o_usl_open_linked_record").click();
+    // Back remounts the workspace, which reopens the same document.
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await animationFrame();
+    expect(scrolled.filter((name) => String(name).includes("o_usl_detail_linked_records")).length).toBe(1);
+});
+
+
+test.tags("desktop");
+test("desktop preview keeps ordinary duplicate-route Back behavior", async () => {
+    mockUserAgent("mac");
+    const document = { id: 620, name: "Synthetic project outline", availability_state: "available", tags: [], link_count: 1 };
+    const link = { id: 62, model: "project.project", res_id: 31, record_name: "Synthetic project", model_label: "Project" };
+    onRpc("usl.document", "workspace_data", () => ({ ...emptyWorkspace, documents: [document], count: 1 }));
+    onRpc("usl.document", "document_detail", () => ({ ...document, archive_available: false, links: [link], versions: [] }));
+    onRpc("usl.document", "action_open_linked_record", () => ({ res_model: "project.project", res_id: 31, name: "Synthetic project", fields: [] }));
+    await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
+    await contains(".o_usl_document_card").click();
+    browser.history.pushState(browser.history.state, "", browser.location.href);
+    await contains(".o_usl_preview_linked_record").click();
+    await animationFrame();
+    expect(browser.history.state.trapState).not.toBe(true);
+    browser.history.back();
+    await animationFrame();
+    expect(".o_usl_documents_detail").toHaveCount(0);
+    await contains(".modal .btn-close").click();
+    expect(".o_usl_documents_detail").toHaveCount(0);
+});
+
 test.tags("desktop");
 test("classifier history reviews the visible batch and retries only its unfinished documents", async () => {
     const doc = { id: 4101, name: "Recital notes", availability_state: "available", tags: [], link_count: 0,
@@ -2671,7 +3007,8 @@ test("classifier history reviews the visible batch and retries only its unfinish
     await mountWithCleanup(DocumentsWorkspace, { props: { action: action() } });
     await contains(".o_usl_document_card").click();
     await contains("button", { text: "Automatic tag history" }).click();
-    expect(".modal").toHaveText(/Score 89.2\/100/);
+    // One score reads the same everywhere: a whole number.
+    expect(".modal").toHaveText(/Score 89\/100/);
     await contains(".modal button", { text: "Review batch" }).click();
     expect(".modal").toHaveText(/Stage notes/);
     expect(".modal").toHaveText(/Tags to remove: Concerts, Programmes/);

@@ -37,7 +37,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-batch.png",
-      "sha256": "fe545d2c0213a7acef4a91083faf723c3323d0e9f43e5a695bf494d93eb9b899",
+      "sha256": "21c93df064d3daf20ff59a9b3c53cd71f3fd9a22b39d2a8845c687250bbc6e5c",
       "text": "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])"
     },
@@ -67,7 +67,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-exception.png",
-      "sha256": "768dc2e910643da50fd8f1290a5282c7ca3a0474de3da298981288283a12a90a",
+      "sha256": "1517f9d60792b8d0e0abdbf4daaad763be3a45411b30e4671aa993b81886bfcc",
       "text": "Un repère signale une ligne dont l’affectation diffère. Survolez-le pour lire la différence. Ouvrez la ligne pour la corriger si nécessaire.",
       "trigger": ".o_usl_batch_attention[title*='diffère de celle du lot']"
     },

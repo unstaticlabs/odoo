@@ -16,6 +16,15 @@
                     <span class="text-muted small flex-grow-1" role="status"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Waiting for the microphone…</span>
                     <button class="btn btn-secondary btn-sm" t-on-click="this.cancelUslVoice">Cancel</button>
                 </t>
+                <t t-elif="this.uslVoice.mode === 'failed'">
+                    <span class="flex-grow-1 small" role="status">
+                        <span class="fw-bold">Voice note not uploaded.</span>
+                        <span class="text-muted"> Your recording is kept.</span>
+                    </span>
+                    <button class="btn btn-primary btn-sm" t-on-click="this.retryUslVoice">Retry upload</button>
+                    <button class="btn btn-link btn-sm" t-on-click="this.downloadUslVoice"><i class="fa fa-download me-1" aria-hidden="true"/>Download audio</button>
+                    <button class="btn btn-link btn-sm text-muted" t-on-click="() => this.discardUslVoice()">Discard</button>
+                </t>
                 <span t-else="" class="text-muted small" role="status"><i class="fa fa-circle-o-notch fa-spin me-2" aria-hidden="true"/>Preparing the preview…</span>
             </div>
         </xpath>
