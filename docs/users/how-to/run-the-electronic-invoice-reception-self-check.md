@@ -1,7 +1,7 @@
 ---
 title: Run the electronic-invoice reception self-check
 type: how-to
-description: Prove that a company can receive electronic invoices, with a representative invoice that leaves no accounting behind.
+description: Check a company’s local invoice import with a sample UBL invoice. Live reception is verified separately after activation.
 lang: en
 persona: administrator
 app: Accounting
@@ -21,7 +21,7 @@ generated: true
 
 # Run the electronic-invoice reception self-check
 
-Prove that a company can receive electronic invoices, with a representative invoice that leaves no accounting behind.
+Check a company’s local invoice import with a sample UBL invoice. Live reception is verified separately after activation.
 
 1. Open **Accounting > Configuration > Electronic Invoicing**. Each company you may act in is listed with its reception status. Choose the company.
 
@@ -29,8 +29,8 @@ Prove that a company can receive electronic invoices, with a representative invo
 
    ![The setup screen gathers what reception needs: the journals, the accounts, the approved platform and the last self-check](run-the-electronic-invoice-reception-self-check/01-setup.png)
 
-3. Choose **Run self-check**. Odoo receives a representative electronic invoice through the whole reception path, then discards every record it created.
+3. Choose **Run self-check**. Odoo uses its usual importer to create a temporary draft bill from a sample UBL invoice. It checks the supplier, invoice lines, taxes, total and original file, then rolls back the test records.
 
-4. The self-check reads **Test passed**, with when it ran and the confirmation that no test bill was kept. Run it again after any change to the journals, the accounts or the platform.
+4. Odoo keeps the result and the test date. Look for **Test passed** and run the check again after a setup change. Use the [activation guide](activate-electronic-invoice-reception.md) to verify the first live invoice from the approved platform.
 
-   ![The self-check reads Test passed, with when it ran and the confirmation that no test bill was kept](run-the-electronic-invoice-reception-self-check/02-passed.png)
+   ![Odoo keeps the result and the test date](run-the-electronic-invoice-reception-self-check/02-passed.png)

@@ -69,7 +69,7 @@ registry.category("usl_docs.journeys").add("usl_einvoice_manager_reception", {
     id: "run-the-electronic-invoice-reception-self-check",
     type: "how-to",
     title: "Run the electronic-invoice reception self-check",
-    description: "Prove that a company can receive electronic invoices, with a representative invoice that leaves no accounting behind.",
+    description: "Check a company’s local invoice import with a sample UBL invoice. Live reception is verified separately after activation.",
     persona: "administrator",
     lang: "en",
     app: "Accounting",
@@ -84,10 +84,10 @@ registry.category("usl_docs.journeys").add("usl_einvoice_manager_reception", {
             mask: companyIdentity,
         },
         run_check: {
-            text: "Choose **Run self-check**. Odoo receives a representative electronic invoice through the whole reception path, then discards every record it created.",
+            text: "Choose **Run self-check**. Odoo uses its usual importer to create a temporary draft bill from a sample UBL invoice. It checks the supplier, invoice lines, taxes, total and original file, then rolls back the test records.",
         },
         passed: {
-            text: "The self-check reads **Test passed**, with when it ran and the confirmation that no test bill was kept. Run it again after any change to the journals, the accounts or the platform.",
+            text: "Odoo keeps the result and the test date. Look for **Test passed** and run the check again after a setup change. Use the [activation guide](activate-electronic-invoice-reception.md) to verify the first live invoice from the approved platform.",
             screenshot: true,
             mask: companyIdentity,
         },
@@ -97,12 +97,12 @@ registry.category("usl_docs.journeys").add("usl_einvoice_manager_reception", {
 registry.category("usl_docs.journey_translations").add("usl_einvoice_manager_reception.fr", {
     id: "tester-la-reception-des-factures-electroniques",
     title: "Tester la réception des factures électroniques",
-    description: "Vérifiez la configuration d’une société avec une facture électronique d’essai. Le résultat du contrôle reste consultable, et la facture d’essai est supprimée.",
+    description: "Vérifiez l’import local d’une facture UBL d’essai dans Odoo. La réception réelle se vérifie séparément, après activation.",
     app: "Comptabilité",
     steps: {
         companies: "Dans **Comptabilité > Configuration > Facturation électronique**, ouvrez la société dont vous voulez tester la réception.",
         setup: "Vérifiez les journaux, les comptes utilisés et la plateforme agréée. Le résultat du dernier essai figure sur la même fiche.",
-        run_check: "Cliquez sur **Exécuter une auto-vérification**. Odoo fait passer une facture d’essai par les étapes de réception, puis supprime les pièces créées pour ce contrôle.",
-        passed: "Vérifiez la mention **Test réussi**, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée. Relancez le contrôle après une modification des journaux, des comptes ou de la plateforme.",
+        run_check: "Cliquez sur **Exécuter une auto-vérification**. Odoo importe une facture UBL d’essai en brouillon, vérifie le fournisseur, les lignes, les taxes, le total et le fichier original, puis annule la transaction d’essai.",
+        passed: "Odoo conserve le résultat et la date de l’essai. Vérifiez la mention **Test réussi** et relancez le contrôle après un changement de configuration. Suivez le [guide d’activation (en anglais)](activate-electronic-invoice-reception.md) pour vérifier la première facture reçue de la plateforme agréée.",
     },
 });
