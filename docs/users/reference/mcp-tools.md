@@ -7,7 +7,7 @@ persona: administrator
 app: Agents & MCP
 source:
   - deploy/odoo-mcp/release.json
-mcp_commit: 3a6cb9c380724e838be734ef1594c70ac5a5c548
+mcp_commit: f5affc6685e7dedc81d2cb40c0889d9441c65bd8
 generated: true
 ---
 
@@ -15,7 +15,7 @@ generated: true
 
 # MCP tools and profiles
 
-This page is the tool catalogue of the Odoo MCP server this release ships, version 1.1.0 at commit [`3a6cb9c38072`](https://github.com/unstaticlabs/odoo-mcp/commit/3a6cb9c380724e838be734ef1594c70ac5a5c548), copied from its own documentation. Links to the server's other documents open that same commit on GitHub. Bump the pin in `deploy/odoo-mcp/release.json`, then run `make docs-mcp` to regenerate it; edits to the page itself are overwritten.
+This page is the tool catalogue of the Odoo MCP server this release ships, version 1.1.0 at commit [`f5affc6685e7`](https://github.com/unstaticlabs/odoo-mcp/commit/f5affc6685e7dedc81d2cb40c0889d9441c65bd8), copied from its own documentation. Links to the server's other documents open that same commit on GitHub. Bump the pin in `deploy/odoo-mcp/release.json`, then run `make docs-mcp` to regenerate it; edits to the page itself are overwritten.
 
 The executable source of truth is the canonical registry created in `src/capabilities/index.ts`. This document describes selection policy; tool schemas and module predicates come from code.
 
@@ -26,10 +26,10 @@ refer here instead of repeating them.
 
 | Measure | Value |
 | --- | ---: |
-| Tools on `/mcp` with every feature available | 33 |
-| Tools on `/mcp` without document materialization | 31 |
-| Estimated input/output schema tokens on `/mcp` | 19,374 |
-| Budget enforced by `/readyz` (`DEFAULT_PROFILE_SCHEMA_TOKEN_BUDGET`) | 19,456 |
+| Tools on `/mcp` with every feature available | 36 |
+| Tools on `/mcp` without document materialization | 34 |
+| Estimated input/output schema tokens on `/mcp` | 20,940 |
+| Budget enforced by `/readyz` (`DEFAULT_PROFILE_SCHEMA_TOKEN_BUDGET`) | 21,000 |
 
 Odoo module, method, and access availability can lower the counts further.
 Schema estimates are not measured model usage. Update this table, and only this
@@ -39,7 +39,7 @@ table, when the surface changes.
 
 Each public tool explicitly advertises `readOnlyHint`, `destructiveHint`, and `openWorldHint`. Bounded Odoo reads and specialized draft/preparatory actions stay in the authenticated private workspace and have `openWorldHint=false`. Generic arbitrary-model writes and public-method dispatch remain conservatively classified because Odoo business hooks may overwrite data or contact third parties.
 
-`odoo_add_internal_note` appends an internal-subtype note with zero direct recipients and `notify_skip_followers=true`. This skips native Chatter follower and direct-recipient notifications; ordinary model hooks still run. It is not idempotent. `odoo_post_message` remains available for notifying comments and other Chatter workflows.
+`odoo_add_internal_note` appends an internal-subtype note with zero direct recipients and `notify_skip_followers=true`. This skips native Chatter follower and direct-recipient notifications; ordinary model hooks still run. It is not idempotent. `odoo_post_message` remains available for notifying comments and other Chatter workflows. A comment (`mail.mt_comment`) is posted with `message_type=comment`, so Odoo draws it as the message a person sends; a note keeps Odoo's default type.
 
 Annotations describe behavior, not a bypass for host safety checks or server authorization. Inspect emitted `tools/list` and compare real scheduled-run results before claiming any safety regression fixed.
 
@@ -50,9 +50,10 @@ The preferred discovery and read tools are:
 | Tool | Selection rule |
 | --- | --- |
 | `odoo_search_capabilities` | Find semantic helpers or actions by intent across several toolsets. Not on `/mcp`; see below. |
+| `docs_search` | Find ranked user-guide pages, descriptions, matching text and canonical links. Native internal-user guide access applies. |
 | `odoo_search_models` | Find accessible technical models from authenticated API metadata. |
 | `odoo_describe_model` | Inspect fields and public method signatures before guessing. |
-| `odoo_search_records` | Perform bounded cross-domain or long-tail search; a `specification` reads relations to any depth in one call. |
+| `odoo_search_records` | Search across models and read nested relations in one call. |
 | `odoo_read_records` | Read known record IDs, flat or with a nested `specification`. |
 
 `odoo_search_capabilities` is deliberately absent from `/mcp`. That profile lists
@@ -75,13 +76,59 @@ Use `odoo_call_method` when a legitimate public Distribution method has no MCP s
 
 ## Semantic catalogue
 
+Use `docs_search` for guidance before inventing a workflow. It reads the running release’s guide through `usl.docs.guide.search_pages`; generic `odoo_call_method` access remains available for full page steps and screenshot references via `read_page`. Abstract guide access is authorized by Odoo, without requiring CRUD metadata.
+
 Current context helpers cover partners, record activities, project tasks, invoices, individual expenses, expense batches, Home attention, B2C orders, the rebuilt Accounting overview/reports, and the USL document archive. They return bounded high-signal context and warnings when optional linked context cannot be read.
 
-The invoice helper optionally accepts `company_change: {target_company_id, offset, limit}` for one native read-only snapshot of company choices, all line types, actual financial links, origins and evidence. Each page is an independent snapshot with readable-scope counts and explicit truncation or unavailability. Default invoice context remains unchanged. This option adds no company-change action or approval; generic native writes remain available under existing authority.
+The Accounting overview keeps all-date ledger totals separate from the open annual
+closing workspace and latest operational closing. Its legacy `draft_expense_count`
+means expenses still to process: draft, submitted and approved. It is not an
+editable-draft count. New servers also return `draft_only_expense_count`,
+`submitted_expense_count` and `approved_expense_count` from that same company
+view. `_scope` states these meanings and whether the additive fields are available.
+Older servers remain readable; missing breakdowns are omitted with a warning,
+never replaced with zero. The shortcut negotiates only these optional fields
+through native `fields_get`, then reads one overview snapshot. It does not require
+additional expense-row access or grant permission to edit any expense.
 
-Document tools use the Distribution archive facade for search, context, bounded text, similarity, and catalogues. Link/unlink operations call one public archive method. `documents_create_download_url` is a consequential action that issues a 30–900 second HTTPS bearer URL for one exact authorized document version; `documents_revoke_download_url` ends that capability early. Both are static on `/mcp` when available and deferred only on `/mcp/all`. Search and read tools report binary availability but never create or return bearer URLs. Issuance does not prove the client downloaded bytes; see the [qualification runbook](https://github.com/unstaticlabs/odoo-mcp/blob/3a6cb9c380724e838be734ef1594c70ac5a5c548/docs/document-materialization.md).
+The invoice helper optionally accepts `company_change: {target_company_id, offset, limit}` for one native read-only snapshot of company choices, all line types, actual financial links, origins and evidence. Each page is an independent snapshot with readable-scope counts and explicit truncation or unavailability. Default invoice context remains unchanged. This option adds no company-change action or approval. To move a draft vendor bill, use `accounting_change_bill_company`.
+
+Document tools use the Distribution archive facade for search, context, bounded text, similarity, and catalogues. Link/unlink operations call one public archive method. `documents_create_download_url` is a consequential action that issues a 30–900 second HTTPS bearer URL for one exact authorized document version; `documents_revoke_download_url` ends that capability early. Both are static on `/mcp` when available and deferred only on `/mcp/all`. Search and read tools report binary availability but never create or return bearer URLs. For supported files up to 4 MiB, `documents_get_content` with an explicit `binary` selection instead returns verified bytes through the existing authenticated connector: common images as MCP image content, other files as embedded resources. The host decides how to open an embedded PDF; receipt of bytes alone is not a claim of model vision. Older servers retain ordinary text reads; a binary request explains when its native method is unavailable. Issuance does not prove the client downloaded bytes; see the [qualification runbook](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/document-materialization.md).
 
 Thin domain list/get wrappers are intentionally absent where generic search/read already communicates the task cleanly.
+
+### Task, project and contact content relevance
+
+On a Distribution release supporting native relevance order, use
+`odoo_search_records` on `project.task`, `project.project` or `res.partner`:
+pass `domain: [["usl_search_text", "ilike", query]]`,
+`order: "usl_search_text"`, and `context: {search_relevance_query: query}`.
+Choose the same `company_ids`, `lang` and `active_test: false` as Home.
+At the same identity and scope, each model has Home's title-first order and
+descending-ID tie breaker. Existing domains can add ordinary filters.
+Use `fields` for a flat selection or `specification` for related fields.
+Delegated read-only profiles can use either once the Distribution classifies
+the model’s native `web_search_read` as read-only. If an older release returns
+`agent_read_only_action_denied` for that method, use `fields` to continue
+within the same company and record permissions.
+This non-ID order uses offset cursors; unchanged records and access give stable
+pages, but edits between requests can change the result set.
+
+Discover `usl_search_text` through `odoo_describe_model`; its help advertises this
+conditional order on supported releases. Without the explicit query context,
+the virtual field still reports itself as not ordinarily sortable. Older releases reject this order: do not silently
+substitute an ID order while claiming relevance. Omit it or select another
+native `order` for ordinary generic search. Those paths retain their existing
+order and pagination.
+
+Task message evidence additionally uses `context.search_source_query` and the
+readable `usl_search_sources` field. Record and source rights remain native and
+are rechecked on each read. This path does not call or grant access to the
+abstract Home service, and does not perform fuzzy retrieval.
+
+## Card maintenance
+
+`projects_update_task` writes stage, state, description, link (`github_url`) and Sources references of one task in a single `web_save`; state is required with a stage because Odoo resets it otherwise. `activities_complete` marks activities done through `action_feedback`. Both are static on `/mcp`; see [keeping a project card](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/projects-cards.md) for what belongs where.
 
 ## Everyday workflows on `/mcp`
 
@@ -91,14 +138,20 @@ These workflows are complete on the default profile without a profile switch:
 | --- | --- |
 | Find and read documents | `documents_search`, `documents_get_context`, `documents_get_content` |
 | Obtain original bytes and clean up | `documents_create_download_url`, `documents_revoke_download_url` |
-| Create and maintain tasks | `projects_create_task`, `projects_get_task_context`, `odoo_update_records` |
-| Chatter and follow-ups | `odoo_add_internal_note` (no notifications), `odoo_post_message` (may notify), `activities_list_for_record`, `activities_schedule` |
+| Create and maintain tasks | `projects_create_task`, `projects_get_task_context`, `projects_update_task`, `odoo_update_records` |
+| Chatter and follow-ups | `odoo_add_internal_note` (no notifications), `odoo_post_message` (may notify), `activities_list_for_record`, `activities_schedule`, `activities_complete` |
 | Prepare expenses | `expenses_get_context`, `expenses_update_draft` |
 | Split a draft or correct all linked parts | `expenses_split_draft`, `expenses_correct_draft_family` |
 | Prepare vendor bills/credit notes | `accounting_get_invoice_context`, `expenses_configure_draft_vendor_bill` |
 | Report a connector issue | `odoo_submit_feedback` |
 
 `expenses_update_draft` uses one native transaction and returns the final expense.
+Servers supporting financial snapshots also return optional `financial_comparison`
+with native `before` and `after` read records from that transaction. The MCP passes
+these through without calculating taxes or deltas. Amounts ending in `_currency`
+use `currency_id` (document currency); `total_amount`, `untaxed_amount`, and
+`tax_amount` use `company_currency_id`, including `untaxed_amount` despite its
+upstream field metadata. Older servers can omit the comparison.
 For a draft company correction, supply a matching employee and select both
 authorized companies in `context.allowed_company_ids`. Replace incompatible
 category/account links or clear them with `false`; clear taxes with `[]` and
@@ -120,6 +173,13 @@ be treated as proof that no blocker exists. Manual or stale Waiting and disabled
 dependencies are distinguished from a proven dependency-derived wait. This
 read-only view does not change task state or repair historical tasks.
 
+A task can also wait for something outside Odoo. Its reason is the ordinary field
+`usl_waiting_reason` (with an optional contact, `usl_waiting_partner_id`). Task
+context returns both, and `waiting_reason` is `external_reason` while one is set;
+read and write them with the generic record tools. Setting a reason makes the task
+Waiting; clearing it, or writing state In Progress, resumes it. To wait for another
+task, use native dependencies.
+
 For different accounting components, `expenses_split_draft` accepts explicit
 gross lines and delegates to the native split wizard. Their sum must match the
 source at its currency precision. Signed discounts and zero components retain
@@ -137,6 +197,8 @@ mapping leaves all parts unchanged. The reply reports document totals grouped by
 currency rather than summing different currencies together. Both shortcuts use
 one native transaction and never submit, post, pay or reconcile. Unknown
 completion always requires readback before another action.
+
+`accounting_change_bill_company` moves one draft vendor bill or credit note to another company the caller can access, in two calls. The first call (no `confirm`) writes nothing and returns the native `account.move.change_bill_company` preview: blockers with links and next steps, the proposed journal, fiscal position, payment terms and payable account, each line from and to with accounts and taxes, unresolved items, and the destination tax totals and due dates, with a `preview_id`. The second call passes `confirm: true` and that `preview_id` (and the same `mapping`, if any) and applies it in one Odoo transaction, returning the bill before and after. Each call is one transport attempt. After a lost reply, read the bill: a bill already in the destination reports `already_done` when confirmed again. It is listed in the `accounting` profile and on `/mcp/all`, not on `/mcp`, to keep the default surface within its schema budget. It requires the Distribution release that publishes `change_bill_company`.
 
 Activity rescheduling and editing use the generic update tool where Odoo
 permits it; completion uses the documented public method via `odoo_call_method`.
@@ -206,7 +268,8 @@ Module, public-method, model-access, and feature predicates remove specialized t
 - Relational (x2many) values accept raw Odoo command tuples or the named form `{link|unlink|delete|set: [ids]}`, `{create: [values]}`, `{update: [{id, values}]}`, `{clear: true}`, lowered to those tuples in a fixed order.
 - `company_ids`, `lang`, and `active_test` are named parameters that map onto `allowed_company_ids`, `lang`, and `active_test`. They override the same key supplied inside `context` and report the override as a warning.
 - `odoo_describe_model` projects and caps its payload. It returns `fields_page`/`methods_page` totals; absence must be read from those, not from the returned keys.
-- `odoo_search_records` and `odoo_read_records` accept either `fields` (flat; many2one values are `[id, display_name]` pairs, from `search_read`/`read`) or `specification`, Odoo's nested read spec (`web_search_read`): `{"name": {}, "partner_id": {"fields": {"display_name": {}}}, "line_ids": {"fields": {...}, "limit": 20}}` follows relations to any depth in one call. A bare `{}` on a relational field returns only ids. `odoo_expand_record` is superseded and registered on `all` only.
+- `odoo_search_records` and `odoo_read_records` accept `fields` for flat reads (many2one values are `[id, display_name]` pairs) or `specification` to read related fields in the same call. A bare `{}` on a relation returns its IDs. With `{"line_ids": {"fields": {"name": {}}, "limit": 1}}`, an order with two lines can return `[{"id": 11, "name": "Service"}, {"id": 12}]`. Odoo takes the first N related IDs from each parent and expands every occurrence of those IDs in the batch. If two contacts share a tag, it can be expanded for both, even when it appears after the limit on one contact.
+- To page the actual related rows, search their model with a top-level `limit`. For order lines, filter on the inverse `order_id`. If a relation has no inverse field, get its IDs from the parent and filter the related search with `["id", "in", ids]`. The legacy `odoo_expand_record` tool remains available on the `all` profile.
 - `odoo_create_records` and `odoo_update_records` accept the same `specification` and return the records as `read_back`, so no follow-up read is needed. A single create and every update run `web_save`, where the write and the read-back share one Odoo transaction; a batch create runs `create` and then reads the new records back by id through `web_search_read`, because Odoo's `web_save_multi` only writes to records that already exist.
 - Searches ordered by `id asc` or `id desc` alone page by keyset: the next page restricts the domain by the last id seen and cannot skip or repeat rows when records are inserted or deleted between pages. Any other order pages by offset. Cursors are bound to the query and carry their mode.
 - Every write path that takes a rich-text body states the escaping contract in its own field descriptions. With `description_is_html`, `body_is_html`, or `note_is_html` false, the server escapes the text and turns newlines into `<br>`. With the flag true, the server stores the string as raw HTML and the caller must not escape it. `odoo_update_records` stays the pass-through reference: `values.description` is written exactly as given.
@@ -222,6 +285,6 @@ Module, public-method, model-access, and feature predicates remove specialized t
 copies an existing attachment/archived original to an expense or accounting
 entry. Provide exactly one `file`, `source_attachment_id` or `source_document_id`.
 The original remains unchanged; the destination receives native owned evidence
-and optional main selection. See [source evidence handoff](https://github.com/unstaticlabs/odoo-mcp/blob/3a6cb9c380724e838be734ef1594c70ac5a5c548/docs/source-evidence-handoff.md)
+and optional main selection. See [source evidence handoff](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/source-evidence-handoff.md)
 for file inputs, exact-byte/checksum guarantees, native workflow boundaries,
 provenance, duplicates and ambiguous-outcome recovery.
