@@ -137,9 +137,9 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
         },
         {
             id: "analytics",
-            content: "Shared analytics stay editable while the Batch is open",
+            content: "Read the saved split in the batch’s shared analytic distribution",
             trigger:
-                ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)",
+                ".o_form_view .o_field_widget[name='analytic_distribution'] .o_tag_badge_text:contains('40%')",
         },
         {
             id: "context_action",
@@ -317,7 +317,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
             screenshot: true,
         },
         analytics: {
-            text: "Save the new analytic distribution under **Shared context**. Its existing expenses keep their current values until you apply the context.",
+            text: "Review the saved analytic distribution under **Shared context**. Existing expenses keep their current values until you apply the context.",
         },
         context_action: {
             text: "Choose **Apply context to … expenses** to open the preview.",
@@ -433,7 +433,7 @@ french.add("usl_expense_batch_focused_review.fr", {
     app: "Dépenses",
     steps: {
         batch: "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
-        analytics: "Dans **Contexte commun**, enregistrez la nouvelle répartition analytique. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.",
+        analytics: "Dans **Contexte commun**, vérifiez la répartition analytique enregistrée. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.",
         context_action: "Cliquez sur **Appliquer le contexte à … notes de frais** pour ouvrir l’aperçu.",
         context_preview: "Vérifiez quels brouillons vont changer. Les dépenses déjà soumises ou approuvées gardent leurs valeurs, comme les brouillons qui ont leur propre répartition, sauf si un responsable les sélectionne pour la remplacer.",
         context_confirm: "Dans l’aperçu, confirmez l’application du contexte commun pour mettre à jour les brouillons concernés.",

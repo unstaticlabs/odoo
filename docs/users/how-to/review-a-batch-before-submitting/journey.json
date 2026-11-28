@@ -40,19 +40,19 @@
       "index": 1,
       "run": "",
       "screenshot": "01-batch.png",
-      "sha256": "a1e25c5634fed384e4f9bf68c15109db4dbf7e813309a963a70017ee4fb03d2d",
+      "sha256": "8cb0252447abce022327934eba2b9a1855e2622c0700956c944a59b540851172",
       "text": "Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])"
     },
     {
-      "assertion": "Shared analytics stay editable while the Batch is open",
+      "assertion": "Read the saved split in the batch’s shared analytic distribution",
       "id": "analytics",
       "index": 2,
       "run": "",
       "screenshot": null,
       "sha256": null,
-      "text": "Save the new analytic distribution under **Shared context**. Its existing expenses keep their current values until you apply the context.",
-      "trigger": ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)"
+      "text": "Review the saved analytic distribution under **Shared context**. Existing expenses keep their current values until you apply the context.",
+      "trigger": ".o_form_view .o_field_widget[name='analytic_distribution'] .o_tag_badge_text:contains('40%')"
     },
     {
       "assertion": "The context action explains its safe preview behavior",
@@ -70,7 +70,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-context_preview.png",
-      "sha256": "27b97dd0fa2fc023c81a9626b6b54248038fadc29989c131930400ddce8c412c",
+      "sha256": "8f6c52a8814c7a224fd8149d17d2514cacc73e5a509dbb085edd7a0c009e3566",
       "text": "Review which drafts will change. Expenses already submitted or approved keep their values, as do drafts with their own allocation unless an authorized reviewer selects them for replacement.",
       "trigger": ".o_dialog .o_form_view:has([name='changed_count']:contains('1')):has([name='exception_count']:contains('1')):has([name='skipped_count']:contains('1'))"
     },
@@ -90,7 +90,7 @@
       "index": 6,
       "run": "",
       "screenshot": "03-exception.png",
-      "sha256": "e44812f3a4357f95f81448d03ce3c21afaa5ce86edd9c21846f74af5b15161df",
+      "sha256": "5589c8bbf20ecb2913d4d415b8dbc824e8abd6839bfefe1210b52d97ff2778ab",
       "text": "A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.",
       "trigger": ".o_usl_batch_attention[title*='differ from Batch analytics']"
     },

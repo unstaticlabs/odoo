@@ -14,9 +14,9 @@ journey: verifier-un-lot-avant-envoi
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: 60df92e7de622143a6e9cc79d924bf672e8a8f1900d1cfa628be707f66bfaa48
-screenshot_02-context_preview_png: 29446070d4355626ae35b235bb0be33cb6bc4593b5fe77e56121b1816e89d2e7
-screenshot_03-exception_png: 63b369e645a4d90d9f093c9972746dc2c7b73f5905a7b09900cc59d82e0fa50c
+screenshot_01-batch_png: 4fb0210a76b2b2381f92675ce0305fc9c17fa9a91f882ff1c5ba0a1f40b462c9
+screenshot_02-context_preview_png: 74ce8249b11037a036f2350233386250fa79832334d7754aa645b7066fb605da
+screenshot_03-exception_png: 3bef7c6d981f5b49e6eca9804a7e5783f4640e4d2c38027bb2e9b83489bffc0f
 generated: true
 ---
 
@@ -30,7 +30,7 @@ Contrôlez les montants par payeur et repérez les lignes dont la répartition a
 
    ![Dans Dépenses Lots de dépenses, ouvrez votre lot](verifier-un-lot-avant-envoi/01-batch.png)
 
-2. Dans **Contexte commun**, enregistrez la nouvelle répartition analytique. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.
+2. Dans **Contexte commun**, vérifiez la répartition analytique enregistrée. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.
 
 3. Cliquez sur **Appliquer le contexte à … notes de frais** pour ouvrir l’aperçu.
 

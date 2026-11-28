@@ -13,9 +13,9 @@ journey: review-a-batch-before-submitting
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: a1e25c5634fed384e4f9bf68c15109db4dbf7e813309a963a70017ee4fb03d2d
-screenshot_02-context_preview_png: 27b97dd0fa2fc023c81a9626b6b54248038fadc29989c131930400ddce8c412c
-screenshot_03-exception_png: e44812f3a4357f95f81448d03ce3c21afaa5ce86edd9c21846f74af5b15161df
+screenshot_01-batch_png: 8cb0252447abce022327934eba2b9a1855e2622c0700956c944a59b540851172
+screenshot_02-context_preview_png: 8f6c52a8814c7a224fd8149d17d2514cacc73e5a509dbb085edd7a0c009e3566
+screenshot_03-exception_png: 5589c8bbf20ecb2913d4d415b8dbc824e8abd6839bfefe1210b52d97ff2778ab
 generated: true
 ---
 
@@ -29,7 +29,7 @@ Read the Batch summary, fix the shared analytics once, and deal with a line that
 
    ![Open Expenses Expense Batches and choose your Batch](review-a-batch-before-submitting/01-batch.png)
 
-2. Save the new analytic distribution under **Shared context**. Its existing expenses keep their current values until you apply the context.
+2. Review the saved analytic distribution under **Shared context**. Existing expenses keep their current values until you apply the context.
 
 3. Choose **Apply context to … expenses** to open the preview.
 
