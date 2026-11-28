@@ -3,8 +3,28 @@ import {
     analyticDistribution,
 } from "@analytic/components/analytic_distribution/analytic_distribution";
 import { registry } from "@web/core/registry";
+import { Field } from "@web/views/fields/field";
+
+class ExpenseBatchAnalyticAccountField extends Field {
+    get fieldComponentProps() {
+        const props = super.fieldComponentProps;
+        if (this.env.isSmall && props.record.fields[props.name].relation === "account.analytic.account") {
+            // Selecting an account requires its name. The default mobile view also reads its balance.
+            return {
+                ...props,
+                context: {
+                    ...props.context,
+                    kanban_view_ref: "usl_expense_batch.view_analytic_account_mobile_select",
+                },
+            };
+        }
+        return props;
+    }
+}
 
 class ExpenseBatchAnalyticDistribution extends AnalyticDistribution {
+    static components = { ...AnalyticDistribution.components, Field: ExpenseBatchAnalyticAccountField };
+
     setup() {
         super.setup();
         this.lineRecords = new Map();
