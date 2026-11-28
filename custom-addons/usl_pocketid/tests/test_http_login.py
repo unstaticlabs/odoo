@@ -284,6 +284,18 @@ class TestPocketIDHttpLogin(HttpCase):
             ),
         )
 
+    def test_reconfirmation_page_loads_the_pocket_id_authentication_method(self):
+        assets = self.env["ir.asset"]
+        confirmation_assets = {
+            "usl_pocketid/static/src/js/check_identity.js",
+            "usl_pocketid/static/src/js/pocketid_reauthentication.js",
+            "usl_pocketid/static/src/xml/check_identity.xml",
+        }
+        for bundle in ("web.assets_frontend_lazy", "web.assets_backend"):
+            with self.subTest(bundle=bundle):
+                paths = {asset[0].lstrip("/") for asset in assets._get_asset_paths(bundle, assets._get_asset_params())}
+                self.assertFalse(confirmation_assets - paths)
+
     def test_api_key_identity_check_uses_fresh_pocket_id_proof(self):
         self._authenticate_with_pocket_id()
         self.update_session(**{"identity-check-last": 0})

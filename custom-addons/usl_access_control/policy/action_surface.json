@@ -1778092,10 +1778092,10 @@
       "version": "saas~19.3.1.0.1"
     },
     {
-      "manifest_sha256": "924f0665fe1b3898ae928bfa1f2127719479b5e14b6ec5acfec3adc08c5f7e61",
+      "manifest_sha256": "28d55ee6ca7c7f8c3dd87883c609c30d70caf3ee7d1b74ee4765e1360a666b71",
       "name": "usl_pocketid",
       "origin": "custom",
-      "source_sha256": "424afa3bc0a6a5b0723402c136888b3f783d70519d9f04ce55fe656fa1289bfe",
+      "source_sha256": "2fca981aac93f2b05b14abb035d713d4d5db3fae95471864e45927289f422160",
       "version": "saas~19.3.1.4.5"
     },
     {

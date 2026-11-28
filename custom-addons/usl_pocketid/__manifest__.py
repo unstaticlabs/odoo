@@ -29,12 +29,18 @@
         "views/login_templates.xml",
     ],
     "assets": {
-        "web.assets_backend": [
+        "usl_pocketid._assets_check_identity": [
             "usl_pocketid/static/src/js/pocketid_reauthentication.js",
             "usl_pocketid/static/src/js/check_identity.js",
-            "usl_pocketid/static/src/js/identity_check_form.js",
             "usl_pocketid/static/src/xml/check_identity.xml",
+        ],
+        "web.assets_backend": [
+            ("include", "usl_pocketid._assets_check_identity"),
+            "usl_pocketid/static/src/js/identity_check_form.js",
             "usl_pocketid/static/src/js/sender_alias_preferences.js",
+        ],
+        "web.assets_frontend": [
+            ("include", "usl_pocketid._assets_check_identity"),
         ],
         "web.assets_unit_tests": [
             "usl_pocketid/static/tests/sender_alias_preferences.test.js",
