@@ -391,6 +391,50 @@ test("Undo of a note the browser could not store, with the composer busy, keeps 
     await waitForKeptVoiceNotes(0);
 });
 
+test("a pending draft attachment can only be discarded from the composer", async () => {
+    fakeMicrophone();
+    fakeUploads([true]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await contains(".o-usl-stored button[data-usl-action='download']");
+    expect(".o-usl-stored button[data-usl-action='discard']").toHaveCount(0);
+    const [entry] = await keptRecordings(user.userId);
+    expect(entry.attachmentId).toBe(9001);
+    await forgetRecording(entry.id);
+});
+
+test("a reopened composer adopts an attachment whose upload finishes later", async () => {
+    fakeMicrophone();
+    let finishUpload;
+    const upload = new Promise((resolve) => { finishUpload = resolve; });
+    const uploads = fakeUploads([upload]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    after(async () => {
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    });
+    await record();
+    await stop();
+    await waitUntil(() => uploads.length === 1);
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer");
+    const reopened = composers.at(-1);
+    finishUpload(true);
+    await waitUntil(() => reopened.uslPending?.attachmentId === 9001);
+    reopened.props.composer.attachments.length = 0;
+    await waitUntil(() => !reopened.uslPending);
+    await waitForKeptVoiceNotes(0);
+});
+
 test("a composer opened again for the record takes its pending voice note back", async () => {
     fakeMicrophone();
     fakeUploads([true]);

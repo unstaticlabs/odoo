@@ -338,7 +338,7 @@ export class FieldDictation extends Component {
     /** Discard the recording (or its transcript), with ten seconds to change one's mind. */
     discard(id) {
         const entry = id && this.state.stored.find((stored) => stored.id === id);
-        if (id && !entry) {
+        if (id && (!entry || this.hasPendingVoiceAttachment(entry))) {
             return;
         }
         const kept = entry

@@ -1,4 +1,4 @@
-import { markRaw, onMounted, onWillUnmount, useEffect } from "@odoo/owl";
+import { markRaw, onWillUnmount, useEffect } from "@odoo/owl";
 import { useExternalListener, useRef, useState } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";
@@ -9,7 +9,7 @@ import { registerComposerAction } from "@mail/core/common/composer_actions";
 import { VoiceCapture } from "./capture";
 import { VoiceMeter } from "./meter";
 import {
-    claimRecording, disownRecording, downloadRecording, forgetRecording, keepRecording, keptRecordings, newRecordingId,
+    claimRecording, disownRecording, downloadRecording, forgetRecording, keepRecording, keptBus, keptRecordings, newRecordingId,
     offerUndo, ownRecording, trackUnstoredRecording,
 } from "./recording_store";
 import { uploadVoiceNote } from "./voice_note_upload";
@@ -25,7 +25,12 @@ patch(Composer.prototype, {
         this.uslVoice = useState({ mode: "idle" });
         this.uslVoiceNotify = useService("notification");
         this.uslVoiceBar = useRef("usl-voice-bar");
-        useEffect(() => this.watchUslPending(), () => [this.props.composer.attachments.length]);
+        useEffect(() => {
+            this.watchUslPending();
+            this.adoptUslPending();
+        }, () => [this.props.composer.attachments.map(({ id }) => id).join(",")]);
+        // The final attachment can arrive before its recovery entry is released by the old composer.
+        useExternalListener(keptBus, "change", () => this.adoptUslPending());
         // Leaving with a voice note that exists nowhere but in memory asks first.
         useExternalListener(window, "beforeunload", (ev) => {
             if (this.uslUnsafe()) {
@@ -35,7 +40,6 @@ patch(Composer.prototype, {
         });
         // A phone often closes a page without beforeunload: what is being said is kept now.
         useExternalListener(window, "pagehide", () => this.pageHideUslVoice());
-        onMounted(() => this.adoptUslPending());
         onWillUnmount(() => this.suspendUslVoice());
     },
     /** A recording under way, or a finished one the browser could not store. */
@@ -65,14 +69,14 @@ patch(Composer.prototype, {
      */
     async adoptUslPending() {
         const attachments = this.props.composer.attachments;
-        if (!attachments.length || !this.thread) {
+        if (this.uslGone || this.uslPending || !attachments.some(({ id }) => id > 0) || !this.thread) {
             return;
         }
         const ids = new Set(attachments.map((attachment) => attachment.id));
         for (const entry of await keptRecordings(user.userId)) {
             const there = entry.destination?.model === this.thread.model && entry.destination?.id === this.thread.id;
             if (entry.kind === "voice_note" && there && ids.has(entry.attachmentId) && await claimRecording(entry.id)) {
-                if (this.uslGone || this.uslPending) {
+                if (this.uslGone || this.uslPending || !this.uslAttached(entry.attachmentId)) {
                     disownRecording(entry.id);
                 } else {
                     const kept = { id: entry.id, file: entry.blob, at: entry.createdAt, destination: entry.destination, persisted: !entry.volatile, entry, saving: Promise.resolve() };
@@ -241,7 +245,13 @@ patch(Composer.prototype, {
                 return keepRecording(kept.entry);
             }).then((ok) => (kept.persisted = ok));
             if (this.uslGone) {
-                this.releaseUslKept(kept);
+                kept.saving.then(() => {
+                    if (attachment.message) {
+                        forgetRecording(kept.id);
+                    } else {
+                        disownRecording(kept.id);
+                    }
+                });
             } else {
                 this.uslPending = { kept, attachmentId: attachment.id, seen: this.uslAttached(attachment.id) };
             }

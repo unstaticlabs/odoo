@@ -55,7 +55,7 @@
                 <t t-else="">Retry transcription</t>
             </button>
             <button class="btn btn-link btn-sm ms-1" data-usl-action="download" t-att-data-usl-id="this.state.stored[0].id"><i class="fa fa-download me-1" aria-hidden="true"/>Download audio</button>
-            <button class="btn btn-link btn-sm text-muted" data-usl-action="discard" t-att-data-usl-id="this.state.stored[0].id">Discard</button>
+            <button t-if="!this.hasPendingVoiceAttachment(this.state.stored[0])" class="btn btn-link btn-sm text-muted" data-usl-action="discard" t-att-data-usl-id="this.state.stored[0].id">Discard</button>
             <button class="btn btn-link btn-sm text-muted" data-usl-action="collapseStored">Later</button>
         </div>
         <!-- Out of the way, never gone: a tap brings the recordings back. -->
