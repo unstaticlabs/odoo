@@ -1,4 +1,4 @@
-import { beforeEach, expect, mockUserAgent, press, test } from "@odoo/hoot";
+import { beforeEach, expect, mockUserAgent, press, test, waitFor } from "@odoo/hoot";
 import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
@@ -1511,6 +1511,7 @@ test("tags are searchable, removable, and creatable from document details", asyn
         count: 1,
     }));
     onRpc("usl.document", "document_detail", () => detail);
+    onRpc("usl.document", "read", () => [{ id: document.id, tag_ids: detail.tags.map((tag) => tag.id) }]);
     onRpc("usl.paperless.tag", "create", () => [newTag.id]);
     onRpc("usl.paperless.tag", "web_name_search", () => []);
     onRpc("usl.document", "update_archive_metadata", ({ args }) => {
@@ -1577,6 +1578,7 @@ function suggestionFixture() {
         state.requests.push(Boolean(kwargs.include_tag_scores));
         return state.detail;
     });
+    onRpc("usl.document", "read", () => [{ id: document.id, tag_ids: state.detail.tags.map((tag) => tag.id) }]);
     onRpc("usl.document", "update_archive_metadata", async ({ args }) => {
         state.updates.push(args[1]);
         if (state.hold) {
@@ -1699,9 +1701,144 @@ test("Undo waits for a tag save that is still running and keeps both changes", a
 });
 
 test.tags("desktop");
+test("two undo notifications both run after a pending tag save", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains("button[aria-label^='Add tag Payroll']").click();
+    await animationFrame();
+    await contains("button[aria-label^='Add tag Concert']").click();
+    await animationFrame();
+
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await contains("button[aria-label^='Add tag Literal match']").click();
+    await contains(".o_notification:eq(0) button", { text: "Undo" }).click();
+    await contains(".o_notification:eq(1) button", { text: "Undo" }).click();
+
+    state.hold = null;
+    release();
+    await animationFrame();
+    await animationFrame();
+    await animationFrame();
+    expect(state.detail.tags.map((tag) => tag.id)).toEqual([44]);
+});
+
+test.tags("desktop");
+test("reopening the document while undo is running does not restore the removed tag", async () => {
+    const state = suggestionFixture();
+    let release;
+    const reading = new Promise((resolve) => { release = resolve; });
+    let holdRead = false;
+    onRpc("usl.document", "read", async () => {
+        if (holdRead) {
+            await reading;
+        }
+        return [{ id: 41, tag_ids: state.detail.tags.map((tag) => tag.id) }];
+    });
+    await openSuggestedDocument();
+    await contains("button[aria-label^='Add tag Payroll']").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    holdRead = true;
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+    await contains("button[aria-label^='Add tag Concert']").click();
+
+    release();
+    await animationFrame();
+    await animationFrame();
+    await animationFrame();
+    expect(state.detail.tags.map((tag) => tag.id)).toEqual([43]);
+});
+
+for (const viewport of ["desktop", "mobile"]) {
+    test.tags(viewport);
+    test(`a late detail response cannot suggest a saved tag again before Undo (${viewport})`, async () => {
+        if (viewport === "mobile") {
+            mockUserAgent("android");
+        }
+        const state = suggestionFixture();
+        let releaseSave, releaseDetails, detailStarted;
+        state.hold = new Promise((resolve) => { releaseSave = resolve; });
+        const detailRead = new Promise((resolve) => { releaseDetails = resolve; });
+        const reopened = new Promise((resolve) => { detailStarted = resolve; });
+        let holdDetails = false;
+        onRpc("usl.document", "document_detail", async () => {
+            const snapshot = state.detail;
+            if (holdDetails) {
+                detailStarted();
+                await detailRead;
+            }
+            return snapshot;
+        });
+        await openSuggestedDocument();
+        await contains("button[aria-label^='Add tag Payroll']").click();
+        await animationFrame();
+        expect(state.updates).toEqual([{ tag_ids: [42] }]);
+        await contains("button[aria-label='Close']").click();
+        holdDetails = true;
+        await contains(".o_usl_document_card").click();
+        await reopened;
+
+        releaseSave();
+        await waitFor(".o_notification");
+        releaseDetails();
+        await animationFrame();
+        await animationFrame();
+        expect("button[aria-label='Remove tag Payroll']").toHaveCount(1);
+        expect(ghostLabels()).toEqual(["Concert", "Literal match", "Unscored"]);
+
+        state.hold = null;
+        await contains(".o_notification button", { text: "Undo" }).click();
+        await animationFrame();
+        expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+        expect("button[aria-label='Remove tag Payroll']").toHaveCount(0);
+        expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+    });
+}
+
+test.tags("desktop");
+test("a response started before undo cannot show the old tags on the reopened document", async () => {
+    const state = suggestionFixture();
+    let releaseUndo, releaseDetails;
+    let hold = false;
+    const undoRead = new Promise((resolve) => { releaseUndo = resolve; });
+    const detailRead = new Promise((resolve) => { releaseDetails = resolve; });
+    onRpc("usl.document", "read", async () => {
+        if (hold) {
+            await undoRead;
+        }
+        return [{ id: 41, tag_ids: state.detail.tags.map((tag) => tag.id) }];
+    });
+    onRpc("usl.document", "document_detail", async () => {
+        const snapshot = state.detail;
+        if (hold) {
+            await detailRead;
+        }
+        return snapshot;
+    });
+    await openSuggestedDocument();
+    await contains("button[aria-label^='Add tag Payroll']").click();
+    await animationFrame();
+    await contains("button[aria-label='Close']").click();
+    hold = true;
+    await contains(".o_notification button", { text: "Undo" }).click();
+    await contains(".o_usl_document_card").click();
+    await animationFrame();
+
+    releaseUndo();
+    await animationFrame();
+    await animationFrame();
+    expect(state.detail.tags).toEqual([]);
+    releaseDetails();
+    await animationFrame();
+    expect(".o_usl_detail_tags .o_usl_tag_chip:not(.o_usl_tag_ghost)").toHaveCount(0);
+});
+
+test.tags("desktop");
 test("Undo after leaving the document restores its tags and reloads the list", async () => {
     const state = suggestionFixture();
-    onRpc("usl.document", "read", () => [{ id: 41, tag_ids: [42] }]);
     await openSuggestedDocument();
     await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
     await animationFrame();
@@ -1715,12 +1852,37 @@ test("Undo after leaving the document restores its tags and reloads the list", a
 });
 
 test.tags("desktop");
-test("Undo after leaving the document reports a failed restore", async () => {
+test("Undo after leaving the document keeps a tag whose save is still running", async () => {
     const state = suggestionFixture();
-    onRpc("usl.document", "read", () => { throw makeServerError({ type: "AccessError", message: "No access" }); });
+    onRpc("usl.document", "read", () => [{ id: 41, tag_ids: state.detail.tags.map((tag) => tag.id) }]);
     await openSuggestedDocument();
     await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
     await animationFrame();
+
+    let release;
+    state.hold = new Promise((resolve) => { release = resolve; });
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await contains("button[aria-label='Close']").click();
+    await contains(".o_notification:first button", { text: "Undo" }).click();
+    await animationFrame();
+    const updatesWhileSaving = state.updates.slice();
+
+    state.hold = null;
+    release();
+    await animationFrame();
+    await animationFrame();
+    expect(updatesWhileSaving).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }]);
+    expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [42, 43] }, { tag_ids: [43] }]);
+    expect(state.detail.tags.map((tag) => tag.id)).toEqual([43]);
+});
+
+test.tags("desktop");
+test("Undo after leaving the document reports a failed restore", async () => {
+    const state = suggestionFixture();
+    await openSuggestedDocument();
+    await contains(".o_usl_tag_ghost:first .o_usl_ghost_accept").click();
+    await animationFrame();
+    onRpc("usl.document", "read", () => { throw makeServerError({ type: "AccessError", message: "No access" }); });
     await contains("button[aria-label='Close']").click();
     await contains(".o_notification button", { text: "Undo" }).click();
     await animationFrame();
