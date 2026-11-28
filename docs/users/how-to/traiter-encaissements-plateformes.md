@@ -1,87 +1,67 @@
 ---
-title: Traiter les encaissements des plateformes de contenu
+title: Rapprocher les versements des plateformes
 type: how-to
-description: Importer un versement de plateforme, générer les factures et le rapprocher de la banque.
+description: Associer un encaissement bancaire à un versement déjà saisi, puis rapprocher les règlements tardifs, partiels ou groupés.
 lang: fr
 persona: finance_operator
-app: Platform billing
+app: Facturation des plateformes
 models:
   - usl.platform.billing.payout
+  - usl.platform.billing.session
 translation_of: how-to/process-platform-payouts.md
 source:
   - custom-addons/usl_platform_billing
 generated: false
 ---
 
-# Traiter les encaissements des plateformes de contenu
+# Rapprocher les versements des plateformes
 
-## Préparation
+Les guides illustrés expliquent comment [comptabiliser les versements du
+mois](comptabiliser-les-versements-mensuels-des-plateformes.md) et [rapprocher
+une session dont l’encaissement est déjà
+lié](rapprocher-une-session-de-facturation-des-plateformes.md).
 
-Un administrateur Facturation plateformes configure les partenaires, produits,
-journaux, taux de commission, devise et règles de libellé bancaire de chaque
-plateforme. La comptabilisation automatique est désactivée par défaut. Les
-justificatifs peuvent être joints à chaque encaissement. Le rôle Comptable
-seul ne donne pas accès à cette application.
+## Associer un encaissement à un versement déjà saisi
 
-## Créer et contrôler une session
+Depuis la session, ouvrez **Importer des transactions bancaires** et choisissez
+**Lier des transactions bancaires aux versements enregistrés**. Sélectionnez le
+versement et la transaction reçue, vérifiez la répartition, puis cliquez sur
+**Lier les transactions sélectionnées**. Une fois la session comptabilisée,
+cliquez sur **Rapprocher les transactions bancaires**.
 
-1. Ouvrez **Facturation plateformes → Sessions de facturation**.
-2. Créez la session du mois comptable.
-3. Vérifiez la date de facture, l'échéance et la devise bancaire.
-4. Ajoutez les encaissements ou utilisez **Importer les opérations bancaires**
-   pour sélectionner les règlements reçus.
-5. Dans l'onglet **Encaissements**, complétez ensuite la plateforme, la
-   référence, la devise et le montant d'origine de chaque ligne importée.
-6. Cliquez sur **Contrôler** et corrigez chaque erreur bloquante.
+Si vous partez de l’encaissement et que le versement reste à saisir,
+choisissez **Créer des versements depuis les transactions bancaires**.
+Complétez ensuite la plateforme, la référence, la devise et le montant
+d’origine.
 
-La vue **Toutes ouvertes** affiche les opérations entrantes, comptabilisées,
-non rapprochées et disponibles dans la devise bancaire de la session. La
-détection classe les suggestions selon le motif configuré, le partenaire connu,
-puis les mots-clés ; elle ne masque pas les libellés inconnus ou ambigus.
-Utilisez **Suggestions uniquement** pour une liste plus courte.
+**Toutes les transactions ouvertes** affiche les transactions entrantes disponibles dans la
+devise bancaire de la session et les journaux autorisés. **Suggestions
+uniquement** réduit la liste selon le libellé, le partenaire connu ou les
+mots-clés. En cas de doute, vérifiez le libellé, le montant et la date.
 
-## Générer et comptabiliser
+## Versements tardifs, partiels ou groupés
 
-1. Cliquez sur **Générer les brouillons**.
-2. Contrôlez les factures client, factures de commission, taxes, comptes,
-   analytique, dates et pièces jointes via le bouton intelligent.
-3. Cliquez sur **Comptabiliser les pièces**.
+- Si le versement tarde, laissez la transaction bancaire vide. La session
+  reste **Comptabilisée** et la facture reste ouverte.
+- Pour un règlement partiel, répartissez le montant reçu. Liez les règlements
+  suivants à leur arrivée. La session passe à **Payée** lorsque les pièces et
+  les encaissements requis sont soldés.
+- Si un virement couvre plusieurs mois, sélectionnez les versements concernés
+  et répartissez-le une seule fois. Le rapprochement groupé automatique exige
+  le même client et la même devise de facture. Pour un virement mixte,
+  conservez les répartitions vérifiées et terminez dans le rapprochement
+  standard d’Odoo.
 
-Si la compensation est active, Odoo comptabilise une OD équilibrée entre
-fournisseur et client, puis effectue les lettrages natifs. Une pièce
-comptabilisée ne peut plus être réinitialisée dans cette application.
+## Devise et accès
 
-## Rapprocher la banque
+Un versement créé depuis la banque peut afficher un **Taux bancaire
+effectif**. Ce taux valorise les pièces concernées et conserve les taux
+généraux d’Odoo. Un versement saisi avant sa réception utilise le taux de
+référence d’Odoo. Le règlement reçu plus tard peut donc générer un gain ou
+une perte de change normale.
 
-1. Ouvrez **Importer les opérations bancaires** depuis une session.
-2. Sélectionnez les encaissements ouverts à régler, y compris ceux d'autres
-   sessions.
-3. Sélectionnez les opérations reçues et ajustez les montants en cas de
-   règlement partiel.
-4. Cliquez sur **Associer les opérations sélectionnées**, puis sur
-   **Rapprocher la banque**.
-5. Laissez sans opération bancaire un règlement retardé : la session reste
-   **Comptabilisée** et la facture client reste une créance ouverte.
-6. Si un virement couvre plusieurs mois, sélectionnez tous les encaissements
-   concernés et répartissez ce virement une seule fois.
-7. La session passe à **Payée** uniquement lorsque les pièces requises et les
-   opérations bancaires sont soldées.
-
-Lorsqu'un encaissement dans la devise de la société crée un règlement dans une
-devise étrangère, l'application affiche **Taux bancaire effectif**. Par exemple,
-un règlement de 1 000 USD créé depuis un encaissement de 700 EUR valorise les
-pièces à `1 USD = 0,70 EUR`. Les 700 EUR bancaires sont conservés et le
-rapprochement immédiat ne génère aucun écart de change. Ce taux ne modifie pas
-les taux généraux d'Odoo.
-
-Si le règlement est enregistré avant la réception bancaire, les pièces gardent
-le taux de référence Odoo. Le paiement reçu plus tard peut alors générer un gain
-ou une perte de change normale, car il s'agit d'un règlement différé.
-
-Les rôles Lecteur, Opérateur ou Administrateur Facturation plateformes doivent
-être attribués explicitement. Le Lecteur consulte l'historique de ses sociétés
-sans créer, comptabiliser, rapprocher ni supprimer.
-
-Cette application comptabilise les revenus des plateformes de contenu. Elle
-n'est pas liée à la connexion aux plateformes françaises de facturation
-électronique.
+L’administrateur Facturation des plateformes configure les plateformes et
+leurs règles bancaires. L’opérateur prépare et rapproche les sessions. Le
+lecteur consulte l’historique de ses sociétés. Ces droits sont attribués
+séparément de la Comptabilité et la comptabilisation automatique est
+désactivée par défaut. Joignez le relevé de la plateforme quand il est disponible.
