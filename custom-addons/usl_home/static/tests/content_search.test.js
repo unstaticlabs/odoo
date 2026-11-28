@@ -400,3 +400,95 @@ test("a deployment without meaning search makes no request and shows no loading 
     expect(".o_usl_search_result").toHaveCount(1);
     expect.verifySteps([]);
 });
+
+test("a related description explains the match while the main result still opens its task", async () => {
+    const result = local("Prepare the parcel");
+    Object.assign(result.groups[0].records[0], {
+        excerpt: "Fit the indigo heliograph.",
+        source: { kind: "relation", relation: "project_id", model: "project.project", id: 8,
+            label: "Via project: Parcel workshop", open_label: "Open project" },
+    });
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("usl.home.service", "get_search_result_action", ({ args, kwargs }) => {
+        expect(args).toEqual(["project.task", 5]);
+        if (kwargs.source_relation) {
+            expect([kwargs.source_relation, kwargs.source_record_id, kwargs.source_query]).toEqual(["project_id", 8, "heliograph indigo"]);
+            return { type: "ir.actions.act_window", res_model: "project.project", res_id: 8 };
+        }
+        return { type: "ir.actions.act_window", res_model: "project.task", res_id: 5 };
+    });
+    mockService("action", { doAction: (action) => expect.step(`${action.res_model}:${action.res_id}`) });
+    await mountSearch("heliograph indigo", false);
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveText(/Via project: Parcel workshop/);
+    expect(".o_usl_search_source").toHaveText("Open project");
+    expect(".o_usl_search_result .o_usl_search_source").toHaveCount(0);
+    await contains("#usl-home-content-search").press("ArrowDown");
+    await contains("#usl-home-content-search").press("Enter");
+    await contains(".o_usl_search_source").click();
+    expect.verifySteps(["project.task:5", "project.project:8"]);
+});
+
+test("a parent source has a separate native destination and preserves escaped text", async () => {
+    const result = local("Wrap the parcel");
+    result.groups[0].records[0].source = { kind: "relation", relation: "parent_id", model: "project.task", id: 8,
+        label: "Via parent task: <b>Parcel plan</b>", open_label: "Open parent task" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("usl.home.service", "get_search_result_action", ({ args, kwargs }) => {
+        expect(args).toEqual(["project.task", 5]);
+        expect([kwargs.source_relation, kwargs.source_record_id, kwargs.source_query]).toEqual(["parent_id", 8, "Amber"]);
+        return { type: "ir.actions.act_window", res_model: "project.task", res_id: 8 };
+    });
+    mockService("action", { doAction: (action) => expect.step(`${action.res_model}:${action.res_id}`) });
+    await mountSearch("Amber", false);
+    await animationFrame();
+    expect(".o_usl_search_result b").toHaveCount(0);
+    expect(".o_usl_search_result").toHaveText(/<b>Parcel plan<\/b>/);
+    await contains(".o_usl_search_source").click();
+    expect.verifySteps(["project.task:8"]);
+});
+
+test("a removed relation source offers recovery without opening an unrelated record", async () => {
+    const result = local("Wrap the parcel");
+    result.groups[0].records[0].source = { kind: "relation", relation: "parent_id", id: 8,
+        label: "Via parent task: Parcel plan", open_label: "Open parent task" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    mockService("orm", {
+        call(model, method, ...args) {
+            if (model === "usl.home.service" && method === "get_search_result_action") {
+                return Promise.reject(new Error("Relationship changed"));
+            }
+            return super.call(model, method, ...args);
+        },
+    });
+    mockService("action", { doAction: () => { throw Error("Unexpected navigation"); } });
+    mockService("notification", { add: (message) => expect.step(message) });
+    await mountSearch("Amber", false);
+    await animationFrame();
+    await contains(".o_usl_search_source").click();
+    expect.verifySteps(["This search source is no longer available. Refresh the search and try again."]);
+    expect(".o_usl_search_result").toHaveCount(1);
+});
+
+test("a task found through its project is not repeated among automatic subject suggestions", async () => {
+    const result = local("Prepare the parcel");
+    result.groups[0].records[0].source = { kind: "relation", relation: "project_id", id: 8,
+        label: "Via project: Parcel workshop", open_label: "Open project" };
+    onRpc("usl.home.service", "search_records", () => result);
+    onRpc("usl.home.service", "search_documents", () => documents);
+    onRpc("project.task", "search_by_meaning", () => ({ status: "ok", group: {
+        key: "task_meaning", label: "Related task descriptions", records: [
+            { model: "project.task", id: 5, title: "Prepare the parcel" },
+            { model: "project.task", id: 7, title: "Inspect the lantern" },
+        ],
+    } }));
+    await mountSearch("How is the parcel prepared?");
+    await animationFrame();
+    expect(".o_usl_search_result").toHaveCount(2);
+    expect('[data-category="tasks"] .o_usl_search_result').toHaveCount(2);
+    expect(texts(".o_usl_result_title")).toEqual(["Prepare the parcel", "Inspect the lantern Similar topic"]);
+    expect(".o_usl_search_source").toHaveCount(1);
+});

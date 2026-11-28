@@ -3101,6 +3101,24 @@
     },
     {
       "delegates": [
+        "rpc:usl.home.service.get_search_result_action"
+      ],
+      "digest": "ccea9ff9a9bc4cadaa66c8b3f8386fb228212de971cae2419699611ca6a0c3c0",
+      "handler": "openSource",
+      "key": "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:openSource:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_home"
+      ],
+      "sources": [
+        {
+          "line": 349,
+          "path": "custom-addons/usl_home/static/src/home/content_search.js"
+        }
+      ]
+    },
+    {
+      "delegates": [
         "rpc:usl.home.favorite.reorder",
         "rpc:usl.home.service.resolve_favorite"
       ],
@@ -1429343,7 +1429361,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "65d837b175d7763987f35cbcb3c49a801b4bd12605ac4ad047d3c489c115f959",
+      "digest": "9a293e637c8b55b15c34f402f9d0f9ac7deab46cc6aa3f11e6df38d80b1706b0",
       "guards": [],
       "key": "rpc:usl.home.service.get_search_result_action",
       "kind": "rpc",
@@ -1429354,7 +1429372,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "578153a3a0d4261fbb0545e6a964c4f2089495b180a4d518646485377c25a43c",
+      "runtime_digest": "d55c65ba375aea68a205f1beba374ec178292ae235c71e470590feb6397ef38b",
       "sinks": [],
       "sources": [
         {
@@ -1430056,7 +1430074,7 @@
     {
       "abstract": true,
       "archiveable": false,
-      "digest": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc",
+      "digest": "c26bbbe7de733470e9cb6d68bf383c6ab5354bd8f8eb096e5b9562b98fd5283b",
       "guards": [],
       "key": "rpc:usl.home.service.search_records",
       "kind": "rpc",
@@ -1430067,7 +1430085,7 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "a7e4adfc1f9447de16e29ffaa2feb139fd65adb7ba134788c85087b9f9269944",
+      "runtime_digest": "9f0cad6bceb1ea5e61e182071d3984896d7b569b4d593c5ae169c4c1a7be8e55",
       "sinks": [],
       "sources": [
         {
@@ -1776200,11 +1776218,11 @@
       "version": "saas~19.3.2.0.21"
     },
     {
-      "manifest_sha256": "f87983cbe090d109e66ac4b2d74f9bd6090dcaac06f2b620a8a8cd54707f4b72",
+      "manifest_sha256": "0d4ed19db3b7d8bfd17a974e51447d97f7acd6a772cde4560bbb0018d79e3910",
       "name": "usl_home",
       "origin": "custom",
-      "source_sha256": "5da2a0417f401f907142144be45d2fc2a543dd0b5ab582d579c79d0f0774581a",
-      "version": "saas~19.3.1.0.19"
+      "source_sha256": "b1ecee353aec3c6e90797fd8b4baea1fc56b0b95074c8d4169747e0d89f3a2ff",
+      "version": "saas~19.3.1.0.20"
     },
     {
       "manifest_sha256": "bb43850f670e0acf9f0173cad4c0c93680767addca24c5251f053d2d1eaf7e0b",

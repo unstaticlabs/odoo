@@ -1192,3 +1192,50 @@ msgstr "Sujet d’un message"
 #: code:addons/usl_home/static/src/home/content_search.js:0
 msgid "Subject of a message · %s"
 msgstr "Sujet d’un message · %s"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+#, python-format
+msgid "Via parent task: %(name)s"
+msgstr "Par la tâche parente : %(name)s"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+#, python-format
+msgid "Via project: %(name)s"
+msgstr "Par le projet : %(name)s"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "Via parent task"
+msgstr "Par la tâche parente"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "Via project"
+msgstr "Par le projet"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "Open parent task"
+msgstr "Ouvrir la tâche parente"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "Open project"
+msgstr "Ouvrir le projet"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "Search source"
+msgstr "Source de recherche"
+
+#. module: usl_home
+#: code:addons/usl_home/models/task_relation_search.py:0
+msgid "This search source is no longer available. Refresh the search and try again."
+msgstr "Cette source de recherche n’est plus disponible. Actualisez la recherche et réessayez."
+
+#. module: usl_home
+#: model:ir.model.fields,help:usl_home.field_project_task__usl_search_sources
+msgid "Readable chatter and immediate parent/project description evidence for the explicit search_source_query context."
+msgstr "Extraits lisibles du chatter et de la description du parent direct ou du projet pour le contexte explicite search_source_query."

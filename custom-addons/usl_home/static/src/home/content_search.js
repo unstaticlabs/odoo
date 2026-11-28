@@ -344,6 +344,19 @@ export class HomeContentSearch extends Component {
         }
     }
 
+    async openSource(record) {
+        try {
+            const action = await this.orm.call("usl.home.service", "get_search_result_action", [record.model, record.id], {
+                source_relation: record.source.relation,
+                source_record_id: record.source.id,
+                source_query: this.state.query,
+            });
+            await this.action.doAction(action);
+        } catch {
+            this.notification.add(_t("This search source is no longer available. Refresh the search and try again."), { type: "warning" });
+        }
+    }
+
     keydown(event) {
         if (["ArrowDown", "ArrowUp"].includes(event.key) && this.results.length) {
             event.preventDefault();

@@ -8,3 +8,5 @@ from . import task_message_search
 
 from . import search_relevance
 from . import task_semantics
+
+from . import task_relation_search

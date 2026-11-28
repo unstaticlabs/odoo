@@ -24,13 +24,14 @@
                                 </span>
                                 <span t-if="record.context_label" class="o_usl_result_meta" t-esc="record.context_label"/>
                                 <span t-if="record.source" class="o_usl_result_meta o_usl_result_source">
-                                    <i t-att-class="record.source.message_kind === 'note' ? 'fa fa-sticky-note-o' : 'fa fa-comment-o'" aria-hidden="true"/>
+                                    <i t-att-class="record.source.kind === 'relation' ? (record.source.relation === 'parent_id' ? 'fa fa-level-up' : 'fa fa-folder-o') : (record.source.message_kind === 'note' ? 'fa fa-sticky-note-o' : 'fa fa-comment-o')" aria-hidden="true"/>
                                     <t t-esc="this.sourceLabel(record.source)"/>
                                 </span>
                                 <span t-if="record.excerpt" class="o_usl_result_excerpt">
                                     <t t-if="record.source">“</t><t t-foreach="this.excerptParts(record)" t-as="part" t-key="part_index"><strong t-if="part.match" class="o_usl_result_match" t-esc="part.text"/><t t-else="" t-esc="part.text"/></t><t t-if="record.source">”</t>
                                 </span>
                             </button>
+                            <button t-if="record.source?.kind === 'relation'" type="button" class="o_usl_search_source btn btn-link text-start ms-3 mb-2" t-on-click="() => this.openSource(record)" t-esc="record.source.open_label"/>
                         </t>
                         <p t-if="group.key === 'tasks' and state.meaningLoading" class="o_usl_search_skeleton text-muted" role="status"><span class="o_usl_skeleton_bar" aria-hidden="true"/>Looking for related tasks…</p>
                         <button t-if="group.has_more" t-att-disabled="group.loading || (group.key === 'documents' &amp;&amp; state.documentsLoading)" class="o_usl_search_more btn btn-link btn-sm" type="button" t-on-click="() => this.more(group)">More <t t-esc="group.label"/></button>
