@@ -99,7 +99,7 @@ class HomeContentSearch(models.AbstractModel):
         labels = []
         if record._name == "project.task" and record.has_field_access(record._fields["project_id"], "read"):
             project = record.project_id._filtered_access("read")
-            if project:
+            if project and project.has_field_access(project._fields["name"], "read"):
                 labels.append(project.display_name)
         if "company_id" in record._fields and record.has_field_access(record._fields["company_id"], "read"):
             company = record.company_id
@@ -147,7 +147,7 @@ class HomeContentSearch(models.AbstractModel):
             domain = Domain("usl_search_text", "ilike", query) if model_name in {"project.task", "project.project", "res.partner"} else readable_content_domain(model, query)
             records = self._search_ranked_records(model, domain, query, limit + 1, offset)
             rows = []
-            sources = records[:limit]._usl_matching_message_sources(query) if model_name == "project.task" else {}
+            sources = records[:limit]._usl_matching_search_sources(query) if model_name == "project.task" else {}
             for record in records[:limit]:
                 rows.append({
                     "model": model_name, "id": record.id,
@@ -181,7 +181,8 @@ class HomeContentSearch(models.AbstractModel):
         return {"group": group}
 
     @api.model
-    def get_search_result_action(self, model_name, record_id, source_message_id=None, source_field=None):
+    def get_search_result_action(self, model_name, record_id, source_message_id=None, source_field=None,
+            *, source_relation=None, source_record_id=None, source_query=None):
         catalog = self._search_catalog()
         if model_name not in {model for model, _label in catalog.values()} or type(record_id) is not int:
             raise AccessError(self.env._("This search destination is not available."))
@@ -189,6 +190,10 @@ class HomeContentSearch(models.AbstractModel):
         record = model.search(company_domain(model) & Domain("id", "=", record_id), limit=1)
         if not record:
             raise UserError(self.env._("This record is no longer available in your selected companies."))
+        if source_relation is not None or source_record_id is not None or source_query is not None:
+            if source_message_id is not None or source_field is not None:
+                raise UserError(self.env._("This search source is no longer available. Refresh the search and try again."))
+            return self._get_search_relation_action(record, source_relation, source_record_id, source_query)
         if source_message_id is not None or source_field is not None:
             Message = self.env["mail.message"]
             if (model_name != "project.task" or type(source_message_id) is not int

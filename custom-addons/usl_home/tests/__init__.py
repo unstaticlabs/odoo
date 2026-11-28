@@ -11,3 +11,5 @@ from . import test_task_chatter_search_ui
 
 from . import test_search_relevance
 from . import test_task_semantics
+
+from . import test_task_relation_search

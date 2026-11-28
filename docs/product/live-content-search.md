@@ -191,3 +191,33 @@ each minute; a task with only a title is found too. The vector sits on the task'
 title fragment. Edits immediately remove stale suggestions until the task is indexed
 again. Changing the model starts a fresh pass. The reader's current task and field
 access governs each result. No messages, files or transcripts enter this index.
+
+## Find a task through its parent or project
+
+The native Task **Content** filter and Home also match the readable description
+of the task's immediate parent or project. A matching name was already searchable;
+this adds the description, including the existing indexed word-order search.
+A result shows **Via parent task** or **Via project**, an excerpt and a separate
+**Open parent task** or **Open project** action. The main result still opens the
+task. Existing chatter-source opening remains unchanged.
+
+This follows exactly one native relation. It does not search grandparents,
+siblings, a neighbor's chatter, files or voice transcripts, and it sends no new
+text to the semantic model. It reuses the task/project projections; no neighbor
+text is copied into child records. Source edits and relation removal discard the
+old match immediately; reordered new text follows the existing indexing queue.
+Both the task and source must remain readable in the selected companies, with
+read access to the relation and source description. The source action rechecks
+the current relation and query. A withdrawn or changed source asks the reader to
+refresh instead of opening an unrelated record.
+
+Exact own titles retain their established ranking. Related-description matches
+join the other authorized content matches, with the same stable ID tie-breaker;
+this is bounded relation retrieval, not a new weighted graph score. A task appears
+once when both relations match or when semantic suggestions find it too.
+
+Agents use the existing concrete `project.task` content domain and can request
+`usl_search_sources` with `search_source_query` in the normal read context. The
+same current-access projection governs ordinary ORM reads and exports. There is
+no new MCP tool or permission grant, and no abstract Home API is made available
+to generic Agent calls.

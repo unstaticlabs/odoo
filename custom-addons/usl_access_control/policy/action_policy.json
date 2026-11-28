@@ -71006,11 +71006,11 @@
       "domain": "work_management",
       "evidence_id": "live-content-search-20261014",
       "id": "read_only.work_management.live_content_search",
-      "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked. Validated category exclusion partitions the same authorized catalog for progressive batches; activity matches stay in a native authorized subquery and identical property predicates retain exact owner scopes.",
+      "rationale": "Internal and selected-company validation precedes native caller-scoped reads; native Properties metadata and public identities retain their existing authority. Document reads reuse the governed facade and native form access is rechecked. Validated category exclusion partitions the same authorized catalog for progressive batches; activity matches stay in a native authorized subquery and identical property predicates retain exact owner scopes. Immediate parent/project description matches reuse current native source ACLs, readable fields and company scopes. Relation openings revalidate the exact current edge and matching readable source; no relation is granted access by the result.",
       "reviewed_digests": {
-        "rpc:usl.home.service.get_search_result_action": "65d837b175d7763987f35cbcb3c49a801b4bd12605ac4ad047d3c489c115f959",
+        "rpc:usl.home.service.get_search_result_action": "9a293e637c8b55b15c34f402f9d0f9ac7deab46cc6aa3f11e6df38d80b1706b0",
         "rpc:usl.home.service.search_documents": "a49109300ed02ed6c7f4fc6fb03b88a6af4f2960b76a2ba8e3b72b86e8401797",
-        "rpc:usl.home.service.search_records": "21f5330712edb2b8384179e6635e618437d59343d5c485f69bb2462b2125c5bc"
+        "rpc:usl.home.service.search_records": "c26bbbe7de733470e9cb6d68bf383c6ab5354bd8f8eb096e5b9562b98fd5283b"
       }
     },
     {
@@ -202880,6 +202880,7 @@
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:openSource:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1"
       ],
@@ -202906,6 +202907,11 @@
             "rpc:usl.home.service.search_documents"
           ]
         },
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:openSource:rpc:1": {
+          "targets": [
+            "rpc:usl.home.service.get_search_result_action"
+          ]
+        },
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": {
           "targets": [
             "rpc:usl.home.service.get_search_result_action"
@@ -202917,11 +202923,12 @@
           ]
         }
       },
-      "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink. Fixed local batches and cancellation use native RPC promises; the named category loader forwards only to search_records, and partial result rendering adds no mutation sink.",
+      "rationale": "Each frontend entry has only its named readonly RPC delegate; result rendering and native form navigation add no mutation sink. Fixed local batches and cancellation use native RPC promises; the named category loader forwards only to search_records, and partial result rendering adds no mutation sink. The separate source button forwards only the current fixed relation, selected source and query to the reviewed source-opening RPC.",
       "reviewed_digests": {
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:1": "fabc5adbe5c001532a9634eeb73560c1a0443d13453d4ca141181faffcd7526b",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:if:rpc:2": "1f22146774247720c0aa6dff88854a76d16438e4e3ea7515fb22915998830ea9",
         "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:loadDocuments:rpc:1": "e663c1c551ab15dfe08a5c1575d464e05c0b92a883f3e6c697504ae361e391ec",
+        "client:usl_home:custom-addons/usl_home/static/src/home/content_search.js:openSource:rpc:1": "ccea9ff9a9bc4cadaa66c8b3f8386fb228212de971cae2419699611ca6a0c3c0",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:if:rpc:1": "c6f89f06aa43c5df3ee4de9c90a668c3264167ece9309770e4d549c651991b3e",
         "client:usl_home:custom-addons/usl_home/static/src/project_search/project_search.js:loadContentCategory:rpc:1": "cf91808b8322c4b0937b69f6820ae28e4f8990d301dc2ac500d3b570176ee841"
       }
