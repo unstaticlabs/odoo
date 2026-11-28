@@ -32,17 +32,26 @@ function fakeMicrophone() {
 }
 
 /** The upload goes through the native service: what it is given, and what it answers, is the contract. */
-function fakeUploads(answers) {
+function fakeUploads(answers, { replacePending = false } = {}) {
     const uploads = [];
     patchWithCleanup(AttachmentUploadService.prototype, {
         async upload(thread, composer, file, options) {
             uploads.push({ model: thread.model, id: thread.id, composer: Boolean(composer), file, voice: options?.voice });
-            if (!answers.shift()) {
+            const attachments = (composer || thread).store["ir.attachment"];
+            const pending = replacePending && attachments.insert({ id: -1, name: "Voice.mp3", mimetype: "audio/mpeg" });
+            if (pending) {
+                composer.attachments.push(pending);
+            }
+            if (!(await answers.shift())) {
                 return undefined;
             }
-            // As the native upload does: the pending attachment joins the composer.
-            const attachment = (composer || thread).store["ir.attachment"].insert({ id: 9001, name: "Voice.mp3", mimetype: "audio/mpeg" });
-            composer?.attachments.push(attachment);
+            const attachment = attachments.insert({ id: 9001, name: "Voice.mp3", mimetype: "audio/mpeg" });
+            if (pending) {
+                // The native uploader replaces a temporary attachment without changing the list length.
+                composer.attachments[composer.attachments.indexOf(pending)] = attachment;
+            } else {
+                composer?.attachments.push(attachment);
+            }
             return attachment;
         },
     });
@@ -290,6 +299,82 @@ test("closing the page while recording a voice note keeps it for the next page",
     expect(uploads.length).toBe(0);
 });
 
+async function waitForKeptVoiceNotes(count) {
+    for (let round = 0; round < 20; round++) {
+        if ((await keptRecordings(user.userId)).length === count) {
+            return;
+        }
+        await advanceTime(50);
+    }
+    expect((await keptRecordings(user.userId)).length).toBe(count);
+}
+
+test("closing the composer during upload keeps the reload warning", async () => {
+    fakeMicrophone();
+    let finishUpload;
+    const upload = new Promise((resolve) => { finishUpload = resolve; });
+    const uploads = fakeUploads([upload]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    try {
+        await record();
+        await click("button:text('Log note')");
+        await contains(".o-mail-Composer", { count: 0 });
+        expect(uploads.length).toBe(1);
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        expect(event.defaultPrevented).toBe(true);
+    } finally {
+        finishUpload(false);
+        await animationFrame();
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    }
+});
+
+test("two unstored voice notes stay recoverable after closing their composers", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([false, false, true, true]);
+    await openNote();
+    patchWithCleanup(indexedDB, {
+        open() {
+            throw Error("no storage");
+        },
+    });
+    after(async () => {
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    });
+    for (let i = 0; i < 2; i++) {
+        if (i) {
+            await click("button:text('Log note')");
+        }
+        await record();
+        await click("button:text('Log note')");
+        await contains(".o-mail-Composer", { count: 0 });
+        await waitForKeptVoiceNotes(i + 1);
+    }
+    const leave = () => {
+        const event = new Event("beforeunload", { cancelable: true });
+        window.dispatchEvent(event);
+        return event.defaultPrevented;
+    };
+    expect(leave()).toBe(true);
+    const entries = await keptRecordings(user.userId);
+    expect(new Set(entries.map((entry) => entry.id)).size).toBe(2);
+    const attach = ".o-usl-stored button[data-usl-action='retry']";
+    const firstId = document.querySelector(attach).dataset.uslId;
+    const secondId = entries.find((entry) => entry.id !== firstId).id;
+    await click(attach);
+    await click(`${attach}[data-usl-id="${secondId}"]`);
+    await waitUntil(() => uploads.length === 4 && !leave());
+    await waitForKeptVoiceNotes(0);
+    expect(uploads.length).toBe(4);
+    expect(leave()).toBe(false);
+});
+
 test("Undo of a note the browser could not store, with the composer busy, keeps the only copy", async () => {
     fakeMicrophone();
     const uploads = fakeUploads([true]);
@@ -305,15 +390,97 @@ test("Undo of a note the browser could not store, with the composer busy, keeps 
     await contains(".o_notification:contains('discarded')");
     await record(); // the composer is busy again
     await click(".o_notification button:contains('Undo')");
-    await contains(".o_notification:contains('not saved in this browser')");
-    const composer = composers.at(-1);
-    expect(composer.uslUnsafe()).toBe(true);
+    await contains(".o-usl-stored:contains('not saved in this browser')");
+    expect((await keptRecordings(user.userId)).length).toBe(1);
     expect(uploads.length).toBe(0);
     // It can still be uploaded to its record, without the composer.
-    await click(".o_notification button:contains('Upload to the record')");
+    await click(".o-usl-stored button:text('Attach to the record')");
     await waitUntil(() => uploads.length === 1);
     expect(uploads[0]).toMatchObject({ model: "res.partner", composer: false, voice: true });
-    await waitUntil(() => !composer.uslSpares.length);
+    await waitForKeptVoiceNotes(0);
+});
+
+test("a pending draft attachment can only be discarded from the composer", async () => {
+    fakeMicrophone();
+    fakeUploads([true]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await contains(".o-usl-stored button[data-usl-action='download']");
+    expect(".o-usl-stored button[data-usl-action='discard']").toHaveCount(0);
+    const [entry] = await keptRecordings(user.userId);
+    expect(entry.attachmentId).toBe(9001);
+    await forgetRecording(entry.id);
+});
+
+test("a newer draft attachment does not block recovering an older failed recording", async () => {
+    fakeMicrophone();
+    const uploads = fakeUploads([false, true, true]);
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    after(async () => {
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    });
+
+    // Closing while recording uploads directly to the record, which fails.
+    await record();
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await waitForKeptVoiceNotes(1);
+    const [older] = await keptRecordings(user.userId);
+    await advanceTime(1000);
+
+    // The newer note uploads successfully, but still belongs to the draft.
+    await click("button:text('Log note')");
+    await record();
+    await stop();
+    await contains(".o-usl-voice-bar", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await waitForKeptVoiceNotes(2);
+    expect((await keptRecordings(user.userId))[0].attachmentId).toBe(9001);
+    await contains(".o-usl-stored:contains('Other recordings are waiting.')");
+    const attach = `.o-usl-stored button[data-usl-action='retry'][data-usl-id="${older.id}"]`;
+    await click(attach);
+    await contains(".o-usl-stored:contains('Open the message draft')");
+    expect(uploads.length).toBe(3);
+    const [remaining] = await keptRecordings(user.userId);
+    expect(remaining.attachmentId).toBe(9001);
+});
+
+test("a reopened composer adopts an attachment whose upload finishes later", async () => {
+    fakeMicrophone();
+    let finishUpload;
+    const upload = new Promise((resolve) => { finishUpload = resolve; });
+    const uploads = fakeUploads([upload], { replacePending: true });
+    await openNote();
+    patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
+    after(async () => {
+        for (const entry of await keptRecordings(user.userId)) {
+            await forgetRecording(entry.id);
+        }
+    });
+    await record();
+    await stop();
+    await waitUntil(() => uploads.length === 1);
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer", { count: 0 });
+    await click("button:text('Log note')");
+    await contains(".o-mail-Composer");
+    const reopened = composers.at(-1);
+    expect(reopened.props.composer.attachments.map(({ id }) => id)).toEqual([-1]);
+    finishUpload(true);
+    await waitUntil(() => reopened.uslPending?.attachmentId === 9001);
+    expect(reopened.props.composer.attachments.map(({ id }) => id)).toEqual([9001]);
+    reopened.props.composer.attachments.length = 0;
+    await waitUntil(() => !reopened.uslPending);
+    await waitForKeptVoiceNotes(0);
 });
 
 test("a composer opened again for the record takes its pending voice note back", async () => {

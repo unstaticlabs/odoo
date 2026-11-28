@@ -13,6 +13,7 @@ import { session } from "@web/session";
  */
 const DATABASE = "usl_voice";
 const STORE = "recordings";
+const unstored = new Map();
 
 /** Tells the screen that shows unused recordings to read them again. */
 export const keptBus = new EventBus();
@@ -93,11 +94,24 @@ export function newRecordingId() {
 export async function keepRecording(entry) {
     // The same browser serves every database of the host: a recording belongs to the one it was made in.
     const { ok } = await transact("readwrite", (store) => store.put({ db: session.db, ...entry }));
+    if (ok) {
+        unstored.delete(entry.id);
+    }
     changed();
     return ok;
 }
 
+/** Protect a note while the composer is uploading it or IndexedDB is still writing. */
+export function trackUnstoredRecording(entry) {
+    unstored.set(entry.id, { ...entry, db: session.db, volatile: true });
+}
+
+export function hasUnstoredRecordings(userId) {
+    return [...unstored.values()].some((entry) => entry.userId === userId && entry.db === session.db);
+}
+
 export async function forgetRecording(id) {
+    unstored.delete(id);
     letGo(id);
     const { ok } = await transact("readwrite", (store) => store.delete(id));
     changed();
@@ -124,7 +138,11 @@ async function lockedIds() {
 export async function keptRecordings(userId) {
     const { ok, result } = await transact("readonly", (store) => store.getAll());
     const locked = await lockedIds();
-    return (ok ? result : [])
+    const entries = new Map((ok ? result : []).map((entry) => [entry.id, entry]));
+    for (const [id, entry] of unstored) {
+        entries.set(id, entry);
+    }
+    return [...entries.values()]
         .filter((entry) => entry.userId === userId && entry.db === session.db && !owned.has(entry.id) && !locked.has(lockName(entry.id)))
         .map((entry) => ({ ...entry, blob: new File([entry.blob], "Voice.mp3", { type: "audio/mpeg" }) }))
         .sort((a, b) => b.createdAt - a.createdAt);
