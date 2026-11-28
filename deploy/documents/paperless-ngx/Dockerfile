@@ -53,12 +53,16 @@ COPY --chmod=0755 \
 COPY --chmod=0755 \
     deploy/documents/paperless-ngx/verify_preview_contract.py \
     /tmp/usl-verify-paperless-preview-contract.py
+COPY --chmod=0644 \
+    deploy/documents/paperless-ngx/tests/test_gotenberg_contract.py \
+    /tmp/usl-test-paperless-gotenberg-contract.py
 COPY --from=compile-frontend --chown=1000:1000 \
     /src/src/documents/static/frontend/ \
     /usr/src/paperless/src/documents/static/frontend/
 
 RUN python /tmp/usl-apply-paperless-overlay.py \
     && python /tmp/usl-verify-paperless-preview-contract.py \
+    && PYTHONPATH=/usr/src/paperless/src python /tmp/usl-test-paperless-gotenberg-contract.py \
     && python -m compileall -q \
         /usr/src/paperless/src/paperless_usl_tag_scores.py \
         /usr/src/paperless/src/paperless_usl_ranges.py \
@@ -87,7 +91,8 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
         /usr/src/paperless/src/documents/views.py \
     && rm \
         /tmp/usl-apply-paperless-overlay.py \
-        /tmp/usl-verify-paperless-preview-contract.py
+        /tmp/usl-verify-paperless-preview-contract.py \
+        /tmp/usl-test-paperless-gotenberg-contract.py
 
 LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
       org.opencontainers.image.version="3.5.1-usl.3" \
