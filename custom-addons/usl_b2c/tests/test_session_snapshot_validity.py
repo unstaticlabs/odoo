@@ -111,6 +111,64 @@ class TestSessionSnapshotValidity(TransactionCase):
             ("company_id", "=", self.company.id), ("channel_id", "=", self.channel.id),
         ]), 2)
 
+    def test_company_move_keeps_linked_evidence_and_does_not_partially_write(self):
+        linked = self._session()
+        unlinked = self._session(period_start="2026-12-01")
+        document = self.env["ir.attachment"].create({
+            "name": "Synthetic statement evidence.txt",
+            "raw": b"Synthetic statement evidence",
+            "company_id": self.company.id,
+            "res_model": linked._name,
+            "res_id": linked.id,
+        })
+        evidence = self.env["b2c.accounting.link"].create({
+            "name": "Synthetic supporting evidence",
+            "company_id": self.company.id,
+            "session_id": linked.id,
+            "attachment_id": document.id,
+            "link_type": "supporting",
+            "link_state": "verified",
+        })
+        before = self._snapshot(linked | unlinked)
+        with self.assertRaisesRegex(UserError, "linked accounting evidence"):
+            (unlinked | linked).write({"company_id": self.other_company.id, "channel_id": False})
+        self.assertEqual(self._snapshot(linked | unlinked), before)
+        self.assertEqual(evidence.company_id, self.company)
+        self.assertEqual(evidence.session_id.id, linked.id)
+        self.assertEqual(bytes(evidence.attachment_id.raw), b"Synthetic statement evidence")
+
+        linked.write({"company_id": self.company.id, "review_note": "[QA] Verified evidence"})
+        self.assertEqual(self._snapshot(linked | unlinked), before)
+        unlinked.write({"company_id": self.other_company.id, "channel_id": False})
+        self._assert_invalid(unlinked)
+
+    def test_delegated_operator_can_link_evidence_and_keeps_the_same_company_rule(self):
+        if "usl.agent" not in self.env:
+            self.skipTest("Managed Agent parity runs in the complete Distribution registry")
+        operator_group = self.env.ref("usl_b2c.group_b2c_operator")
+        companies = self.company | self.other_company
+        agent = self.env["usl.agent"].with_user(self.operator).with_context(
+            allowed_company_ids=companies.ids,
+        ).create({
+            "name": "[QA] Evidence collaborator", "purpose": "Check monthly supporting documents",
+            "company_id": self.company.id, "company_ids": [Command.set(companies.ids)],
+            "delegated_group_ids": [Command.set(operator_group.ids)], "access_mode": "read_write",
+        })
+        session = self._session().with_user(agent.user_id)
+        document = self.env["ir.attachment"].create({
+            "name": "Synthetic statement.txt", "raw": b"Synthetic statement",
+            "company_id": self.company.id, "res_model": session._name, "res_id": session.id,
+        })
+        evidence = session.env["b2c.accounting.link"].create({
+            "name": "Synthetic supporting document", "link_type": "supporting",
+            "session_id": session.id, "attachment_id": document.id, "company_id": self.company.id,
+        })
+        self.assertEqual(evidence.create_uid.id, agent.user_id.id)
+        self.assertEqual(session.write_uid.id, agent.user_id.id)
+        with self.assertRaisesRegex(UserError, "linked accounting evidence"):
+            session.write({"company_id": self.other_company.id, "channel_id": False})
+        self.assertEqual(session.company_id, self.company)
+
     def test_noop_scope_and_unrelated_note_preserve_valid_snapshot(self):
         session = self._session()
         before = self._snapshot(session)

@@ -488,6 +488,11 @@ class B2cAccountingSession(models.Model):
                 # Reverting an unsaved edit restores its original valid preview.
                 session.update({name: session._origin[name] for name in session._empty_snapshot()})
 
+    def _has_company_bound_evidence(self):
+        return bool(self.env["b2c.accounting.link"].sudo().search_count(
+            [("session_id", "in", self.ids)], limit=1,
+        ))
+
     def write(self, vals):
         if self.filtered(lambda session: session.state == "locked") and not self.env.context.get(
             "b2c_unlock",
@@ -502,6 +507,11 @@ class B2cAccountingSession(models.Model):
         if "company_id" in vals:
             target_id = self._fields["company_id"].convert_to_cache(vals["company_id"], changed[0])
             self._check_scope_company_read(self.env["res.company"].browse(target_id))
+            moving = changed.filtered(lambda session: session.company_id.id != target_id)
+            if moving and moving._has_company_bound_evidence():
+                raise UserError(self.env._(
+                    "This session has linked accounting evidence. Create a separate session in the other company."
+                ))
         # Keep mixed no-op/changed batches atomic, including native validation.
         with self.env.cr.savepoint():
             unchanged = self - changed
@@ -751,6 +761,13 @@ class B2cAccountingLink(models.Model):
         if self.session_id.filtered(lambda session: session.state == "locked"):
             raise UserError(self.env._("Links in a locked B2C session are immutable."))
 
+    def _record_session_evidence_change(self):
+        sessions = self.session_id
+        # Use the same row as the company change to keep these two writes ordered.
+        # Flush the native audit stamp now so a concurrent move is retried by Odoo.
+        sessions.write({})
+        sessions.flush_recordset(["write_date"])
+
     @api.model_create_multi
     def create(self, vals_list):
         session_ids = {
@@ -764,7 +781,10 @@ class B2cAccountingLink(models.Model):
             raise UserError(
                 self.env._("Links cannot be added to a locked B2C session."),
             )
-        return super().create(vals_list)
+        with self.env.cr.savepoint():
+            links = super().create(vals_list)
+            links._record_session_evidence_change()
+            return links
 
     def write(self, vals):
         self._check_locked_session()
@@ -776,6 +796,10 @@ class B2cAccountingLink(models.Model):
                 raise UserError(
                     self.env._("Links cannot be moved into a locked B2C session."),
                 )
+            with self.env.cr.savepoint():
+                result = super().write(vals)
+                self._record_session_evidence_change()
+                return result
         return super().write(vals)
 
     def unlink(self):
