@@ -2938,10 +2938,9 @@
     {
       "delegates": [
         "rpc:usl.document.action_set_starred",
-        "rpc:usl.document.update_archive_metadata",
         "rpc:usl.document.upload_new_version"
       ],
-      "digest": "af872cc9b26214aa5652c0650aeefd8d3bdf49af075f8d72f5ba8002d56a52be",
+      "digest": "2a335262e698df07c79ed400e27c52876017b21d4b757e57b43134b63203b1d9",
       "handler": "if",
       "key": "client:usl_documents:custom-addons/usl_documents/static/src/documents_app.js:if:rpc:1",
       "kind": "client",
@@ -2950,15 +2949,29 @@
       ],
       "sources": [
         {
-          "line": 2603,
+          "line": 2607,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         },
         {
-          "line": 2899,
+          "line": 3421,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
-        },
+        }
+      ]
+    },
+    {
+      "delegates": [
+        "rpc:usl.document.update_archive_metadata"
+      ],
+      "digest": "4e183270c73a9ed25db6d57145abc0d737d1729fcdc954640a19971a79f306fa",
+      "handler": "undoSuggestedTags",
+      "key": "client:usl_documents:custom-addons/usl_documents/static/src/documents_app.js:undoSuggestedTags:rpc:1",
+      "kind": "client",
+      "modules": [
+        "usl_documents"
+      ],
+      "sources": [
         {
-          "line": 3423,
+          "line": 2905,
           "path": "custom-addons/usl_documents/static/src/documents_app.js"
         }
       ]
@@ -1776161,7 +1776174,7 @@
       "manifest_sha256": "baedaad58e2022924b9742852389b86a5bcca272304afd5d502ab2851b0d19a0",
       "name": "usl_documents",
       "origin": "custom",
-      "source_sha256": "ac59e9ae565688a084c4c23c84cc7e5a5a3397cd0453d4ca0c935dbb0b944243",
+      "source_sha256": "e8ed2d4d443439f9fa6d62f6f2507b364e4aad5f93c06cfd2b1e6f18c6542fee",
       "version": "saas~19.3.1.11.3"
     },
     {

@@ -439,6 +439,7 @@ export class DocumentsWorkspaceView extends Component {
         this.resultWindowOffset = 0;
         this.resultWindowComplete = false;
         this.metadataSaveQueue = Promise.resolve();
+        this.lastTagWrites = new Map();
         useSetupAction({
             getOrderBy: () => this.state.orderBy,
         });
@@ -2534,6 +2535,7 @@ export class DocumentsWorkspaceView extends Component {
             preview_url: `/usl_documents/${document.id}/preview`,
         };
         this.state.selectedLoading = true;
+        const previousTagWrite = this.lastTagWrites.get(document.id);
         try {
             const detail = await this.rpc(
                 "usl.document",
@@ -2542,8 +2544,10 @@ export class DocumentsWorkspaceView extends Component {
                 { check_archive: true }
             );
             if (this.state.selected?.id === document.id) {
+                const recentTagWrite = this.lastTagWrites.get(document.id);
                 this.state.selected = {
                     ...detail,
+                    tags: recentTagWrite !== previousTagWrite ? recentTagWrite : detail.tags,
                     preview_url: this.documentPreviewUrl(detail),
                 };
                 try {
@@ -2755,6 +2759,9 @@ export class DocumentsWorkspaceView extends Component {
                     "update_archive_metadata",
                     [[selectedId], { [field]: value }]
                 );
+                if (field === "tag_ids") {
+                    this.lastTagWrites.set(selectedId, detail.tags);
+                }
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
@@ -2858,12 +2865,13 @@ export class DocumentsWorkspaceView extends Component {
             return;
         }
         const documentId = selected.id;
-        const previousIds = (selected.tags || []).map((tag) => tag.id);
-        const addedIds = suggestions
-            .map((suggestion) => suggestion.record_id)
-            .filter((id) => !previousIds.includes(id));
-        const applied = await this.setSelectedTags([...previousIds, ...addedIds]);
-        if (applied !== true) {
+        let addedIds = [];
+        const applied = await this.changeSelectedTags((currentIds) => {
+            addedIds = suggestions.map((suggestion) => suggestion.record_id)
+                .filter((id) => !currentIds.includes(id));
+            return [...currentIds, ...addedIds];
+        });
+        if (applied !== true || !addedIds.length) {
             return;
         }
         // The drawer may have been refreshed meanwhile: act on the current one.
@@ -2891,44 +2899,33 @@ export class DocumentsWorkspaceView extends Component {
     }
 
     async undoSuggestedTags(documentId, addedIds, suggestions) {
-        if (this.state.selected?.id !== documentId) {
+        const undo = async () => {
             try {
-                const [{ tag_ids: current }] = await this.orm.read(
-                    "usl.document", [documentId], ["tag_ids"]
-                );
-                await this.orm.call("usl.document", "update_archive_metadata", [
+                const currentIds = await this.documentTagIds(documentId);
+                const detail = await this.orm.call("usl.document", "update_archive_metadata", [
                     [documentId],
-                    { tag_ids: current.filter((id) => !addedIds.includes(id)) },
+                    { tag_ids: currentIds.filter((id) => !addedIds.includes(id)) },
                 ]);
+                this.lastTagWrites.set(documentId, detail.tags);
+                if (this.state.selected?.id === documentId) {
+                    const listed = new Set(this.suggestedTags.map((item) => item.record_id));
+                    this.state.selected.tags = detail.tags;
+                    this.state.selected.paperless_suggestions = [
+                        ...(this.state.selected.paperless_suggestions || []),
+                        ...suggestions.filter((item) => !listed.has(item.record_id)).map((item) => ({ ...item })),
+                    ];
+                }
                 await this.load();
             } catch (error) {
                 this.notification.add(
-                    error.data?.message ||
-                        error.message ||
-                        _t("The tags could not be restored."),
+                    error.data?.message || error.message || _t("The tags could not be restored."),
                     { type: "danger", sticky: true }
                 );
             }
-            return;
-        }
-        // A tag save may still be running: wait for it so both changes survive.
-        await this.metadataSaveQueue;
-        if (this.state.selected?.id !== documentId) {
-            return this.undoSuggestedTags(documentId, addedIds, suggestions);
-        }
-        const remaining = (this.state.selected.tags || [])
-            .map((tag) => tag.id)
-            .filter((id) => !addedIds.includes(id));
-        const reverted = await this.setSelectedTags(remaining);
-        if (reverted === true && this.state.selected?.id === documentId) {
-            const listed = new Set(this.suggestedTags.map((item) => item.record_id));
-            this.state.selected.paperless_suggestions = [
-                ...(this.state.selected.paperless_suggestions || []),
-                ...suggestions
-                    .filter((item) => !listed.has(item.record_id))
-                    .map((item) => ({ ...item })),
-            ];
-        }
+        };
+        // Notifications can outlive a save or its drawer. Keep both changes ordered.
+        this.metadataSaveQueue = this.metadataSaveQueue.then(undo, undo);
+        return this.metadataSaveQueue;
     }
 
     acceptSuggestedTag(suggestion) {
@@ -3107,23 +3104,24 @@ export class DocumentsWorkspaceView extends Component {
         );
     }
 
-    setSelectedTags(tagIds) {
-        return this.saveMetadataField("tag_ids", tagIds);
+    async documentTagIds(documentId) {
+        const [document] = await this.orm.read("usl.document", [documentId], ["tag_ids"]);
+        return document.tag_ids;
+    }
+
+    changeSelectedTags(change) {
+        const documentId = this.state.selected?.id;
+        return this.resolveMetadataField("tag_ids", async () => {
+            return change(await this.documentTagIds(documentId));
+        });
     }
 
     addSelectedTag(tag) {
-        const ids = (this.state.selected.tags || []).map((item) => item.id);
-        if (!ids.includes(tag.id)) {
-            return this.setSelectedTags([...ids, tag.id]);
-        }
+        return this.changeSelectedTags((ids) => ids.includes(tag.id) ? ids : [...ids, tag.id]);
     }
 
     removeSelectedTag(tagId) {
-        return this.setSelectedTags(
-            (this.state.selected.tags || [])
-                .map((tag) => tag.id)
-                .filter((id) => id !== tagId)
-        );
+        return this.changeSelectedTags((ids) => ids.filter((id) => id !== tagId));
     }
 
     async createAndAddTag(requestedName) {
