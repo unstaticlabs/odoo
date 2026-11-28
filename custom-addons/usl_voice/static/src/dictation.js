@@ -9,7 +9,7 @@ import { captionBox, captureTarget, caretRect, dictationTarget, typeHost, wantsM
 import { requestDictation } from "./dictation_request";
 import { VoiceMeter } from "./meter";
 import {
-    claimRecording, disownRecording, downloadRecording, forgetRecording, keepRecording, keptBus, keptRecordings, listenOtherTabs, newRecordingId,
+    claimRecording, disownRecording, downloadRecording, forgetRecording, hasUnstoredRecordings, keepRecording, keptBus, keptRecordings, listenOtherTabs, newRecordingId,
     offerUndo, ownRecording, recordingTime,
 } from "./recording_store";
 import { uploadVoiceNote } from "./voice_note_upload";
@@ -140,7 +140,7 @@ export class FieldDictation extends Component {
     }
     /** Audio a reload would lose: a recording under way, or a finished one that is not in the browser's storage. */
     unsafe() {
-        return Boolean(this.capture || (this.pendingAudio && !this.persisted) || this.spares.length);
+        return Boolean(this.capture || (this.pendingAudio && !this.persisted) || this.spares.length || hasUnstoredRecordings(user.userId));
     }
     /**
      * The only copy of this recording is in memory (the browser could not store it) and the page is
@@ -203,10 +203,13 @@ export class FieldDictation extends Component {
     }
     /** The recordings kept in this browser that no screen is handling: the ones to offer again. */
     async loadStored() {
+        this.state.stored = (await keptRecordings(user.userId))
+            .filter((entry) => entry.volatile || !this.hasPendingVoiceAttachment(entry))
+            .map(markRaw);
+    }
+    hasPendingVoiceAttachment(entry) {
         const store = this.env.services["mail.store"];
-        // A voice note whose pending attachment is still in this page belongs to its composer.
-        const pending = (entry) => Boolean(entry.attachmentId && store?.["ir.attachment"]?.get(entry.attachmentId));
-        this.state.stored = (await keptRecordings(user.userId)).filter((entry) => !pending(entry)).map(markRaw);
+        return Boolean(entry.attachmentId && store?.["ir.attachment"]?.get(entry.attachmentId));
     }
     setTarget(element) {
         this.target = element;
@@ -534,6 +537,10 @@ export class FieldDictation extends Component {
     }
     /** An unused voice note goes where it was recorded: the attachments of its record. */
     async attach(entry) {
+        if (this.hasPendingVoiceAttachment(entry)) {
+            disownRecording(entry.id);
+            return;
+        }
         if (await uploadVoiceNote(this.env, entry.destination, entry.blob)) {
             await forgetRecording(entry.id);
             this.notify.add(_t("Voice note attached to %s.", entry.destination.name), { type: "success" });
@@ -550,9 +557,16 @@ export class FieldDictation extends Component {
     }
     get storedBody() {
         const [entry, ...others] = this.state.stored;
-        const text = entry?.kind === "voice_note"
-            ? _t("It was not attached to %s. Your recording is kept.", entry.destination.name)
-            : _t("Your recording is kept. Transcribe it again, or download it.");
+        let text;
+        if (entry?.volatile) {
+            text = this.hasPendingVoiceAttachment(entry)
+                ? _t("Open the message draft to send this voice note, or download the audio.")
+                : _t("The voice note from %s is not saved in this browser. Download it or upload it to the record.", recordingTime(entry.createdAt));
+        } else if (entry?.kind === "voice_note") {
+            text = _t("It was not attached to %s. Your recording is kept.", entry.destination.name);
+        } else {
+            text = _t("Your recording is kept. Transcribe it again, or download it.");
+        }
         return others.length ? `${text} ${_t("Other recordings are waiting.")}` : text;
     }
     get storedTitle() {

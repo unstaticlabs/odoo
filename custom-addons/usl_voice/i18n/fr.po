@@ -360,3 +360,9 @@ msgstr "L’enregistrement de %s n’est pas enregistré dans ce navigateur. Té
 #: code:addons/usl_voice/static/src/dictation.js:0
 msgid "Finish the current dictation first."
 msgstr "Terminez d’abord la dictée en cours."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Open the message draft to send this voice note, or download the audio."
+msgstr "Ouvrez le brouillon du message pour envoyer ce vocal, ou téléchargez l’audio."
