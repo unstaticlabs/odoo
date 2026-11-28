@@ -48,12 +48,14 @@ class TestExpenseBatchJourneys(TestExpenseBatchBrowser, JourneyCase):
         self.assertEqual(self.receipt_expense.sudo().message_main_attachment_id, self.receipt_attachment)
 
     def test_review_a_batch_before_submitting(self):
+        inherited, approved = self._prepare_focused_batch_review()
         self.run_journey(
             "usl_expense_batch_focused_review",
             f"{BATCHES}/{self.batch.id}",
             login=self.expense_user_employee.login,
             screen=BATCHES,
         )
+        self._assert_focused_batch_review_applied(inherited, approved)
 
     def test_post_an_approved_batch(self):
         batch = self.lifecycle_batch

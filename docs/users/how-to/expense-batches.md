@@ -1,10 +1,10 @@
 ---
-title: Regrouper et contrôler des dépenses dans un lot
+title: Comprendre le contexte et le suivi d’un lot
 type: how-to
-description: Créer ou choisir un lot, appliquer le contexte commun, contrôler les lignes signalées et soumettre ensemble.
+description: Comprendre le contexte partagé, les dépenses verrouillées, les payeurs et l’archivage d’un lot.
 lang: fr
 persona: employee
-app: Expenses
+app: Dépenses
 models:
   - usl.expense.batch
   - hr.expense
@@ -14,11 +14,16 @@ source:
 generated: false
 ---
 
-# Lots de dépenses
+# Comprendre le contexte et le suivi d’un lot
 
-[Créer un lot de dépenses pas à pas](regrouper-des-depenses-en-lot.md).
+Pour suivre les étapes, ouvrez les guides
+[Créer ou choisir un lot](regrouper-des-depenses-en-lot.md) et
+[Vérifier un lot avant de le soumettre](verifier-un-lot-avant-envoi.md).
+En anglais, consultez
+[Group related expenses](group-expenses-into-a-batch.md) et
+[Review a batch](review-a-batch-before-submitting.md).
 
-Un **lot de dépenses** regroupe des dépenses liées et leur applique un contexte
+Un **lot de dépenses** réunit des frais liés et permet de leur donner un contexte
 commun. Utilisez-le pour un voyage, une production, un événement, un projet ou
 une période cohérente. Une dépense isolée peut toujours suivre le circuit Odoo
 normal sans lot.
@@ -28,15 +33,7 @@ fournitures, kilométrage ou autre nature stable. Le **lot** décrit pourquoi le
 dépenses vont ensemble. Pour un voyage SBFH, le lot porte l’activité `SBFH
 prod` et l’Epic du voyage ; ne créez plus de catégorie propre au voyage.
 
-## Créer ou choisir un lot
-
-1. Ouvrez **Dépenses > Mes dépenses** et préparez les justificatifs.
-2. Sélectionnez les dépenses liées, puis **Ajouter à un lot de dépenses**.
-3. Choisissez un lot proposé ou créez-en un. Les propositions tiennent compte
-   de l’employé, de la société, des dates et de l’analytique.
-4. Vérifiez le motif, la période prévue, le total et les deux modes de paiement.
-5. Ajoutez les dépenses au lot. La soumission reste une action séparée et
-   explicite.
+## Employé, société et clôture du lot
 
 Un lot concerne toujours un employé et une société. Il peut mélanger les
 dépenses payées par l’employé et celles payées par la société.
@@ -50,8 +47,8 @@ dépenses ; vous pourrez le rouvrir si nécessaire.
 
 L’analytique et les informations du lot restent modifiables dans **Contexte
 commun** tant que le lot est ouvert. Un responsable peut aussi définir un
-compte de charge commun. Sélectionnez **Appliquer le contexte commun** pour
-prévisualiser les changements avant de les confirmer. Seules les dépenses
+compte de charge commun. Sélectionnez **Appliquer le contexte à … notes de frais** pour
+prévisualiser les changements, puis confirmez dans la fenêtre. Seules les dépenses
 brouillon peuvent recevoir ce contexte : les dépenses approuvées ou
 comptabilisées restent inchangées.
 
@@ -72,22 +69,12 @@ signalées comme à actualiser. Réappliquer le même contexte est sans effet
 supplémentaire. Retirer un brouillon du lot ne supprime jamais la dépense et ne
 supprime pas une correction explicite.
 
-## Contrôler et corriger
+## Corriger une dépense
 
-La fiche montre d’abord le motif, le total, le nombre de dépenses et de
-justificatifs, les dates réelles, la répartition par payeur et la préparation.
-La liste conserve la catégorie, le payeur, le statut, le montant et l’accès à
-chaque dépense.
-
-- **Retirer du lot** détache seulement un brouillon ;
-- **Renvoyer pour correction** remet une dépense soumise ou approuvée en
-  brouillon et la détache ;
-- un justificatif manquant ou un doublon possible apparaît dans l’aide de la
-  ligne ;
-- une date en dehors de la période prévue déclenche un avertissement, sans
-  empêcher l’ajout, la soumission, l’approbation ou la comptabilisation ;
-- les détails de rapprochement et l’historique sont dans **Comptabilité et
-  historique**.
+**Retirer du lot** détache un brouillon sans le supprimer. **Renvoyer pour
+correction** remet une dépense soumise ou approuvée en brouillon et la détache.
+Une date hors de la période prévue déclenche un avertissement. Les détails de
+rapprochement restent dans **Comptabilité et historique**.
 
 ## Soumettre et comptabiliser
 

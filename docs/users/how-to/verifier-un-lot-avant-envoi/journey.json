@@ -6,7 +6,7 @@
   "schema": "usl-docs-journey-sidecar/v1",
   "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_review_a_batch_before_submitting_in_french",
   "source_test_file": {
-    "line": 112,
+    "line": 114,
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
@@ -14,20 +14,23 @@
     "path": "custom-addons/usl_expense_batch/static/tests/tours/expense_batch_tour.js",
     "steps": {
       "analytics": 139,
-      "approved": 205,
+      "approved": 222,
       "batch": 133,
-      "check-the-receipt-on-an-expense": 260,
+      "check-the-receipt-on-an-expense": 277,
       "context_action": 145,
-      "entries": 223,
-      "evidence": 233,
-      "exception": 151,
-      "history": 245,
-      "no_actions": 239,
-      "no_trash": 157,
-      "post": 210,
-      "post_entries": 216,
-      "reconciliation": 251,
-      "remove": 163
+      "context_applied": 163,
+      "context_confirm": 157,
+      "context_preview": 152,
+      "entries": 240,
+      "evidence": 250,
+      "exception": 168,
+      "history": 262,
+      "no_actions": 256,
+      "no_trash": 174,
+      "post": 227,
+      "post_entries": 233,
+      "reconciliation": 268,
+      "remove": 180
     }
   },
   "steps": [
@@ -37,7 +40,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-batch.png",
-      "sha256": "21c93df064d3daf20ff59a9b3c53cd71f3fd9a22b39d2a8845c687250bbc6e5c",
+      "sha256": "60df92e7de622143a6e9cc79d924bf672e8a8f1900d1cfa628be707f66bfaa48",
       "text": "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_notebook_headers .nav-link[name='expenses'])"
     },
@@ -48,33 +51,53 @@
       "run": "",
       "screenshot": null,
       "sha256": null,
-      "text": "Vérifiez la répartition analytique du lot. Une modification s’applique aux lignes qui reprennent cette répartition.",
+      "text": "Dans **Contexte commun**, enregistrez la nouvelle répartition analytique. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.",
       "trigger": ".o_form_view .o_field_widget[name='analytic_distribution']:not(.o_readonly_modifier)"
     },
     {
       "assertion": "The context action explains its safe preview behavior",
       "id": "context_action",
       "index": 3,
-      "run": "",
+      "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Avec **Appliquer le contexte**, consultez l’aperçu avant de confirmer. Une ligne avec une affectation particulière conserve votre choix, sauf si vous demandez son remplacement.",
+      "text": "Cliquez sur **Appliquer le contexte à … notes de frais** pour ouvrir l’aperçu.",
       "trigger": "button[name='action_open_context_wizard'][data-tooltip*='Les choix propres à une dépense restent inchangés']"
+    },
+    {
+      "assertion": "The preview separates one change, one exception and one locked expense",
+      "id": "context_preview",
+      "index": 4,
+      "run": "",
+      "screenshot": "02-context_preview.png",
+      "sha256": "29446070d4355626ae35b235bb0be33cb6bc4593b5fe77e56121b1816e89d2e7",
+      "text": "Vérifiez quels brouillons vont changer. Les dépenses déjà soumises ou approuvées gardent leurs valeurs, comme les brouillons qui ont leur propre répartition, sauf si un responsable les sélectionne pour la remplacer.",
+      "trigger": ".o_dialog .o_form_view:has([name='changed_count']:contains('1')):has([name='exception_count']:contains('1')):has([name='skipped_count']:contains('1'))"
+    },
+    {
+      "assertion": "Confirm the update to the eligible draft",
+      "id": "context_confirm",
+      "index": 5,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Dans l’aperçu, confirmez l’application du contexte commun pour mettre à jour les brouillons concernés.",
+      "trigger": ".o_dialog footer button[name='action_apply']"
     },
     {
       "assertion": "A real line exception has a compact, specific helper",
       "id": "exception",
-      "index": 4,
+      "index": 6,
       "run": "",
-      "screenshot": "02-exception.png",
-      "sha256": "1517f9d60792b8d0e0abdbf4daaad763be3a45411b30e4671aa993b81886bfcc",
+      "screenshot": "03-exception.png",
+      "sha256": "63b369e645a4d90d9f093c9972746dc2c7b73f5905a7b09900cc59d82e0fa50c",
       "text": "Un repère signale une ligne dont l’affectation diffère. Survolez-le pour lire la différence. Ouvrez la ligne pour la corriger si nécessaire.",
       "trigger": ".o_usl_batch_attention[title*='diffère de celle du lot']"
     },
     {
       "assertion": "The expense list has no destructive trash control",
       "id": "no_trash",
-      "index": 5,
+      "index": 7,
       "run": "",
       "screenshot": null,
       "sha256": null,
@@ -82,9 +105,9 @@
       "trigger": ".o_field_widget[name='expense_ids'] .o_list_table:not(:has(.o_list_record_remove))"
     },
     {
-      "assertion": "Removal is the single explicit line action",
+      "assertion": "A draft can be detached from the Batch",
       "id": "remove",
-      "index": 6,
+      "index": 8,
       "run": "",
       "screenshot": null,
       "sha256": null,

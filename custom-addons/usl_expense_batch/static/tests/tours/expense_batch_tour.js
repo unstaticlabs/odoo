@@ -146,6 +146,23 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
             content: "The context action explains its safe preview behavior",
             trigger:
                 `button[name='action_open_context_wizard'][data-tooltip*='${localized("Line-specific choices remain unchanged", "Les choix propres à une dépense restent inchangés")}']`,
+            run: "click",
+        },
+        {
+            id: "context_preview",
+            content: "The preview separates one change, one exception and one locked expense",
+            trigger: ".o_dialog .o_form_view:has([name='changed_count']:contains('1')):has([name='exception_count']:contains('1')):has([name='skipped_count']:contains('1'))",
+        },
+        {
+            id: "context_confirm",
+            content: "Confirm the update to the eligible draft",
+            trigger: ".o_dialog footer button[name='action_apply']",
+            run: "click",
+        },
+        {
+            id: "context_applied",
+            content: "After applying, the preview closes and the batch is visible again",
+            trigger: ".o_web_client:not(:has(.modal.show)) .o_usl_batch_summary",
         },
         {
             id: "exception",
@@ -161,7 +178,7 @@ registry.category("web_tour.tours").add("usl_expense_batch_focused_review", {
         },
         {
             id: "remove",
-            content: "Removal is the single explicit line action",
+            content: "A draft can be detached from the Batch",
             trigger:
                 ".o_field_widget[name='expense_ids'] button[name='action_return_from_batch']",
         },
@@ -300,10 +317,17 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
             screenshot: true,
         },
         analytics: {
-            text: "The analytic distribution of the Batch is shared by its lines. Change it here and every line that follows the Batch follows the change.",
+            text: "Save the new analytic distribution under **Shared context**. Its existing expenses keep their current values until you apply the context.",
         },
         context_action: {
-            text: "**Apply context** previews what would change before it changes anything; a line with its own explicit choice is left alone.",
+            text: "Choose **Apply context to … expenses** to open the preview.",
+        },
+        context_preview: {
+            text: "Review which drafts will change. Expenses already submitted or approved keep their values, as do drafts with their own allocation unless an authorized reviewer selects them for replacement.",
+            screenshot: true,
+        },
+        context_confirm: {
+            text: "Choose **Apply shared context** to update the eligible drafts.",
         },
         exception: {
             text: "A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.",
@@ -312,7 +336,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
         },
         no_trash: { text: "Nothing in the list deletes an expense." },
         remove: {
-            text: "**Remove from Batch** is the only line action: the expense goes back to your work list unchanged, ready for another Batch.",
+            text: "Use **Remove from Batch** on a draft to return it to your expense list. You can add it to another batch.",
         },
     },
 });
@@ -373,7 +397,7 @@ const french = registry.category("usl_docs.journey_translations");
 
 french.add("usl_expense_batch_create_or_select.fr", {
     id: "regrouper-des-depenses-en-lot",
-    title: "Regrouper les dépenses d’un déplacement",
+    title: "Créer ou choisir un lot de dépenses",
     description: "Réunissez les dépenses d’un même déplacement dans un lot, même si certaines ont été réglées par la société et d’autres par le salarié.",
     app: "Dépenses",
     steps: {
@@ -409,8 +433,10 @@ french.add("usl_expense_batch_focused_review.fr", {
     app: "Dépenses",
     steps: {
         batch: "Dans **Dépenses > Lots de dépenses**, ouvrez votre lot. Le récapitulatif distingue les avances du salarié des frais de la société. L’onglet **Dépenses** en donne le détail.",
-        analytics: "Vérifiez la répartition analytique du lot. Une modification s’applique aux lignes qui reprennent cette répartition.",
-        context_action: "Avec **Appliquer le contexte**, consultez l’aperçu avant de confirmer. Une ligne avec une affectation particulière conserve votre choix, sauf si vous demandez son remplacement.",
+        analytics: "Dans **Contexte commun**, enregistrez la nouvelle répartition analytique. Les dépenses existantes gardent leurs valeurs tant que vous n’appliquez pas le contexte.",
+        context_action: "Cliquez sur **Appliquer le contexte à … notes de frais** pour ouvrir l’aperçu.",
+        context_preview: "Vérifiez quels brouillons vont changer. Les dépenses déjà soumises ou approuvées gardent leurs valeurs, comme les brouillons qui ont leur propre répartition, sauf si un responsable les sélectionne pour la remplacer.",
+        context_confirm: "Dans l’aperçu, confirmez l’application du contexte commun pour mettre à jour les brouillons concernés.",
         exception: "Un repère signale une ligne dont l’affectation diffère. Survolez-le pour lire la différence. Ouvrez la ligne pour la corriger si nécessaire.",
         no_trash: "Vous pouvez corriger la composition du lot en conservant les dépenses.",
         remove: "Cliquez sur **Retirer du lot** pour remettre la dépense dans votre liste. Elle pourra rejoindre un autre lot.",
