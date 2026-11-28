@@ -9780,16 +9780,12 @@ def _recovery_proof_environment(
         },
     }
     database_environment = services[target.value["services"]["odoo"]].get("environment", {})
-    database_environment = {
-        **database_environment,
-        **services[target.value["services"]["paperless"]].get("environment", {}),
-    }
+    paperless_environment = services[target.value["services"]["paperless"]].get("environment", {})
+    database_environment = {**database_environment, **paperless_environment}
     selected["database"] = {
         key: str(value) for key, value in database_environment.items() if key in allow["database"]
     }
-    paperless_dbpass = services[target.value["services"]["paperless"]].get(
-        "environment", {},
-    ).get("PAPERLESS_DBPASS")
+    paperless_dbpass = paperless_environment.get("PAPERLESS_DBPASS")
     if not paperless_dbpass:
         raise RuntimeError("recovery proof Paperless database password is missing")
     selected["database"]["PAPERLESS_DB_PASSWORD"] = str(paperless_dbpass)
@@ -9825,9 +9821,15 @@ def _recovery_proof_environment(
     })
     selected["paperless"] = {
         key: str(value)
-        for key, value in services[target.value["services"]["paperless"]].get("environment", {}).items()
+        for key, value in paperless_environment.items()
         if key in allow["paperless"] or key.startswith("PAPERLESS_")
     }
+    gotenberg_api_major = paperless_environment.get("USL_PAPERLESS_GOTENBERG_API_MAJOR")
+    if gotenberg_api_major in ("8", "9"):
+        selected["paperless"]["USL_PAPERLESS_GOTENBERG_API_MAJOR"] = gotenberg_api_major
+    tika_client_path = paperless_environment.get("PYTHONPATH")
+    if tika_client_path == "/opt/usl/tika-client-v4":
+        selected["paperless"]["PYTHONPATH"] = tika_client_path
     selected["paperless"].update({
         "PAPERLESS_REDIS": "redis://paperless-broker:6379",
         "PAPERLESS_DBHOST": target.value["databases"]["paperless"]["service"],

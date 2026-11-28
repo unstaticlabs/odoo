@@ -700,6 +700,52 @@ class RecoveryProofContractTests(unittest.TestCase):
         self.assertNotIn(secret, json.dumps(receipt))
         self.assertNotIn(secret, " ".join(part for command in runner.commands for part in command))
 
+    def test_recovery_preserves_only_supported_paperless_conversion_settings(self) -> None:
+        gotenberg = "USL_PAPERLESS_GOTENBERG_API_MAJOR"
+        tika_path = "/opt/usl/tika-client-v4"
+        cases = (
+            ("historical Compose", {}, {}),
+            ("explicit Gotenberg 8", {gotenberg: "8"}, {gotenberg: "8"}),
+            ("explicit Gotenberg 9 and Tika 4",
+             {gotenberg: "9", "PYTHONPATH": tika_path},
+             {gotenberg: "9", "PYTHONPATH": tika_path}),
+            ("Tika 4 alone", {"PYTHONPATH": tika_path}, {"PYTHONPATH": tika_path}),
+            ("arbitrary values", {gotenberg: "10", "PYTHONPATH": "/opt/other"}, {}),
+            ("composite Python path",
+             {gotenberg: "9", "PYTHONPATH": f"{tika_path}:/opt/other"},
+             {gotenberg: "9"}),
+            ("empty settings", {gotenberg: "", "PYTHONPATH": ""}, {}),
+        )
+        endpoints = {
+            "PAPERLESS_TIKA_ENDPOINT": "http://paperless-tika:9998",
+            "PAPERLESS_TIKA_GOTENBERG_ENDPOINT": "http://paperless-gotenberg:3000",
+        }
+        for name, conversion_settings, expected in cases:
+            with self.subTest(name=name):
+                runner = ResourceRunner()
+                rendered = {"services": {
+                    "odoo": {"environment": {}},
+                    "odoo-mcp": {"environment": {}},
+                    "usl-sign-dss": {"environment": {}},
+                    "paperless-webserver": {"environment": {
+                        "PAPERLESS_DBPASS": "synthetic-paperless-password",
+                        **endpoints,
+                        **conversion_settings,
+                    }},
+                }}
+                paths, _receipt = _recovery_proof_environment(
+                    self.target, runner, f"/var/lib/usl-recovery-proofs/{PROOF_ID}",
+                    rendered, "a" * 64, "b" * 64,
+                )
+                environment = dict(
+                    line.split("=", 1) for line in runner.files[paths["paperless"]].splitlines()
+                )
+                self.assertEqual(
+                    {key: environment[key] for key in (gotenberg, "PYTHONPATH") if key in environment},
+                    expected,
+                )
+                self.assertEqual({key: environment[key] for key in endpoints}, endpoints)
+
     def test_failure_receipt_hashes_error_without_persisting_secret(self) -> None:
         runner = ResourceRunner()
         root = f"/var/lib/usl-recovery-proofs/{PROOF_ID}"
