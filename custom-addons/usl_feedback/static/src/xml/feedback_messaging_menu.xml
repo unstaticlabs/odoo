@@ -131,11 +131,11 @@
                         </span>
                     </div>
                 </div>
-                <p class="small text-muted mb-0" role="note">
-                    <t t-if="state.assistantMode === 'gemini'">Gemini sees your message and preview.</t>
-                    <t t-elif="state.assistantMode === 'local'">Odoo uses fixed local replies. Nothing is sent to Gemini.</t>
-                    <t t-else="">The assistant is off. Odoo will still save your feedback.</t>
-                    Files stay in Odoo. Your workspace can view the feedback.
+                <p t-if="state.phase === 'draft'" class="o-usl-FeedbackPanel-sharing small text-muted mb-2" role="note">
+                    <t t-if="state.assistantMode === 'gemini'">Gemini receives your message and may receive shared images. It checks for duplicates using up to 25 recent report titles.</t>
+                    <t t-elif="state.assistantMode === 'local'">Odoo uses local replies. Nothing is sent to Gemini.</t>
+                    <t t-elif="state.assistantMode === 'off'">Odoo saves your feedback. The assistant is off.</t>
+                    People with access to the feedback board can read your report and attachments.
                 </p>
                 <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
                     <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…

@@ -108,18 +108,6 @@ msgid "Add supporting files"
 msgstr "Ajouter des fichiers"
 
 #. module: usl_feedback
-#. odoo-javascript
-#: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid ""
-"All internal employees can read this feedback and its files. Gemini receives "
-"your message, selected page preview, and any page details you share. Other "
-"files stay in Odoo."
-msgstr ""
-"Tous les employés internes peuvent lire ce retour et ses fichiers. Gemini "
-"reçoit votre message, l’aperçu de page sélectionné et les détails de page que "
-"vous partagez. Les autres fichiers restent dans Odoo."
-
-#. module: usl_feedback
 #. odoo-python
 #: code:addons/usl_feedback/wizard/feedback_submission.py:0
 msgid "An attachment is already linked to another record."
@@ -1622,11 +1610,6 @@ msgstr "Navigation des retours"
 
 #. module: usl_feedback
 #. odoo-javascript
-msgid "Gemini sees your message and preview. Files stay in Odoo. Your workspace can view the feedback."
-msgstr "Gemini reçoit votre message et l’aperçu. Les fichiers restent dans Odoo. Votre espace de travail peut consulter le retour."
-
-#. module: usl_feedback
-#. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
 msgid "I couldn’t finish this reply. Your feedback is saved."
 msgstr "Je n’ai pas pu terminer cette réponse. Votre retour est enregistré."
@@ -1911,26 +1894,26 @@ msgstr "Sélectionnez d’abord un modèle Gemini."
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Odoo uses fixed local replies. Nothing is sent to Gemini."
-msgstr "Odoo utilise des réponses locales prédéfinies. Rien n’est envoyé à Gemini."
+msgid "Gemini receives your message and may receive shared images. It checks for duplicates using up to 25 recent report titles."
+msgstr "Gemini reçoit votre message et peut recevoir les images partagées. Il utilise jusqu’à 25 titres de retours récents pour repérer les doublons."
 
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "The assistant is off. Odoo will still save your feedback."
-msgstr "L’assistant est désactivé. Odoo enregistrera tout de même votre retour."
+msgid "Odoo uses local replies. Nothing is sent to Gemini."
+msgstr "Odoo répond localement. Rien n’est envoyé à Gemini."
 
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Files stay in Odoo. Your workspace can view the feedback."
-msgstr "Les fichiers restent dans Odoo. Votre espace de travail peut consulter le retour."
+msgid "Odoo saves your feedback. The assistant is off."
+msgstr "Odoo enregistre votre retour. L’assistant est désactivé."
 
 #. module: usl_feedback
 #. odoo-javascript
 #: code:addons/usl_feedback/static/src/xml/feedback_messaging_menu.xml:0
-msgid "Gemini sees your message and preview."
-msgstr "Gemini voit votre message et l’aperçu."
+msgid "People with access to the feedback board can read your report and attachments."
+msgstr "Les personnes qui ont accès au tableau peuvent lire votre retour et ses pièces jointes."
 
 #. module: usl_feedback
 msgid "Gemini API key (optional)"
@@ -2343,9 +2326,6 @@ msgstr "L’agent a préparé votre brouillon."
 
 #~ msgid "Description"
 #~ msgstr "Description"
-
-#~ msgid "Done"
-#~ msgstr "Terminé"
 
 #~ msgid ""
 #~ "Feedback is temporarily unavailable because the running release identity "

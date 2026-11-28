@@ -406,8 +406,12 @@ test("draft keeps its default-selected page preview local until send", async () 
     });
     expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
     expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
-    expect(".o-usl-FeedbackPanel").toHaveText(/Your workspace can view the feedback/);
-    expect(".o-usl-FeedbackPanel").toHaveText(/Gemini sees your message/);
+    expect("p.o-usl-FeedbackPanel-sharing").toHaveCount(1);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Gemini receives your message and may receive shared images/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/up to 25 recent report titles/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/titles\.\s+People/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/feedback board can read your report and attachments/);
+    expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
     expect.verifySteps(["start"]);
     await contains("#usl_feedback_message").edit("The page preview shows the issue.");
     await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();
@@ -821,6 +825,17 @@ test("draft and provider errors preserve recovery actions and reporter input", a
 });
 
 
+test("local feedback explains its recipient without showing Gemini sharing details", async () => {
+    onRpc("usl.feedback.submission", "feedback_start", () => ({
+        draft_id: 41, recent: [], assistant_mode: "local",
+    }));
+    await mountFeedbackPanel();
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Nothing is sent to Gemini/);
+    expect(".o-usl-FeedbackPanel-sharing").not.toHaveText(/25 recent report titles/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/feedback board can read your report/);
+    expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
+});
+
 test("feedback accepts typing before the draft and page preview are ready", async () => {
     const response = new Deferred();
     onRpc("usl.feedback.submission", "feedback_start", () => response);
@@ -828,11 +843,15 @@ test("feedback accepts typing before the draft and page preview are ready", asyn
     await contains("#usl_feedback_message").edit("[QA] Keep my report while preparing.");
     expect(".o-usl-FeedbackPanel-submit button").not.toBeEnabled();
     expect(".o-usl-FeedbackPanel-previewStatus").toHaveCount(1);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveCount(0);
     response.resolve({ draft_id: 41, recent: [], assistant_mode: "off" });
     await animationFrame();
     expect("#usl_feedback_message").toHaveValue("[QA] Keep my report while preparing.");
     expect(".o-usl-FeedbackPanel-submit button").toBeEnabled();
     expect(component.state.message).toBe("[QA] Keep my report while preparing.");
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/The assistant is off/);
+    expect(".o-usl-FeedbackPanel-sharing").not.toHaveText(/25 recent report titles/);
+    expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
 });
 
 test("pasted images use the existing bounded attachment path and text paste remains native", async () => {
