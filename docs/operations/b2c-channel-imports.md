@@ -103,7 +103,8 @@ movement was already posted.
 ## Trace a batch from source files to accounting
 
 Open **B2C → Channel Imports** and select the batch in the company that ran it.
-Start with the batch period, the file and row counts, and the readiness findings.
+Start with the batch period, the file and commerce-row counts, and the readiness
+findings. The commerce count is not a total of all input rows.
 After applying the batch, follow the sales it created. After settlement,
 open the linked accounting entries to see what reached the ledger.
 
@@ -113,15 +114,28 @@ in Odoo.
 
 | What to verify | Where to find it |
 | --- | --- |
-| Period, state, counts and blocking findings | `b2c.import.batch` has `period_start`, `period_end`, `state`, `file_count`, `row_count`, `blocking_issue_count` and `issue_ids`. |
+| Period, state, counts and blocking findings | `b2c.import.batch` has `period_start`, `period_end`, `state`, `file_count`, `row_count`, `blocking_issue_count` and `issue_ids`. Its `row_count` excludes rows resolved as `statement` or `supplier`: use each file’s `row_count` for parsed inputs and inspect statement rows separately. `fulfilment_count` counts supplier fulfilment orders. A statement-only batch can therefore have a commerce count of zero. |
 | Which exports were read and whether their bytes changed | Expand the batch's `file_ids` for `provider`, `format_id`, `state`, `row_count` and the file `checksum` (SHA-256). Use these metadata fields to verify a source with your current role. |
-| How an individual source row was interpreted | Read `b2c.import.row` for the same `batch_id`. Use the provider, format, external order and line identifiers, row type (`grain`), normalized `values` and `resolution`. Use `file_id` and `source_row_number` to trace the row back to the export, and `order_id` when a canonical order is linked. |
-| Booked sales, refunds, taxes, fees and payouts | Follow `invoiced_move_ids`, `credit_note_ids`, `fee_bill_ids` and `transfer_move_ids` to the native accounting entries. Check the entry type, state and currency before comparing amounts. Keep order totals, statement fees and payouts distinct when comparing the sources. |
+| How a retained row was interpreted | Read `b2c.import.row` for the same `batch_id`. Use the provider, format, external order and line identifiers, row type (`grain`), normalized `values` and `resolution`. For file-backed rows, `file_id` and `source_row_number` locate the retained interpretation in its export; `order_id` links a canonical order when available. Agreeing duplicates from lower-precedence exports are not retained as separate rows: inspect the original exports to audit those inputs. Printful API fulfilments have neither a file link nor a source row number; inspect their stored `payload` and supplier identifiers instead. |
+| Booked sales, refunds, taxes, fees, payouts and supply | Follow `invoiced_move_ids`, `credit_note_ids`, `fee_bill_ids`, `transfer_move_ids` and `wallet_move_ids` to the native accounting entries. Supplier bills and credits use the wallet relation. Read `b2c.processor.conversion` for the company and batch, then its `move_id`, for exchange differences; that link is empty when no exchange entry was needed. Check entry type, state and currency before comparing amounts. Keep order totals, statement fees and payouts distinct. |
 
 For a rerun, compare the file checksums to identify unchanged inputs. Review the
 batch's new and known orders and its rows with conflicts after reading the
 files. The batch ID identifies this import attempt. On a rerun, Odoo matches
 canonical orders and checks existing bookkeeping before creating new entries.
+
+An empty per-batch accounting relation does not prove that nothing was booked.
+A new batch that repeats settled fees or payouts may create no entry and carry
+no link to the earlier one. For fees, find `b2c.channel.settlement` by company,
+channel, period and currency, then follow `move_id` for non-cancelled entries.
+For payouts and top-ups, find `b2c.money.transfer` by company, provider and
+`entry_key`, then follow `move_id`. The key is the source row's external line
+identifier, or its external order identifier when no line identifier is present.
+If a historical movement was recognised without a transfer record, the
+`transfer_already_posted` finding identifies the standing ledger entry.
+Use company and provider/source identifiers when checking conversions recorded
+by earlier batches too; restricting every search to the new batch would miss
+reused evidence. These are read-only checks, not instructions to post again.
 
 ## What happens to an order that does not stand
 
