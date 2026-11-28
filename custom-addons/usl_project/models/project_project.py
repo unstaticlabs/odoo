@@ -40,7 +40,7 @@ class ProjectProject(models.Model):
     def write(self, vals):
         self._usl_check_task_stages(vals.get("type_ids"))
         reactivated = self.filtered(lambda project: not project.active) if vals.get("active") else self.browse()
-        if "allow_task_dependencies" in vals:
+        if "allow_task_dependencies" in vals and not vals["allow_task_dependencies"]:
             # Tasks waiting on an external reason are not reset with the dependency feature.
             self = self.with_context(usl_keep_waiting_reasons=True)
         result = super().write(vals)

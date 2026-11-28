@@ -114576,7 +114576,7 @@
         "rpc:project.task.message_unsubscribe": "64443b9d89a0f17b6ea18205d3cceed7362b5b47db841519c5170854aa033f97",
         "rpc:project.task.type.create": "093df0b08082bbfdeee559cf4352eed4af24e679164231698a6a66ddb4428be0",
         "rpc:project.task.type.write": "74f8669dcf77c2c8a51c6416a664e86596a3ed173589a0b2dd66597e307de8b6",
-        "rpc:project.task.write": "cbec4dfb61bfb94a757260285ff2b1206067e1d596dd9a87340a65bd9f06ce21",
+        "rpc:project.task.write": "4134ba30a89ff57de8d2309455f8c7bf97693fabce9cc32e9b02bccc7468f534",
         "rpc:res.config.settings.set_values": "1024742b02f615ac18e038095f54af24c4b458a3ffdc8b7307294e1a257623f7"
       }
     },
@@ -179822,6 +179822,7 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:6",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:7",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:8",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:9",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:10",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2",
@@ -179903,7 +179904,9 @@
           "reachability_proof": "Internal implementation sink reached through the protected project.task deletion operation; it has no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": {
-          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
+          "evidence_id": "project-dependency-settings-task-edits-v1",
+          "rationale": "Only the dependency reset status is omitted. Other task edits execute with the initiating Project Manager's normal Odoo permissions.",
+          "reachability_proof": "This call is part of the existing project and task write paths. The filtered record IDs are browsed in the original task environment before writing."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": {
           "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
@@ -179912,7 +179915,7 @@
           "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:4": {
-          "reachability_proof": "Native task access rules apply before workflow changes. Automatic return reasons and movements are scoped to the validated project stage or assignee-owned classification."
+          "reachability_proof": "Internal implementation sink reached through the recoverable, ACL-checked project.task write operation; it has no independent RPC, controller, UI, or scheduled entry point."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:5": {
           "reachability_proof": "Native task access rules apply before workflow changes. Automatic return reasons and movements are scoped to the validated project stage or assignee-owned classification."
@@ -179924,6 +179927,9 @@
           "reachability_proof": "Native task access rules apply before workflow changes. Automatic return reasons and movements are scoped to the validated project stage or assignee-owned classification."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:8": {
+          "reachability_proof": "Native task access rules apply before workflow changes. Automatic return reasons and movements are scoped to the validated project stage or assignee-owned classification."
+        },
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:9": {
           "reachability_proof": "Native task access rules apply before workflow changes. Automatic return reasons and movements are scoped to the validated project stage or assignee-owned classification."
         },
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": {
@@ -179990,24 +179996,25 @@
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.message_new:orm_write:1": "6315ba5c2ea793bc0a4c377bab8ac83f853b653fae0a6a19df56953b01e150d6",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:orm_unlink:1": "5886b118947fd5b89d7edd73a9eb911e944d59350a368024bd6fa1d398ee399f",
         "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.unlink:sudo:1": "9f10bcbfa63c8e001f9de8c630d8e379d288cdfc1b3c80cc5425edf08794b4e3",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "6f621e08665a84deead672835478a12156012d16833a6acd35739b76f835a75f",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": "efed12f737665ace30703eea0fe94e53e4fcf6fbf3d1be784bb8020118f746e8",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": "98d8eff6146d1401b62a27c7e102a999eb654595747b2cd5e5cf344cac29e2d7",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:4": "0ca56e850b622e64e7bc0fe4de63da0b8c34e14ae3f99dad3ed4acef8a3b77e1",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:5": "e86855b27a9f6a64a106d5b4a52d8808e63289677b28d104e4dd7713c268992b",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:6": "2be0a860e1e2c23e0c700568bd747374ecd61aba3157a4d70cfb4aeacb0a9467",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:7": "4fe3452d0c841555b2abb4d8ee309ba03cfccf4999a50d3a3df7d589f6297e0d",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:8": "be4951ebad3c0cde24f467af2f24e1d351554f944e4f1255a0f3dbeaee20ca96",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": "ac81d4951e80572f66a36b94bdba8ecfe5f99b1431538b5dcc229fdbf69ed9b1",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:10": "4f3ac21d6b194d7a3f59b08d5e67c4cedb8e153bb34cbb1d3c8e8e88531c059e",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": "242e484e1636b07025fded90ff85a5e8e31ec7f6e8f7e0261f05476238ae44fc",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": "82abb75c0e89fdd06aeb196ca639623dc55bab3a301f92b8ce22914ca0ab163a",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": "0326de635d0b42dfee2cb590492572f6417530812f021b51e4d04c5fef98c0d4",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": "bf6461e3f065af8990311cbd7c6df855e850de09aebcc815cfa7bb1f9a23ff0c",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": "2005cb29da3224b70933c6ce7a41e5ec781a899b855c119e39340b63c3337e6c",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:7": "215988a047f536f396fa9476ee630e21d93385b618476cb72b593e96a42e395b",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:8": "e443749f082255944c11a86aa55174c4e2fed4fc64acb9c11a206152dc57a469",
-        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:9": "a66e55551f784c3b3b63abf6f129b68d1e5b8a5b259c8e71abb6c17a64c5b5c9",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:1": "ff6ef1d9ae508c89e42d0e54f857b1b3535ecf26f499b189cf023875562fc9b2",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:2": "9b5d545bacae86c354e8fb109c54bdaf5b7e324faafa7b4ff9fd6b1cb5b7facd",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:3": "684f705f5007b7b187074419e91f04e1ced2301e85727103095f1456b4a47c45",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:4": "a8857eaf89e97df56f87c52a7c043ab24cf53e33111ef3f61393f3244781f584",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:5": "fd4775c78091b36a8d5010877a9d1a6751ea3c9d3167140ea23bc6b7e4678f98",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:6": "9f15bf18a32bd332594180f4e237fab5a3e107068ef6d38d2404ed8f59146958",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:7": "85f985ecc4c9b3401e8eb46cf91a49e78a356de432d0529e117bb013d70e3b39",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:8": "5e44f240dcc14ed6b3953b94b98fc5a676e57df5cebdc6dc0e0c6eec9ab97323",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:orm_write:9": "55ad913267e66f546fc0b20aaf019efd5c12259a9aae2d7cf643c646d8e51a74",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:1": "b918c6bf18587a54ab2a0988cd714426ac10a0e65f145e46813d8eeacb80e3f0",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:10": "6d0d93b21f5ba85aa1b63833430b84689d4c5737d178b873a63fce216bc72363",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:2": "c54173e72a22b68a5bbf1d4112fea1d808c33a6047062566fac797b1e50c0324",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:3": "3b5a00fc9938cf815f97abcea55ba8b8e8228796e24761ed5effde0d7ef6fb8d",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:4": "97b64c7491749a12acd5c88fff0d984e38aa239a4ff2f4a2f02933af1fcde594",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:5": "5d09b9662a3e8890338063933663792acfc9b00ac137b2f273abd42d8f046551",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:6": "c7cffd511f6fe484041ec574c36ca51db113063a03ab640b55d330bbd78886de",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:7": "c67efcdc19e6c460ebf0caf6e402e57340a63a6f128d043e49b0bde2717ed820",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:8": "01e0914ce9e9d4a542442fb7e2726e50ae1b8e72896d51a5ff091d04e53f4498",
+        "sink:usl_project:custom-addons/usl_project/models/project_task.py:project.task.write:sudo:9": "06809714c00b2b5e4f07c8079ca942176b5bfe2b3d9c96ddfb1aab5c720d9538",
         "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type._usl_initialize_reactivation_roles:sudo:1": "2a6eeefe794bc7b8f3dd24e3c6790a21fb730723b0a6d490dd8b489bfc09eef6",
         "sink:usl_project:custom-addons/usl_project/models/task_reactivation.py:project.task.stage.personal.create:orm_create:1": "c896412defd60b255557c4970ec72c9ca48212fd390b87527379cd5c04963b8c",
         "sink:usl_project:custom-addons/usl_project/models/task_reactivation.py:project.task.stage.personal.write:orm_write:1": "71d824f9a23b001dee0369e06eee301ed4bfa6e7c6b13b594980a9d5c6a64c3e",
@@ -221416,7 +221423,7 @@
         "rpc:hr.employee.skill.action_new_certification": "953fd91751934c6b2ba82369040be5612785fcd1d369638d0ea313674bb2fc2a",
         "rpc:mrp.bom.preload_phantom_boms": "bc553303934e584c9658cbd0696d12dac30e374f1b040082dd9c7df8be42be49",
         "rpc:project.project.check_allow_billable_projects": "25a4a712c0e9ec8346584a8a2d1c4eab8769e3716e338dfe472c1858d243428d",
-        "rpc:project.project.write": "da42bbad3991b901215b5a76ec6012a0c93b2a741ea595de68552e7289309277",
+        "rpc:project.project.write": "1ef07f6f022c28b9b77c45ce922fe15302f2712b1756747c9a7522f8bdf72001",
         "rpc:res.partner.autocomplete_by_field": "84fc0d0ca72229a2203476631dcb29377b67cf315aecab7d863460f9d51f1d22",
         "sink:account:addons/account/models/account_account.py:account.account._action_unmerge:sudo:1": "3d6041a9f6b4a3523de987698a53a949f9974f69f99e9ef6ae296ad220e8a074",
         "sink:account:addons/account/models/account_account.py:account.account._action_unmerge:sudo:2": "c2bc28136ab3c7224b1c668a17a53a9d431752218631c6bbfd7aec5ae3bb6ecd",
@@ -221837,7 +221844,7 @@
       "rationale": "Each sink is reached through the separately reviewed native project or task-stage mutation and inherits its ACLs and record rules.",
       "reviewed_digests": {
         "sink:usl_project:custom-addons/usl_project/models/project_project.py:project.project.create:orm_create:1": "fca78ccff3d094830c4df2c8ab87e728e57106067394dd4a4df23fa7de11075f",
-        "sink:usl_project:custom-addons/usl_project/models/project_project.py:project.project.write:orm_write:1": "8661f778d48f99b1e86ff231464ee41e1bd5e224e057b365f0cd31bec5e98136",
+        "sink:usl_project:custom-addons/usl_project/models/project_project.py:project.project.write:orm_write:1": "3205c5c6df2631408c3405f8afb7efda7f7289e945170b7867bc3df4a4404991",
         "sink:usl_project:custom-addons/usl_project/models/project_task_type.py:project.task.type.write:orm_write:1": "56ccc02ee208d787ef722e3fa81ad694e04753b98a021a4f63bb3a686cabaeb0"
       }
     },
@@ -223458,6 +223465,12 @@
         "custom-addons/usl_home/tests/test_project_contact_index.py",
         "custom-addons/usl_project/tests/test_task_lexical_index.py",
         "scripts/odoo/task_search_concurrency_qa.py"
+      ]
+    },
+    "project-dependency-settings-task-edits-v1": {
+      "contract": "A project manager can save ordinary task edits while switching off dependencies, keeping an externally waiting task in Waiting and retaining its reason and contact. Explicit task completion and later resume still work.",
+      "tests": [
+        "custom-addons/usl_project/tests/test_task_waiting.py::TestTaskWaitingReason.test_disabling_dependencies_saves_task_edits_in_the_same_project_write"
       ]
     },
     "project-stage-reactivation-v1": {
