@@ -1,0 +1,12 @@
+# Keep the server image and Python client selection in one local override.
+x-tika4-image: &tika4-image apache/tika:4.2.0-2-full@sha256:12a6b0332f1c047dc80489f336ca39fb2332e1810e75cc84e7b07a9b502c1cb0
+
+services:
+  paperless-preflight:
+    environment:
+      PAPERLESS_TIKA_IMAGE: *tika4-image
+  paperless-tika:
+    image: *tika4-image
+  paperless-webserver:
+    environment:
+      PYTHONPATH: /opt/usl/tika-client-v4

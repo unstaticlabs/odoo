@@ -36,6 +36,18 @@ RUN ./node_modules/.bin/ng build --configuration production
 
 FROM ${PAPERLESS_BASE_IMAGE}
 
+# Keep the bundled Tika 3 client as the default. A paired Tika 4 stack opts in
+# to the separately installed client through PYTHONPATH.
+ADD --checksum=sha256:44dd7a5227ab2d25bc88b8ff282039602eaac0592e542ee0486d9535ec1be9b2 \
+    https://files.pythonhosted.org/packages/81/fe/ee25b47093fc1a71fa49bffdf8ede1f6dc0fde3212fa3568fac20d63e2ac/tika_client-2.0.0-py3-none-any.whl \
+    /tmp/tika_client-2.0.0-py3-none-any.whl
+RUN python -m pip install --no-deps --no-cache-dir --target /opt/usl/tika-client-v4 /tmp/tika_client-2.0.0-py3-none-any.whl \
+    && rm /tmp/tika_client-2.0.0-py3-none-any.whl \
+    && python -c 'from importlib.metadata import version; assert version("tika-client") == "1.0.0"' \
+    && PYTHONPATH=/opt/usl/tika-client-v4 python -c 'from importlib.metadata import version; import httpx; from tika_client import TikaClient; assert version("tika-client") == "2.0.0"'
+
+LABEL com.unstaticlabs.paperless.tika4-client="2.0.0"
+
 COPY --chmod=0644 deploy/documents/paperless-ngx/overlay/paperless_ai/*.py /usr/src/paperless/src/paperless_ai/
 COPY --chmod=0644 \
     deploy/documents/paperless-ngx/overlay/paperless_usl_ranges.py \
