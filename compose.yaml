@@ -19,6 +19,7 @@ x-odoo-mcp-environment: &odoo-mcp-environment
   BETTER_AUTH_SECRET_FILE: /run/secrets/odoo_mcp_better_auth_secret
   MCP_CREDENTIAL_ENCRYPTION_KEY_FILE: /run/secrets/odoo_mcp_credential_encryption_key
   MCP_OAUTH_TRUSTED_ORIGINS: ${ODOO_MCP_OAUTH_TRUSTED_ORIGINS:-https://chatgpt.com,https://claude.ai,http://localhost:3000}
+  MCP_OAUTH_ODOO_HANDOFF: ${ODOO_MCP_OAUTH_ODOO_HANDOFF:-false}
 
 services:
   db:
@@ -721,6 +722,8 @@ services:
       USL_OLLAMA_MANIFEST_SHA256: ${USL_OLLAMA_MANIFEST_SHA256:-}
       USL_MCP_FEEDBACK_PROJECT_ID: ${USL_MCP_FEEDBACK_PROJECT_ID:-17}
       USL_MCP_FEEDBACK_STAGE_ID: ${USL_MCP_FEEDBACK_STAGE_ID:-126}
+      USL_MCP_PUBLIC_ORIGIN: ${ODOO_MCP_PUBLIC_ORIGIN:-http://localhost:3000}
+      USL_MCP_OAUTH_ODOO_HANDOFF: ${ODOO_MCP_OAUTH_ODOO_HANDOFF:-false}
       PAPERLESS_INTERNAL_URL: ${PAPERLESS_INTERNAL_URL:-http://paperless-webserver:8000}
       USL_POCKET_ID_ENABLED: ${USL_POCKET_ID_ENABLED:-0}
       USL_POCKET_ID_ISSUER: ${USL_POCKET_ID_ISSUER:-}

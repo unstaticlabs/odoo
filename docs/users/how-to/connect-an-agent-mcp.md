@@ -27,6 +27,18 @@ the actor in every audit trail. The MCP server at
 `https://odoo-mcp.unstaticlabs.com/mcp` is how an assistant reaches Odoo with
 that identity.
 
+If your hosted assistant offers **Connect an Agent**, start from the assistant.
+Open its Odoo connector and sign in to Odoo. On the connection page, check
+the client name, choose an Agent and review the companies and access listed
+under its name. Choose **Connect** to return to the assistant. Odoo sends the
+new key directly to the MCP server.
+
+You can also create an Agent on this page. Give it a name and purpose. It
+starts with read access in your companies. Open **My Agents** to adjust its
+access or revoke the connection later. **Cancel** returns to the client
+without connecting it. For a client that asks you to enter a key, follow
+the steps below.
+
 ## 1. Create the Agent
 
 1. Open **My Agents** from the user menu (administrators also reach every
@@ -76,12 +88,10 @@ Two ways to authenticate:
 
 Ask the assistant to describe its environment (the `odoo_describe_environment`
 tool). The answer names the Agent, its owner, the key's expiry and the
-companies it works in. Ask it to read this guide: the `usl.docs.guide` model
-offers `search_pages`, `read_page` and `list_pages` through the generic
-`odoo_call_method` tool, so the assistant can look a procedure up before
-acting. That tool is absent from `/mcp/read-only`, so an assistant connected
-to that profile reads the guide in a browser or through the `?format=md`
-pages instead.
+companies it works in. Ask it to find a procedure with `docs_search`.
+The results include an excerpt and a link to the full guide. On a writable
+profile, the assistant can also read the whole page with
+`usl.docs.guide.read_page` through `odoo_call_method`.
 
 Everything the Agent reads or changes follows Odoo's own rules in your
 company context. Losing an access right yourself removes it from the Agent at

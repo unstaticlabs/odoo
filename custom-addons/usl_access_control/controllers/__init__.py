@@ -1,2 +1,2 @@
-from . import api_doc, json2, queue_job
+from . import agent_connect, api_doc, json2, queue_job
 from . import settings

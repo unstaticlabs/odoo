@@ -1,6 +1,7 @@
 from . import (
     agent,
     agent_credential,
+    agent_connect,
     agent_collaboration,
     agent_expense_decisions,
     agent_feedback,

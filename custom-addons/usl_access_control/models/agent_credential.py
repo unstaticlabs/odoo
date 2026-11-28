@@ -213,36 +213,7 @@ class UslAgentKeyWizard(models.TransientModel):
     def action_generate(self):
         self.ensure_one()
         self.agent_id._check_caller_can_manage()
-        if self.agent_id.state != "active":
-            raise UserError(_("Reactivate this Agent before creating an API key."))
-        key = self.env["res.users.apikeys"].with_user(self.agent_id.user_id)._generate(
-            "rpc",
-            self.name,
-            self.expiration_date,
-        )
-        self.env.cr.execute(
-            """
-            SELECT id
-              FROM res_users_apikeys
-             WHERE user_id = %s AND index = %s
-             ORDER BY id DESC
-             LIMIT 1
-            """,
-            [self.agent_id.user_id.id, key[:8]],
-        )
-        row = self.env.cr.fetchone()
-        if not row:
-            raise UserError(_("The Agent API key was created but could not be registered safely."))
-        self.env["usl.agent.credential"].sudo().with_context(
-            usl_agent_credential_internal=True,
-        ).create(
-            {
-                "name": self.name,
-                "agent_id": self.agent_id.id,
-                "native_key_id": row[0],
-                "expiration_date": self.expiration_date,
-            },
-        )
+        _credential, key = self.agent_id._issue_credential(self.name, self.expiration_date)
         self.unlink()
         return {
             "type": "ir.actions.act_window",

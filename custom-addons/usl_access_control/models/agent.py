@@ -557,6 +557,10 @@ class UslAgent(models.Model):
             access = load_agent_readonly_policy().access_for(model_name, method_name)
         except ActionPolicyConfigurationError:
             return None
+        if model_name == "usl.agent" and method_name == "current_identity" and access == "read_only":
+            # This method derives the caller from the authenticated key. A
+            # client needs its own identity even when it has no application roles.
+            return access if self.state == "active" else None
         # Native actions can use an immutable carrier and check business writes
         # themselves. Their application delegation must still permit mutation.
         is_crud = method_name in {"read", "create", "write", "unlink"}
@@ -937,6 +941,46 @@ class UslAgent(models.Model):
             title=_("Read/write profile applied"),
             message=_("%(count)s owner-approved application roles granted."),
         )
+
+    def _issue_credential(self, name, expiration_date):
+        """Create one native API key and its governed credential record.
+
+        Return the credential and the key. The key exists in clear text only
+        in this return value. The caller is responsible for the identity
+        check and for the ownership check.
+        """
+        self.ensure_one()
+        if self.state != "active":
+            raise UserError(_("Reactivate this Agent before creating an API key."))
+        key = self.env["res.users.apikeys"].with_user(self.user_id)._generate(
+            "rpc",
+            name,
+            expiration_date,
+        )
+        self.env.cr.execute(
+            """
+            SELECT id
+              FROM res_users_apikeys
+             WHERE user_id = %s AND index = %s
+             ORDER BY id DESC
+             LIMIT 1
+            """,
+            [self.user_id.id, key[:8]],
+        )
+        row = self.env.cr.fetchone()
+        if not row:
+            raise UserError(_("The Agent API key was created but could not be registered safely."))
+        credential = self.env["usl.agent.credential"].sudo().with_context(
+            usl_agent_credential_internal=True,
+        ).create(
+            {
+                "name": name,
+                "agent_id": self.id,
+                "native_key_id": row[0],
+                "expiration_date": expiration_date,
+            },
+        )
+        return credential, key
 
     def action_new_credential(self):
         self.ensure_one()
