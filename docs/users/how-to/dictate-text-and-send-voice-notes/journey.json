@@ -1,0 +1,146 @@
+{
+  "journey": "dictate-text-and-send-voice-notes",
+  "lang": "en",
+  "login": "voice-guide-writer",
+  "persona": "employee",
+  "schema": "usl-docs-journey-sidecar/v1",
+  "source_test": "odoo.addons.usl_voice.tests.test_voice_journeys.TestVoiceJourneys.test_voice_input_in_english",
+  "source_test_file": {
+    "line": 16,
+    "path": "custom-addons/usl_voice/tests/test_voice_journeys.py"
+  },
+  "source_tour_file": {
+    "line": 5,
+    "path": "custom-addons/usl_voice/static/tests/tours/voice_input_journey.js",
+    "steps": {
+      "dictate": 14,
+      "field": 8,
+      "open_note": 38,
+      "preview": 56,
+      "read_note": 69,
+      "read_text": 32,
+      "retry": 26,
+      "stop_dictation": 20,
+      "stop_note": 50,
+      "submit": 63,
+      "voice_note": 44
+    }
+  },
+  "steps": [
+    {
+      "assertion": "The task title is editable.",
+      "id": "field",
+      "index": 1,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "To dictate text, place the cursor in an editable field.",
+      "trigger": ".o_form_view .o_field_widget[name='name'] textarea"
+    },
+    {
+      "assertion": "The focused field has a microphone.",
+      "id": "dictate",
+      "index": 2,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose the microphone or press **Alt+Shift+D**. Speak in French or English.",
+      "trigger": ".o-usl-dictation-mic"
+    },
+    {
+      "assertion": "The dictation timer is running.",
+      "id": "stop_dictation",
+      "index": 3,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Stop** when you finish speaking.",
+      "trigger": ".o-usl-dictation-pill:contains('0:01') [data-usl-action='stop']"
+    },
+    {
+      "assertion": "A failed transcription offers Retry and Download.",
+      "id": "retry",
+      "index": 4,
+      "run": "",
+      "screenshot": "01-retry.png",
+      "sha256": "419737c03f3f71dabbac0aa7017e919c2407f74160967a4211f91cfc91635114",
+      "text": "If transcription fails or takes too long, choose **Retry transcription** or **Download audio**. A recording saved locally can reappear under **Unused dictation** in the same browser and database. If browser storage is unavailable, download the audio before closing the tab.",
+      "trigger": ".o-usl-recovered:has([data-usl-action='download']) [data-usl-action='retry']"
+    },
+    {
+      "assertion": "Odoo inserted the transcript in the selected field.",
+      "id": "read_text",
+      "index": 5,
+      "run": "",
+      "screenshot": "02-read_text.png",
+      "sha256": "10ea79424b334085c379f6ef67163adb9484127a853ea4ffbea9b9749e229190",
+      "text": "Check the inserted text before saving or sending it. If you switched fields while waiting, choose **Copy transcript** and paste the text where it belongs.",
+      "trigger": ".o_form_view .o_field_widget[name='name'] textarea:value(/example|Exemple/)"
+    },
+    {
+      "assertion": "The chatter offers an internal note.",
+      "id": "open_note",
+      "index": 6,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "To share an audio recording, open the record’s chatter. Choose **Log note** for internal readers or **Send message** to send it as a message.",
+      "trigger": ".o-mail-Chatter-logNote"
+    },
+    {
+      "assertion": "The composer offers voice recording.",
+      "id": "voice_note",
+      "index": 7,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Record a voice note**, the waveform icon, and speak.",
+      "trigger": ".o-mail-Composer button:has(.o-usl-icon-voice-note)"
+    },
+    {
+      "assertion": "The voice note is recording.",
+      "id": "stop_note",
+      "index": 8,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Choose **Stop and preview**.",
+      "trigger": ".o-usl-voice-bar:contains('0:01') button:has(.fa-stop)"
+    },
+    {
+      "assertion": "The draft has a playable voice note.",
+      "id": "preview",
+      "index": 9,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "Listen to the draft recording. If it is already attached to a saved draft, reopen that draft to send or remove it.",
+      "trigger": ".o-mail-Composer .o-mail-VoicePlayer:not(:contains('-- : --')) button.fa-play"
+    },
+    {
+      "assertion": "The internal note is ready to post.",
+      "id": "submit",
+      "index": 10,
+      "run": "click",
+      "screenshot": null,
+      "sha256": null,
+      "text": "When the recording is ready, post the note or send the message.",
+      "trigger": ".o-mail-Composer .o-mail-Composer-send:not(:disabled)"
+    },
+    {
+      "assertion": "The posted note contains the audio and the transcript.",
+      "id": "read_note",
+      "index": 11,
+      "run": "",
+      "screenshot": "03-read_note.png",
+      "sha256": "cae728a7aa48b2352f40da33c3d123d92509fba47c04c7338dd0b1d03894bb0c",
+      "text": "Readers with access can play the audio. Once processing finishes, they can read **Transcript** under the message. The transcription service receives the audio. The record and surrounding message stay in Odoo.",
+      "trigger": ".o-mail-Message:has(.o-mail-VoicePlayer) .o-usl-transcript p"
+    }
+  ],
+  "title": "Dictate into a field or record a voice note",
+  "tour": "usl_voice_input_journey",
+  "type": "how-to",
+  "viewport": "desktop",
+  "viewport_size": "1366x768"
+}
