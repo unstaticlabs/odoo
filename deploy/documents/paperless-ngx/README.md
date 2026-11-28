@@ -11,6 +11,25 @@ archive is pinned at
 the frontend builder is pinned at
 `node@sha256:996f094d0487f4f9cbc9227a4ebba56e011d3653679909b04a9fa6dc7ab54aa4`.
 
+## Qualify Tika 4 with Paperless
+
+The distribution includes the verified `tika-client` 2.0.0 wheel. Paperless
+continues using its bundled client 1.0.0 with Tika 3. For a disposable local
+stack, rebuild the Paperless image and include `compose.paperless-tika4.yaml`
+after the regular Compose files. It selects Tika 4.2.0 and adds the fixed
+client directory to Paperless's Python import path together.
+
+Run the existing Office parser preflight from the rebuilt Paperless container,
+then import a synthetic HTML email with a small Office attachment. Check the
+email and attachment text, their PDF renditions, and the downloaded original
+bytes. The Tika HTTP health endpoint can respond while these imports fail.
+
+GitOps pins Tika separately in each environment. An environment upgrade needs
+one change that selects the qualified Paperless image, pins the Tika 4 image,
+and sets `PYTHONPATH=/opt/usl/tika-client-v4` on the Paperless webserver.
+To roll back, restore the previous image and client setting together. A mixed
+Tika 3/4 server and client pair fails text extraction.
+
 ## Patch inventory
 
 Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1+reviewed-tags-v1` has twelve bounded feature groups:
