@@ -1,4 +1,4 @@
-import { beforeEach, expect, mockUserAgent, press, test } from "@odoo/hoot";
+import { beforeEach, expect, mockUserAgent, press, test, waitFor } from "@odoo/hoot";
 import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
 import { defineMailModels } from "@mail/../tests/mail_test_helpers";
 
@@ -1751,6 +1751,52 @@ test("reopening the document while undo is running does not restore the removed 
     await animationFrame();
     expect(state.detail.tags.map((tag) => tag.id)).toEqual([43]);
 });
+
+for (const viewport of ["desktop", "mobile"]) {
+    test.tags(viewport);
+    test(`a late detail response cannot suggest a saved tag again before Undo (${viewport})`, async () => {
+        if (viewport === "mobile") {
+            mockUserAgent("android");
+        }
+        const state = suggestionFixture();
+        let releaseSave, releaseDetails, detailStarted;
+        state.hold = new Promise((resolve) => { releaseSave = resolve; });
+        const detailRead = new Promise((resolve) => { releaseDetails = resolve; });
+        const reopened = new Promise((resolve) => { detailStarted = resolve; });
+        let holdDetails = false;
+        onRpc("usl.document", "document_detail", async () => {
+            const snapshot = state.detail;
+            if (holdDetails) {
+                detailStarted();
+                await detailRead;
+            }
+            return snapshot;
+        });
+        await openSuggestedDocument();
+        await contains("button[aria-label^='Add tag Payroll']").click();
+        await animationFrame();
+        expect(state.updates).toEqual([{ tag_ids: [42] }]);
+        await contains("button[aria-label='Close']").click();
+        holdDetails = true;
+        await contains(".o_usl_document_card").click();
+        await reopened;
+
+        releaseSave();
+        await waitFor(".o_notification");
+        releaseDetails();
+        await animationFrame();
+        await animationFrame();
+        expect("button[aria-label='Remove tag Payroll']").toHaveCount(1);
+        expect(ghostLabels()).toEqual(["Concert", "Literal match", "Unscored"]);
+
+        state.hold = null;
+        await contains(".o_notification button", { text: "Undo" }).click();
+        await animationFrame();
+        expect(state.updates).toEqual([{ tag_ids: [42] }, { tag_ids: [] }]);
+        expect("button[aria-label='Remove tag Payroll']").toHaveCount(0);
+        expect(ghostLabels()).toEqual(["Payroll", "Concert", "Literal match", "Unscored"]);
+    });
+}
 
 test.tags("desktop");
 test("a response started before undo cannot show the old tags on the reopened document", async () => {

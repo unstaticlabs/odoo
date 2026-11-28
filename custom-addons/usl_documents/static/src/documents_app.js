@@ -2795,8 +2795,11 @@ export class DocumentsWorkspaceView extends Component {
             const score = this.suggestionScore(suggestion);
             return score !== null ? 2 + score : suggestion.rule ? 1 : 0;
         };
-        return (this.state.selected?.paperless_suggestions || [])
-            .filter((suggestion) => suggestion.kind === "tag")
+        const selected = this.state.selected;
+        // A detail response can hold suggestions from before the latest tag save.
+        const appliedTagIds = new Set((selected?.tags || []).map((tag) => tag.id));
+        return (selected?.paperless_suggestions || [])
+            .filter((suggestion) => suggestion.kind === "tag" && !appliedTagIds.has(suggestion.record_id))
             .sort(
                 (left, right) =>
                     rank(right) - rank(left) ||
@@ -2908,8 +2911,8 @@ export class DocumentsWorkspaceView extends Component {
                 ]);
                 this.lastTagWrites.set(documentId, detail.tags);
                 if (this.state.selected?.id === documentId) {
-                    const listed = new Set(this.suggestedTags.map((item) => item.record_id));
                     this.state.selected.tags = detail.tags;
+                    const listed = new Set(this.suggestedTags.map((item) => item.record_id));
                     this.state.selected.paperless_suggestions = [
                         ...(this.state.selected.paperless_suggestions || []),
                         ...suggestions.filter((item) => !listed.has(item.record_id)).map((item) => ({ ...item })),
