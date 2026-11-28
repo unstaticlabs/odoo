@@ -42,3 +42,9 @@ remain blocking. Any failure rolls back the complete request.
 Candidate rows are operational and recomputable. They are not accounting
 truth, do not run from a cron and never replace the native payment, journal
 entry or reconciliation records.
+
+## Receipt emails
+
+[Receipt email selection and reading](../../docs/accounting/expense-email-receipts.md)
+keeps generic terms separate from transaction evidence and preserves the source
+conversation’s native access.
