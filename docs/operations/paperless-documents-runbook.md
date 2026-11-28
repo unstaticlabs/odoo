@@ -34,6 +34,24 @@ Confirm:
 - queues contain no unexplained pending, processing, or failed work;
 - Tantivy and vector coverage match the accepted archive identity.
 
+## Office and email previews
+
+Paperless extracts Office text through Tika and renders its PDF preview through
+Gotenberg. Email previews also use Gotenberg. Compose uses 9.8 by default. Paperless chooses the API
+from the selected image's version tag, so a local image pin to Gotenberg 8
+continues to work. The Paperless image alone uses the Gotenberg 8 API. When a
+separately managed stack moves to Gotenberg 9, update its renderer pin and set
+`USL_PAPERLESS_GOTENBERG_API_MAJOR=9` on the Paperless webserver.
+While the managed renderer stays on Gotenberg 8, an earlier Paperless image
+can use that same renderer. To roll back after activating Gotenberg 9,
+restore the renderer pin and the matching API setting together before
+rolling back to a Paperless image that only supports Gotenberg 8.
+
+After changing the renderer, import a synthetic Office document and email
+through Paperless. Check that search finds their text, the originals download
+unchanged, and the previews use the configured PDF/A profile. The renderer's health
+endpoint only confirms that it is ready to receive a request.
+
 ## User and permission reconciliation
 
 Pocket ID subjects map to existing Odoo users. Odoo company and record rules
