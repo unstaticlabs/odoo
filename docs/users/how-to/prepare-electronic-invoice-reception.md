@@ -27,13 +27,7 @@ the company to the live service.
    - **Incoming bills**: the purchase journal where received invoices become
      draft vendor bills;
    - **Accounting contact**: the email and phone used during onboarding;
-   - **Reception self-check**: select **Run self-check**.
-
-The self-check decodes a representative UBL invoice through the same native
-import path used in production. It verifies the supplier, taxes, two invoice
-lines, total and original document, then rolls the test transaction back. It
-does not create a lasting bill, partner, attachment or reception item, and it
-does not contact a supplier, directory or platform.
+   - **Reception self-check**: [test local UBL invoice import](run-the-electronic-invoice-reception-self-check.md).
 
 The result remains valid only for the tested setup. Changing the company
 identity, purchase journal or accounting contact returns the company to

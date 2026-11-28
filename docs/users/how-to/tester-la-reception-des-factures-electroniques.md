@@ -1,7 +1,7 @@
 ---
 title: Tester la réception des factures électroniques
 type: how-to
-description: Vérifiez la configuration d’une société avec une facture électronique d’essai. Le résultat du contrôle reste consultable, et la facture d’essai est supprimée.
+description: Vérifiez l’import local d’une facture UBL d’essai dans Odoo. La réception réelle se vérifie séparément, après activation.
 lang: fr
 persona: administrator
 translation_of: how-to/run-the-electronic-invoice-reception-self-check.md
@@ -22,7 +22,7 @@ generated: true
 
 # Tester la réception des factures électroniques
 
-Vérifiez la configuration d’une société avec une facture électronique d’essai. Le résultat du contrôle reste consultable, et la facture d’essai est supprimée.
+Vérifiez l’import local d’une facture UBL d’essai dans Odoo. La réception réelle se vérifie séparément, après activation.
 
 1. Dans **Comptabilité > Configuration > Facturation électronique**, ouvrez la société dont vous voulez tester la réception.
 
@@ -30,8 +30,8 @@ Vérifiez la configuration d’une société avec une facture électronique d’
 
    ![Vérifiez les journaux, les comptes utilisés et la plateforme agréée](tester-la-reception-des-factures-electroniques/01-setup.png)
 
-3. Cliquez sur **Exécuter une auto-vérification**. Odoo fait passer une facture d’essai par les étapes de réception, puis supprime les pièces créées pour ce contrôle.
+3. Cliquez sur **Exécuter une auto-vérification**. Odoo importe une facture UBL d’essai en brouillon, vérifie le fournisseur, les lignes, les taxes, le total et le fichier original, puis annule la transaction d’essai.
 
-4. Vérifiez la mention **Test réussi**, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée. Relancez le contrôle après une modification des journaux, des comptes ou de la plateforme.
+4. Odoo conserve le résultat et la date de l’essai. Vérifiez la mention **Test réussi** et relancez le contrôle après un changement de configuration. Suivez le [guide d’activation (en anglais)](activate-electronic-invoice-reception.md) pour vérifier la première facture reçue de la plateforme agréée.
 
-   ![Vérifiez la mention Test réussi, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée](tester-la-reception-des-factures-electroniques/02-passed.png)
+   ![Odoo conserve le résultat et la date de l’essai](tester-la-reception-des-factures-electroniques/02-passed.png)

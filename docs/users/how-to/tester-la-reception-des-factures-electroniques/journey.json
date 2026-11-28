@@ -47,7 +47,7 @@
       "run": "click",
       "screenshot": null,
       "sha256": null,
-      "text": "Cliquez sur **Exécuter une auto-vérification**. Odoo fait passer une facture d’essai par les étapes de réception, puis supprime les pièces créées pour ce contrôle.",
+      "text": "Cliquez sur **Exécuter une auto-vérification**. Odoo importe une facture UBL d’essai en brouillon, vérifie le fournisseur, les lignes, les taxes, le total et le fichier original, puis annule la transaction d’essai.",
       "trigger": "button[name='action_rebuild_run_einvoice_acceptance_test']"
     },
     {
@@ -57,7 +57,7 @@
       "run": "",
       "screenshot": "02-passed.png",
       "sha256": "9d70b58dae6a29eafecb756bc24c4c21bb99037611a4d20bb85f2523d28026d4",
-      "text": "Vérifiez la mention **Test réussi**, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée. Relancez le contrôle après une modification des journaux, des comptes ou de la plateforme.",
+      "text": "Odoo conserve le résultat et la date de l’essai. Vérifiez la mention **Test réussi** et relancez le contrôle après un changement de configuration. Suivez le [guide d’activation (en anglais)](activate-electronic-invoice-reception.md) pour vérifier la première facture reçue de la plateforme agréée.",
       "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test réussi')"
     }
   ],
