@@ -1776123,10 +1776123,10 @@
       "version": "saas~19.3.1.8.17"
     },
     {
-      "manifest_sha256": "a6831aca894a6978275295706d7aa7f481d62233fd76c6d21224988b7e42bdbb",
+      "manifest_sha256": "12fc9be5556d25311851d0375c7bcc66c5f6ef1bf08128b200b3bb0d83c99e60",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "72d0e7c510d0478aed14d2bade3d2886c9918101c1a903b5a97b4f4a76ad1614",
+      "source_sha256": "6637c45bec3e1baacfbde2b314b931eb828f77306d89d5dd0e9bad819871a44b",
       "version": "saas~19.3.2.2.25"
     },
     {

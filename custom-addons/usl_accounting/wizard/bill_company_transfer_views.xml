@@ -4,7 +4,7 @@
         <field name="name">usl.bill.company.transfer.form</field>
         <field name="model">usl.bill.company.transfer</field>
         <field name="arch" type="xml">
-            <form string="Change company">
+            <form string="Change company" js_class="usl_bill_company_transfer">
                 <field name="stage" invisible="1"/>
                 <field name="has_blockers" invisible="1"/>
                 <field name="scope_company_ids" invisible="1"/>
@@ -15,7 +15,7 @@
                         <field name="source_company_id" options="{'no_open': True}"/>
                     </group>
                     <group>
-                        <field name="target_company_id" required="1" readonly="stage != 'choose'"
+                        <field name="target_company_id" widget="usl_bill_transfer_company" required="1" readonly="stage != 'choose'"
                                domain="[('id', 'in', operator_company_ids), ('id', '!=', source_company_id)]"
                                context="{'allowed_company_ids': operator_company_ids}"
                                options="{'no_create': True, 'no_open': True}"/>
@@ -52,7 +52,7 @@
                         <field name="source_tax_ids" widget="many2many_tags" optional="show"/>
                         <field name="target_tax_ids" widget="many2many_tags" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_id', 'parent_of', company_id), ('type_tax_use', '=', 'purchase')]" options="{'no_create': True}"/>
                         <field name="remove_taxes" invisible="not source_tax_ids or target_tax_ids"/>
-                        <field name="analytic_distribution" widget="analytic_distribution" optional="hide" groups="analytic.group_analytic_accounting"/>
+                        <field name="analytic_distribution" widget="usl_bill_transfer_analytic" optional="hide" groups="analytic.group_analytic_accounting"/>
                     </list>
                     <kanban class="o_kanban_mobile" create="false" delete="false">
                         <templates>
@@ -74,7 +74,7 @@
                             <field name="source_tax_ids" widget="many2many_tags"/>
                             <field name="target_tax_ids" widget="many2many_tags" context="{'allowed_company_ids': scope_company_ids}" domain="[('company_id', 'parent_of', company_id), ('type_tax_use', '=', 'purchase')]" options="{'no_create': True}"/>
                             <field name="remove_taxes" invisible="not source_tax_ids or target_tax_ids"/>
-                            <field name="analytic_distribution" widget="analytic_distribution" groups="analytic.group_analytic_accounting"/>
+                            <field name="analytic_distribution" widget="usl_bill_transfer_analytic" groups="analytic.group_analytic_accounting"/>
                         </group>
                     </form>
                 </field>
