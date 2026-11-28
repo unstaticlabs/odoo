@@ -131,20 +131,12 @@
                         </span>
                     </div>
                 </div>
-                <div t-if="state.phase === 'draft'" class="o-usl-FeedbackPanel-sharing small text-muted mb-2" role="note">
-                    <t t-if="state.assistantMode === 'gemini'">
-                        <p class="mb-1">Google Gemini receives your conversation and may analyze up to three JPEG or PNG images from your attachments and selected page preview.</p>
-                        <p class="mb-1 o-usl-FeedbackPanel-duplicates">To find duplicates, Gemini also receives the titles of up to 25 recent feedback reports.</p>
-                        <details class="mb-1">
-                            <summary>How does Gemini use my feedback?</summary>
-                            <p class="mb-1 mt-1">Gemini stores your conversation so you can continue it. It also receives your company, language, Odoo version and any page details you choose to share.</p>
-                            <p class="mb-0">Each title comes with the report number and its stage. Gemini also receives totals for each stage. If Odoo Projects is connected, it can read existing reports for more detail.</p>
-                        </details>
-                    </t>
-                    <p t-elif="state.assistantMode === 'local'" class="mb-1">Odoo uses fixed local replies. Nothing is sent to Gemini.</p>
-                    <p t-elif="state.assistantMode === 'off'" class="mb-1">The assistant is off. Odoo will still save your feedback.</p>
-                    <p class="mb-0">People with access to the feedback board can read your report and its files.</p>
-                </div>
+                <p t-if="state.phase === 'draft'" class="o-usl-FeedbackPanel-sharing small text-muted mb-2" role="note">
+                    <t t-if="state.assistantMode === 'gemini'">Gemini receives your message and may receive shared images. It checks for duplicates using up to 25 recent report titles.</t>
+                    <t t-elif="state.assistantMode === 'local'">Odoo uses local replies. Nothing is sent to Gemini.</t>
+                    <t t-elif="state.assistantMode === 'off'">Odoo saves your feedback. The assistant is off.</t>
+                    People with access to the feedback board can read your report and attachments.
+                </p>
                 <div t-if="props.captureState === 'preparing'" class="o-usl-FeedbackPanel-previewStatus alert alert-light border mb-3" role="status" aria-live="polite">
                     <i class="fa fa-circle-o-notch fa-spin me-2"/>Preparing page preview…
                 </div>

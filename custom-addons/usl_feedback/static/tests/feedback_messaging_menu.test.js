@@ -406,16 +406,12 @@ test("draft keeps its default-selected page preview local until send", async () 
     });
     expect(".o-usl-FeedbackPanel-screenshot img").toHaveCount(1);
     expect(".o-usl-FeedbackPanel-screenshot input").toBeChecked();
-    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/feedback board can read your report and its files/);
-    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Google Gemini receives your conversation/);
-    expect(".o-usl-FeedbackPanel-duplicates").toHaveText(/To find duplicates, Gemini also receives the titles of up to 25 recent feedback reports/);
-    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/three JPEG or PNG images from your attachments and selected page preview/);
-    await contains(".o-usl-FeedbackPanel-sharing summary").click();
-    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/stores your conversation so you can continue it/);
-    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/company, language, Odoo version/);
-    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/Each title comes with the report number and its stage/);
-    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/totals for each stage/);
-    expect(".o-usl-FeedbackPanel-sharing details[open]").toHaveText(/If Odoo Projects is connected, it can read existing reports for more detail/);
+    expect("p.o-usl-FeedbackPanel-sharing").toHaveCount(1);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Gemini receives your message and may receive shared images/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/up to 25 recent report titles/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/titles\.\s+People/);
+    expect(".o-usl-FeedbackPanel-sharing").toHaveText(/feedback board can read your report and attachments/);
+    expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
     expect.verifySteps(["start"]);
     await contains("#usl_feedback_message").edit("The page preview shows the issue.");
     await contains(".o-usl-FeedbackPanel button:contains('Send feedback')").click();
@@ -835,7 +831,7 @@ test("local feedback explains its recipient without showing Gemini sharing detai
     }));
     await mountFeedbackPanel();
     expect(".o-usl-FeedbackPanel-sharing").toHaveText(/Nothing is sent to Gemini/);
-    expect(".o-usl-FeedbackPanel-duplicates").toHaveCount(0);
+    expect(".o-usl-FeedbackPanel-sharing").not.toHaveText(/25 recent report titles/);
     expect(".o-usl-FeedbackPanel-sharing").toHaveText(/feedback board can read your report/);
     expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
 });
@@ -854,7 +850,7 @@ test("feedback accepts typing before the draft and page preview are ready", asyn
     expect(".o-usl-FeedbackPanel-submit button").toBeEnabled();
     expect(component.state.message).toBe("[QA] Keep my report while preparing.");
     expect(".o-usl-FeedbackPanel-sharing").toHaveText(/The assistant is off/);
-    expect(".o-usl-FeedbackPanel-duplicates").toHaveCount(0);
+    expect(".o-usl-FeedbackPanel-sharing").not.toHaveText(/25 recent report titles/);
     expect(".o-usl-FeedbackPanel-sharing details").toHaveCount(0);
 });
 
