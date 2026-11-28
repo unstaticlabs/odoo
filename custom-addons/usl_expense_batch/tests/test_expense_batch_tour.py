@@ -184,13 +184,44 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
         )
         self.assertEqual(self.receipt_expense.payment_mode, "own_account")
 
+    def _prepare_focused_batch_review(self):
+        inherited = self.expenses[0]
+        approved = self.receipt_expense
+        employee = self.expense_user_employee
+        approved.with_user(employee).action_submit()
+        approved.with_user(self.expense_user_manager).action_approve()
+        self.assertEqual(approved.state, "approved")
+        batch = self.batch.with_user(employee)
+        batch.add_expenses((inherited | approved).ids)
+        batch.write({
+            "analytic_distribution": {
+                str(self.analytic_account_1.id): 40.0,
+                str(self.analytic_account_2.id): 60.0,
+            },
+        })
+        self.assertEqual(inherited.analytic_distribution, {str(self.analytic_account_1.id): 100.0})
+        self.assertEqual(inherited.batch_context_status, "stale")
+        preview = batch.preview_context_application()
+        self.assertEqual((preview["changed"], preview["exceptions"], preview["skipped"]), (1, 1, 1))
+        self.assertEqual(inherited.analytic_distribution, {str(self.analytic_account_1.id): 100.0})
+        return inherited, approved
+
+    def _assert_focused_batch_review_applied(self, inherited, approved):
+        self.assertEqual(inherited.analytic_distribution, self.batch.analytic_distribution)
+        self.assertEqual(inherited.batch_context_revision, self.batch.context_revision)
+        self.assertEqual(self.exception_expense.analytic_distribution, {str(self.analytic_account_2.id): 100.0})
+        self.assertEqual(approved.analytic_distribution, {str(self.analytic_account_1.id): 100.0})
+        self.assertEqual(approved.state, "approved")
+
     def test_focused_batch_review_tour(self):
+        inherited, approved = self._prepare_focused_batch_review()
         action = self.env.ref("usl_expense_batch.action_expense_batches")
         self.start_tour(
             f"/odoo/action-{action.id}/{self.batch.id}",
             "usl_expense_batch_focused_review",
             login=self.expense_user_employee.login,
         )
+        self._assert_focused_batch_review_applied(inherited, approved)
 
     def test_submit_approve_and_post_role_handoff_tour(self):
         action = self.env.ref("usl_expense_batch.action_expense_batches")

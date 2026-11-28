@@ -1,5 +1,5 @@
 ---
-title: Regrouper les dépenses d’un déplacement
+title: Créer ou choisir un lot de dépenses
 type: how-to
 description: Réunissez les dépenses d’un même déplacement dans un lot, même si certaines ont été réglées par la société et d’autres par le salarié.
 lang: fr
@@ -22,7 +22,7 @@ generated: true
 
 <!-- Generated from the journey named in the front matter. Change the test, then run `make docs`. -->
 
-# Regrouper les dépenses d’un déplacement
+# Créer ou choisir un lot de dépenses
 
 Réunissez les dépenses d’un même déplacement dans un lot, même si certaines ont été réglées par la société et d’autres par le salarié.
 

@@ -6,7 +6,7 @@
   "schema": "usl-docs-journey-sidecar/v1",
   "source_test": "odoo.addons.usl_expense_batch.tests.test_expense_batch_journeys.TestExpenseBatchJourneys.test_group_expenses_into_a_batch_in_french",
   "source_test_file": {
-    "line": 104,
+    "line": 106,
     "path": "custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py"
   },
   "source_tour_file": {
@@ -105,7 +105,7 @@
       "trigger": ".o_list_view:not(:has(tbody tr:contains('Hôtel du déplacement'))):not(:has(tbody tr:contains('Taxi du déplacement')))"
     }
   ],
-  "title": "Regrouper les dépenses d’un déplacement",
+  "title": "Créer ou choisir un lot de dépenses",
   "tour": "usl_expense_batch_create_or_select",
   "type": "how-to",
   "viewport": "desktop",

@@ -1,7 +1,7 @@
 ---
 title: Review a Batch before submitting it
 type: how-to
-description: Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.
+description: Check the batch totals, preview how the saved analytic context will apply, and review any exceptions before submitting.
 lang: en
 persona: employee
 app: Expenses
@@ -13,8 +13,9 @@ journey: review-a-batch-before-submitting
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: 3457b3d35bce7b1e5d3604ad3a4aa12f3179dfbea978087b120baf2e79184ac0
-screenshot_02-exception_png: b4a45c3c3a1408d65ac9e7fb25a1e6ff6a722f5cfe482e24d9c9c75ab191194b
+screenshot_01-batch_png: 8cb0252447abce022327934eba2b9a1855e2622c0700956c944a59b540851172
+screenshot_02-context_preview_png: 8f6c52a8814c7a224fd8149d17d2514cacc73e5a509dbb085edd7a0c009e3566
+screenshot_03-exception_png: 5589c8bbf20ecb2913d4d415b8dbc824e8abd6839bfefe1210b52d97ff2778ab
 generated: true
 ---
 
@@ -22,20 +23,26 @@ generated: true
 
 # Review a Batch before submitting it
 
-Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.
+Check the batch totals, preview how the saved analytic context will apply, and review any exceptions before submitting.
 
 1. Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.
 
    ![Open Expenses Expense Batches and choose your Batch](review-a-batch-before-submitting/01-batch.png)
 
-2. The analytic distribution of the Batch is shared by its lines. Change it here and every line that follows the Batch follows the change.
+2. Review the saved analytic distribution under **Shared context**. Existing expenses keep their current values until you apply the context.
 
-3. **Apply context** previews what would change before it changes anything; a line with its own explicit choice is left alone.
+3. Choose **Apply context to … expenses** to open the preview.
 
-4. A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.
+4. Review which drafts will change. Expenses already submitted or approved keep their values, as do drafts with their own allocation unless an authorized reviewer selects them for replacement.
 
-   ![A line that differs from the Batch is marked with a short helper saying what differs](review-a-batch-before-submitting/02-exception.png)
+   ![Review which drafts will change](review-a-batch-before-submitting/02-context_preview.png)
 
-5. Nothing in the list deletes an expense.
+5. Choose **Apply shared context** to update the eligible drafts.
 
-6. **Remove from Batch** is the only line action: the expense goes back to your work list unchanged, ready for another Batch.
+6. A line that differs from the Batch is marked with a short helper saying what differs. Open the line to align it, or leave it when the difference is intended.
+
+   ![A line that differs from the Batch is marked with a short helper saying what differs](review-a-batch-before-submitting/03-exception.png)
+
+7. Nothing in the list deletes an expense.
+
+8. Use **Remove from Batch** on a draft to return it to your expense list. You can add it to another batch.
