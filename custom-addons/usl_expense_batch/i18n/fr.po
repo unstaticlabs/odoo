@@ -175,6 +175,7 @@ msgstr ""
 
 #. module: usl_expense_batch
 #: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_create_wizard_form
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_context_apply_wizard_form
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -1045,28 +1046,62 @@ msgid "Apply shared Batch context"
 msgstr "Appliquer le contexte commun du lot"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_context_apply_wizard_form
 msgid "Apply shared context"
 msgstr "Appliquer le contexte commun"
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_context_apply_wizard_form
 msgid "Apply the current Batch accounting context to draft expenses. Explicit line exceptions remain unchanged unless selected above."
 msgstr "Appliquer le contexte comptable actuel du lot aux dépenses en brouillon. Les exceptions explicites des lignes restent inchangées sauf si elles sont sélectionnées ci-dessus."
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__changed_count
 msgid "Changed Count"
-msgstr "Lignes modifiées"
+msgstr "Lignes à modifier"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__unchanged_count
 msgid "Unchanged Count"
-msgstr "Lignes inchangées"
+msgstr "Lignes déjà conformes"
 
 #. module: usl_expense_batch
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__skipped_count
 msgid "Skipped Count"
-msgstr "Lignes ignorées"
+msgstr "Lignes hors brouillon"
 
 #. module: usl_expense_batch
-msgid "Force Expenses"
+#: model:ir.model.fields,field_description:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__force_expense_ids
+msgid "Replace selected exceptions"
 msgstr "Exceptions à remplacer"
+
+#. module: usl_expense_batch
+#: model:ir.model.fields,help:usl_expense_batch.field_usl_expense_batch_context_apply_wizard__force_expense_ids
+msgid ""
+"Selected explicit expense choices will be replaced by the current Batch "
+"context. This action is limited to Expense or Accounting Managers."
+msgstr ""
+"Le contexte du lot remplacera les choix propres aux dépenses sélectionnées. "
+"Seuls les responsables des dépenses ou de la comptabilité peuvent le faire."
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+#, python-format
+msgid ""
+"%(changed)s line(s) will change, %(unchanged)s already match, %(exceptions)s "
+"explicit exception(s) remain, and %(skipped)s later-stage line(s) are "
+"preserved."
+msgstr ""
+"À modifier : %(changed)s · Déjà conformes : %(unchanged)s · Exceptions "
+"conservées : %(exceptions)s · Hors brouillon : %(skipped)s"
+
+#. module: usl_expense_batch
+#. odoo-python
+#: code:addons/usl_expense_batch/wizard/expense_batch_create_wizard.py:0
+#, python-format
+msgid "Shared context applied to %(count)s expense(s)."
+msgstr "Contexte commun appliqué. Dépenses mises à jour : %(count)s."
 
 #. module: usl_expense_batch
 msgid "New Batch"
@@ -1130,6 +1165,7 @@ msgid "Explicit expense exceptions are preserved and remain visible in the expen
 msgstr "Les exceptions explicites sont conservées et restent visibles dans la liste des dépenses."
 
 #. module: usl_expense_batch
+#: model_terms:ir.ui.view,arch_db:usl_expense_batch.view_expense_batch_context_apply_wizard_form
 msgid "The selected expense exceptions will be replaced. Their previous values remain in the audit trail and are restored only when they still match the last Batch-applied value."
 msgstr "Les exceptions sélectionnées seront remplacées. Leurs anciennes valeurs restent dans la piste d’audit et ne sont restaurées que si elles correspondent encore à la dernière valeur appliquée par le lot."
 
