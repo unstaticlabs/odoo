@@ -1118,3 +1118,106 @@ patch_file(
         ),
     ),
 )
+
+
+patch_file(
+    "paperless/parsers/tika.py",
+    "af83cdc7a248c28305fdc626a8b3f6058bd8a5efd2584f1f593360a33458d86a",
+    (
+        (
+            "from paperless.version import __full_version_str__\n",
+            "from paperless.version import __full_version_str__\n"
+            "from paperless_usl_gotenberg import pdfa_format\n",
+        ),
+        (
+            "            }:\n"
+            "                route.pdf_format(PdfAFormat.A2b)\n",
+            "            }:\n"
+            "                route.pdf_format(pdfa_format(PdfAFormat.A2b, office=True))\n",
+        ),
+        (
+            "                route.pdf_format(PdfAFormat.A2b)\n"
+            "            elif output_type == OutputTypeChoices.PDF_A3:\n"
+            "                route.pdf_format(PdfAFormat.A3b)\n",
+            "                route.pdf_format(pdfa_format(PdfAFormat.A2b, office=True))\n"
+            "            elif output_type == OutputTypeChoices.PDF_A3:\n"
+            "                route.pdf_format(pdfa_format(PdfAFormat.A3b, office=True))\n",
+        ),
+    ),
+)
+
+
+patch_file(
+    "paperless/parsers/mail.py",
+    "048adf9fbade2604bc88d1e957f1eec26256675fe70bcaf2e7385d14eea44339",
+    (
+        (
+            "from paperless.models import OutputTypeChoices\n",
+            "from paperless.models import OutputTypeChoices\n"
+            "from paperless_usl_gotenberg import merge_email_pdfs\n"
+            "from paperless_usl_gotenberg import pdfa_format\n",
+        ),
+        (
+            '''            with (
+                GotenbergClient(
+                    host=settings.TIKA_GOTENBERG_ENDPOINT,
+                    timeout=settings.CELERY_TASK_TIME_LIMIT,
+                ) as client,
+                client.merge.merge() as route,
+            ):
+                # Configure requested PDF/A formatting, if any
+                pdf_a_format = self._settings_to_gotenberg_pdfa()
+                if pdf_a_format is not None:
+                    route.pdf_format(pdf_a_format)
+
+                match pdf_layout:
+                    case MailRule.PdfLayout.HTML_TEXT:
+                        route.merge([pdf_of_html_content, mail_pdf_file])
+                    case MailRule.PdfLayout.HTML_ONLY:
+                        route.merge([pdf_of_html_content])
+                    case MailRule.PdfLayout.TEXT_ONLY:
+                        route.merge([mail_pdf_file])
+                    case MailRule.PdfLayout.TEXT_HTML | _:
+                        route.merge([mail_pdf_file, pdf_of_html_content])
+
+                try:
+                    response = route.run()
+                    archive_path.write_bytes(response.content)
+                except Exception as err:
+                    raise ParseError(
+                        f"Error while merging email HTML into PDF: {err}",
+                    ) from err''',
+            '''            match pdf_layout:
+                case MailRule.PdfLayout.HTML_TEXT:
+                    paths = [pdf_of_html_content, mail_pdf_file]
+                case MailRule.PdfLayout.HTML_ONLY:
+                    paths = [pdf_of_html_content]
+                case MailRule.PdfLayout.TEXT_ONLY:
+                    paths = [mail_pdf_file]
+                case MailRule.PdfLayout.TEXT_HTML | _:
+                    paths = [mail_pdf_file, pdf_of_html_content]
+
+            try:
+                archive_path.write_bytes(
+                    merge_email_pdfs(
+                        settings.TIKA_GOTENBERG_ENDPOINT,
+                        settings.CELERY_TASK_TIME_LIMIT,
+                        paths,
+                        self._settings_to_gotenberg_pdfa(),
+                    ),
+                )
+            except Exception as err:
+                raise ParseError(
+                    f"Error while merging email HTML into PDF: {err}",
+                ) from err''',
+        ),
+        (
+            "                    route.pdf_format(pdf_a_format)\n\n            try:",
+            "                    route.pdf_format(pdfa_format(pdf_a_format))\n\n            try:",
+        ),
+        (
+            "                    route.pdf_format(pdf_a_format)\n\n            # Add attachments",
+            "                    route.pdf_format(pdfa_format(pdf_a_format))\n\n            # Add attachments",
+        ),
+    ),
+)

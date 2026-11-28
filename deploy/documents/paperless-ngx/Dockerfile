@@ -53,6 +53,8 @@ COPY --chmod=0644 \
     deploy/documents/paperless-ngx/overlay/paperless_usl_ranges.py \
     /usr/src/paperless/src/paperless_usl_ranges.py
 COPY --chmod=0644 deploy/documents/paperless-ngx/overlay/paperless_usl_tag_scores.py /usr/src/paperless/src/paperless_usl_tag_scores.py
+COPY --chmod=0644 deploy/documents/paperless-ngx/overlay/paperless_usl_gotenberg.py \
+    /usr/src/paperless/src/paperless_usl_gotenberg.py
 COPY deploy/documents/paperless-ngx/overlay/paperless_personal_ai/ \
     /usr/src/paperless/src/paperless_personal_ai/
 COPY deploy/documents/paperless-ngx/overlay/paperless_tag_review/ \
@@ -63,15 +65,22 @@ COPY --chmod=0755 \
 COPY --chmod=0755 \
     deploy/documents/paperless-ngx/verify_preview_contract.py \
     /tmp/usl-verify-paperless-preview-contract.py
+COPY --chmod=0644 \
+    deploy/documents/paperless-ngx/tests/test_gotenberg_contract.py \
+    /tmp/usl-test-paperless-gotenberg-contract.py
 COPY --from=compile-frontend --chown=1000:1000 \
     /src/src/documents/static/frontend/ \
     /usr/src/paperless/src/documents/static/frontend/
 
 RUN python /tmp/usl-apply-paperless-overlay.py \
     && python /tmp/usl-verify-paperless-preview-contract.py \
+    && PYTHONPATH=/usr/src/paperless/src python /tmp/usl-test-paperless-gotenberg-contract.py \
     && python -m compileall -q \
         /usr/src/paperless/src/paperless_usl_tag_scores.py \
         /usr/src/paperless/src/paperless_usl_ranges.py \
+        /usr/src/paperless/src/paperless_usl_gotenberg.py \
+        /usr/src/paperless/src/paperless/parsers/tika.py \
+        /usr/src/paperless/src/paperless/parsers/mail.py \
         /usr/src/paperless/src/paperless_ai/semantic_api.py \
         /usr/src/paperless/src/paperless_personal_ai \
         /usr/src/paperless/src/paperless_tag_review \
@@ -94,10 +103,11 @@ RUN python /tmp/usl-apply-paperless-overlay.py \
         /usr/src/paperless/src/documents/views.py \
     && rm \
         /tmp/usl-apply-paperless-overlay.py \
-        /tmp/usl-verify-paperless-preview-contract.py
+        /tmp/usl-verify-paperless-preview-contract.py \
+        /tmp/usl-test-paperless-gotenberg-contract.py
 
 LABEL org.opencontainers.image.title="USL Paperless-ngx Distribution" \
-      org.opencontainers.image.version="3.5.1-usl.2" \
+      org.opencontainers.image.version="3.5.1-usl.3" \
       org.opencontainers.image.revision="35b0439195bbdb87a6d519152e6782abe0720c3b" \
       com.unstaticlabs.paperless.base-digest="sha256:8508853b8a0f8394074260957d0be186c8c64f346973b24a7583de4580f306b9" \
-      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1+reviewed-tags-v1"
+      com.unstaticlabs.paperless.patch="scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1+reviewed-tags-v1+gotenberg-9-archive-pdfa-v1"
