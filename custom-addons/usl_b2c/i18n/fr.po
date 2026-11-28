@@ -3261,3 +3261,9 @@ msgstr "Aucune session ne correspond aux filtres sélectionnés. Choisissez un a
 #: code:addons/usl_b2c/models/accounting.py:0
 msgid "Choose a company you can access."
 msgstr "Choisissez une société à laquelle vous avez accès."
+
+#. module: usl_b2c
+#. odoo-python
+#: code:addons/usl_b2c/models/accounting.py:0
+msgid "This session has linked accounting evidence. Create a separate session in the other company."
+msgstr "Cette session contient des justificatifs comptables liés. Créez une autre session dans la société de destination."

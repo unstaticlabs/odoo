@@ -238965,7 +238965,7 @@
       ],
       "sources": [
         {
-          "line": 741,
+          "line": 748,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -239024,7 +239024,7 @@
       ],
       "sources": [
         {
-          "line": 732,
+          "line": 739,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -239152,7 +239152,7 @@
         "rpc:b2c.accounting.session.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "b6fb5e942df19c54daf00a5d95dc04a8b705bf313d596a0fc52d6e4ef82c40b3",
+      "digest": "9173e69216c12874f5566fd0e1de4fd97d028270d027091b9ec05b6ef1d54906",
       "guards": [],
       "key": "rpc:b2c.accounting.link.create",
       "kind": "rpc",
@@ -239181,7 +239181,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 755,
+          "line": 769,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -240247,7 +240247,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 781,
+          "line": 802,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -240644,7 +240644,7 @@
         "rpc:b2c.accounting.session.browse",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "afaac637acfed3c9ea56369fca48f029b47ebe88e00664c0e1685d9cbd062b71",
+      "digest": "1968b8547ca07c68f9811d89ff9e2ba4b7fe3f0c01a35ab3b594b440f19c60fd",
       "guards": [],
       "key": "rpc:b2c.accounting.link.write",
       "kind": "rpc",
@@ -240672,7 +240672,7 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
-          "line": 769,
+          "line": 786,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -243409,7 +243409,7 @@
           "path": "addons/mail/models/models.py"
         },
         {
-          "line": 512,
+          "line": 519,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         },
         {
@@ -243818,6 +243818,7 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:b2c.accounting.link.sudo",
         "rpc:b2c.accounting.session.check_access",
         "rpc:b2c.accounting.session.filtered",
         "rpc:mail.activity.mixin.sudo",
@@ -243828,7 +243829,7 @@
         "rpc:usl.agent.sudo",
         "rpc:usl.document.link.sudo"
       ],
-      "digest": "34a86aa0052de7a6d9cc1887630dc25d371301dcc2aee3a9c716d16520b7bcc6",
+      "digest": "64b867ad605bcfb30fa28de77fb52a9c76c3eeae892289717d3af9a767ea3e23",
       "guards": [],
       "key": "rpc:b2c.accounting.session.write",
       "kind": "rpc",
@@ -243894,6 +243895,7 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:b2c.accounting.link.sudo",
         "rpc:b2c.accounting.session.check_access",
         "rpc:b2c.accounting.session.filtered",
         "rpc:mail.activity.mixin.sudo",
@@ -1686307,6 +1686309,21 @@
       ]
     },
     {
+      "digest": "cebe9bc693ac09ae30ca520ecc87b9805939b98bdcaac74052b1fb16443377c5",
+      "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 761,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
+        }
+      ]
+    },
+    {
       "digest": "088e2b7067dfc292f421df41837dabc7e421c60a3f38fa327a7a846b3b431d3e",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1",
       "kind": "sink",
@@ -1686319,7 +1686336,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 741,
+          "line": 748,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1686337,13 +1686354,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 732,
+          "line": 739,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
     },
     {
-      "digest": "5e1da5bb6b40afa5fb237e45b49a59ca0750895c335a35526d57572fbf734afd",
+      "digest": "e80dda22a24f7ebba749c4f09154a84a8a1b85ebd3430294a91b2b57432118bf",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.create:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1686355,7 +1686372,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 755,
+          "line": 769,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1686373,13 +1686390,13 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 781,
+          "line": 802,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
     },
     {
-      "digest": "a42e3835627f2911d2f9976d69ccb195bb5cf19985762b19fb597f6ecd745fdc",
+      "digest": "ddd4af452808c8618fcb7160fbf3bb6aa7ff7e37591e99ce2bc66d1a42625f0b",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1686391,7 +1686408,25 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 769,
+          "line": 786,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
+        }
+      ]
+    },
+    {
+      "digest": "a0d68af6d0cf5c67e62194f0c8be9235df079dcd624ff758b3eb8a25271563fa",
+      "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c"
+      ],
+      "parents": [
+        "rpc:b2c.accounting.link.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 786,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
@@ -1686484,13 +1686519,13 @@
       "sink_kind": "orm_unlink",
       "sources": [
         {
-          "line": 512,
+          "line": 519,
           "path": "custom-addons/usl_b2c/models/accounting.py"
         }
       ]
     },
     {
-      "digest": "5bacfb1807db309e736f98082ac29bf8caf6c031f4e50d9cbfedbb3751d5f16c",
+      "digest": "ce27b3112e5d3124ae62249b9d06594fa8c7466e1491a3753add9191bbe7a252",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1686508,7 +1686543,7 @@
       ]
     },
     {
-      "digest": "d4200ba22cff5c39a297d5401d94e84ad30d40eec0756aac8691c096ac03d0d7",
+      "digest": "a6e15fbb62197bbd17734647180da6e7c8fd2ff06d38ef90726944ec754fc08f",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1686526,7 +1686561,7 @@
       ]
     },
     {
-      "digest": "d608b7f703f0f782d28696b317aa9c233cfcf3d98a6f0c1d21d7926d3c3d1eb0",
+      "digest": "b414d721dc19a4b1fd0b38e796862cfae778cd04696aee2f33e71ce78a12653a",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1686544,7 +1686579,7 @@
       ]
     },
     {
-      "digest": "c59559000c347c8ffca2f0869367b5e3ae8df8d6a21f6a5803a1d420807cf4a2",
+      "digest": "548e4d7a60186aef3b98290221e2cddbe2bc3954b0d228e0e74818caa4b5b0a5",
       "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4",
       "kind": "sink",
       "modules": [
@@ -1686554,6 +1686589,24 @@
         "rpc:b2c.accounting.session.write"
       ],
       "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 491,
+          "path": "custom-addons/usl_b2c/models/accounting.py"
+        }
+      ]
+    },
+    {
+      "digest": "a38291ce5adcf534989b3548d557d905375368384ff77a184eac70a13541da61",
+      "key": "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c"
+      ],
+      "parents": [
+        "rpc:b2c.accounting.session.write"
+      ],
+      "sink_kind": "sudo",
       "sources": [
         {
           "line": 491,
@@ -1776133,7 +1776186,7 @@
       "manifest_sha256": "602d05b4df57f88584db33fa8c77f70806592edc7dd173b96c4a4bd3c2a1295b",
       "name": "usl_b2c",
       "origin": "custom",
-      "source_sha256": "ae27b71b53546146bb5da43eec2f32d2b5a360cbad8e3ec52d45b286b31b202f",
+      "source_sha256": "202031867a74958b0580d94ea3bf70b91a0d171bf066c879dfc268adce1d5371",
       "version": "saas~19.3.1.5.2"
     },
     {

@@ -86783,7 +86783,7 @@
         "rpc:b2c.accounting.link.action_verify": "b0035222cdad36245f3399d45e66e1de1fc209a5dcec90563f44ef5f3ee777e9",
         "rpc:b2c.accounting.link.copy": "83d920c1775d3b1d4f3fb47a2ecf61283758e851782612297bd5c16884c3db6d",
         "rpc:b2c.accounting.link.copy_data": "fab0fa82b632e170a75dd57a2abe864698e44b2db4b151a2d066e4cfa43cee82",
-        "rpc:b2c.accounting.link.create": "b6fb5e942df19c54daf00a5d95dc04a8b705bf313d596a0fc52d6e4ef82c40b3",
+        "rpc:b2c.accounting.link.create": "9173e69216c12874f5566fd0e1de4fd97d028270d027091b9ec05b6ef1d54906",
         "rpc:b2c.accounting.link.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.accounting.link.get_views": "ee93c58005da723811fe3f669287e90e9de372312186941b8243fd290f7f1230",
         "rpc:b2c.accounting.link.name_create": "f279b95088f74954721207136dd3823962cd28b5fca5346845fd54a031c0b9e1",
@@ -86797,7 +86797,7 @@
         "rpc:b2c.accounting.link.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.accounting.link.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.accounting.link.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:b2c.accounting.link.write": "afaac637acfed3c9ea56369fca48f029b47ebe88e00664c0e1685d9cbd062b71",
+        "rpc:b2c.accounting.link.write": "1968b8547ca07c68f9811d89ff9e2ba4b7fe3f0c01a35ab3b594b440f19c60fd",
         "rpc:b2c.accounting.session.action_lock": "2845c2c0e522fe15e6b8fe011d8b741dd82ba6f36b1b113c3a6aa87361462c6b",
         "rpc:b2c.accounting.session.action_mark_reviewed": "47d179f0c4e8ee98bc12d7a5df25b37e51d13ee670a15e68ebef3ffebf1e1544",
         "rpc:b2c.accounting.session.action_refresh": "ef253f413c5e8fb0537b76e9a7c7b4a556a96c5a6495f439eb7bc0255efc0e21",
@@ -86834,7 +86834,7 @@
         "rpc:b2c.accounting.session.web_save": "2b1c5f44f4f6894ec18644f9936e67efdd4067eaf398b80945c2aafbd4611c4a",
         "rpc:b2c.accounting.session.web_save_multi": "8a6b88b762b0fcdb490929f4bd3f8bef8da214f76c18c8790e35c2a4c21d1d1e",
         "rpc:b2c.accounting.session.web_search_read": "fe5000878c0abc0ae893b805c2379ef4f5147d56e2875a51e83858a26d1c6d4b",
-        "rpc:b2c.accounting.session.write": "34a86aa0052de7a6d9cc1887630dc25d371301dcc2aee3a9c716d16520b7bcc6",
+        "rpc:b2c.accounting.session.write": "64b867ad605bcfb30fa28de77fb52a9c76c3eeae892289717d3af9a767ea3e23",
         "rpc:b2c.import.batch.action_account_for_revenue": "2354154c96d294671f682debbf3c8c0d1bb7cea2593a6b1a20e26142fca7e6f8",
         "rpc:b2c.import.batch.action_bill_fees": "8362d348133bfff8f2f19fa08db019f4f2233fb163d22936649804e7624699d2",
         "rpc:b2c.import.batch.action_convert_receipts": "3bcb172cebb641c097a2e831de2d083c8ceaf78b5bf103233afbaaae7f2b8104",
@@ -158642,18 +158642,18 @@
         "sink:usl_accounting:custom-addons/usl_accounting/wizard/expense_post_confirmation.py:hr.expense.post.wizard.action_post_entry:orm_write:1": "487b757045e414e9392b4d1b805987f29a108949e3e2d971b8b595d94bdbd3c2",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_reject:orm_write:1": "088e2b7067dfc292f421df41837dabc7e421c60a3f38fa327a7a846b3b431d3e",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.action_verify:orm_write:1": "2c90c33250e6f61d6e891a87880192a0d6deb0aaed928673f0e6b2287c0076b5",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.create:orm_create:1": "5e1da5bb6b40afa5fb237e45b49a59ca0750895c335a35526d57572fbf734afd",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.create:orm_create:1": "e80dda22a24f7ebba749c4f09154a84a8a1b85ebd3430294a91b2b57432118bf",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.unlink:orm_unlink:1": "94293f0953850409ab0932b934ca9e5246b604da72af7f6302c8a9955df07bf7",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:1": "a42e3835627f2911d2f9976d69ccb195bb5cf19985762b19fb597f6ecd745fdc",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:1": "ddd4af452808c8618fcb7160fbf3bb6aa7ff7e37591e99ce2bc66d1a42625f0b",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_lock:orm_write:1": "ff0f8e709fe5e5b0a9f287b46484b6fcc41066c4accb3b85eb90655afcb0889c",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_mark_reviewed:orm_write:1": "83aa059fa4b01d7cd03c7a019a4bab9530fd5c2ca7acc2b0587b861b13c7ff34",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_refresh:orm_write:1": "f6a2fcd2494c52aa156047785892f05fadfb8d86d694c2bc74f9f2845af976cc",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.action_unlock:orm_write:1": "b882b52015493fc362ef55f3851e6eaa60747db4b984a7371f8081486ef9efb7",
         "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.unlink:orm_unlink:1": "cfbbb43ba51d6356425a4c93c332b8c7509e93cab18638fdb5372e86ebc35994",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "5bacfb1807db309e736f98082ac29bf8caf6c031f4e50d9cbfedbb3751d5f16c",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": "d4200ba22cff5c39a297d5401d94e84ad30d40eec0756aac8691c096ac03d0d7",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": "d608b7f703f0f782d28696b317aa9c233cfcf3d98a6f0c1d21d7926d3c3d1eb0",
-        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": "c59559000c347c8ffca2f0869367b5e3ae8df8d6a21f6a5803a1d420807cf4a2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:1": "ce27b3112e5d3124ae62249b9d06594fa8c7466e1491a3753add9191bbe7a252",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:2": "a6e15fbb62197bbd17734647180da6e7c8fd2ff06d38ef90726944ec754fc08f",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:3": "b414d721dc19a4b1fd0b38e796862cfae778cd04696aee2f33e71ce78a12653a",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:orm_write:4": "548e4d7a60186aef3b98290221e2cddbe2bc3954b0d228e0e74818caa4b5b0a5",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:orm_create:1": "dd7e62fbba206faac8052f94f3a3c2f14c85a1383665c9c9c194eb8d7077f623",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:1": "27ba7cf4a388532e309be00d99f2243f510ef365a92f35798b168ad18d45d63e",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/hooks.py:_adopt_channel_months:sudo:2": "7c04940a3b8a92b4f5c87e3e7400f634eeb4cf7eec15d5cf22a1255d614d5552",
@@ -222966,6 +222966,38 @@
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1": "a614bd0ede4808936d10b37585f7ee2c92b7d5330cbdc2546a058e101c56d2c2",
         "ui:usl_accounting.view_move_form_bill_company_transfer:button:object:action_change_bill_company:1": "2bcc65aee9f3215fc0c5c2e2bec2240bce6d270e8dde980cb4bdefa0285881a7"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Protects company ownership of monthly evidence during ordinary B2C writes.",
+      "domain": "commerce_and_fulfilment",
+      "evidence_id": "b2c-session-review-2586-v1",
+      "id": "system_internal.commerce_and_fulfilment.session_company_evidence_2586",
+      "overrides": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1": {
+          "rationale": "Records the native session audit stamp when evidence is linked, so a concurrent scope write observes the same row. The stamp runs as the normal operator and changes no amounts or evidence.",
+          "reachability_proof": "This sink has no independent entry point. It is reached through the existing model create or write workflow and its native access checks."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2": {
+          "rationale": "Updates the existing native evidence link within the same savepoint as its parent audit stamp. Existing link and client company controls remain active.",
+          "reachability_proof": "This sink has no independent entry point. It is reached through the existing model create or write workflow and its native access checks."
+        },
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1": {
+          "rationale": "Checks whether linked evidence exists before a company change, after validating the operator’s source and target access. Returns only a generic refusal and never reads or writes the evidence itself.",
+          "reachability_proof": "This sink has no independent entry point. It is reached through the existing model create or write workflow and its native access checks."
+        }
+      },
+      "rationale": "Session company moves retain linked evidence in its original company. Operators can still change scope when no evidence is linked.",
+      "reviewed_digests": {
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link._record_session_evidence_change:orm_write:1": "cebe9bc693ac09ae30ca520ecc87b9805939b98bdcaac74052b1fb16443377c5",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.link.write:orm_write:2": "a0d68af6d0cf5c67e62194f0c8be9235df079dcd624ff758b3eb8a25271563fa",
+        "sink:usl_b2c:custom-addons/usl_b2c/models/accounting.py:b2c.accounting.session.write:sudo:1": "a38291ce5adcf534989b3548d557d905375368384ff77a184eac70a13541da61"
+      }
     }
   ],
   "evidence_families": {
@@ -222999,7 +223031,7 @@
       ]
     },
     "b2c-session-review-2586-v1": {
-      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available. A real editable scope change invalidates the snapshot and review; no-op edits and cancelled native previews preserve it, under current company and delegated actor authority.",
+      "contract": "Monthly review returns native sessions and their existing evidence status under unchanged reader and company permissions. Reading never refreshes, approves, locks or writes financial rows; complete financial history remains available. A real editable scope change invalidates the snapshot and review; no-op edits and cancelled native previews preserve it, under current company and delegated actor authority. A company move with linked evidence leaves the session, its scope, and its supporting files intact, including when the write targets a mixed batch.",
       "tests": [
         "custom-addons/usl_b2c/tests/test_session_review.py::TestB2cSessionReview",
         "custom-addons/usl_b2c/tests/test_session_snapshot_validity.py::TestSessionSnapshotValidity"
