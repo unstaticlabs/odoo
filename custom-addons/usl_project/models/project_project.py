@@ -6,6 +6,11 @@ from .project_task_type import _relation_commands
 class ProjectProject(models.Model):
     _inherit = "project.project"
 
+    # Explicit task commands use the normal task status workflow, even during
+    # a project save that also runs the automatic dependency reset.
+    tasks = fields.One2many(context={"usl_keep_waiting_reasons": False})
+    task_ids = fields.One2many(context={"usl_keep_waiting_reasons": False})
+
     usl_show_company_on_card = fields.Boolean(
         compute="_compute_usl_show_company_on_card",
     )
@@ -40,8 +45,8 @@ class ProjectProject(models.Model):
     def write(self, vals):
         self._usl_check_task_stages(vals.get("type_ids"))
         reactivated = self.filtered(lambda project: not project.active) if vals.get("active") else self.browse()
-        if "allow_task_dependencies" in vals:
-            # Tasks waiting on an external reason are not reset with the dependency feature.
+        if "allow_task_dependencies" in vals and not vals["allow_task_dependencies"]:
+            # Preserve external waits during the native dependency reset.
             self = self.with_context(usl_keep_waiting_reasons=True)
         result = super().write(vals)
         reactivated._usl_complete_task_stages()

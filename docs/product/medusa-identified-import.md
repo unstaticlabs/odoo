@@ -7,10 +7,20 @@ existing order's financial history.
 
 ## Produce the file
 
-Obtain an authorized response from `GET /admin/orders/:id` or an explicitly
-bounded orders page. Select only the required fields:
+For a single order, make an authorized request to
+`GET /admin/orders/:id?fields=%2Bitems.total`. In a client that encodes query
+parameters for you, enter `+items.total` as the value of `fields`. Keep the
+leading plus. On the shop, a list of explicit fields can omit the computed
+`items.total` even when it appears in the request.
+
+Save only these fields from the response. The default response can include
+customer and address data.
 
 `id,display_id,created_at,status,payment_status,fulfillment_status,currency_code,items.id,items.title,items.product_title,items.variant_sku,items.variant_title,items.quantity,items.unit_price,items.total`
+
+A bounded orders page is also accepted if it contains those fields and every
+item has an explicit total. If a total is missing, use the single-order request
+before converting the response.
 
 The source contracts are the [Medusa Admin API](https://docs.medusajs.com/api/admin#orders_getordersid)
 and [native order line item DTO](https://docs.medusajs.com/resources/references/order/interfaces/order.OrderLineItemDTO).
