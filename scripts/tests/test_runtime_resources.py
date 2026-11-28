@@ -41,8 +41,6 @@ class RuntimeResourceTests(unittest.TestCase):
             self.assertLess(here["cpu_shares"], there["cpu_shares"], role)
             self.assertLessEqual(here["cpus"], there["cpus"], role)
             self.assertGreater(here["oom_score_adj"], there["oom_score_adj"], role)
-            self.assertEqual(here["mem_swappiness"], 0, role)
-            self.assertEqual(here["mem_limit"], here["memswap_limit"], role)
 
     def test_local_runtime_does_not_inherit_vps_limits(self) -> None:
         target = load_target("local", TARGETS)

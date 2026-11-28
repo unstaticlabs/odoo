@@ -13,8 +13,8 @@ journey: review-a-batch-before-submitting
 tour: usl_expense_batch_focused_review
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-batch_png: fbfd6aad0177afff8bd9443cd9ff01077a73f36b70b19649d5429f252f961cec
-screenshot_02-exception_png: e4f7c3c7ab627f0d3e508572ac4b7605f05c94002b312136af65d19a393c0363
+screenshot_01-batch_png: 3457b3d35bce7b1e5d3604ad3a4aa12f3179dfbea978087b120baf2e79184ac0
+screenshot_02-exception_png: b4a45c3c3a1408d65ac9e7fb25a1e6ff6a722f5cfe482e24d9c9c75ab191194b
 generated: true
 ---
 

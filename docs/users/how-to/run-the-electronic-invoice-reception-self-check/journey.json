@@ -36,7 +36,7 @@
       "index": 2,
       "run": "",
       "screenshot": "01-setup.png",
-      "sha256": "5c3e7f32ae40b8ac8efb1d43211e0be9d55ea21ae2d89cefa9ab1dc1d911ed02",
+      "sha256": "0d2480717c64350dd6aab0f3d0be9b68529a04a64ec159b45f44af2a42c7049e",
       "text": "The setup screen gathers what reception needs: the journals, the accounts, the approved platform and the last self-check.",
       "trigger": ".o_form_view label[for^='company_registry']:contains('SIREN or SIRET')"
     },
@@ -56,7 +56,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-passed.png",
-      "sha256": "43cc1865f5e56731f33be3bb73d0b9962cce0c054c2f2e905f6eb1bfb180a60b",
+      "sha256": "b7830aa1aa6d4196c6058cd5f3da84db702b0099f5a786f7115f9a2370ea67df",
       "text": "The self-check reads **Test passed**, with when it ran and the confirmation that no test bill was kept. Run it again after any change to the journals, the accounts or the platform.",
       "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test passed')"
     }

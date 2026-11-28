@@ -29,7 +29,7 @@
       "index": 1,
       "run": "",
       "screenshot": "01-evidence.png",
-      "sha256": "d7fbc5561dc77d4e90ce53029f19e1e8a65d6feb7cb675d813af2df391c3bbe1",
+      "sha256": "fc72ba31ef738bf643807e927a4957ac83aa2cd1f873f29a0482c2424d3020d2",
       "text": "Open **Expenses > Expense Batches** and choose the Batch. With read-only accounting access you see the summary, the lines and their receipts.",
       "trigger": ".o_form_view:has(.o_usl_batch_summary):has(.o_field_widget[name='expense_ids'])"
     },
@@ -59,7 +59,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-reconciliation.png",
-      "sha256": "467f2f2f95e964387c256fa9085e4ca14a547b54b42251a0f4e8d2b3e0911e50",
+      "sha256": "8abd535e7139a977fc9de49b12c6360e30ae6e044039a688eaf508de778b9935",
       "text": "The reconciliation state of the Batch and its history are visible and locked. Use them to answer an audit question or to prepare a remark for the accountant who can act.",
       "trigger": ".o_form_view .o_field_widget[name='accounting_reconciliation_state'].o_readonly_modifier"
     }

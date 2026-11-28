@@ -36,7 +36,7 @@ class RebuildAccountReportExportWizard(models.TransientModel):
         rows = [{
             "section": "Closing overview",
             "line_code": "CLOSE_STATUS",
-            "label": closing.name,
+            "label": closing.display_name,
             "status": closing.state,
             "validation": closing.readiness_status,
             "record_count": str(len(closing.control_line_ids)),

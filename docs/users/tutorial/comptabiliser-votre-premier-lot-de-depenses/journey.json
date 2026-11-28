@@ -77,7 +77,7 @@
       "index": 6,
       "run": "",
       "screenshot": "02-approved.png",
-      "sha256": "74e10e3e981dad7d720c5c30df45dfba806e60b597d38dfb2e01d298a95c7888",
+      "sha256": "f5c16d087322a8060241985da32aa3fbc22a4a7c28dab60eb9f7488d94a4744e",
       "text": "Lisez le récapitulatif avant de comptabiliser. Repérez qui a payé chaque dépense et gardez les deux montants en tête pour la suite.",
       "trigger": "button[name='action_post']"
     },
@@ -87,7 +87,7 @@
       "index": 7,
       "run": "click",
       "screenshot": "03-post.png",
-      "sha256": "5af7feb487b0edde688ac04031f1df55058da9870c99929416041e04e4cc4a00",
+      "sha256": "091018b9ebeb98f1e7c2981e84c482d4cb5a495ce686e0979e98f38bdb127f80",
       "text": "Cliquez sur **Comptabiliser le lot**. Odoo comptabilise les frais payés par la société et ouvre une confirmation distincte pour la somme avancée par le salarié.",
       "trigger": "button[name='action_post']"
     },

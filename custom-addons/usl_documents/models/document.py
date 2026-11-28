@@ -959,11 +959,11 @@ class UslDocument(models.Model):
                 linked_ids_by_model.setdefault(link.res_model, set()).add(link.res_id)
         readable_ids = {}
         for user in candidates:
+            reader_env = user._document_permission_reader_env()
             for model_name, record_ids in linked_ids_by_model.items():
                 try:
                     readable_ids[user.id, model_name] = set(
-                        self.env[model_name]
-                        .with_user(user)
+                        reader_env[model_name]
                         .search([("id", "in", list(record_ids))])
                         .ids,
                     )
@@ -1302,6 +1302,8 @@ class UslDocument(models.Model):
 
     def action_sync_permissions(self):
         self._require_manager()
+        self.check_access("read")
+        self._recompute_linked_record_access(sync_permissions=False)
         mappings = self.env["usl.paperless.user.mapping"].search([
             ("active", "=", True),
             ("sync_state", "=", "synchronized"),

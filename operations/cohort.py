@@ -1671,6 +1671,9 @@ def should_restore_resource(
     return effective_source == target_environment
 
 
+_EXTENSION_COMMENT_ENTRY = re.compile(r"^\d+; \d+ \d+ COMMENT - EXTENSION ")
+
+
 def _reset_database(prefix: str, dump: Path) -> None:
     if _required_environment("USL_RESTORE_GENERATION_CONFIRMED") != _required_environment(
         "USL_EXPECTED_RESTORE_CONFIRMATION",
@@ -1703,10 +1706,25 @@ def _reset_database(prefix: str, dump: Path) -> None:
     else:
         run(["dropdb", *connection, "--if-exists", name], environment=environment)
         run(["createdb", *connection, name], environment=environment)
-    run(
-        ["pg_restore", *connection, "--dbname", name, *restore_options, str(dump)],
-        environment=environment,
+    # The restoring role is not an owner of extensions the image created for
+    # it (for example pgvector), so a dumped `COMMENT ON EXTENSION` cannot be
+    # replayed. The comment is cosmetic and the image already carries it: drop
+    # those entries from the table of contents and restore the rest.
+    listing = run(["pg_restore", "--list", str(dump)], environment=environment, capture=True).stdout
+    kept = "".join(
+        line for line in listing.splitlines(keepends=True)
+        if not _EXTENSION_COMMENT_ENTRY.match(line)
     )
+    with tempfile.TemporaryDirectory(prefix="usl-restore-list-") as directory:
+        toc = Path(directory) / "restore.list"
+        toc.write_text(kept, encoding="utf-8")
+        run(
+            [
+                "pg_restore", *connection, "--dbname", name, *restore_options,
+                "--use-list", str(toc), str(dump),
+            ],
+            environment=environment,
+        )
 
 
 def materialize(arguments: argparse.Namespace) -> dict[str, Any]:

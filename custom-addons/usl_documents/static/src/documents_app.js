@@ -3,6 +3,7 @@
 import {
     Component,
     onMounted,
+    onPatched,
     onWillStart,
     onWillUnmount,
     onWillUpdateProps,
@@ -11,6 +12,7 @@ import {
     useState,
 } from "@odoo/owl";
 import { browser } from "@web/core/browser/browser";
+import { isMobileOS } from "@web/core/browser/feature_detection";
 import { Domain } from "@web/core/domain";
 import { router } from "@web/core/browser/router";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
@@ -35,6 +37,7 @@ import { getDefaultConfig } from "@web/views/view";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import {DocumentPreview} from "@usl_documents/document_preview";
 
+import { ClassifierHistoryDialog } from "./classifier_history";
 import { DocumentBatchDialog } from "./document_batch";
 import { LinkedRecordPreview } from "./linked_record_preview";
 
@@ -263,6 +266,15 @@ export class DocumentsWorkspaceView extends Component {
                 ? { resModel: params.res_model, resId: Number(params.res_id) }
                 : null;
         this.listScroller = useRef("documentList");
+        this.linkedRecordsRef = useRef("linkedRecords");
+        this.detailTagsRef = useRef("detailTags");
+        this.pendingSuggestionFocus = null;
+        this.pendingLinkedRecordsScroll = null;
+        onPatched(() => {
+            this.scrollToLinkedRecords();
+            this.focusAfterSuggestion();
+        });
+        onMounted(() => this.scrollToLinkedRecords());
         const storagePrefix = `usl_documents.workspace.${user.userId}`;
         this.globalStorageKey = `${storagePrefix}.global`;
         this.storageKey = `${storagePrefix}.${
@@ -1484,6 +1496,10 @@ export class DocumentsWorkspaceView extends Component {
 
     async handlePopState(event) {
         const historyState = event.state || {};
+        // Native mobile dialogs use a temporary Back trap, not a document route.
+        if (historyState.trapState) {
+            return;
+        }
         const routedState = historyState.nextState || {};
         const urlState = this.readUrlState();
         const targetsDocument = Boolean(
@@ -1538,6 +1554,43 @@ export class DocumentsWorkspaceView extends Component {
               : urlState.versionId;
         const documentId = Number(rawDocumentId) || null;
         const versionId = rawVersionId || null;
+        const previewHistory = this.previewHistory;
+        if (
+            previewHistory?.usesBackTrap &&
+            documentId === previewHistory.documentId &&
+            String(versionId || "") === String(previewHistory.versionId || "") &&
+            (previewHistory.open || previewHistory.awaitingReturn)
+        ) {
+            const documentOpen = this.state.selected?.id === previewHistory.documentId;
+            if (!documentOpen && !this.linkedAccessRefresh) {
+                // The access refresh could not reopen the document, so the
+                // user may no longer read it. Do not hide this return: leave
+                // the list as the only entry and drop the document route.
+                this.previewHistory = null;
+                this.dropDocumentRoute();
+                return;
+            }
+            // Back dismisses the preview first. The native dialog's X also
+            // removes its trap with Back; neither operation closes the drawer.
+            previewHistory.returned = true;
+            if (!previewHistory.open && !browser.history.state?.trapState) {
+                this.previewHistory = null;
+            }
+            if (!documentOpen) {
+                // The drawer is cleared only while that refresh runs. Keep the
+                // route until it says whether the document is still readable.
+                const dropIfDenied = () => {
+                    if (!this.state.selected) {
+                        this.dropDocumentRoute();
+                    }
+                };
+                this.linkedAccessRefresh.then(dropIfDenied, dropIfDenied);
+            }
+            return;
+        }
+        if (previewHistory && !previewHistory.open) {
+            this.previewHistory = null;
+        }
         const isDuplicateOpenEntry =
             documentId &&
             documentId === this.state.selected?.id &&
@@ -1574,6 +1627,16 @@ export class DocumentsWorkspaceView extends Component {
         this.closingDetail = false;
         this.hasLocalListHistory = true;
         await this.openDocumentById(documentId, versionId);
+    }
+
+    dropDocumentRoute() {
+        this.cancelHistoryBack();
+        this.closingDetail = false;
+        this.hasLocalListHistory = false;
+        this.clearDetailState();
+        this.writeNavigationState("replace");
+        this.persistState();
+        this.restoreScroll();
     }
 
     clearWorkspaceRouteState() {
@@ -1858,6 +1921,19 @@ export class DocumentsWorkspaceView extends Component {
             documentTypes: this.state.documentTypes,
             apply: (id, operation, ids) => this.rpc("usl.document", "apply_batch_archive_metadata", [[id], operation, ids]),
             refresh: () => this.refreshBatchMetadata(),
+        });
+    }
+
+    openClassifierHistory() {
+        const { id, name, can_edit: canEdit } = this.state.selected;
+        this.dialog.add(ClassifierHistoryDialog, {
+            documentName: name, canEdit,
+            history: () => this.rpc("usl.document", "classifier_tag_history", [[id]]),
+            documents: batch => this.rpc("usl.document", "classifier_batch_documents", [[id], batch]),
+            undo: (documentId, batch) => this.rpc("usl.document", "undo_classifier_batch", [[documentId], batch]),
+            refresh: async () => {
+                if (this.state.selected?.id === id) { await this.openDocumentById(id); }
+            },
         });
     }
 
@@ -2492,6 +2568,7 @@ export class DocumentsWorkspaceView extends Component {
                     }
                 }
                 this.persistState();
+                this.restoreLinkedRecordsPosition(document.id);
             }
         } catch (error) {
             this.notification.add(
@@ -2672,8 +2749,6 @@ export class DocumentsWorkspaceView extends Component {
         this.state.savingFields[field] = true;
         const save = async () => {
             try {
-                const paperlessSuggestions =
-                    this.state.selected?.paperless_suggestions || [];
                 const value = await resolveValue();
                 const detail = await this.orm.call(
                     "usl.document",
@@ -2683,7 +2758,9 @@ export class DocumentsWorkspaceView extends Component {
                 if (this.state.selected?.id === selectedId) {
                     this.state.selected = {
                         ...detail,
-                        paperless_suggestions: paperlessSuggestions,
+                        // Keep what the user dismissed while this save was pending.
+                        paperless_suggestions:
+                            this.state.selected.paperless_suggestions || [],
                         preview_url: this.documentPreviewUrl(detail),
                     };
                     await this.load();
@@ -2705,36 +2782,209 @@ export class DocumentsWorkspaceView extends Component {
         return this.metadataSaveQueue;
     }
 
+    get suggestedTags() {
+        // Highest model score first, then rule matches, then unscored proposals.
+        const rank = (suggestion) => {
+            const score = this.suggestionScore(suggestion);
+            return score !== null ? 2 + score : suggestion.rule ? 1 : 0;
+        };
+        return (this.state.selected?.paperless_suggestions || [])
+            .filter((suggestion) => suggestion.kind === "tag")
+            .sort(
+                (left, right) =>
+                    rank(right) - rank(left) ||
+                    String(left.label).localeCompare(String(right.label))
+            );
+    }
+
+    suggestionFor(kind) {
+        return (this.state.selected?.paperless_suggestions || []).find(
+            (suggestion) => suggestion.kind === kind
+        );
+    }
+
+    applyFieldSuggestion(kind) {
+        return this.applyPaperlessSuggestion(this.suggestionFor(kind));
+    }
+
+    suggestionScore(suggestion) {
+        const score = suggestion?.classifier_score;
+        if (!Number.isFinite(score) || score < 0 || score > 1) {
+            return null;
+        }
+        return Math.round(score * 100);
+    }
+
+    suggestionBadge(suggestion) {
+        const score = this.suggestionScore(suggestion);
+        if (score !== null) {
+            return String(score);
+        }
+        return suggestion.rule ? _t("Rule") : "";
+    }
+
+    suggestionExplanation(suggestion) {
+        if (this.suggestionScore(suggestion) !== null) {
+            return _t(
+                "How closely this document resembles the ones you already tagged %s. Higher is more similar; it is not a guarantee.",
+                suggestion.label
+            );
+        }
+        return suggestion.rule ? _t("A text rule on this tag matched this document.") : "";
+    }
+
+    suggestionAcceptLabel(suggestion) {
+        const score = this.suggestionScore(suggestion);
+        if (score !== null) {
+            return _t("Add tag %s, similarity %s out of 100", suggestion.label, score);
+        }
+        if (suggestion.rule) {
+            return _t("Add tag %s, suggested by a rule", suggestion.label);
+        }
+        return _t("Add tag %s", suggestion.label);
+    }
+
+    suggestionRejectLabel(suggestion) {
+        return _t("Dismiss suggestion %s", suggestion.label);
+    }
+
+    get addAllSuggestionsLabel() {
+        return _t("Add all (%s)", this.suggestedTags.length);
+    }
+
+    async acceptSuggestedTags(suggestions, { focusIndex = null } = {}) {
+        const selected = this.state.selected;
+        if (!selected?.can_edit || !suggestions.length) {
+            return;
+        }
+        const documentId = selected.id;
+        const previousIds = (selected.tags || []).map((tag) => tag.id);
+        const addedIds = suggestions
+            .map((suggestion) => suggestion.record_id)
+            .filter((id) => !previousIds.includes(id));
+        const applied = await this.setSelectedTags([...previousIds, ...addedIds]);
+        if (applied !== true) {
+            return;
+        }
+        // The drawer may have been refreshed meanwhile: act on the current one.
+        if (this.state.selected?.id === documentId) {
+            this.pendingSuggestionFocus = { index: focusIndex };
+            this.state.selected.paperless_suggestions = (
+                this.state.selected.paperless_suggestions || []
+            ).filter(
+                (item) => !(item.kind === "tag" && addedIds.includes(item.record_id))
+            );
+        }
+        const message =
+            suggestions.length === 1
+                ? _t("Tag %s added", suggestions[0].label)
+                : _t("%s tags added", suggestions.length);
+        this.notification.add(message, {
+            type: "success",
+            buttons: [
+                {
+                    name: _t("Undo"),
+                    onClick: () => this.undoSuggestedTags(documentId, addedIds, suggestions),
+                },
+            ],
+        });
+    }
+
+    async undoSuggestedTags(documentId, addedIds, suggestions) {
+        if (this.state.selected?.id !== documentId) {
+            try {
+                const [{ tag_ids: current }] = await this.orm.read(
+                    "usl.document", [documentId], ["tag_ids"]
+                );
+                await this.orm.call("usl.document", "update_archive_metadata", [
+                    [documentId],
+                    { tag_ids: current.filter((id) => !addedIds.includes(id)) },
+                ]);
+                await this.load();
+            } catch (error) {
+                this.notification.add(
+                    error.data?.message ||
+                        error.message ||
+                        _t("The tags could not be restored."),
+                    { type: "danger", sticky: true }
+                );
+            }
+            return;
+        }
+        // A tag save may still be running: wait for it so both changes survive.
+        await this.metadataSaveQueue;
+        if (this.state.selected?.id !== documentId) {
+            return this.undoSuggestedTags(documentId, addedIds, suggestions);
+        }
+        const remaining = (this.state.selected.tags || [])
+            .map((tag) => tag.id)
+            .filter((id) => !addedIds.includes(id));
+        const reverted = await this.setSelectedTags(remaining);
+        if (reverted === true && this.state.selected?.id === documentId) {
+            const listed = new Set(this.suggestedTags.map((item) => item.record_id));
+            this.state.selected.paperless_suggestions = [
+                ...(this.state.selected.paperless_suggestions || []),
+                ...suggestions
+                    .filter((item) => !listed.has(item.record_id))
+                    .map((item) => ({ ...item })),
+            ];
+        }
+    }
+
+    acceptSuggestedTag(suggestion) {
+        const index = this.suggestedTags.indexOf(suggestion);
+        return this.acceptSuggestedTags([suggestion], { focusIndex: index });
+    }
+
+    acceptAllSuggestedTags() {
+        return this.acceptSuggestedTags([...this.suggestedTags]);
+    }
+
+    rejectSuggestedTag(suggestion) {
+        const index = this.suggestedTags.indexOf(suggestion);
+        this.pendingSuggestionFocus = { index };
+        this.state.selected.paperless_suggestions = (
+            this.state.selected.paperless_suggestions || []
+        ).filter((item) => item.record_id !== suggestion.record_id || item.kind !== "tag");
+    }
+
+    onSuggestionKeydown(event, suggestion) {
+        if (event.key === "Delete" || event.key === "Backspace") {
+            event.preventDefault();
+            this.rejectSuggestedTag(suggestion);
+        }
+    }
+
+    focusAfterSuggestion() {
+        const request = this.pendingSuggestionFocus;
+        if (!request) {
+            return;
+        }
+        this.pendingSuggestionFocus = null;
+        const chips = this.detailTagsRef.el?.querySelectorAll(".o_usl_ghost_accept") || [];
+        if (request.index !== null && chips.length) {
+            chips[Math.min(request.index, chips.length - 1)].focus();
+            return;
+        }
+        this.detailTagsRef.el?.querySelector(".o_usl_tag_autocomplete input")?.focus();
+    }
+
     async applyPaperlessSuggestion(suggestion) {
         if (!suggestion || !this.state.selected?.can_edit) {
             return;
         }
-        let applied;
         if (suggestion.kind === "tag") {
-            applied = await this.addSelectedTag({
-                id: suggestion.record_id,
-                display_name: suggestion.label,
-            });
-        } else {
-            applied = await this.saveMetadataField(
-                suggestion.field,
-                suggestion.record_id || suggestion.value
-            );
+            return this.acceptSuggestedTag(suggestion);
         }
+        const applied = await this.saveMetadataField(
+            suggestion.field,
+            suggestion.record_id || suggestion.value
+        );
         if (applied !== false && this.state.selected) {
             this.state.selected.paperless_suggestions = (
                 this.state.selected.paperless_suggestions || []
             ).filter((item) => item !== suggestion);
         }
-    }
-
-    paperlessSuggestionKindLabel(kind) {
-        return {
-            document_type: _t("Type"),
-            correspondent: _t("From"),
-            tag: _t("Tag"),
-            date: _t("Date"),
-        }[kind] || _t("Suggestion");
     }
 
     selectCorrespondent(value) {
@@ -3300,6 +3550,15 @@ export class DocumentsWorkspaceView extends Component {
 
     previewLink(link) {
         const documentId = this.state.selected.id;
+        const previewHistory = {
+            documentId,
+            versionId: this.state.selected.selected_version_id || null,
+            usesBackTrap: isMobileOS(),
+            open: true,
+            returned: false,
+            awaitingReturn: false,
+        };
+        this.previewHistory = previewHistory;
         this.addPreviewDialog(LinkedRecordPreview, {
             title: _t("Record preview"),
             resModel: link.model,
@@ -3308,10 +3567,43 @@ export class DocumentsWorkspaceView extends Component {
                 "usl.document", "action_open_linked_record", [[documentId], link.id], { preview: true },
             ),
             onUnavailable: () => this.refreshAfterLinkedAccessChange(documentId),
+        }, {
+            onClose: () => {
+                previewHistory.open = false;
+                // The native Back handler can close before or after this
+                // workspace receives the same popstate event.
+                previewHistory.awaitingReturn = previewHistory.usesBackTrap;
+                // The native listener may rearm its trap after close() returns,
+                // until Owl unmounts the dialog. Keep that final return scoped
+                // to this preview; clear it if Back already completed without one.
+                Promise.resolve().then(() => {
+                    if (this.previewHistory === previewHistory && previewHistory.returned &&
+                        !browser.history.state?.trapState) {
+                        this.previewHistory = null;
+                    }
+                });
+                if (!previewHistory.awaitingReturn && this.previewHistory === previewHistory) {
+                    this.previewHistory = null;
+                }
+            },
         });
     }
 
-    async refreshAfterLinkedAccessChange(documentId) {
+    refreshAfterLinkedAccessChange(documentId) {
+        // Remember the refresh in flight: while it runs the drawer is cleared
+        // on purpose, which must not be read as the user losing the document.
+        const refresh = this.runLinkedAccessRefresh(documentId);
+        this.linkedAccessRefresh = refresh;
+        const settle = () => {
+            if (this.linkedAccessRefresh === refresh) {
+                this.linkedAccessRefresh = null;
+            }
+        };
+        refresh.then(settle, settle);
+        return refresh;
+    }
+
+    async runLinkedAccessRefresh(documentId) {
         // The list, facets and open drawer may all contain the old link title.
         // Rebuild them with the user's current grants, including document access.
         const restoreDrawer = this.state.selected?.id === documentId;
@@ -3341,8 +3633,44 @@ export class DocumentsWorkspaceView extends Component {
         await reloading;
     }
 
+    get linkedRecordsReturnKey() {
+        return `${this.storageKey}.linkedRecordsReturn`;
+    }
+
+    restoreLinkedRecordsPosition(documentId) {
+        // Back from a linked record lands on the same document. Bring the
+        // linked records into view instead of the top of the drawer.
+        try {
+            const stored = browser.sessionStorage.getItem(this.linkedRecordsReturnKey);
+            browser.sessionStorage.removeItem(this.linkedRecordsReturnKey);
+            if (Number(stored) === Number(documentId)) {
+                this.pendingLinkedRecordsScroll = Number(documentId);
+            }
+        } catch {
+            // Scroll position is a convenience only.
+        }
+    }
+
+    scrollToLinkedRecords() {
+        const documentId = this.pendingLinkedRecordsScroll;
+        const section = this.linkedRecordsRef.el;
+        if (!documentId || !section || this.state.selected?.id !== documentId) {
+            return;
+        }
+        this.pendingLinkedRecordsScroll = null;
+        section.scrollIntoView({ block: "start" });
+    }
+
     async openLink(link) {
         this.persistState();
+        try {
+            browser.sessionStorage.setItem(
+                this.linkedRecordsReturnKey,
+                String(this.state.selected.id)
+            );
+        } catch {
+            // Scroll position is a convenience only.
+        }
         const action = await this.rpc(
             "usl.document",
             "action_open_linked_record",

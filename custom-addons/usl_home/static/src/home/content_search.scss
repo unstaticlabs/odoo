@@ -1,12 +1,120 @@
 .o_usl_content_search {
     margin-bottom: 1.5rem;
+    max-width: 60rem;
     .input-group { max-width: 60rem; }
-    .o_usl_content_results { margin-top: 1rem; }
-    .o_usl_search_group { margin: 1rem 0; }
+
+    // One calm card under the field. It sits in the page flow, so the
+    // dashboard below is pushed down rather than covered.
+    .o_usl_content_results {
+        margin-top: .5rem;
+        padding: .25rem;
+        background: var(--usl-home-surface, #fff);
+        border: 1px solid var(--usl-home-border, #dee2e6);
+        border-radius: .75rem;
+        box-shadow: 0 8px 24px color-mix(in srgb, #000 7%, transparent);
+        > p, > div[role="alert"] { margin: 0; padding: .5rem .75rem; }
+    }
+    .o_usl_search_group {
+        margin: 0;
+        padding: .25rem 0;
+        & + .o_usl_search_group { border-top: 1px solid var(--usl-home-border, #dee2e6); }
+    }
+    .o_usl_search_group_title {
+        margin: 0;
+        padding: .5rem .75rem .25rem;
+        font-size: .7rem;
+        font-weight: 600;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        color: var(--usl-home-muted, #6c757d);
+    }
     .o_usl_search_result {
-        border-radius: .35rem;
-        margin-bottom: .25rem;
-        strong, span { overflow-wrap: anywhere; }
-        &:hover, &:focus-visible, &.active { background: var(--o-view-background-color, #f4f4f4); outline: 2px solid var(--o-brand-primary, #714b67); outline-offset: -2px; }
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: .1rem;
+        min-height: 44px;
+        padding: .5rem .75rem;
+        border: 0;
+        border-radius: .5rem;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        span { overflow-wrap: anywhere; }
+        &:hover { background: var(--usl-home-soft, #f4f4f4); }
+        &:active { background: color-mix(in srgb, var(--o-brand-primary, #714b67) 10%, transparent); }
+        &:focus-visible, &.active {
+            background: color-mix(in srgb, var(--o-brand-primary, #714b67) 8%, transparent);
+            outline: 2px solid var(--o-brand-primary, #714b67);
+            outline-offset: -2px;
+        }
+    }
+    .o_usl_result_title { font-weight: 600; }
+    .o_usl_result_meta, .o_usl_result_excerpt {
+        font-size: .8125rem;
+        color: var(--usl-home-muted, #6c757d);
+    }
+    .o_usl_result_excerpt {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+    }
+    .o_usl_result_source i { margin-right: .25rem; }
+    .o_usl_result_match { font-weight: 700; color: var(--o-main-text-color, #212529); }
+    .o_usl_search_more { margin: 0 .5rem; padding: .25rem; }
+
+    .o_usl_search_subgroup {
+        margin: .5rem 0 0;
+        padding: .5rem .75rem .25rem;
+        font-size: .75rem;
+        font-weight: 600;
+        color: var(--usl-home-muted, #6c757d);
+    }
+    .o_usl_result_badge {
+        display: inline-block;
+        margin-left: .5rem;
+        padding: 0 .5rem;
+        border-radius: 1rem;
+        font-size: .7rem;
+        font-weight: 500;
+        line-height: 1.4rem;
+        color: var(--usl-home-muted, #6c757d);
+        background: var(--usl-home-soft, #f4f4f4);
+        white-space: nowrap;
+    }
+    .o_usl_search_skeleton {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        min-height: 44px;
+        margin: 0;
+        padding: .5rem .75rem;
+        font-size: .8125rem;
+    }
+    .o_usl_skeleton_bar {
+        flex: 0 0 5rem;
+        height: .75rem;
+        border-radius: .375rem;
+        background: linear-gradient(90deg, var(--usl-home-soft, #f4f4f4), color-mix(in srgb, var(--usl-home-muted, #6c757d) 22%, transparent), var(--usl-home-soft, #f4f4f4));
+        background-size: 200% 100%;
+        animation: o_usl_skeleton 1.2s ease-in-out infinite;
+    }
+    .o_usl_search_empty { padding: 1rem .75rem !important; }
+}
+
+@keyframes o_usl_skeleton {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .o_usl_content_search .o_usl_skeleton_bar { animation: none; }
+}
+
+@media (max-width: 575.98px) {
+    .o_usl_content_search {
+        // The badge wraps under the title on a narrow screen.
+        .o_usl_result_badge { display: table; margin: .25rem 0 0; }
     }
 }

@@ -71,7 +71,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-receipt.png",
-      "sha256": "bd596c941b5e842f19408c99d1c18df5004d7e84f6b47c6659ee9b71788ef5e8",
+      "sha256": "2f5a25fdfbe8ab378c923d61db10853d20d9ec8f2bdd8981007ba156583e06f6",
       "text": "The receipt is listed under **Files**, below the expense. Open it and check that it is the right document and that it is readable.",
       "trigger": ".o-mail-AttachmentBox:contains('browser-receipt.pdf')"
     },

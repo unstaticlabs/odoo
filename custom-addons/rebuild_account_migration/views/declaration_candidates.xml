@@ -9,7 +9,8 @@
                 <field name="move_id"/>
                 <field name="move_type" widget="badge" decoration-warning="move_type == 'out_refund'" decoration-info="move_type != 'out_refund'"/>
                 <field name="partner_id"/>
-                <field name="reason" optional="show"/>
+                <field name="partner_vat"/>
+                <field name="reason" optional="hide"/>
                 <field name="currency_id" column_invisible="1"/>
                 <field name="amount" string="Amount excl. tax" sum="Total excl. tax"/>
             </list>

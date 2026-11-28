@@ -4,6 +4,7 @@ from . import (
     test_import_batch,
     test_lifecycle,
     test_mapping,
+    test_medusa_identity,
     test_materialise,
     test_oss_return,
     test_parsers,

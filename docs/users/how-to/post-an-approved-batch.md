@@ -14,7 +14,7 @@ journey: post-an-approved-batch
 tour: usl_expense_batch_accountant_handoff
 source:
   - custom-addons/usl_expense_batch/tests/test_expense_batch_journeys.py
-screenshot_01-approved_png: 80482bf56282e311293e6309c67053c5b67c6af1bb8fa20334d9f2d9db853261
+screenshot_01-approved_png: 71d2a6d589253700a76847799f9a136ab7558d3a0aa60b3a6962be1838020402
 screenshot_02-entries_png: b04ae3efce502505c341ba84ebf110eeef65a49100f620c0c94581fa757d6dcc
 generated: true
 ---

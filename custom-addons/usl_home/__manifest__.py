@@ -1,7 +1,7 @@
 {
     "name": "USL Home",
     "summary": "Personalized launcher and operational attention cockpit",
-    "version": "saas~19.3.1.0.13",
+    "version": "saas~19.3.1.0.19",
     "category": "Productivity",
     "author": "Unstatic Labs",
     "license": "LGPL-3",
@@ -11,16 +11,22 @@
         "security/usl_home_security.xml",
         "data/discuss_channel.xml",
         "views/usl_home_views.xml",
+        "data/project_contact_search_cron.xml",
+        "data/task_message_search_cron.xml",
+        "data/task_meaning_search_cron.xml",
+        "views/project_contact_search_views.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "usl_home/static/src/home/**/*",
             "usl_home/static/src/add_to_home/**/*",
+            "usl_home/static/src/record_link/**/*",
             "usl_home/static/src/project_search/**/*",
         ],
         "web.assets_unit_tests": [
             "usl_home/static/tests/home.test.js",
             "usl_home/static/tests/home_history.test.js",
+            "usl_home/static/tests/record_link.test.js",
             "usl_home/static/tests/content_search.test.js",
             "usl_home/static/tests/project_content_search.test.js",
         ],

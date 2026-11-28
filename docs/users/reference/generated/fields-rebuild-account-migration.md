@@ -380,6 +380,7 @@ false
 | **Readiness Status** (`readiness_status`) | selection | yes | Values: **Not Run**, **Ready**, **Warnings**, **Blocked**. |
 | **Readiness Summary** (`readiness_summary`) | text |  |  |
 | **Review Status** (`review_status`) | selection | yes | Values: **Not Started**, **Internal Ready**, **Accountant Review Requested**, **Accepted by Reviewer**, **Accepted with Difference**, **Changes Required**. |
+| **Period Title** (`review_title`) | char |  |  |
 | **Snapshot Count** (`snapshot_count`) | integer |  |  |
 | **Accepted Closing Snapshots** (`snapshot_ids`) | one2many → `rebuild.account.closing.snapshot` |  |  |
 | **State** (`state`) | selection | yes | Values: **Open**, **Preparing**, **Blocked**, **Internal Review**, **Accountant Review**, **Ready to Close**, **Closed and Locked**, **Archived**. |
@@ -473,6 +474,7 @@ false
 | **Amount Paid** (`amount_paid`) | monetary |  |  |
 | **Applicability** (`applicability`) | selection | yes | Values: **Applicable**, **Conditional Review**, **Not Applicable**. |
 | **Applicability Reason** (`applicability_reason`) | text | yes |  |
+| **Why this applies** (`applicability_summary`) | text |  | The reason this declaration applies, shown in the language of the reader. The saved reason stays in English. |
 | **Category** (`category`) | selection |  |  |
 | **Company** (`company_id`) | many2one → `res.company` | yes |  |
 | **Credit Amount** (`credit_amount`) | monetary |  |  |
@@ -548,6 +550,7 @@ One source document behind a potential DES or DAS2 declaration, with the reason 
 | **Document** (`move_id`) | many2one → `account.move` |  | Posted invoice, bill or payment entry to review. |
 | **Type** (`move_type`) | selection |  | Tells an invoice from a credit note. |
 | **Partner** (`partner_id`) | many2one → `res.partner` |  | Customer of the invoice or beneficiary of the payment. |
+| **VAT number** (`partner_vat`) | char |  | VAT number of the customer, the key of its line in the DES return. |
 | **Payment** (`payment_move_id`) | many2one → `account.move` |  | Payment entry that settled the bill, when the document is a bill. |
 | **Period** (`period`) | char |  | Declaration period the document belongs to: a month for DES, a year for DAS2. |
 | **Reason for review** (`reason`) | char |  | Why this document may belong in the declaration. |
