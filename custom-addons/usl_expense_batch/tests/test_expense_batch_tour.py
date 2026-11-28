@@ -195,6 +195,21 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
             login=self.expense_user_employee.login,
         )
 
+    def _create_pending_analytic_account(self):
+        account = self.env["account.analytic.account"].create({
+            "name": "QA revised allocation",
+            "plan_id": self.analytic_plan.id,
+        })
+        model = type(account)
+        web_read = model.web_read
+
+        def slow_account_lookup(record, specification):
+            if record.ids == [account.id] and "root_plan_id" in specification:
+                sleep(0.65)
+            return web_read(record, specification)
+
+        return account, patch.object(model, "web_read", slow_account_lookup)
+
     def _check_saving_analytics_with_a_pending_lookup(self, lang):
         self.env["res.lang"]._activate_lang(lang)
         employee = self.expense_user_employee
@@ -208,22 +223,11 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
         initial_revision = batch.context_revision
         original = batch.analytic_distribution
         exception_distribution = self.exception_expense.analytic_distribution
-        revised_account = self.env["account.analytic.account"].create({
-            "name": "QA revised allocation",
-            "plan_id": self.analytic_plan.id,
-        })
+        revised_account, lookup = self._create_pending_analytic_account()
         expected = {str(revised_account.id): 100.0}
-        analytic_model = type(revised_account)
-        web_read = analytic_model.web_read
-
-        def slow_account_lookup(record, specification):
-            if record.ids == [revised_account.id] and "root_plan_id" in specification:
-                sleep(0.65)
-            return web_read(record, specification)
-
         action = self.env.ref("usl_expense_batch.action_expense_batches")
         url = f"/odoo/action-{action.id}/{batch.id}"
-        with patch.object(analytic_model, "web_read", slow_account_lookup):
+        with lookup:
             self.start_tour(url, "usl_expense_batch_save_analytics", login=employee.login)
 
         batch.invalidate_recordset(["analytic_distribution", "context_revision"])
@@ -246,6 +250,23 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
 
     def test_saving_analytics_directly_from_the_batch_form(self):
         self._check_saving_analytics_with_a_pending_lookup("fr_FR")
+
+    def test_discard_discards_analytics_while_the_account_lookup_is_pending(self):
+        _, lookup = self._create_pending_analytic_account()
+        original = self.batch.analytic_distribution
+        previous_revision = self.batch.context_revision
+        action = self.env.ref("usl_expense_batch.action_expense_batches")
+        with lookup:
+            self.start_tour(
+                f"/odoo/action-{action.id}/{self.batch.id}",
+                "usl_expense_batch_discard_analytics",
+                login=self.expense_user_employee.login,
+            )
+
+        self.batch.invalidate_recordset()
+        self.assertEqual(self.batch.name, "QA title after discard")
+        self.assertEqual(self.batch.analytic_distribution, original)
+        self.assertEqual(self.batch.context_revision, previous_revision)
 
     def test_employee_can_select_an_analytic_account_on_mobile(self):
         self.browser_size = "390x844"
