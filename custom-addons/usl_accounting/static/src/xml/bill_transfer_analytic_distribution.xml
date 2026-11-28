@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_accounting.BillTransferAnalyticDistribution" t-inherit="analytic.AnalyticDistribution" t-inherit-mode="primary">
+        <xpath expr="//t[@t-call='analytic.AnalyticDistributionPopup']" position="attributes">
+            <attribute name="t-call">usl_accounting.BillTransferAnalyticPopup</attribute>
+        </xpath>
+    </t>
+    <t t-name="usl_accounting.BillTransferAnalyticPopup" t-inherit="analytic.AnalyticDistributionPopup" t-inherit-mode="primary">
+        <xpath expr="//Field[@name='field']" position="attributes">
+            <attribute name="context">this.transferContext</attribute>
+        </xpath>
+    </t>
+</templates>

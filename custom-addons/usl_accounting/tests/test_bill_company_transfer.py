@@ -471,6 +471,40 @@ class TestDraftBillCompanyTransfer(AccountTestInvoicingCommon):
         destination = bill.change_bill_company(self.target.id)["destination"]
         self.assertEqual([due["date"] for due in destination["due_dates"]], ["2026-05-20"])
 
+    def test_analytic_transfer_with_only_the_source_active(self):
+        bill = self._bill()
+        source = bill.company_id
+        outside = self.env["res.company"].sudo().create({"name": "Green Studio"})
+        plan = self.env["account.analytic.plan"].create({"name": "Production work"})
+        analytic = self.env["account.analytic.account"].sudo()
+        original, destination, shared, outsider = analytic.create([
+            {"name": name, "plan_id": plan.id, "company_id": company_id}
+            for name, company_id in [("Blue recording", source.id), ("Amber recording", self.target.id),
+                                     ("Shared recording", False), ("Green recording", outside.id)]
+        ])
+        bill.invoice_line_ids.analytic_distribution = {str(original.id): 100}
+        operator = new_test_user(
+            self.env, login="studio-analytic-transfer", company_id=source.id,
+            groups="account.group_account_invoice,analytic.group_analytic_accounting",
+            company_ids=[Command.set((source | self.target).ids)],
+        )
+        bill = bill.with_user(operator).with_context(allowed_company_ids=source.ids)
+        wizard = self._mapping(bill)
+        self.assertEqual(wizard.scope_company_ids, [self.target.id, source.id])
+        accounts = bill.env["account.analytic.account"].with_context(allowed_company_ids=wizard.scope_company_ids)
+        candidates = accounts.search([("plan_id", "=", plan.id), *accounts._check_company_domain(self.target)])
+        self.assertEqual(set(candidates.ids), {destination.id, shared.id})
+        self.assertEqual(accounts.browse(original.id).read(["name"])[0]["name"], "Blue recording")
+        self.assertFalse(accounts.search([("id", "=", outsider.id)]))
+        retained = {str(destination.id): 70, str(shared.id): 30}
+        wizard.mapping_ids.analytic_distribution = retained
+        wizard.action_apply()
+        moved = bill.with_company(self.target)
+        self.assertEqual(moved.company_id, self.target)
+        self.assertEqual(moved.invoice_line_ids.analytic_distribution, retained)
+        self.assertEqual(moved.state, "draft")
+        self.assertEqual(bill.env.context["allowed_company_ids"], source.ids)
+
     def test_destination_scope_comes_first_so_its_account_codes_show(self):
         bill = self._bill()
         wizard = self._mapping(bill)

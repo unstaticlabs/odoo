@@ -54,6 +54,9 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "usl_accounting/static/src/js/bill_transfer_lookup.js",
+            "usl_accounting/static/src/js/bill_transfer_analytic_distribution.js",
+            "usl_accounting/static/src/xml/bill_transfer_analytic_distribution.xml",
             "usl_accounting/static/src/js/immediate_settlement.js",
             "usl_accounting/static/src/js/reconciliation_review.js",
             "usl_accounting/static/src/xml/reconciliation_review.xml",
@@ -66,6 +69,7 @@
             "usl_accounting/static/src/xml/account_payment_suggestions.xml",
         ],
         "web.assets_unit_tests": [
+            "usl_accounting/static/tests/bill_transfer_analytic_distribution.test.js",
             "usl_accounting/static/tests/reconciliation_review.test.js",
             "usl_accounting/static/tests/linked_receipt_handoff.test.js",
             "usl_accounting/static/tests/linked_bill_receipt_form.test.js",
