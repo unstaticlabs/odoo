@@ -7,7 +7,7 @@ persona: administrator
 app: Agents & MCP
 source:
   - deploy/odoo-mcp/release.json
-mcp_commit: f5affc6685e7dedc81d2cb40c0889d9441c65bd8
+mcp_commit: 9f5c5afa6785b2244bf16a50909d13040ef72d3b
 generated: true
 ---
 
@@ -15,7 +15,7 @@ generated: true
 
 # MCP tools and profiles
 
-This page is the tool catalogue of the Odoo MCP server this release ships, version 1.1.0 at commit [`f5affc6685e7`](https://github.com/unstaticlabs/odoo-mcp/commit/f5affc6685e7dedc81d2cb40c0889d9441c65bd8), copied from its own documentation. Links to the server's other documents open that same commit on GitHub. Bump the pin in `deploy/odoo-mcp/release.json`, then run `make docs-mcp` to regenerate it; edits to the page itself are overwritten.
+This page is the tool catalogue of the Odoo MCP server this release ships, version 1.1.0 at commit [`9f5c5afa6785`](https://github.com/unstaticlabs/odoo-mcp/commit/9f5c5afa6785b2244bf16a50909d13040ef72d3b), copied from its own documentation. Links to the server's other documents open that same commit on GitHub. Bump the pin in `deploy/odoo-mcp/release.json`, then run `make docs-mcp` to regenerate it; edits to the page itself are overwritten.
 
 The executable source of truth is the canonical registry created in `src/capabilities/index.ts`. This document describes selection policy; tool schemas and module predicates come from code.
 
@@ -76,9 +76,11 @@ Use `odoo_call_method` when a legitimate public Distribution method has no MCP s
 
 ## Semantic catalogue
 
-Use `docs_search` for guidance before inventing a workflow. It reads the running release’s guide through `usl.docs.guide.search_pages`; generic `odoo_call_method` access remains available for full page steps and screenshot references via `read_page`. Abstract guide access is authorized by Odoo, without requiring CRUD metadata.
+Use `docs_search` for guidance before inventing a workflow. It reads the running release’s guide through `usl.docs.guide.search_pages`; generic `odoo_call_method` access remains available for full page steps and screenshot references via `read_page`. Use `fr` or `en` to filter by language. Regional locales such as `fr_FR` and `en-US` find the same guides. Omit the language to search all translations. Abstract guide access is authorized by Odoo, without requiring CRUD metadata.
 
 Current context helpers cover partners, record activities, project tasks, invoices, individual expenses, expense batches, Home attention, B2C orders, the rebuilt Accounting overview/reports, and the USL document archive. They return bounded high-signal context and warnings when optional linked context cannot be read.
+
+The connector and Odoo are released independently. When a context helper's own field list names a field this Odoo release does not have yet, the helper reads again once without it, asks native `fields_get` once, and returns a warning naming the model and field in `warnings`; the record simply lacks that field. Any other error, and every field a caller names in a generic tool (`odoo_read_records`, `odoo_search_records`, `odoo_aggregate_records`, `odoo_call_method`), reaches the caller unchanged.
 
 The Accounting overview keeps all-date ledger totals separate from the open annual
 closing workspace and latest operational closing. Its legacy `draft_expense_count`
@@ -93,7 +95,7 @@ additional expense-row access or grant permission to edit any expense.
 
 The invoice helper optionally accepts `company_change: {target_company_id, offset, limit}` for one native read-only snapshot of company choices, all line types, actual financial links, origins and evidence. Each page is an independent snapshot with readable-scope counts and explicit truncation or unavailability. Default invoice context remains unchanged. This option adds no company-change action or approval. To move a draft vendor bill, use `accounting_change_bill_company`.
 
-Document tools use the Distribution archive facade for search, context, bounded text, similarity, and catalogues. Link/unlink operations call one public archive method. `documents_create_download_url` is a consequential action that issues a 30–900 second HTTPS bearer URL for one exact authorized document version; `documents_revoke_download_url` ends that capability early. Both are static on `/mcp` when available and deferred only on `/mcp/all`. Search and read tools report binary availability but never create or return bearer URLs. For supported files up to 4 MiB, `documents_get_content` with an explicit `binary` selection instead returns verified bytes through the existing authenticated connector: common images as MCP image content, other files as embedded resources. The host decides how to open an embedded PDF; receipt of bytes alone is not a claim of model vision. Older servers retain ordinary text reads; a binary request explains when its native method is unavailable. Issuance does not prove the client downloaded bytes; see the [qualification runbook](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/document-materialization.md).
+Document tools use the Distribution archive facade for search, context, bounded text, similarity, and catalogues. Link/unlink operations call one public archive method. `documents_create_download_url` is a consequential action that issues a 30–900 second HTTPS bearer URL for one exact authorized document version; `documents_revoke_download_url` ends that capability early. Both are static on `/mcp` when available and deferred only on `/mcp/all`. Search and read tools report binary availability but never create or return bearer URLs. For supported files up to 4 MiB, `documents_get_content` with an explicit `binary` selection instead returns verified bytes through the existing authenticated connector: common images as MCP image content, other files as embedded resources. The host decides how to open an embedded PDF; receipt of bytes alone is not a claim of model vision. Older servers retain ordinary text reads; a binary request explains when its native method is unavailable. Issuance does not prove the client downloaded bytes; see the [qualification runbook](https://github.com/unstaticlabs/odoo-mcp/blob/9f5c5afa6785b2244bf16a50909d13040ef72d3b/docs/document-materialization.md).
 
 Thin domain list/get wrappers are intentionally absent where generic search/read already communicates the task cleanly.
 
@@ -128,7 +130,7 @@ abstract Home service, and does not perform fuzzy retrieval.
 
 ## Card maintenance
 
-`projects_update_task` writes stage, state, description, link (`github_url`) and Sources references of one task in a single `web_save`; state is required with a stage because Odoo resets it otherwise. `activities_complete` marks activities done through `action_feedback`. Both are static on `/mcp`; see [keeping a project card](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/projects-cards.md) for what belongs where.
+`projects_update_task` writes stage, state, description, link (`github_url`) and Sources references of one task in a single `web_save`; state is required with a stage because Odoo resets it otherwise. `activities_complete` marks activities done through `action_feedback`. Both are static on `/mcp`; see [keeping a project card](https://github.com/unstaticlabs/odoo-mcp/blob/9f5c5afa6785b2244bf16a50909d13040ef72d3b/docs/projects-cards.md) for what belongs where.
 
 ## Everyday workflows on `/mcp`
 
@@ -285,6 +287,6 @@ Module, public-method, model-access, and feature predicates remove specialized t
 copies an existing attachment/archived original to an expense or accounting
 entry. Provide exactly one `file`, `source_attachment_id` or `source_document_id`.
 The original remains unchanged; the destination receives native owned evidence
-and optional main selection. See [source evidence handoff](https://github.com/unstaticlabs/odoo-mcp/blob/f5affc6685e7dedc81d2cb40c0889d9441c65bd8/docs/source-evidence-handoff.md)
+and optional main selection. See [source evidence handoff](https://github.com/unstaticlabs/odoo-mcp/blob/9f5c5afa6785b2244bf16a50909d13040ef72d3b/docs/source-evidence-handoff.md)
 for file inputs, exact-byte/checksum guarantees, native workflow boundaries,
 provenance, duplicates and ambiguous-outcome recovery.
