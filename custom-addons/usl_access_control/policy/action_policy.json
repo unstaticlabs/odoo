@@ -222967,6 +222967,43 @@
         "ui:usl_accounting.view_bill_company_transfer_form:button:object:action_prepare_mapping:1": "a614bd0ede4808936d10b37585f7ee2c92b7d5330cbdc2546a058e101c56d2c2",
         "ui:usl_accounting.view_move_form_bill_company_transfer:button:object:action_change_bill_company:1": "2bcc65aee9f3215fc0c5c2e2bec2240bce6d270e8dde980cb4bdefa0285881a7"
       }
+    },
+    {
+      "action_keys": [
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_create:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:2",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_post_after_hook:orm_write:1",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_set_main_attachment_id:orm_write:1"
+      ],
+      "classification": "system_internal",
+      "consequence": "Creates a private source-message PDF, links it to the original email and selects it as the main of an eligible writable expense through native mail hooks; original files, history and financial state are retained.",
+      "domain": "accounting",
+      "evidence_id": "expense-email-receipt-native-3796",
+      "id": "system_internal.accounting.expense_receipt_email",
+      "rationale": "The five exact sinks occur in private underscore-prefixed methods and native mail/main-attachment hooks. They have no independent ordinary-user RPC/controller/UI entry point. Intake checks the expense state and caller write access plus source-message read/write access, retains a genuine or explicit main, handles native rendering failures inside a savepoint, and supersedes pending retrieval generations through the existing helper.",
+      "reachability_proof": "odoo.orm.models.get_public_method rejects these underscore-prefixed methods. Native hr.expense mail processing reaches the override through _message_post_after_hook; native main selection reaches its private super hook. No new public method or controller is declared.",
+      "reviewed_digests": {
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_create:1": "394830cc97bc80e2293c3df6588f68b6c871f29e869d945e869c607ff66d423c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:1": "13bad47416d9d0a3bd0b6655749a4baba80b5524fa3246cd7c3c81b2a67b0f5c",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:2": "b100e7f0866d671cc1379a4e9dcd38d6823a1508dc826adf63a18328f3a0e2d0",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_post_after_hook:orm_write:1": "d9dbf6db2acb6a25a040c6172b98379863353dca017e41591d4e9a0821ec7e05",
+        "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_set_main_attachment_id:orm_write:1": "94f7a461912bc868dedafc508d2a5ad9f23bace58926c1f8ab24398d7538088c"
+      }
+    },
+    {
+      "action_keys": [
+        "ui:usl_accounting.action_report_expense_receipt_email"
+      ],
+      "classification": "read_only",
+      "consequence": "Renders only currently readable source email evidence for the requested native expense records without changing expense, ledger or provider state.",
+      "domain": "accounting",
+      "evidence_id": "expense-email-receipt-native-3796",
+      "id": "read_only.accounting.expense_receipt_email_report",
+      "rationale": "The standard ir.actions.report context overwrites docs/doc_ids/doc_model from its native hr.expense model and positional IDs. Trusted QWeb calls the private concrete-model helper, which validates every expense and source before returning any content. No external report content or standalone report service is accepted. HTML reads recheck rights per request; PDF rendering has no attachment cache expression and attachment_use is false. Native framework asset caching retains its existing technical behavior.",
+      "reviewed_digests": {
+        "ui:usl_accounting.action_report_expense_receipt_email": "4770b79d0f3646c0080a11d7a86d0f8ef2df534c9bcaf992da393bd02fe63bf0"
+      }
     }
   ],
   "evidence_families": {
@@ -223208,6 +223245,16 @@
         "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_submit_applies_company_match_and_continues_remaining_drafts",
         "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_review_refuses_unreviewed_new_draft",
         "custom-addons/usl_accounting/tests/test_expense_bank_matching.py::TestExpenseBankMatching.test_batch_create_and_submit_with_one_match_finishes_once"
+      ]
+    },
+    "expense-email-receipt-native-3796": {
+      "contract": "Native receipt email intake keeps original files and source-message visibility, distinguishes complete renewal references, preserves manual corrections and approved financial state, fails safely on native renderer errors, and uses the native concrete report context. The preview projection validates expense, source and file as the requesting actor; source withdrawal removes fresh preview/store access. No new RPC, ACL, delegated role or accounting mutation is introduced.",
+      "tests": [
+        "custom-addons/usl_accounting/tests/test_expense_email_receipt.py::TestExpenseEmailReceipt",
+        "custom-addons/usl_accounting/tests/test_expense_email_receipt.py::TestExpenseReceiptEmailEvidence",
+        "custom-addons/usl_accounting/tests/test_expense_email_receipt_http.py::TestExpenseEmailReceiptHttp",
+        "custom-addons/usl_accounting/tests/test_expense_email_receipt_ui.py::TestExpenseEmailReceiptUi",
+        "custom-addons/usl_accounting/static/tests/expense_receipt_email.test.js"
       ]
     },
     "feedback-capture-20261013": {

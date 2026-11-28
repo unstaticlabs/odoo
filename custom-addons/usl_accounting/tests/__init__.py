@@ -37,3 +37,7 @@ from . import test_edi_line_compatibility
 from . import test_purchase_mail_grouping
 from . import test_purchase_mail_grouping_ui
 from . import test_queue_job_admin_access
+
+from . import test_expense_email_receipt
+from . import test_expense_email_receipt_ui
+from . import test_expense_email_receipt_http

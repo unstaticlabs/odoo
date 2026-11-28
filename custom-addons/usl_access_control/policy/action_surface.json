@@ -1680937,6 +1680937,81 @@
       ]
     },
     {
+      "digest": "394830cc97bc80e2293c3df6588f68b6c871f29e869d945e869c607ff66d423c",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_create:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_create",
+      "sources": [
+        {
+          "line": 162,
+          "path": "custom-addons/usl_accounting/models/expense_receipt_email.py"
+        }
+      ]
+    },
+    {
+      "digest": "13bad47416d9d0a3bd0b6655749a4baba80b5524fa3246cd7c3c81b2a67b0f5c",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 162,
+          "path": "custom-addons/usl_accounting/models/expense_receipt_email.py"
+        }
+      ]
+    },
+    {
+      "digest": "b100e7f0866d671cc1379a4e9dcd38d6823a1508dc826adf63a18328f3a0e2d0",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._auto_receipt_email_copy:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 162,
+          "path": "custom-addons/usl_accounting/models/expense_receipt_email.py"
+        }
+      ]
+    },
+    {
+      "digest": "d9dbf6db2acb6a25a040c6172b98379863353dca017e41591d4e9a0821ec7e05",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_post_after_hook:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 200,
+          "path": "custom-addons/usl_accounting/models/expense_receipt_email.py"
+        }
+      ]
+    },
+    {
+      "digest": "94f7a461912bc868dedafc508d2a5ad9f23bace58926c1f8ab24398d7538088c",
+      "key": "sink:usl_accounting:custom-addons/usl_accounting/models/expense_receipt_email.py:hr.expense._message_set_main_attachment_id:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_accounting"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 157,
+          "path": "custom-addons/usl_accounting/models/expense_receipt_email.py"
+        }
+      ]
+    },
+    {
       "digest": "c046d4cf41402742f11b795c47fcaaf65026f0c7e4237cb5a63484f3207e12f6",
       "key": "sink:usl_accounting:custom-addons/usl_accounting/models/immediate_settlement.py:_as_settlement_service:sudo:1",
       "kind": "sink",
@@ -1764682,6 +1764757,29 @@
       "xmlid": "usl_accounting.action_bank_ingestion_config"
     },
     {
+      "digest": "4770b79d0f3646c0080a11d7a86d0f8ef2df534c9bcaf992da393bd02fe63bf0",
+      "guards": [],
+      "key": "ui:usl_accounting.action_report_expense_receipt_email",
+      "kind": "ui",
+      "modules": [
+        "usl_accounting"
+      ],
+      "parents": [],
+      "risk_flags": [],
+      "runtime_digest": "063b6e85b31ca41c8dad8778fc34a9ecf53c0a1d1a6250658a8bc6ddb4c91bbb",
+      "sinks": [],
+      "sources": [
+        {
+          "path": "custom-addons/usl_accounting/views/expense_receipt_email_views.xml"
+        },
+        {
+          "path": "database:ir.actions.report:usl_accounting.action_report_expense_receipt_email"
+        }
+      ],
+      "ui_type": "ir.actions.report",
+      "xmlid": "usl_accounting.action_report_expense_receipt_email"
+    },
+    {
       "delegates": [
         "server_action:usl_accounting.action_scan_existing_receipt_emails"
       ],
@@ -1776123,11 +1776221,11 @@
       "version": "saas~19.3.1.8.17"
     },
     {
-      "manifest_sha256": "a6831aca894a6978275295706d7aa7f481d62233fd76c6d21224988b7e42bdbb",
+      "manifest_sha256": "0ebfd53a97190a5285c57779d0bb5e59d29256a3c1dabae9b08c66dcf479fa95",
       "name": "usl_accounting",
       "origin": "custom",
-      "source_sha256": "72d0e7c510d0478aed14d2bade3d2886c9918101c1a903b5a97b4f4a76ad1614",
-      "version": "saas~19.3.2.2.25"
+      "source_sha256": "831140ce7251887fd8c3d72621c7d7813b827b85144d4f4e1d9344e8c6dabaf8",
+      "version": "saas~19.3.2.2.26"
     },
     {
       "manifest_sha256": "602d05b4df57f88584db33fa8c77f70806592edc7dd173b96c4a4bd3c2a1295b",

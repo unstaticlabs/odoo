@@ -9020,3 +9020,56 @@ msgstr ""
 #: code:addons/usl_accounting/models/bill_company_transfer.py:0
 msgid "The total changes from %(current)s to %(destination)s."
 msgstr "Le total passe de %(current)s à %(destination)s."
+
+#. module: usl_accounting
+#. odoo-javascript
+#: code:addons/usl_accounting/static/src/js/expense_receipt_email.js:0
+#: model:ir.model.fields,field_description:usl_accounting.field_hr_expense__receipt_email_url
+#: model:ir.actions.report,name:usl_accounting.action_report_expense_receipt_email
+#: model_terms:ir.ui.view,arch_db:usl_accounting.expense_receipt_email
+msgid "Receipt email"
+msgstr "Courriel justificatif"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_receipt_email.py:0
+msgid "Receipt email.pdf"
+msgstr "Courriel justificatif.pdf"
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_receipt_email.py:0
+msgid "Rendered copy of the original receipt email, retained in the expense chatter."
+msgstr "Copie du courriel justificatif d’origine, conservée dans les échanges de la note de frais."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_receipt_email.py:0
+msgid "The receipt email is unavailable."
+msgstr "Le courriel justificatif n’est pas disponible."
+
+#. module: usl_accounting
+#. odoo-python
+#: code:addons/usl_accounting/models/expense_receipt_email.py:0
+msgid "No single readable receipt email was identified. Open the original conversation or choose the matching receipt manually."
+msgstr "Aucun courriel justificatif unique et consultable n’a été identifié. Ouvrez la conversation d’origine ou sélectionnez manuellement le justificatif correspondant."
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.expense_receipt_email
+msgid "<strong>Subject:</strong>"
+msgstr "<strong>Objet :</strong>"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.expense_receipt_email
+msgid "<strong>Date:</strong>"
+msgstr "<strong>Date :</strong>"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.expense_receipt_email
+msgid "<strong>Order number:</strong>"
+msgstr "<strong>Numéro de commande :</strong>"
+
+#. module: usl_accounting
+#: model_terms:ir.ui.view,arch_db:usl_accounting.expense_receipt_email
+msgid "Rendered from the receipt email. The original conversation and files remain available in the expense chatter."
+msgstr "Reproduction du courriel justificatif. La conversation et les fichiers d’origine restent disponibles dans les échanges de la note de frais."

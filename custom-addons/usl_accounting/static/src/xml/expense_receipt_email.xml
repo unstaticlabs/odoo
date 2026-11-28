@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="usl_accounting.ExpenseReceiptEmailField">
+        <a class="d-flex align-items-center h-100 w-100 text-decoration-none"
+           t-on-click.stop="" t-on-auxclick.stop=""
+           t-att-href="this.formattedHref" t-att-aria-label="this.label" target="_blank">
+            <i class="fa fa-envelope-o o_button_icon" aria-hidden="true"/>
+            <div class="o_stat_info"><span class="o_stat_text" t-out="this.label"/></div>
+        </a>
+    </t>
+</templates>
