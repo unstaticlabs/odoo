@@ -249688,7 +249688,11 @@
     {
       "abstract": false,
       "archiveable": false,
-      "digest": "e05f5b86eca9ad6c2eea68c0c8d77415e0e53c9e5eb22237b25228e28351734c",
+      "delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.lock_for_update"
+      ],
+      "digest": "3cebea5326d5e19b49a19643a4edc62d0c23156a3146e6f6a38b0cfbdb2bf529",
       "guards": [],
       "key": "rpc:b2c.import.batch.action_parse",
       "kind": "rpc",
@@ -249699,20 +249703,22 @@
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c8252c91aa600b51c615c95af7ba693aea7ec98ec0cbf4522bdd0054386cf2b7",
-      "sinks": [
-        "orm_write"
-      ],
+      "runtime_digest": "14b4bcb69865b0da996541bf0ea4ae8b3bf44f4ccf790d0f8b3782cb4ba2c97f",
+      "sinks": [],
       "sources": [
         {
-          "line": 148,
+          "line": 162,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ],
-      "transient": false
+      "transient": false,
+      "unresolved_delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.lock_for_update"
+      ]
     },
     {
       "abstract": false,
@@ -249894,7 +249900,7 @@
       ],
       "sources": [
         {
-          "line": 204,
+          "line": 238,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -249940,7 +249946,6 @@
         "rpc:b2c.import.batch.ensure_one",
         "rpc:b2c.import.batch.invalidate_recordset",
         "rpc:b2c.import.batch.write",
-        "rpc:b2c.import.issue.create",
         "rpc:b2c.money.transfer.search",
         "rpc:b2c.order.search"
       ],
@@ -249958,11 +249963,12 @@
       "runtime_digest": "dd39b4fbc39ce912cbb18b1fe9d989baef0643f8c64e0911f52d6ad332c9c69c",
       "sinks": [
         "orm_create",
-        "orm_write"
+        "orm_write",
+        "sudo"
       ],
       "sources": [
         {
-          "line": 165,
+          "line": 199,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -250095,7 +250101,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 181,
+          "line": 215,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -252979,13 +252985,16 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.filtered",
+        "rpc:b2c.import.batch.lock_for_update",
         "rpc:mail.activity.mixin.sudo",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
         "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f9e0c7ea1852eee1a1eb49d4a52f303a2b407dae945a85b17690ba5626f5f5e1",
+      "digest": "f80dd3b1952e68927f941c659757c076667f45ef94476bfbd2d28c68f8682933",
       "guards": [],
       "key": "rpc:b2c.import.batch.write",
       "kind": "rpc",
@@ -252994,16 +253003,21 @@
       "modules": [
         "base",
         "mail",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_b2c_ingest"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c8cf27c49ea611b1d88101cc7b2c380d240a9ce03d643efddbc3974edd90ba6e",
+      "runtime_digest": "293410da31b5e5fd091a15ccd062e41d01477157127d73beb7907b398c66880a",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        },
         {
           "line": 271,
           "path": "addons/mail/models/mail_activity_mixin.py"
@@ -253024,6 +253038,9 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        },
+        {
           "path": "odoo/addons/mail/models/mail_activity_mixin.py"
         },
         {
@@ -253035,6 +253052,9 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.filtered",
+        "rpc:b2c.import.batch.lock_for_update",
         "rpc:mail.activity.mixin.sudo",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
@@ -1688566,7 +1688586,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 823,
+          "line": 859,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688581,7 +1688601,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 507,
+          "line": 543,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688596,13 +1688616,28 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 758,
+          "line": 794,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
     },
     {
-      "digest": "7e52af0959b51a8f4e1d5b48739cf6d29d1f86fd4f444d138b9b821f7bb9b0fd",
+      "digest": "422e675ddb60b4616a8ea2fddd618c6c620021f6ddbf63aa2c160ede85143166",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._parse_output:sudo:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "sudo",
+      "sources": [
+        {
+          "line": 190,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "25c83f55ef1b62ea4d10de456def4f6d58b6b63f0f72f614997bc8089e8fbac8",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._raise_issue:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1688611,13 +1688646,43 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 780,
+          "line": 816,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
     },
     {
-      "digest": "859a738a24d1c7dced2e104482babac895bf740de218a75f41b68752b6f79dbc",
+      "digest": "9e1d9fa6dbfbdb9984a9422ae216ae6ce13da1a6010967a26bd3e24f74a8b958",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._read_files:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 171,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "43851b574a36393a6df72bb6b8e40367454fe69f715fa5f48377023da8a89462",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._read_files:orm_write:2",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 171,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "7dd04ae0ae0d5c7dcdbd17c58707265601972e48e65e81d81125c50c10fcd1a4",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:1",
       "kind": "sink",
       "modules": [
@@ -1688626,13 +1688691,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 355,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
     },
     {
-      "digest": "df1a6df17354411a0b507afce6ef459f96738812dd66cce3d571b822f4e4ea06",
+      "digest": "683f6de0eed9936a36e8a3028418a34ab1b18411c15d6ea81a983646a9121333",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:2",
       "kind": "sink",
       "modules": [
@@ -1688641,13 +1688706,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 355,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
     },
     {
-      "digest": "e858a28235ff459151e3d79fbc49de7f2b4c239d4fd3d051fb6ac927897513d3",
+      "digest": "ffe8f4cb51e250ba9b35b3116f8a5139997b6f793d6a8569a50f1a8c2bdb00cc",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._resolve:orm_write:3",
       "kind": "sink",
       "modules": [
@@ -1688656,13 +1688721,13 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 355,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
     },
     {
-      "digest": "90d954e175a8e4fb3d53caedb2c3476235932042d1448736294b0196cc468c4b",
+      "digest": "2c02491a983568f0ebfce0a26028b7f4317f304d5cbb3769d8e1add027c84bb4",
       "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1",
       "kind": "sink",
       "modules": [
@@ -1688671,43 +1688736,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 222,
-          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
-        }
-      ]
-    },
-    {
-      "digest": "3498f773b0d41f069343fd2fe70f1041d4258ccb70dcb7db95f27bff51aef6bc",
-      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:1",
-      "kind": "sink",
-      "modules": [
-        "usl_b2c_ingest"
-      ],
-      "parents": [
-        "rpc:b2c.import.batch.action_parse"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 148,
-          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
-        }
-      ]
-    },
-    {
-      "digest": "acd174795ed70328f20a63da469ef4afad638936f5db31865e7629ca9b1b4627",
-      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_parse:orm_write:2",
-      "kind": "sink",
-      "modules": [
-        "usl_b2c_ingest"
-      ],
-      "parents": [
-        "rpc:b2c.import.batch.action_parse"
-      ],
-      "sink_kind": "orm_write",
-      "sources": [
-        {
-          "line": 148,
+          "line": 256,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688725,7 +1688754,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 204,
+          "line": 238,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688743,7 +1688772,25 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 165,
+          "line": 199,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "0d07d8a8dc80c5c5b64ba41995f80b03491a7d0e20ab1a6e35ee7d6ff3fa72f5",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "parents": [
+        "rpc:b2c.import.batch.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 149,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1776137,11 +1776184,11 @@
       "version": "saas~19.3.1.5.2"
     },
     {
-      "manifest_sha256": "f00b19686425f4bebc51dfd53bf15850e80773d3ec7c375ac4420356bf7fa1de",
+      "manifest_sha256": "c261ea2bfaa89fb23d3461f86aac1442d9c3a8b83fc0a2e3fc96508dff16d1aa",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "11e5d1b61460d367f9ce10092ed1331cb6836ed52c10b130c4d0a64817e5d21e",
-      "version": "saas~19.3.1.3.7"
+      "source_sha256": "e7bd029b159bca772d73c134b2229e782da9b56c06b7a538a7bc2db874fde06e",
+      "version": "saas~19.3.1.3.8"
     },
     {
       "manifest_sha256": "e756e13b2f600132017bb524fe5676e31ce75a2475e3a439a71cda029f5544cc",
