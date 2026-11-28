@@ -1,3 +1,6 @@
+from time import sleep
+from unittest.mock import patch
+
 from odoo import Command, fields
 from odoo.tests import HttpCase, tagged
 
@@ -191,6 +194,58 @@ class TestExpenseBatchBrowser(TestExpenseCommon, HttpCase):
             "usl_expense_batch_focused_review",
             login=self.expense_user_employee.login,
         )
+
+    def _check_saving_analytics_with_a_pending_lookup(self, lang):
+        self.env["res.lang"]._activate_lang(lang)
+        employee = self.expense_user_employee
+        employee.lang = lang
+        draft = self.expenses[0]
+        approved = self.receipt_expense
+        approved.with_user(employee).action_submit()
+        approved.with_user(self.expense_user_manager).action_approve()
+        batch = self.batch.with_user(employee)
+        batch.add_expenses((draft | approved).ids)
+        initial_revision = batch.context_revision
+        original = batch.analytic_distribution
+        exception_distribution = self.exception_expense.analytic_distribution
+        revised_account = self.env["account.analytic.account"].create({
+            "name": "QA revised allocation",
+            "plan_id": self.analytic_plan.id,
+        })
+        expected = {str(revised_account.id): 100.0}
+        analytic_model = type(revised_account)
+        web_read = analytic_model.web_read
+
+        def slow_account_lookup(record, specification):
+            if record.ids == [revised_account.id] and "root_plan_id" in specification:
+                sleep(0.65)
+            return web_read(record, specification)
+
+        action = self.env.ref("usl_expense_batch.action_expense_batches")
+        url = f"/odoo/action-{action.id}/{batch.id}"
+        with patch.object(analytic_model, "web_read", slow_account_lookup):
+            self.start_tour(url, "usl_expense_batch_save_analytics", login=employee.login)
+
+        batch.invalidate_recordset(["analytic_distribution", "context_revision"])
+        draft.invalidate_recordset(["analytic_distribution", "batch_context_revision"])
+        self.assertEqual(batch.analytic_distribution, expected)
+        self.assertEqual(batch.context_revision, initial_revision + 1)
+        self.assertEqual(draft.analytic_distribution, original)
+        self.assertNotEqual(draft.batch_context_revision, batch.context_revision)
+
+        self.start_tour(url, "usl_expense_batch_reopen_and_apply_analytics", login=employee.login)
+        (draft | approved | self.exception_expense).invalidate_recordset()
+        self.assertEqual(draft.analytic_distribution, expected)
+        self.assertEqual(draft.batch_context_revision, batch.context_revision)
+        self.assertEqual(approved.state, "approved")
+        self.assertEqual(approved.analytic_distribution, original)
+        self.assertEqual(self.exception_expense.analytic_distribution, exception_distribution)
+
+    def test_saving_analytics_after_clicking_outside_the_editor(self):
+        self._check_saving_analytics_with_a_pending_lookup("en_US")
+
+    def test_saving_analytics_directly_from_the_batch_form(self):
+        self._check_saving_analytics_with_a_pending_lookup("fr_FR")
 
     def test_submit_approve_and_post_role_handoff_tour(self):
         action = self.env.ref("usl_expense_batch.action_expense_batches")
