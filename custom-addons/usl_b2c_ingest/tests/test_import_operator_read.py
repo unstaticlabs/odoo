@@ -137,6 +137,19 @@ class TestImportOperatorRead(TransactionCase):
         self.assertEqual(batch.state, "parsed")
         self.assertEqual(batch.file_ids._raw_content(), self.content)
 
+    def test_applied_state_transition_respects_native_evidence_permissions(self):
+        draft = self._batch()
+        applied = self._batch()
+        applied.write({"state": "applied"})
+        # Even an applied import without generated rows retains its workflow state.
+        batches = self._as(draft | applied, self.operator)
+        with self.assertRaises(AccessError):
+            batches.write({"state": "draft"})
+        self.assertEqual((draft.state, applied.state), ("draft", "applied"))
+        self.assertTrue(self._as(applied, self.operator).write({"name": "[QA] Reviewed batch"}))
+        self.assertTrue(self._as(applied, self.manager).write({"state": "draft"}))
+        self.assertEqual(applied.state, "draft")
+
     def test_direct_row_and_finding_permissions_remain_native(self):
         batch = self._batch()
         self._as(batch, self.manager).action_parse()

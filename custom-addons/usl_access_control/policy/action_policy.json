@@ -117211,6 +117211,8 @@
           "reversal_action": "rpc:b2c.import.batch.write"
         },
         "rpc:b2c.import.batch.write": {
+          "evidence_id": "b2c-operator-import-read-20261127",
+          "rationale": "Native batch edits retain their existing rights. An applied batch can be reopened only by a caller with permission to remove its generated rows and findings. The native write runs after the access checks and holds the batch lock through the transition.",
           "reversal_action": "rpc:b2c.import.batch.write"
         },
         "rpc:b2c.import.file.create": {
@@ -124125,7 +124127,7 @@
         "rpc:b2c.fulfilment.event.write": "6e52ecb250880906891b519782857ede3830fb1e5a88011a20b4de7806cc4e36",
         "rpc:b2c.import.batch.create": "f9cdc05693c7d6df47b128850cc28b46e16fa347476ed0f7706aff56e499e990",
         "rpc:b2c.import.batch.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
-        "rpc:b2c.import.batch.write": "f9e0c7ea1852eee1a1eb49d4a52f303a2b407dae945a85b17690ba5626f5f5e1",
+        "rpc:b2c.import.batch.write": "f80dd3b1952e68927f941c659757c076667f45ef94476bfbd2d28c68f8682933",
         "rpc:b2c.import.file.create": "e0af2e9e805515eb65154fe51da8db6f0344c2d3e9c9cf6436343f92e2bfaa66",
         "rpc:b2c.import.file.get_view": "78fbe21bdae571ab60e3dc6842004f5ab342efce6bf80ad0230371487d4e02f5",
         "rpc:b2c.import.file.unlink": "b53c929f6dce639c6653ab0f6695968fa56a1bcf1ed7f4d9702731a242fd1cfb",
@@ -162115,6 +162117,7 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_reset:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.write:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1",
@@ -166441,6 +166444,10 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1": {
           "reachability_proof": "This sink is inside action_parse, whose only ordinary entry point is rpc:b2c.import.batch.action_parse — classified and reviewed in its own right."
         },
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.write:orm_write:1": {
+          "evidence_id": "b2c-operator-import-read-20261127",
+          "reachability_proof": "The batch write override calls the inherited native write after checking write access and the existing unlink permissions on generated evidence before reopening any applied batch."
+        },
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": {
           "evidence_id": "medusa-native-identities-2588-v1",
           "reachability_proof": "This private helper has no runtime RPC, controller, UI, client, server-action or cron entry key of its own; it runs only from the reviewed public actions of b2c.import.file, each classified separately."
@@ -167972,6 +167979,7 @@
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch._store_rows:orm_create:1": "2c02491a983568f0ebfce0a26028b7f4317f304d5cbb3769d8e1add027c84bb4",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_reset:orm_write:1": "bbec2b2647fc3527c0cb80eefd86cf489795398791c4654c25d22112450cc360",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.action_resolve_identities:orm_write:1": "4fee9138c926a03895646071776cc549718ac7c8f83d021429b6d388bf062a23",
+        "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.write:orm_write:1": "0d07d8a8dc80c5c5b64ba41995f80b03491a7d0e20ab1a6e35ee7d6ff3fa72f5",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:1": "187e56414c9c4974d8102308d870cde9c9b71d8b01f5aeb22f62e9aec4bb9ab0",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_file.py:b2c.import.file._recognise:orm_write:2": "428539ec7ad1546bcbd2370eb224ff5ad69302db7128ed1a49277eb293990d60",
         "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_issue.py:b2c.import.issue.action_add_missing_value:orm_create:1": "4c3c1b593729493834c814d5f915a219ecb31aff74035f9bf19cf0d89d7cf065",
@@ -223010,7 +223018,7 @@
       ]
     },
     "b2c-operator-import-read-20261127": {
-      "contract": "Native upload, read and reread under the operator role preserve original bytes, replace generated findings, and recover the previous report after a late failure. Company, readable-order, source-field and delegated read/write rights are exercised. Applied batches retain their native behavior.",
+      "contract": "Native upload, read and reread under the operator role preserve original bytes, replace generated findings, and recover the previous report after a late failure. Company, readable-order, source-field and delegated read/write rights are exercised. Applied batches retain their native behavior. Reopening an applied batch retains the user's native authority over the evidence, including when the batch has no generated rows.",
       "tests": [
         "custom-addons/usl_b2c_ingest/tests/test_import_operator_read.py::TestImportOperatorRead",
         "custom-addons/usl_b2c_ingest/tests/test_import_batch.py::TestImportBatch.test_original_csv_and_structured_rows_follow_the_reviewers_role"

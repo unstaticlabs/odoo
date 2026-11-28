@@ -146,6 +146,17 @@ class B2cImportBatch(models.Model):
             )
             batch.advisory_issue_count = len(batch.issue_ids) - batch.blocking_issue_count
 
+    def write(self, vals):
+        if "state" in vals and vals["state"] != "applied":
+            self.check_access("write")
+            self.lock_for_update()
+            applied = self.filtered(lambda batch: batch.state == "applied")
+            if applied:
+                # Reopening an applied batch makes its generated evidence replaceable.
+                applied.row_ids.check_access("unlink")
+                applied.issue_ids.check_access("unlink")
+        return super().write(vals)
+
     # -- reading -----------------------------------------------------------
 
     def action_parse(self):

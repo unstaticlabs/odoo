@@ -249707,7 +249707,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 151,
+          "line": 162,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -249900,7 +249900,7 @@
       ],
       "sources": [
         {
-          "line": 227,
+          "line": 238,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -249968,7 +249968,7 @@
       ],
       "sources": [
         {
-          "line": 188,
+          "line": 199,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -250101,7 +250101,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 204,
+          "line": 215,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         },
         {
@@ -252985,13 +252985,16 @@
       "abstract": false,
       "archiveable": false,
       "delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.filtered",
+        "rpc:b2c.import.batch.lock_for_update",
         "rpc:mail.activity.mixin.sudo",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
         "rpc:res.users.sudo",
         "rpc:usl.agent.sudo"
       ],
-      "digest": "f9e0c7ea1852eee1a1eb49d4a52f303a2b407dae945a85b17690ba5626f5f5e1",
+      "digest": "f80dd3b1952e68927f941c659757c076667f45ef94476bfbd2d28c68f8682933",
       "guards": [],
       "key": "rpc:b2c.import.batch.write",
       "kind": "rpc",
@@ -253000,16 +253003,21 @@
       "modules": [
         "base",
         "mail",
-        "usl_access_control"
+        "usl_access_control",
+        "usl_b2c_ingest"
       ],
       "parents": [],
       "risk_flags": [],
-      "runtime_digest": "c8cf27c49ea611b1d88101cc7b2c380d240a9ce03d643efddbc3974edd90ba6e",
+      "runtime_digest": "293410da31b5e5fd091a15ccd062e41d01477157127d73beb7907b398c66880a",
       "sinks": [
         "orm_write",
         "sudo"
       ],
       "sources": [
+        {
+          "line": 149,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        },
         {
           "line": 271,
           "path": "addons/mail/models/mail_activity_mixin.py"
@@ -253030,6 +253038,9 @@
           "path": "custom-addons/usl_access_control/models/base.py"
         },
         {
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        },
+        {
           "path": "odoo/addons/mail/models/mail_activity_mixin.py"
         },
         {
@@ -253041,6 +253052,9 @@
       ],
       "transient": false,
       "unresolved_delegates": [
+        "rpc:b2c.import.batch.check_access",
+        "rpc:b2c.import.batch.filtered",
+        "rpc:b2c.import.batch.lock_for_update",
         "rpc:mail.activity.mixin.sudo",
         "rpc:mail.thread.with_context",
         "rpc:res.partner.browse",
@@ -1688572,7 +1688586,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 848,
+          "line": 859,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688587,7 +1688601,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 532,
+          "line": 543,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688602,7 +1688616,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 783,
+          "line": 794,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688617,7 +1688631,7 @@
       "sink_kind": "sudo",
       "sources": [
         {
-          "line": 179,
+          "line": 190,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688632,7 +1688646,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 805,
+          "line": 816,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688647,7 +1688661,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 160,
+          "line": 171,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688662,7 +1688676,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 160,
+          "line": 171,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688677,7 +1688691,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 379,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688692,7 +1688706,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 379,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688707,7 +1688721,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 379,
+          "line": 390,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688722,7 +1688736,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 245,
+          "line": 256,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688740,7 +1688754,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 227,
+          "line": 238,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1688758,7 +1688772,25 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 188,
+          "line": 199,
+          "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
+        }
+      ]
+    },
+    {
+      "digest": "0d07d8a8dc80c5c5b64ba41995f80b03491a7d0e20ab1a6e35ee7d6ff3fa72f5",
+      "key": "sink:usl_b2c_ingest:custom-addons/usl_b2c_ingest/models/import_batch.py:b2c.import.batch.write:orm_write:1",
+      "kind": "sink",
+      "modules": [
+        "usl_b2c_ingest"
+      ],
+      "parents": [
+        "rpc:b2c.import.batch.write"
+      ],
+      "sink_kind": "orm_write",
+      "sources": [
+        {
+          "line": 149,
           "path": "custom-addons/usl_b2c_ingest/models/import_batch.py"
         }
       ]
@@ -1776155,7 +1776187,7 @@
       "manifest_sha256": "c261ea2bfaa89fb23d3461f86aac1442d9c3a8b83fc0a2e3fc96508dff16d1aa",
       "name": "usl_b2c_ingest",
       "origin": "custom",
-      "source_sha256": "5aca9c83ac1ac050b83bbda4290f061cc826b53e5d18d0da4a8e029f9f8c1503",
+      "source_sha256": "e7bd029b159bca772d73c134b2229e782da9b56c06b7a538a7bc2db874fde06e",
       "version": "saas~19.3.1.3.8"
     },
     {
