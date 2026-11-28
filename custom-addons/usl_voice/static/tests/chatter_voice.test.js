@@ -32,17 +32,26 @@ function fakeMicrophone() {
 }
 
 /** The upload goes through the native service: what it is given, and what it answers, is the contract. */
-function fakeUploads(answers) {
+function fakeUploads(answers, { replacePending = false } = {}) {
     const uploads = [];
     patchWithCleanup(AttachmentUploadService.prototype, {
         async upload(thread, composer, file, options) {
             uploads.push({ model: thread.model, id: thread.id, composer: Boolean(composer), file, voice: options?.voice });
+            const attachments = (composer || thread).store["ir.attachment"];
+            const pending = replacePending && attachments.insert({ id: -1, name: "Voice.mp3", mimetype: "audio/mpeg" });
+            if (pending) {
+                composer.attachments.push(pending);
+            }
             if (!(await answers.shift())) {
                 return undefined;
             }
-            // As the native upload does: the pending attachment joins the composer.
-            const attachment = (composer || thread).store["ir.attachment"].insert({ id: 9001, name: "Voice.mp3", mimetype: "audio/mpeg" });
-            composer?.attachments.push(attachment);
+            const attachment = attachments.insert({ id: 9001, name: "Voice.mp3", mimetype: "audio/mpeg" });
+            if (pending) {
+                // The native uploader replaces a temporary attachment without changing the list length.
+                composer.attachments[composer.attachments.indexOf(pending)] = attachment;
+            } else {
+                composer?.attachments.push(attachment);
+            }
             return attachment;
         },
     });
@@ -412,7 +421,7 @@ test("a reopened composer adopts an attachment whose upload finishes later", asy
     fakeMicrophone();
     let finishUpload;
     const upload = new Promise((resolve) => { finishUpload = resolve; });
-    const uploads = fakeUploads([upload]);
+    const uploads = fakeUploads([upload], { replacePending: true });
     await openNote();
     patchWithCleanup(indexedDB, { open() { throw Error("no storage"); } });
     after(async () => {
@@ -428,8 +437,10 @@ test("a reopened composer adopts an attachment whose upload finishes later", asy
     await click("button:text('Log note')");
     await contains(".o-mail-Composer");
     const reopened = composers.at(-1);
+    expect(reopened.props.composer.attachments.map(({ id }) => id)).toEqual([-1]);
     finishUpload(true);
     await waitUntil(() => reopened.uslPending?.attachmentId === 9001);
+    expect(reopened.props.composer.attachments.map(({ id }) => id)).toEqual([9001]);
     reopened.props.composer.attachments.length = 0;
     await waitUntil(() => !reopened.uslPending);
     await waitForKeptVoiceNotes(0);
