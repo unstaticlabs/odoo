@@ -132,16 +132,18 @@ class TestTaskWaitingReason(TransactionCase):
         by_task = self._task()
         by_task.depend_on_ids = blocker
         by_reason = self._task(usl_waiting_reason="Supplier quote", usl_waiting_partner_id=self.supplier.id)
+        resumed = self._task(usl_waiting_reason="Customer decision", usl_waiting_partner_id=self.supplier.id)
         completed = self._task(usl_waiting_reason="Delivery confirmation")
-        self.assertEqual((by_task | by_reason | completed).mapped("state"), [WAITING] * 3)
+        self.assertEqual((by_task | by_reason | resumed | completed).mapped("state"), [WAITING] * 4)
 
         self.project.with_user(self.manager).write({
             "allow_task_dependencies": False,
             "tasks": [
-                Command.update(by_task.id, {"name": "[QA] Dependency edit", "state": "01_in_progress"}),
-                Command.update(by_reason.id, {"name": "[QA] External edit", "state": "01_in_progress"}),
+                Command.update(by_task.id, {"name": "[QA] Dependency edit"}),
+                Command.update(by_reason.id, {"name": "[QA] External edit"}),
                 Command.update(completed.id, {"state": "1_done"}),
             ],
+            "task_ids": [Command.update(resumed.id, {"state": "01_in_progress"})],
         })
 
         self.assertFalse(self.project.allow_task_dependencies)
@@ -151,6 +153,9 @@ class TestTaskWaitingReason(TransactionCase):
         self.assertEqual(by_reason.state, WAITING)
         self.assertEqual(by_reason.usl_waiting_reason, "Supplier quote")
         self.assertEqual(by_reason.usl_waiting_partner_id, self.supplier)
+        self.assertEqual(resumed.state, "01_in_progress")
+        self.assertFalse(resumed.usl_waiting_reason)
+        self.assertFalse(resumed.usl_waiting_partner_id)
         self.assertEqual(completed.state, "1_done")
         self.assertFalse(completed.usl_waiting_reason)
 

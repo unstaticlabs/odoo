@@ -260,15 +260,11 @@ class ProjectTask(models.Model):
         if not self.env.context.get("usl_resume_checked"):
             state = vals.get("state")
             leaving_waiting = bool(state) and state != _WAITING
-            if state == "01_in_progress" and self.env.context.get("usl_keep_waiting_reasons"):
-                # Skip the dependency reset for external waits while saving any other edits.
-                keep = self.browse(self.sudo().filtered(
-                    lambda task: task.state == _WAITING and task.usl_waiting_reason,
-                ).ids)
+            if vals == {"state": "01_in_progress"} and self.env.context.get("usl_keep_waiting_reasons"):
+                # The native reset targets dependency waits. Check external
+                # reasons here and keep the caller's access for the actual write.
+                keep = self.sudo().filtered(lambda task: task.state == _WAITING and task.usl_waiting_reason)
                 if keep:
-                    other_values = {name: value for name, value in vals.items() if name != "state"}
-                    if other_values:
-                        keep.write(other_values)
                     remaining = self - keep
                     return remaining.write(vals) if remaining else True
             if "usl_waiting_reason" in vals and not vals["usl_waiting_reason"] and "usl_waiting_partner_id" not in vals:
