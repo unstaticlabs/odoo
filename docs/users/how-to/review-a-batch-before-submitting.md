@@ -1,7 +1,7 @@
 ---
 title: Review a Batch before submitting it
 type: how-to
-description: Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.
+description: Check the batch totals, preview how the saved analytic context will apply, and review any exceptions before submitting.
 lang: en
 persona: employee
 app: Expenses
@@ -23,7 +23,7 @@ generated: true
 
 # Review a Batch before submitting it
 
-Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.
+Check the batch totals, preview how the saved analytic context will apply, and review any exceptions before submitting.
 
 1. Open **Expenses > Expense Batches** and choose your Batch. The summary at the top totals what you paid and what the company paid; the **Expenses** tab lists the lines.
 

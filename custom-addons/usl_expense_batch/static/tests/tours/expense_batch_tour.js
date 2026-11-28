@@ -306,7 +306,7 @@ registry.category("usl_docs.journeys").add("usl_expense_batch_focused_review", {
     id: "review-a-batch-before-submitting",
     type: "how-to",
     title: "Review a Batch before submitting it",
-    description: "Read the Batch summary, fix the shared analytics once, and deal with a line that differs before you submit.",
+    description: "Check the batch totals, preview how the saved analytic context will apply, and review any exceptions before submitting.",
     persona: "employee",
     lang: "en",
     app: "Expenses",
