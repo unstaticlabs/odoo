@@ -14190,3 +14190,33 @@ msgstr "Dossier de clôture"
 #: model:ir.model.fields,field_description:rebuild_account_migration.field_rebuild_account_declaration_candidate_review_line__partner_vat
 msgid "VAT number"
 msgstr "Numéro de TVA"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "The saved check found %(count)s declarations to review."
+msgstr "Le contrôle enregistré indique un total de %(count)s déclarations à traiter."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Saved finding. %(finding)s"
+msgstr "Constat enregistré. %(finding)s"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Open Review to see the current list for this period."
+msgstr "Ouvrez Vérifier pour consulter la liste actuelle de cette clôture."
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Tax and declaration readiness"
+msgstr "Préparation fiscale"
+
+#. module: rebuild_account_migration
+#. odoo-python
+#: code:addons/rebuild_account_migration/models/closing_controls.py:0
+msgid "Declarations Requiring Attention"
+msgstr "Déclarations à traiter"
