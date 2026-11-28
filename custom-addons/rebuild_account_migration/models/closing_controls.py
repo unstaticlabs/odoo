@@ -459,7 +459,7 @@ class RebuildAccountClosingControl(models.Model):
     )
     accountant_visible = fields.Boolean(default=True)
 
-    @api.depends("code", "name", "status", "summary")
+    @api.depends("code", "name", "status", "summary", "record_count")
     @api.depends_context("lang")
     def _compute_review_presentation(self):
         statuses = dict(self._fields["status"]._description_selection(self.env))
@@ -468,6 +468,7 @@ class RebuildAccountClosingControl(models.Model):
             "FEC readiness": self.env._("FEC readiness"),
             "Accounting Hygiene issues": self.env._("Accounting Hygiene issues"),
             "Closing reports": self.env._("Closing reports"),
+            "Tax and declaration readiness": self.env._("Tax and declaration readiness"),
         }
         for control in self:
             control.review_name = standard_names.get(control.name, control.name)
@@ -482,6 +483,14 @@ class RebuildAccountClosingControl(models.Model):
                     finding = self.env._("Check Documents for supporting files that are not linked as the main attachment.") + " " + control._localized_saved_finding()
                 elif control.code == "issues":
                     finding = self.env._("Open findings through the closing date, including undated findings.") + " " + control._localized_saved_finding()
+                elif control.code == "tax_declarations":
+                    if re.fullmatch(r"[0-9]+ due or annual declaration obligation\(s\) are not ready/complete\.", finding or ""):
+                        finding = self.env._(
+                            "The saved check found %(count)s declarations to review.", count=control.record_count,
+                        )
+                    else:
+                        finding = self.env._("Saved finding. %(finding)s", finding=finding or "")
+                    finding += " " + self.env._("Open Review to see the current list for this period.")
             control.review_result = result
             control.review_finding = finding
 
@@ -555,7 +564,7 @@ class RebuildAccountClosingControl(models.Model):
             return action
         if self.code == "tax_declarations":
             return self._action(
-                "Declarations Requiring Attention", "rebuild.account.declaration",
+                self.env._("Declarations Requiring Attention"), "rebuild.account.declaration",
                 [("id", "in", closing._filings_requiring_attention().ids)],
                 "list,form,calendar",
             )

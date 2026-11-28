@@ -962206,7 +962206,7 @@
       "delegates": [
         "rpc:rebuild.account.closing.control.ensure_one"
       ],
-      "digest": "5adc4cd75b0eb08b87f571d0b48744ed00d80ffda9d32da7e7f839a9714ee3bc",
+      "digest": "f854a3a3ffa971c71a7c418ce29b2526cb18b010d1d7e9ceb766bbadad128cf5",
       "guards": [],
       "key": "rpc:rebuild.account.closing.control.action_open_records",
       "kind": "rpc",
@@ -962221,7 +962221,7 @@
       "sinks": [],
       "sources": [
         {
-          "line": 505,
+          "line": 514,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         },
         {
@@ -1653931,7 +1653931,7 @@
       "sink_kind": "orm_create",
       "sources": [
         {
-          "line": 496,
+          "line": 505,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1653946,7 +1653946,7 @@
       "sink_kind": "orm_write",
       "sources": [
         {
-          "line": 496,
+          "line": 505,
           "path": "custom-addons/rebuild_account_migration/models/closing_controls.py"
         }
       ]
@@ -1775818,7 +1775818,7 @@
       "manifest_sha256": "ea95c46343f35e1f7defc3c191c69d35d885c1723ff28ab65e9210a7583d51b4",
       "name": "rebuild_account_migration",
       "origin": "custom",
-      "source_sha256": "14e90317231b424e0053b8cc211677af3024adcd48de9e07ef6598120a69f59b",
+      "source_sha256": "a3776e746ce3bc615faea4a8bf7962413361ee7e1c6d2b4ae8ee22f30570b395",
       "version": "saas~19.3.1.13.58"
     },
     {

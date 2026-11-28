@@ -380,6 +380,50 @@ class TestDeclarationAndClosing(TransactionCase):
             Declaration.sync_for_company(company)
         self.assertEqual(fy2026.read(protected), before)
 
+    def test_locked_tax_control_distinguishes_saved_count_from_current_review(self):
+        self.env["res.lang"]._activate_lang("fr_FR")
+        company = self._company("Recorded tax check")
+        closing = self.env["rebuild.account.closing.period"].create({
+            "name": "Synthetic year-end close", "company_id": company.id, "period_type": "annual",
+            "date_from": "2025-10-01", "date_to": "2026-09-30",
+            "fiscalyear_start": "2025-10-01", "fiscalyear_end": "2026-09-30",
+            "last_refreshed_at": "2026-10-23 12:00:00",
+        })
+        Control = self.env["rebuild.account.closing.control"]
+        control = Control._upsert(closing, "tax_declarations", closing._control_tax_declarations())
+        self.assertEqual((control.status, control.record_count), ("pass", 0))
+        current = self._declaration(company)
+        foreign = self._declaration(self._company("Outside the closing"))
+        (current | foreign).write({
+            "applicability": "applicable", "preparation_status": "missing_data", "validation_status": "blocked",
+        })
+        company.fiscalyear_lock_date = closing.date_to
+        reviewer = self.env["res.users"].with_context(no_reset_password=True).create({
+            "name": "Synthetic closing reviewer", "login": "recorded.closing.reviewer@example.invalid",
+            "company_id": company.id, "company_ids": [Command.set(company.ids)],
+            "group_ids": [Command.set(self.reviewer_group.ids)],
+        })
+        reviewed = control.with_user(reviewer).with_context(allowed_company_ids=company.ids)
+        stored_fields = ["status", "record_count", "summary", "write_date"]
+        saved = control.read(stored_fields)
+        refresh_time = closing.last_refreshed_at
+
+        with patch.object(type(closing), "_filings_requiring_attention", side_effect=AssertionError("Presentation recalculated filings")):
+            french = reviewed.with_context(lang="fr_FR").read(["review_finding"])[0]["review_finding"]
+            english = reviewed.with_context(lang="en_US").read(["review_finding"])[0]["review_finding"]
+        self.assertIn("Le contrôle enregistré indique un total de 0 déclarations à traiter.", french)
+        self.assertIn("Ouvrez Vérifier pour consulter la liste actuelle de cette clôture.", french)
+        self.assertIn("The saved check found 0 declarations to review.", english)
+        self.assertIn("Open Review to see the current list for this period.", english)
+        self.assertEqual(reviewed.with_context(lang="en_US").review_result, "Passed")
+        french_control = reviewed.with_context(lang="fr_FR")
+        self.assertEqual(french_control.review_name, "Préparation fiscale")
+        action = french_control.action_open_records()
+        self.assertEqual(action["name"], "Déclarations à traiter")
+        self.assertEqual(reviewed.env[action["res_model"]].search(action["domain"]).ids, current.ids)
+        self.assertEqual(control.read(stored_fields), saved)
+        self.assertEqual(closing.last_refreshed_at, refresh_time)
+
     def test_recorded_exclusion_removes_filing_from_calendar_and_close_until_superseded(self):
         company = self._company("Reviewed exclusion for the open year")
         Declaration = self.env["rebuild.account.declaration"]
