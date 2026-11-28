@@ -3,12 +3,31 @@ import {
     analyticDistribution,
 } from "@analytic/components/analytic_distribution/analytic_distribution";
 import { registry } from "@web/core/registry";
+import { useBus } from "@web/core/utils/hooks";
+
+export const EXPENSE_BATCH_DISCARDED = "USL_EXPENSE_BATCH_DISCARDED";
 
 class ExpenseBatchAnalyticDistribution extends AnalyticDistribution {
     setup() {
         super.setup();
         this.lineRecords = new Map();
         this.pendingClose = null;
+        this.discardRefresh = null;
+        useBus(this.props.record.model.bus, EXPENSE_BATCH_DISCARDED, ({ detail }) => {
+            // Native Discard awaits pending form changes and restores the record.
+            // The picker can still display its optimistic selection when the
+            // restored value matches the one it observed before the edit.
+            this.discardRefresh ??= this.jsonToData(this.props.record.data[this.props.name]).finally(() => {
+                this.discardRefresh = null;
+            });
+            detail.promises.push(this.discardRefresh);
+        });
+    }
+
+    get editingRecord() {
+        // The native parser can save a cleaned value when an account is
+        // missing. Restoring the display after Discard must stay read-only.
+        return !this.discardRefresh && super.editingRecord;
     }
 
     recordProps(line) {

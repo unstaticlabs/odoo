@@ -6,6 +6,7 @@ import { formView } from "@web/views/form/form_view";
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { listView } from "@web/views/list/list_view";
 import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
+import { EXPENSE_BATCH_DISCARDED } from "./expense_batch_analytic_distribution";
 
 export const EXPENSE_BATCH_ADD_STATES = ["draft", "approved", "posted"];
 
@@ -54,6 +55,13 @@ export class ExpenseBatchFormController extends FormController {
         super.setup();
         this.dialogService = useService("dialog");
         this.notificationService = useService("notification");
+    }
+
+    async discard() {
+        await super.discard(...arguments);
+        const promises = [];
+        this.model.bus.trigger(EXPENSE_BATCH_DISCARDED, { promises });
+        await Promise.all(promises);
     }
 
     async beforeExecuteActionButton(clickParams) {

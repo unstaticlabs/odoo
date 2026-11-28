@@ -48,6 +48,41 @@ tours.add("usl_expense_batch_save_analytics", {
     ],
 });
 
+tours.add("usl_expense_batch_discard_analytics", {
+    steps: () => [
+        ...tours.get("usl_expense_batch_save_analytics").steps().slice(0, 3),
+        {
+            content: "Discard the batch while the selected account is still loading",
+            trigger: `.analytic_distribution_popup .o_input_dropdown a:contains('${revisedAccount}')`,
+            async run() {
+                await click(this.anchor);
+                await click(".o_form_view .o_form_button_cancel");
+            },
+        },
+        {
+            content: "Discard restores the saved title and allocation",
+            trigger: `.o_form_view:not(:has(.o_form_status_indicator_buttons:not(.invisible))) ${field} .o_tag_badge_text:contains('analytic_account_1')`,
+        },
+        {
+            content: "Make another edit after discarding the account selection",
+            trigger: ".o_usl_expense_batch_title [name='name'] input:value('SBFH — Browser Canada 2026')",
+            async run() {
+                await click(this.anchor);
+                await edit("QA title after discard", { confirm: "tab" });
+            },
+        },
+        {
+            content: "Save only the later title change",
+            trigger: save,
+            run: "click",
+        },
+        {
+            content: "The original allocation is still shown after saving",
+            trigger: `.o_form_view:not(:has(.o_form_status_indicator_buttons:not(.invisible))) ${field} .o_tag_badge_text:contains('analytic_account_1')`,
+        },
+    ],
+});
+
 tours.add("usl_expense_batch_reopen_and_apply_analytics", {
     steps: () => [
         {
