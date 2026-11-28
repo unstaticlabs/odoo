@@ -390,3 +390,48 @@ or rolled-back request does not run it. Authority, expiry and transport checks
 still run before dispatch. Native grouping field specifications also pass their
 field identities through the existing secret-field checker, including aggregate
 suffixes and nested grouping sets; this does not change the secret field list.
+
+## Exact native structured reads
+
+The reviewed `web_search_read` actions on `project.task`, `project.project` and
+`res.partner` use the inherited native implementation in
+`addons/web/models/models.py`. Its `@api.readonly` routine calls native
+`search_fetch`, `web_read` and result formatting/counting. Each exact action
+keeps its reviewed body digest; the method name is not a general read grant. A
+custom override or upstream body change requires another source review and
+qualification. In particular, an override that forces ordinary reads onto a
+write cursor must not inherit this decision without review.
+
+These three decisions are `read_only`, preserving native model, field, record,
+delegated owner and selected-company checks. The ordinary `search_read` path
+and the classifications of `create`, `write` and `unlink` stay unchanged. The
+synthetic HTTP contract verifies two permitted companies, a third company
+outside the Agent scope, private records, an unreadable field, missing
+application access and mutation rejection even from a permitted read delegate.
+Full-row snapshots of projects, tasks, contacts, messages, attachments and
+companies remain equal during these read/refusal journeys; credential and
+security telemetry are outside that assertion.
+
+The source provenance is recorded by
+`native-structured-query-readonly-v1` in `action_policy.json`. Reproduce with
+`python3.13 -m unittest scripts.tests.test_native_structured_read_policy` and
+the `usl_native_structured_reads` native test tag. The existing inventory
+contract suite also verifies that stale overrides require review and that an
+unreviewed model does not become readonly from its method name.
+
+After actual canonical runtime discovery, regenerate through
+`scripts/action_risk_inventory.py refresh --candidate <runtime-candidate>` and
+check the source, runtime and compiled policies normally. Only these three
+keys move from `write_actions` to `read_only_actions`; no wildcard, model ACL,
+record rule, delegation or additional collaboration token is introduced. The
+policy/test paths are excluded from installed-module source identity; this
+data-only review needs a process restart with the new qualified policy pin,
+not a schema migration or a manufactured addon version bump. Keep every
+unrelated reviewed decision unchanged during regeneration.
+
+When qualifying the MCP path against this new contract, use
+`ODOO_SEARCH_QA_SPECIFICATION_ALLOWED=1` for the synthetic RO and RW profiles.
+Older native contracts can still refuse the structured selection. Preserve
+that refusal as an observed result rather than silently retrying it through
+a different operation. This classification fix is independent of the
+explicit relevance order delivered for Home and the three concrete models.

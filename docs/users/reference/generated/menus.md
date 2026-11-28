@@ -128,6 +128,7 @@ Every menu the product adds, what it opens and who sees it.
 | **B2C Evidence** | a sub-menu | `B2C Sales and Inventory / Read-only reviewer` |
 | **B2C Evidence/Accounting Sessions** | a sub-menu | everyone with the application |
 | **B2C Evidence/Accounting Sessions/Accounting and Bank Links** | Accounting and Bank Links | everyone with the application |
+| **B2C Evidence/Accounting Sessions/Monthly Review** | Monthly Review | everyone with the application |
 | **B2C Evidence/Accounting Sessions/Monthly Sessions** | Monthly Accounting Sessions | everyone with the application |
 | **B2C Evidence/Analytics** | a sub-menu | everyone with the application |
 | **B2C Evidence/Analytics/Current Stock** | Current Stock | everyone with the application |

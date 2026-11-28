@@ -68,21 +68,10 @@ msgstr "Fermer"
 
 #. module: usl_voice
 #. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.xml:0
-msgid "Heard so far"
-msgstr "Entendu jusqu’ici"
-
-#. module: usl_voice
-#. odoo-javascript
 #: code:addons/usl_voice/static/src/chatter.xml:0
 msgid "No speech detected."
 msgstr "Aucune parole détectée."
 
-#. module: usl_voice
-#. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.js:0
-msgid "No speech detected. Try recording again."
-msgstr "Aucune parole détectée. Réessayez."
 
 #. module: usl_voice
 #. odoo-javascript
@@ -157,11 +146,6 @@ msgstr "Transcription"
 msgid "Transcript copied."
 msgstr "Transcription copiée."
 
-#. module: usl_voice
-#. odoo-javascript
-#: code:addons/usl_voice/static/src/dictation.js:0
-msgid "Transcription is unavailable. Try dictating again."
-msgstr "La transcription est indisponible. Réessayez de dicter."
 
 #. module: usl_voice
 #. odoo-javascript
@@ -186,3 +170,193 @@ msgstr "En attente du micro…"
 #: code:addons/usl_voice/static/src/dictation.xml:0
 msgid "Your dictation is ready"
 msgstr "Votre dictée est prête"
+
+
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Retry transcription"
+msgstr "Réessayer la transcription"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Waiting for transcription"
+msgstr "Transcription en attente"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Your recording is kept. Retry when ready, or download it."
+msgstr "Votre enregistrement est conservé. Réessayez, ou téléchargez-le."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "No speech detected"
+msgstr "Aucune parole détectée"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Your recording is kept. Try again, or download it."
+msgstr "Votre enregistrement est conservé. Réessayez, ou téléchargez-le."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Download audio"
+msgstr "Télécharger l’audio"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Discard"
+msgstr "Abandonner"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Stop waiting. The recording is kept."
+msgstr "Arrêter d’attendre. L’enregistrement est conservé."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Stop waiting"
+msgstr "Arrêter d’attendre"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "This recording was kept from an earlier page. Copy the text and paste it where you need it."
+msgstr "Cet enregistrement vient d’une page précédente. Copiez le texte et collez-le où vous en avez besoin."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Attach to the record"
+msgstr "Joindre à la fiche"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Recording from %s discarded."
+msgstr "Enregistrement de %s abandonné."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Undo"
+msgstr "Annuler"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Unused dictation (%s)"
+msgstr "Dictée non utilisée (%s)"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Unused voice note (%s)"
+msgstr "Note vocale non utilisée (%s)"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "It was not attached to %s. Your recording is kept."
+msgstr "Elle n’a pas été jointe à %s. Votre enregistrement est conservé."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Your recording is kept. Transcribe it again, or download it."
+msgstr "Votre enregistrement est conservé. Relancez la transcription, ou téléchargez-le."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Other recordings are waiting."
+msgstr "D’autres enregistrements attendent."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Voice note attached to %s."
+msgstr "Note vocale jointe à %s."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "The voice note could not be attached. Your recording is kept."
+msgstr "La note vocale n’a pas pu être jointe. Votre enregistrement est conservé."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "the record"
+msgstr "la fiche"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "The voice note could not be uploaded. Your recording is kept."
+msgstr "La note vocale n’a pas pu être envoyée. Votre enregistrement est conservé."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Voice note not uploaded."
+msgstr "Note vocale non envoyée."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Your recording is kept."
+msgstr "Votre enregistrement est conservé."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/composer.xml:0
+msgid "Retry upload"
+msgstr "Réessayer l’envoi"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Later"
+msgstr "Plus tard"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.xml:0
+msgid "Show the unused recordings"
+msgstr "Afficher les enregistrements non utilisés"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "The voice note from %s is not saved in this browser. Download it or upload it to the record."
+msgstr "La note vocale de %s n’est pas enregistrée dans ce navigateur. Téléchargez-la ou envoyez-la sur la fiche."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/chatter.js:0
+msgid "Upload to the record"
+msgstr "Envoyer sur la fiche"
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "The recording from %s is not saved in this browser. Download it or transcribe it again."
+msgstr "L’enregistrement de %s n’est pas enregistré dans ce navigateur. Téléchargez-le ou relancez la transcription."
+
+#. module: usl_voice
+#. odoo-javascript
+#: code:addons/usl_voice/static/src/dictation.js:0
+msgid "Finish the current dictation first."
+msgstr "Terminez d’abord la dictée en cours."

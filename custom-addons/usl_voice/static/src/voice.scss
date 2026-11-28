@@ -29,6 +29,11 @@
     max-height: 45vh;
     overflow: auto;
 }
+// The recovery panel folded away: a small round count in the corner, one tap from coming back.
+.o-usl-stored-pill {
+    inset-inline-end: 1rem;
+    bottom: 1rem;
+}
 .o-usl-recovered-text {
     white-space: pre-wrap;
 }
@@ -44,16 +49,22 @@
     padding: 2px;
     gap: 2px;
 }
-.o-usl-dictation-preview {
+// The words heard so far, written over the field where they will be inserted. Clicks go
+// through to the field underneath.
+.o-usl-dictation-caption {
+    position: fixed;
+    z-index: $zindex-modal + 1;
     display: flex;
     justify-content: flex-end;
-    max-width: 24rem;
-    @media (max-width: 26rem) {
-        max-width: calc(100vw - 16px);
-    }
+    width: max-content;
     overflow: hidden;
-    white-space: nowrap;
-    // The start of a long caption fades out: the newest words are the ones that matter.
+    white-space: pre;
+    pointer-events: none;
+    // Lighter than the text already there: heard, not yet written.
+    > span { opacity: 0.55; }
+}
+// The start of a long caption fades out: the newest words are the ones that matter.
+.o-usl-dictation-caption-clipped {
     mask-image: linear-gradient(to right, transparent, #000 0.75rem);
 }
 // A voice note is a sound to listen to, the microphone is for text: two icons, as on a phone.

@@ -36,7 +36,7 @@
       "index": 2,
       "run": "",
       "screenshot": "01-setup.png",
-      "sha256": "f6d0f40efe9cc4d7c4ff8c163fbaa7ae2388f7713f7ffa0c668cd092847c7667",
+      "sha256": "f746ab95217d0c51a41c0542ba62a3b25a46dc7e5349f0972b77307f7da24e45",
       "text": "Vérifiez les journaux, les comptes utilisés et la plateforme agréée. Le résultat du dernier essai figure sur la même fiche.",
       "trigger": ".o_form_view label[for^='company_registry']:contains('SIREN ou SIRET')"
     },
@@ -56,7 +56,7 @@
       "index": 4,
       "run": "",
       "screenshot": "02-passed.png",
-      "sha256": "9a6529a3625631e85d30cb0adecdca92f0f8a78ca7e87a87db205694508222e8",
+      "sha256": "9d70b58dae6a29eafecb756bc24c4c21bb99037611a4d20bb85f2523d28026d4",
       "text": "Vérifiez la mention **Test réussi**, la date de l’essai et la confirmation qu’aucune facture d’essai n’a été conservée. Relancez le contrôle après une modification des journaux, des comptes ou de la plateforme.",
       "trigger": ".o_form_view .o_field_widget[name='rebuild_einvoice_test_status']:contains('Test réussi')"
     }

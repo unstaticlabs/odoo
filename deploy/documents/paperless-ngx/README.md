@@ -13,7 +13,7 @@ the frontend builder is pinned at
 
 ## Patch inventory
 
-Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1` has eleven bounded feature groups:
+Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-bulk-index-v1+semantic-search-api-v2+personal-gemini-v1+ollama-batch-v1+preview-contract-v1+byte-range-download-v1+workflow-ai-disabled-v1+tag-scores-v1+atomic-index-v1+reviewed-tags-v1` has twelve bounded feature groups:
 
 1. `paperless_ai/semantic_api.py` adds the authenticated, read-only
    `POST /api/documents/scoped_search/` endpoint. One request carries the
@@ -82,6 +82,10 @@ Patch level `scoped-lexical-search-v1+permission-vector-invariance-v2+deferred-b
     model change, lexical search remains available. The application's model name
     and deployment's Ollama digest check serve different purposes.
 
+12. Learned tags can use an optional minimum model score. Paperless stores a
+    receipt for each automatic addition. Classification and undo preserve
+    subsequent manual changes.
+
 `tests/test_workflow_ai_disabled.py` proves that the workflow action cannot be
 saved and that a stored instance never generates.
 
@@ -112,18 +116,22 @@ read-only and never invokes embedding or generative models.
 
 ## Evaluate automatic tag proposals
 
-Request `GET /api/documents/{id}/suggestions/?include_tag_scores=1` to
-receive a `tag_scores` object alongside the usual suggestions. Its keys are
-Paperless tag IDs. Its values are the local model's output for each proposed
-tag the caller can see. Several tags may score highly on the same document.
-A text-matching rule can propose a tag without a model score. A missing
-classifier or a model trained on only one outcome also yields no score.
+Every `GET /api/documents/{id}/suggestions/` response carries a `tag_scores`
+object next to the usual suggestions, and the shared suggestion cache stores
+it with them. Its keys are Paperless tag IDs. Its values are the local model's
+output for each proposed tag the caller can see. Several tags may score highly
+on the same document. A text-matching rule can propose a tag without a model
+score. A missing classifier or a model trained on only one outcome also
+yields no score. Cache entries written before scores existed are recomputed
+once.
 
-The scored request recomputes the proposals for the requesting user's access.
-Ordinary requests keep their existing shared suggestion cache. In Odoo,
-call `usl.document.document_detail(id, check_archive=True, include_tag_scores=True)`.
-A readable, unapplied tag proposal with a score carries `classifier_score`.
-An older Paperless server can continue returning its usual suggestions.
+Request `?include_tag_scores=1` to skip the cache and read the model afresh
+for the requesting user's access. In Odoo, the ordinary
+`usl.document.document_detail(id, check_archive=True)` already returns the
+scores. A readable, unapplied tag proposal carries `classifier_score` when the
+model scored it, and `rule: true` when a text rule rather than the model
+proposed it. An older Paperless server can continue returning its usual
+suggestions.
 
 To assess a threshold, freeze one model revision and independently label a
 held-out sample, including documents with no applicable automatic tag. Keep
@@ -131,17 +139,42 @@ documents from the same series together when splitting training and evaluation.
 For each document, store its `tag_scores` and reviewed `expected_tag_ids` in
 a private JSON-lines file. Include every reviewed document, including rows
 with an empty score object or empty label list. Use the Paperless IDs for both
-columns. The evaluator only prints aggregate counts and rates.
+columns. By default the evaluator prints aggregate counts and rates.
 
 ```sh
 python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85
+python3 deploy/documents/paperless-ngx/evaluate_tag_scores.py reviews.jsonl --threshold 0.85 --tag-id 17
 ```
 
-Precision answers how often the proposed tags above the threshold were right.
+With a tag ID the result also lists the one-based rows where that tag was
+incorrectly proposed. Review those rows in the private sample. Precision
+answers how often the proposed tags above the threshold were right.
 Recall answers how many of the expected tags the threshold recovered.
 With zero proposals precision is undefined. Review both measures and the
 number of examples before selecting an automatic policy. The scored API
 and evaluator perform no tag writes.
+
+### Apply and review one learned tag
+
+In Odoo Documents, open a learned tag and choose **Score rule**. A new
+installation has no score rules. Set the minimum separately for each tag using
+independently reviewed documents, including examples which should stay untagged.
+An eligible tag must be proposed by Paperless and have a real score at or
+above its minimum. Dates, correspondents and tags without a policy retain
+their native matching behavior.
+
+Open **Automatic tag history** on a document to see the measured score, the
+minimum used and the time of each change. A native retagging command groups
+its changes into one batch. An intake classifies one document at a time.
+**Review batch** lists the documents the current user can still edit. Undo
+removes only links created by that run and still owned by it. A manual
+removal or a previous undo prevents the classifier from reapplying that
+document/tag pair. People can still add or remove the tag themselves.
+Paperless's own bulk edit does not record a manual removal, so a tag removed
+that way can be applied again by a later run. The batch preview lists only
+documents the caller may change, and a parent tag created by a run is removed
+with the last tag of that run that needed it.
+Replaying an undo is safe even if a response was lost.
 
 ## Semantic API contract
 

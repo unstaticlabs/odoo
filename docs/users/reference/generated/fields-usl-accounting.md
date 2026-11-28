@@ -634,6 +634,56 @@ false
 | **Companies without an employee profile** (`usl_expense_excluded_company_ids`) | many2many → `res.company` |  | Keep access to these companies without creating an employee profile for expense submission. Existing employee records are never archived automatically. |
 | **Expenses in all allowed companies** (`usl_expense_multi_company`) | boolean |  | Maintain one company-specific employee profile in each allowed company. This lets the user submit expenses after switching the active company without merging HR, payroll, approval or accounting records between legal entities. |
 
+## Change the company of a draft bill
+
+`usl.bill.company.transfer`, defined by this module. Transient: the record lives only while its dialog is open.
+
+false
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Bill** (`bill_id`) | many2one → `account.move` | yes |  |
+| **Blockers Html** (`blockers_html`) | html |  |  |
+| **Consequences** (`consequences`) | text |  |  |
+| **Destination Summary** (`destination_summary`) | text |  |  |
+| **Destination fiscal position** (`fiscal_position_id`) | many2one → `account.fiscal.position` |  |  |
+| **Has Blockers** (`has_blockers`) | boolean |  |  |
+| **Destination journal** (`journal_id`) | many2one → `account.journal` |  |  |
+| **Invoice lines** (`mapping_ids`) | one2many → `usl.bill.company.transfer.line` |  |  |
+| **Operator Company** (`operator_company_ids`) | json |  | Every company the operator can access, active in the selector or not. |
+| **Use no fiscal position** (`remove_fiscal_position`) | boolean |  |  |
+| **Scope Company** (`scope_company_ids`) | json |  | Both companies, so the destination's records can be read and chosen. |
+| **Snapshot** (`snapshot`) | char |  |  |
+| **Current company** (`source_company_id`) | many2one → `res.company` |  |  |
+| **Current fiscal position** (`source_fiscal_position_id`) | many2one → `account.fiscal.position` |  | Fiscal positions are used to adapt taxes and accounts for particular customers or sales orders/invoices. The default value comes from the customer. |
+| **Current journal** (`source_journal_id`) | many2one → `account.journal` |  |  |
+| **Current payment terms** (`source_term_id`) | many2one → `account.payment.term` |  |  |
+| **Stage** (`stage`) | selection | yes | Values: **Choose company**, **Review accounts**, **Transferred**. |
+| **Destination company** (`target_company_id`) | many2one → `res.company` |  |  |
+| **Destination payment terms** (`term_id`) | many2one → `account.payment.term` |  |  |
+| **Warning** (`warning`) | text |  |  |
+
+## Bill line accounts in the destination company
+
+`usl.bill.company.transfer.line`, defined by this module. Transient: the record lives only while its dialog is open.
+
+false
+
+| Field | Type | Required | Meaning |
+| --- | --- | --- | --- |
+| **Analytic distribution** (`analytic_distribution`) | json |  |  |
+| **Analytic Precision** (`analytic_precision`) | integer |  |  |
+| **Destination company** (`company_id`) | many2one → `res.company` |  |  |
+| **Invoice Line** (`invoice_line_id`) | many2one → `account.move.line` | yes |  |
+| **Item** (`label`) | char |  |  |
+| **Use no tax** (`remove_taxes`) | boolean |  |  |
+| **Scope Company** (`scope_company_ids`) | json |  | Both companies, so the destination's records can be read and chosen. |
+| **Current account** (`source_account_label`) | char |  |  |
+| **Current taxes** (`source_tax_ids`) | many2many → `account.tax` |  |  |
+| **Destination account** (`target_account_id`) | many2one → `account.account` |  |  |
+| **Destination taxes** (`target_tax_ids`) | many2many → `account.tax` |  |  |
+| **Transfer** (`transfer_id`) | many2one → `usl.bill.company.transfer` | yes |  |
+
 ## Expense Bank Match Candidate
 
 `usl.expense.bank.match.candidate`, defined by this module.

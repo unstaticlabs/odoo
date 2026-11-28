@@ -1,0 +1,8 @@
+// The native buttons keep their native touch size: the link button must match
+// the gear and the smart-buttons button next to it.
+// A complete ring on keyboard focus; the default one is clipped by the title row.
+.o_usl_copy_record_link:focus-visible {
+    box-shadow: none;
+    outline: 2px solid var(--o-brand-primary, #714b67);
+    outline-offset: -2px;
+}

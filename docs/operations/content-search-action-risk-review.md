@@ -109,3 +109,28 @@ is classified `system_internal`, consistent with those existing private helpers.
 The body scopes only the local planner setting and delegates native aggregation;
 it adds no public entry or business write. Existing parent classifications and
 all protected/operational/recoverable classifications remain unchanged.
+
+## Home per-category relevance
+
+`usl.home.service.search_records` remains `read_only`. Its private ranking helper
+builds the same native caller-authorized Query, checks access to the own `name`
+field, uses native SQL field translation, and orders that Query before its limit
+and offset. Every parameter remains bound. It does not enumerate projection
+fragments, related identities or source bodies to assign rank. Record and message
+eligibility, selected companies, category filters and source-opening rechecks
+remain the existing domains and methods. Session-local JIT suppression is restored
+after the query; no refresh runs during search.
+
+The annotated synthetic FR/EN corpus has 45 distinct queries across Tasks,
+Projects and Contacts, including content-only competitors, negative queries and
+an explicitly unsupported typo. Native tests cover page boundaries, live pending
+title edits, current-language titles, hidden-field ranking, immediate record and
+message withdrawal, company-scoped stale source destinations and unchanged
+source/projection rows. The public result schema is unchanged.
+
+Only the reviewed digest of `rpc:usl.home.service.search_records` moves. The
+other two Home RPC changes are source-line metadata; no action, classification,
+protected guard or delegation is added. Both compact runtime policy artifacts
+remain byte-identical. Generic MCP search retains concrete native model ordering
+and source evidence; the abstract Home delegation gap is deliberately unchanged.
+The ranking does not install PostgreSQL extensions or add fuzzy retrieval.

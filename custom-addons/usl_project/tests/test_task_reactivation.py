@@ -260,6 +260,20 @@ class TestTaskReactivation(TransactionCase):
         self.assertEqual(reopened.state, "02_changes_requested")
         self.assertEqual(archived.stage_id, self.stage_a)
 
+    def test_project_reactivation_when_the_waiting_reason_is_cleared(self):
+        self.stage_a.usl_reactivation_role = "later"
+        self.stage_b.sequence = -10
+        resumed = self._task("Supplier answered", usl_waiting_reason="Supplier quote")
+        resumed_by_status = self._task("Resumed by status", usl_waiting_reason="Customer answer")
+        still_waiting = self._task("Still waiting", usl_waiting_reason="Other quote")
+        self.assertEqual((resumed | resumed_by_status | still_waiting).stage_id, self.stage_a)
+
+        resumed.usl_waiting_reason = False
+        resumed_by_status.state = "01_in_progress"
+
+        self.assertEqual((resumed | resumed_by_status).stage_id, self.stage_b)
+        self.assertEqual(still_waiting.stage_id, self.stage_a)
+
     def test_project_deadline_follows_local_midnight_after_dst_transition(self):
         self.project.company_id = self.env.company
         self.env.company.tz = "Europe/Paris"

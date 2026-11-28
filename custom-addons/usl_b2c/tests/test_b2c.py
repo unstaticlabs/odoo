@@ -650,7 +650,8 @@ class TestB2cFoundation(TransactionCase):
         self.assertEqual(session.pending_link_count, 0)
         # Full coverage is evidence for the reviewer, never a review.
         self.assertEqual(session.state, "draft")
-        self.assertIn("not a review", session.review_next_step)
+        self.assertIn("No open gaps", session.review_next_step)
+        self.assertIn("Check totals and evidence", session.review_next_step)
         self.assertIn("Mark Reviewed", session.review_next_step)
         # The list cell is a short label, not the sentence.
         self.assertEqual(session.review_status, "Awaiting review")
@@ -661,7 +662,7 @@ class TestB2cFoundation(TransactionCase):
         session.action_refresh()
         self.assertEqual(session.state, "draft")
         self.assertIn("1 record", session.review_next_step)
-        self.assertNotIn("not a review", session.review_next_step)
+        self.assertNotIn("No open gaps", session.review_next_step)
         self.assertEqual(session.review_status, "1 open gap")
         french.invalidate_recordset(["review_status", "review_next_step"])
         self.assertEqual(french.review_status, "1 écart ouvert")

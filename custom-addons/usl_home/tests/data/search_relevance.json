@@ -1,0 +1,844 @@
+{
+  "schema": "usl-search-relevance-corpus/v1",
+  "synthetic": true,
+  "ranking_contract": "exact own readable name, phrase in own name, all lexical words in own name, other matches; descending id ties",
+  "cases": [
+    {
+      "id": "tasks-01",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Atelier Ambre",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Atelier Ambre",
+        "phrase": "Visite Atelier Ambre — préparation",
+        "words": "Ambre Atelier Visite",
+        "mention": "Dossier 01"
+      },
+      "mention": "Conversation concernant Visite Atelier Ambre.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-02",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Équipe Boréale",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Équipe Boréale",
+        "phrase": "Visite Équipe Boréale — préparation",
+        "words": "Boréale Équipe Visite",
+        "mention": "Dossier 02"
+      },
+      "mention": "Conversation concernant Visite Équipe Boréale.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-03",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Cœur de cuivre",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Cœur de cuivre",
+        "phrase": "Visite Cœur de cuivre — préparation",
+        "words": "cuivre de Cœur Visite",
+        "mention": "Dossier 03"
+      },
+      "mention": "Conversation concernant Visite Cœur de cuivre.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-04",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Plan de visite",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Plan de visite",
+        "phrase": "Visite Plan de visite — préparation",
+        "words": "visite de Plan Visite",
+        "mention": "Dossier 04"
+      },
+      "mention": "Conversation concernant Visite Plan de visite.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-05",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Contrôle qualité",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Contrôle qualité",
+        "phrase": "Visite Contrôle qualité — préparation",
+        "words": "qualité Contrôle Visite",
+        "mention": "Dossier 05"
+      },
+      "mention": "Conversation concernant Visite Contrôle qualité.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-06",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Réunion de lancement",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visite Réunion de lancement",
+        "phrase": "Visite Réunion de lancement — préparation",
+        "words": "lancement de Réunion Visite",
+        "mention": "Dossier 06"
+      },
+      "mention": "Conversation concernant Visite Réunion de lancement.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-07",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Amber workshop",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Amber workshop",
+        "phrase": "Visit Amber workshop preparation",
+        "words": "workshop Amber Visit",
+        "mention": "File 07"
+      },
+      "mention": "Conversation about Visit Amber workshop.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-08",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Blue orchard",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Blue orchard",
+        "phrase": "Visit Blue orchard preparation",
+        "words": "orchard Blue Visit",
+        "mention": "File 08"
+      },
+      "mention": "Conversation about Visit Blue orchard.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-09",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Copper design",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Copper design",
+        "phrase": "Visit Copper design preparation",
+        "words": "design Copper Visit",
+        "mention": "File 09"
+      },
+      "mention": "Conversation about Visit Copper design.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-10",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Client briefing",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Client briefing",
+        "phrase": "Visit Client briefing preparation",
+        "words": "briefing Client Visit",
+        "mention": "File 10"
+      },
+      "mention": "Conversation about Visit Client briefing.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-11",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Quality review",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Quality review",
+        "phrase": "Visit Quality review preparation",
+        "words": "review Quality Visit",
+        "mention": "File 11"
+      },
+      "mention": "Conversation about Visit Quality review.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-12",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Visit Launch meeting",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Visit Launch meeting",
+        "phrase": "Visit Launch meeting preparation",
+        "words": "meeting Launch Visit",
+        "mention": "File 12"
+      },
+      "mention": "Conversation about Visit Launch meeting.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "tasks-negative-fr",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite papillon quartz inexistant",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "tasks-negative-en",
+      "category": "tasks",
+      "lang": "en",
+      "query": "Unrecorded violet visit",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "tasks-typo-fr",
+      "category": "tasks",
+      "lang": "fr",
+      "query": "Visite Attelier Ambre",
+      "intent": "One common doubled-letter typo",
+      "expected_order": [],
+      "annotation": "Explicit current limit: lexical/substring retrieval does not correct spelling. Trigram indexes accelerate substring predicates; they do not imply fuzzy matching. No candidate broadening in this ranking-only change."
+    },
+    {
+      "id": "projects-01",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Atelier Ambre",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Atelier Ambre",
+        "phrase": "Atelier Ambre — préparation",
+        "words": "Ambre Atelier",
+        "mention": "Dossier 01"
+      },
+      "mention": "Conversation concernant Atelier Ambre.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-02",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Équipe Boréale",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Équipe Boréale",
+        "phrase": "Équipe Boréale — préparation",
+        "words": "Boréale Équipe",
+        "mention": "Dossier 02"
+      },
+      "mention": "Conversation concernant Équipe Boréale.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-03",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Cœur de cuivre",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Cœur de cuivre",
+        "phrase": "Cœur de cuivre — préparation",
+        "words": "cuivre de Cœur",
+        "mention": "Dossier 03"
+      },
+      "mention": "Conversation concernant Cœur de cuivre.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-04",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Plan de visite",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Plan de visite",
+        "phrase": "Plan de visite — préparation",
+        "words": "visite de Plan",
+        "mention": "Dossier 04"
+      },
+      "mention": "Conversation concernant Plan de visite.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-05",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Contrôle qualité",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Contrôle qualité",
+        "phrase": "Contrôle qualité — préparation",
+        "words": "qualité Contrôle",
+        "mention": "Dossier 05"
+      },
+      "mention": "Conversation concernant Contrôle qualité.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-06",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Réunion de lancement",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Réunion de lancement",
+        "phrase": "Réunion de lancement — préparation",
+        "words": "lancement de Réunion",
+        "mention": "Dossier 06"
+      },
+      "mention": "Conversation concernant Réunion de lancement.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-07",
+      "category": "projects",
+      "lang": "en",
+      "query": "Amber workshop",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Amber workshop",
+        "phrase": "Amber workshop preparation",
+        "words": "workshop Amber",
+        "mention": "File 07"
+      },
+      "mention": "Conversation about Amber workshop.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-08",
+      "category": "projects",
+      "lang": "en",
+      "query": "Blue orchard",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Blue orchard",
+        "phrase": "Blue orchard preparation",
+        "words": "orchard Blue",
+        "mention": "File 08"
+      },
+      "mention": "Conversation about Blue orchard.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-09",
+      "category": "projects",
+      "lang": "en",
+      "query": "Copper design",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Copper design",
+        "phrase": "Copper design preparation",
+        "words": "design Copper",
+        "mention": "File 09"
+      },
+      "mention": "Conversation about Copper design.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-10",
+      "category": "projects",
+      "lang": "en",
+      "query": "Client briefing",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Client briefing",
+        "phrase": "Client briefing preparation",
+        "words": "briefing Client",
+        "mention": "File 10"
+      },
+      "mention": "Conversation about Client briefing.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-11",
+      "category": "projects",
+      "lang": "en",
+      "query": "Quality review",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Quality review",
+        "phrase": "Quality review preparation",
+        "words": "review Quality",
+        "mention": "File 11"
+      },
+      "mention": "Conversation about Quality review.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-12",
+      "category": "projects",
+      "lang": "en",
+      "query": "Launch meeting",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Launch meeting",
+        "phrase": "Launch meeting preparation",
+        "words": "meeting Launch",
+        "mention": "File 12"
+      },
+      "mention": "Conversation about Launch meeting.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "projects-negative-fr",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Plan papillon quartz inexistant",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "projects-negative-en",
+      "category": "projects",
+      "lang": "en",
+      "query": "Unrecorded violet observatory",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "projects-typo-fr",
+      "category": "projects",
+      "lang": "fr",
+      "query": "Attelier Ambre",
+      "intent": "One common doubled-letter typo",
+      "expected_order": [],
+      "annotation": "Explicit current limit: lexical/substring retrieval does not correct spelling. Trigram indexes accelerate substring predicates; they do not imply fuzzy matching. No candidate broadening in this ranking-only change."
+    },
+    {
+      "id": "contacts-01",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Atelier Ambre conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Atelier Ambre conseil",
+        "phrase": "Atelier Ambre conseil — préparation",
+        "words": "conseil Ambre Atelier",
+        "mention": "Dossier 01"
+      },
+      "mention": "Conversation concernant Atelier Ambre conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-02",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Équipe Boréale conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Équipe Boréale conseil",
+        "phrase": "Équipe Boréale conseil — préparation",
+        "words": "conseil Boréale Équipe",
+        "mention": "Dossier 02"
+      },
+      "mention": "Conversation concernant Équipe Boréale conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-03",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Cœur de cuivre conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Cœur de cuivre conseil",
+        "phrase": "Cœur de cuivre conseil — préparation",
+        "words": "conseil cuivre de Cœur",
+        "mention": "Dossier 03"
+      },
+      "mention": "Conversation concernant Cœur de cuivre conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-04",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Plan de visite conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Plan de visite conseil",
+        "phrase": "Plan de visite conseil — préparation",
+        "words": "conseil visite de Plan",
+        "mention": "Dossier 04"
+      },
+      "mention": "Conversation concernant Plan de visite conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-05",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Contrôle qualité conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Contrôle qualité conseil",
+        "phrase": "Contrôle qualité conseil — préparation",
+        "words": "conseil qualité Contrôle",
+        "mention": "Dossier 05"
+      },
+      "mention": "Conversation concernant Contrôle qualité conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-06",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Réunion de lancement conseil",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Réunion de lancement conseil",
+        "phrase": "Réunion de lancement conseil — préparation",
+        "words": "conseil lancement de Réunion",
+        "mention": "Dossier 06"
+      },
+      "mention": "Conversation concernant Réunion de lancement conseil.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-07",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Amber workshop advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Amber workshop advisory",
+        "phrase": "Amber workshop advisory preparation",
+        "words": "advisory workshop Amber",
+        "mention": "File 07"
+      },
+      "mention": "Conversation about Amber workshop advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-08",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Blue orchard advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Blue orchard advisory",
+        "phrase": "Blue orchard advisory preparation",
+        "words": "advisory orchard Blue",
+        "mention": "File 08"
+      },
+      "mention": "Conversation about Blue orchard advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-09",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Copper design advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Copper design advisory",
+        "phrase": "Copper design advisory preparation",
+        "words": "advisory design Copper",
+        "mention": "File 09"
+      },
+      "mention": "Conversation about Copper design advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-10",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Client briefing advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Client briefing advisory",
+        "phrase": "Client briefing advisory preparation",
+        "words": "advisory briefing Client",
+        "mention": "File 10"
+      },
+      "mention": "Conversation about Client briefing advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-11",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Quality review advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Quality review advisory",
+        "phrase": "Quality review advisory preparation",
+        "words": "advisory review Quality",
+        "mention": "File 11"
+      },
+      "mention": "Conversation about Quality review advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-12",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Launch meeting advisory",
+      "intent": "Find the named record before newer records that merely mention it",
+      "expected_order": [
+        "exact",
+        "phrase",
+        "words",
+        "mention"
+      ],
+      "titles": {
+        "exact": "Launch meeting advisory",
+        "phrase": "Launch meeting advisory preparation",
+        "words": "advisory meeting Launch",
+        "mention": "File 12"
+      },
+      "mention": "Conversation about Launch meeting advisory.",
+      "annotation": "Ambiguous: all four are legitimate readable matches; title prominence then descending id resolves ties."
+    },
+    {
+      "id": "contacts-negative-fr",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Contact papillon quartz inexistant",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "contacts-negative-en",
+      "category": "contacts",
+      "lang": "en",
+      "query": "Unrecorded violet advisor",
+      "intent": "No matching record",
+      "expected_order": [],
+      "annotation": "Negative: no fixture carries these terms."
+    },
+    {
+      "id": "contacts-typo-fr",
+      "category": "contacts",
+      "lang": "fr",
+      "query": "Attelier Ambre conseil",
+      "intent": "One common doubled-letter typo",
+      "expected_order": [],
+      "annotation": "Explicit current limit: lexical/substring retrieval does not correct spelling. Trigram indexes accelerate substring predicates; they do not imply fuzzy matching. No candidate broadening in this ranking-only change."
+    }
+  ]
+}

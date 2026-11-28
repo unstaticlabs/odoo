@@ -71,12 +71,17 @@ pending.
 
 ## Complete a monthly review
 
-1. Open **B2C → Accounting Sessions → Monthly Sessions** and select the
-   company, month and optional channel/provider.
-2. Choose **Refresh Evidenced Totals**.
+1. Open **B2C → Accounting Sessions → Monthly Review**. It lists the open
+   months that need action, each with a status badge and what is missing. The
+   filters **With Gaps**, **To Refresh** and **Ready for Review** add up:
+   select two to see both. Open a month to work on it. To change the company,
+   month or channel of a draft, or to see closed months, use **Monthly
+   Sessions**.
+2. On the session, choose **Refresh Evidenced Totals**.
 3. Review revenue, units, refunds, fees, COGS, margin, unallocated revenue,
    unknown amounts, conversion gaps, SKU mappings and accounting-link coverage.
-4. Resolve only relationships supported by evidence and refresh again.
+4. Resolve only relationships supported by evidence, then choose
+   **Refresh Evidenced Totals** again: the gap counts are a snapshot.
 5. Record the remaining gaps in the review note and choose **Mark Reviewed**.
 6. After accountant approval, choose **Lock Session**. Only a B2C Manager can
    unlock it, and the unlock requires an audit note.
@@ -87,8 +92,12 @@ separate and must not be used for B2C commerce.
 
 ## Protect sensitive evidence
 
-Raw provider payloads may contain customer personal data. Normal B2C roles use
-the structured records. Open **Restricted Provider Evidence** only when the
+Readers can review the file name, import results and structured rows for their
+selected companies. Import operators and members of **Sensitive Evidence** can
+also download the original CSV from the batch.
+
+Raw provider payloads may contain customer personal data. Open
+**Restricted Provider Evidence** only when the
 separate sensitive-evidence role has been granted for a documented
 investigation. Do not copy raw payloads into shared spreadsheets or reports.
 
